@@ -1,0 +1,3 @@
+rootProject.name = 'incentive-services'
+
+include 'issue'
