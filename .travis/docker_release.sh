@@ -6,7 +6,7 @@ VERSION=$(echo $TRAVIS_TAG | cut -c 2-)  # Remove v from version
 
 echo "Building docker images with version: $VERSION"
 
-../gradlew :issue::bootBuildImage
+./gradlew :issue::bootBuildImage
 
 docker tag ${IMAGE}:${VERSION} ${IMAGE}:latest
 
