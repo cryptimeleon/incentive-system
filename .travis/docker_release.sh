@@ -8,6 +8,7 @@ echo "Building docker images with version: $VERSION"
 
 ./gradlew :issue::bootBuildImage
 
+docker tag ${IMAGE}:${VERSION} ${IMAGE}:$VERSION
 docker tag ${IMAGE}:${VERSION} ${IMAGE}:latest
 
 # Login to dockerhubwith credentials
