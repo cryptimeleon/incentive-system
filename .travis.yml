@@ -2,3 +2,13 @@ sudo: false
 language: java
 jdk:
   - openjdk15
+
+services: docker
+
+deploy:
+  provider: script
+  script: bash .travis/docker_release
+  on:
+    tags: true
+    all_branches: true
+    condition: "$TRAVIS_TAG =~ ^release.*$"
