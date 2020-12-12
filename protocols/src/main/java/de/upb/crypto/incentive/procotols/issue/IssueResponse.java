@@ -6,6 +6,11 @@ public class IssueResponse {
     final int id;
     final String payload;
 
+    public IssueResponse() {
+        id = -1;
+        payload = "";
+    }
+
     public IssueResponse(int id, String payload) {
         this.id = id;
         this.payload = payload;
