@@ -1,14 +1,12 @@
 #!/bin/bash
 
-SERVICES=(
-  issue
-  credit
-)
+SERVICES=( issue credit )
 VERSION=$(echo "$TRAVIS_TAG" | cut -c 2-)  # Remove v from version
 echo "Building and deploying docker images with version: $VERSION"
 
-for service in "${SERVICES[@]}"; do
-  IMAGE=upbcuk/incentive-service-${service}
+for SERVICE in "${SERVICES[@]}"
+do
+  IMAGE=upbcuk/incentive-service-${SERVICE}
 
   echo "Building docker images for ${SERVICE}-service."
 
