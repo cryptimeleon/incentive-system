@@ -1,4 +1,5 @@
 rootProject.name = 'incentive-services'
 
 include 'issue'
+include 'credit'
 include 'protocols'
