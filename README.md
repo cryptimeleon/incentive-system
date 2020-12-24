@@ -15,7 +15,7 @@
 
 ## Swagger API
 
-We use [springfox](http://springfox.github.io/springfox/docs/current/) to automatically generate a swagger api. After you started the application using`./gradlew bootRun`, you can access the swagger ui at [http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html). 
+We use [springfox](http://springfox.github.io/springfox/docs/current/) to automatically generate a swagger api. After you started the application using`./gradlew bootRun`, you can access the swagger ui at [http://localhost:8001/swagger-ui/index.html](http://localhost:8001/swagger-ui/index.html) [http://localhost:8002/swagger-ui/index.html](http://localhost:8002/swagger-ui/index.html) when executed locally.
 
 ---
 
