@@ -19,6 +19,16 @@ We use [springfox](http://springfox.github.io/springfox/docs/current/) to automa
 
 ---
 
+## Deploying to Kubernetes
+
+We use KinD (Kubernetes in Docker) for the deployment:
+ 1. Install (KinD)[https://kind.sigs.k8s.io/docs/user/quick-start/#installation] and (kubectl)[https://kubernetes.io/docs/tasks/tools/install-kubectl/].
+ 2. Run `./deployment/deploy.sh` from the projects
+
+You can now access the api at [http://$NODE-IP/crediting/swagger-ui/index.html]() [http://$NODE_IP/issuing/swagger-ui/index.html](). The node ip can be queried with the command `kubectl get nodes -o wide`.
+
+---
+
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md).
