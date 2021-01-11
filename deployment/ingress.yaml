@@ -1,0 +1,29 @@
+kind: Ingress
+apiVersion: extensions/v1beta1
+metadata:
+  name: t2-ingress-credit
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /crediting
+            pathType: Prefix
+            backend:
+              serviceName: credit-service
+              servicePort: 8000
+
+---
+
+kind: Ingress
+apiVersion: extensions/v1beta1
+metadata:
+  name: t2-ingress-issue
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /issuing
+            pathType: Prefix
+            backend:
+              serviceName: issue-service
+              servicePort: 8000
