@@ -6,7 +6,7 @@ plugins {
 
 }
 
-group = 'de.upb.crypto.incentive.services'
+group = 'de.upb.crypto'
 sourceCompatibility = '15'
 
 repositories {
