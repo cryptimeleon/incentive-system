@@ -1,6 +1,6 @@
-package de.upb.crypto.incentive.protocols.credit;
+package de.upb.crypto.incentive.protocolmock.credit;
 
-import de.upb.crypto.incentive.protocols.model.Token;
+import de.upb.crypto.incentive.protocolmock.model.Token;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

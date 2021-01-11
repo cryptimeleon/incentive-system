@@ -1,8 +1,8 @@
 package de.upb.crypto.incentive.services.issue;
 
-import de.upb.crypto.incentive.protocols.issue.IssueRequest;
-import de.upb.crypto.incentive.protocols.issue.IssueResponse;
-import de.upb.crypto.incentive.protocols.model.Token;
+import de.upb.crypto.incentive.protocolmock.issue.IssueRequest;
+import de.upb.crypto.incentive.protocolmock.issue.IssueResponse;
+import de.upb.crypto.incentive.protocolmock.model.Token;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;

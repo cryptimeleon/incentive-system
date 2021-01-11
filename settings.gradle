@@ -1,5 +1,6 @@
-rootProject.name = 'incentive-services'
+rootProject.name = 'incentive'
 
 include 'issue'
 include 'credit'
-include 'protocols'
+include 'protocolmock'
+

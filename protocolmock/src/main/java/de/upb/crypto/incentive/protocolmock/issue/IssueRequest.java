@@ -1,4 +1,4 @@
-package de.upb.crypto.incentive.protocols.issue;
+package de.upb.crypto.incentive.protocolmock.issue;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

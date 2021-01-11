@@ -1,6 +1,6 @@
-package de.upb.crypto.incentive.protocols.issue;
+package de.upb.crypto.incentive.protocolmock.credit;
 
-import de.upb.crypto.incentive.protocols.model.Token;
+import de.upb.crypto.incentive.protocolmock.model.Token;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class IssueResponse {
+public class CreditResponse {
     private int id;
     private Token token;
 }

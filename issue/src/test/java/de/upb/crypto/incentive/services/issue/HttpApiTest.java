@@ -1,8 +1,8 @@
 package de.upb.crypto.incentive.services.issue;
 
-import de.upb.crypto.incentive.protocols.issue.IssueRequest;
-import de.upb.crypto.incentive.protocols.issue.IssueResponse;
-import de.upb.crypto.incentive.protocols.model.Token;
+import de.upb.crypto.incentive.protocolmock.issue.IssueRequest;
+import de.upb.crypto.incentive.protocolmock.issue.IssueResponse;
+import de.upb.crypto.incentive.protocolmock.model.Token;
 import org.junit.jupiter.api.Test;
 
 import org.springframework.beans.factory.annotation.Autowired;

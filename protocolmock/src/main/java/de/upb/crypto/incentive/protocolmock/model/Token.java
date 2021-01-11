@@ -1,13 +1,12 @@
-package de.upb.crypto.incentive.protocols.model;
+package de.upb.crypto.incentive.protocolmock.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
-public class Reward {
-    private String name;
+@NoArgsConstructor
+public class Token {
     private int value;
 }

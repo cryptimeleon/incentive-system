@@ -1,7 +1,7 @@
 package de.upv.crypto.incentive.services.credit;
 
-import de.upb.crypto.incentive.protocols.credit.CreditRequest;
-import de.upb.crypto.incentive.protocols.credit.CreditResponse;
+import de.upb.crypto.incentive.protocolmock.credit.CreditRequest;
+import de.upb.crypto.incentive.protocolmock.credit.CreditResponse;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;

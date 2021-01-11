@@ -1,8 +1,8 @@
 package de.upv.crypto.incentive.services.credit;
 
-import de.upb.crypto.incentive.protocols.credit.CreditRequest;
-import de.upb.crypto.incentive.protocols.credit.CreditResponse;
-import de.upb.crypto.incentive.protocols.model.Token;
+import de.upb.crypto.incentive.protocolmock.credit.CreditRequest;
+import de.upb.crypto.incentive.protocolmock.credit.CreditResponse;
+import de.upb.crypto.incentive.protocolmock.model.Token;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
