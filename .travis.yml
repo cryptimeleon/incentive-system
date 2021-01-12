@@ -2,6 +2,12 @@ language: java
 jdk:
   - openjdk15
 
+before_install:
+  - pushd ..
+  - git clone https://github.com/upbcuk/upb.crypto.craco.git
+  - git clone https://github.com/upbcuk/upb.crypto.math.git
+  - popd
+
 services: docker
 
 deploy:

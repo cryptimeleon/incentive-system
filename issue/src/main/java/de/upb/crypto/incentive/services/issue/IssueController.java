@@ -1,8 +1,8 @@
 package de.upb.crypto.incentive.services.issue;
 
-import de.upb.crypto.incentive.protocols.issue.IssueRequest;
-import de.upb.crypto.incentive.protocols.issue.IssueResponse;
-import de.upb.crypto.incentive.protocols.model.Token;
+import de.upb.crypto.incentive.protocoldefinition.issuejoin.IssueResponse;
+import de.upb.crypto.incentive.protocoldefinition.issuejoin.JoinRequest;
+import de.upb.crypto.incentive.protocoldefinition.model.Token;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
@@ -20,8 +20,8 @@ public class IssueController {
             @ApiResponse(code = 200, message = "Success", response = IssueResponse.class),
             @ApiResponse(code = 403, message = "Invalid Issuing Request", response = String.class)
     })
-    public ResponseEntity<IssueResponse> greeting(@Validated IssueRequest request) {
-        return new ResponseEntity<>(new IssueResponse(request.getId(), new Token(0)), HttpStatus.OK);
+    public ResponseEntity<IssueResponse> greeting(@Validated JoinRequest request) {
+        return new ResponseEntity<>(new IssueResponse(request.getId(), "Some serialized response"), HttpStatus.OK);
     }
 
     @ResponseStatus(HttpStatus.FORBIDDEN)

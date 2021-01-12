@@ -1,5 +1,10 @@
-rootProject.name = 'incentive-services'
+rootProject.name = 'incentive'
 
 include 'issue'
 include 'credit'
-include 'protocols'
+include 'protocoldefinition'
+include 'cryptoprotocol'
+
+includeBuild "../upb.crypto.math"
+includeBuild "../upb.crypto.craco"
+

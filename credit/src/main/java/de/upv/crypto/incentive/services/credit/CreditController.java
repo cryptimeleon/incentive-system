@@ -1,7 +1,7 @@
 package de.upv.crypto.incentive.services.credit;
 
-import de.upb.crypto.incentive.protocols.credit.CreditRequest;
-import de.upb.crypto.incentive.protocols.credit.CreditResponse;
+import de.upb.crypto.incentive.protocoldefinition.creditearn.EarnRequest;
+import de.upb.crypto.incentive.protocoldefinition.creditearn.CreditResponse;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
@@ -30,14 +30,12 @@ public class CreditController {
             @ApiResponse(code = 200, message = "Success", response = CreditResponse.class),
             @ApiResponse(code = 403, message = "Invalid Credit Request", response = String.class)
     })
-    public ResponseEntity<CreditResponse> greeting(@Validated CreditRequest request) throws IncentiveException {
-        if (request.getIncrease() < 0) {
+    public ResponseEntity<CreditResponse> greeting(@Validated EarnRequest request) throws IncentiveException {
+        if (request.getEarnAmount() < 0) {
             throw new IncentiveException();
         }
-        var newToken = request.getToken();
-        newToken.setValue(newToken.getValue() + request.getIncrease());
         // TODO query basket server to check if request is valid
-        return new ResponseEntity<>(new CreditResponse(request.getId(), newToken) , HttpStatus.OK);
+        return new ResponseEntity<>(new CreditResponse(request.getId(), "Test credit response") , HttpStatus.OK);
     }
 
     @ResponseStatus(HttpStatus.FORBIDDEN)

@@ -6,7 +6,7 @@ plugins {
 
 }
 
-group = 'de.upb.crypto.incentive.services'
+group = 'de.upb.crypto'
 sourceCompatibility = '15'
 
 repositories {
@@ -20,7 +20,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
-	implementation project(':protocols')
+	implementation project(':protocoldefinition')
 }
 
 test {
