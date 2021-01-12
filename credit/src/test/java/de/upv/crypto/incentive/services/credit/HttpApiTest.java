@@ -1,8 +1,7 @@
 package de.upv.crypto.incentive.services.credit;
 
-import de.upb.crypto.incentive.protocolmock.credit.CreditRequest;
-import de.upb.crypto.incentive.protocolmock.credit.CreditResponse;
-import de.upb.crypto.incentive.protocolmock.model.Token;
+import de.upb.crypto.incentive.protocoldefinition.creditearn.EarnRequest;
+import de.upb.crypto.incentive.protocoldefinition.creditearn.CreditResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -11,34 +10,40 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.util.UriBuilder;
 
+import java.util.UUID;
+
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class HttpApiTest {
 
-    private java.net.URI buildRequestUri(UriBuilder uriBuilder, CreditRequest creditRequest) {
+    private java.net.URI buildRequestUri(UriBuilder uriBuilder, EarnRequest earnRequest) {
         return uriBuilder
                 .path("/credit")
-                .queryParam("id", creditRequest.getId())
-                .queryParam("token.value", creditRequest.getToken().getValue())
-                .queryParam("increase", creditRequest.getIncrease())
-                .queryParam("basketId", creditRequest.getBasketId())
+                .queryParam("id", earnRequest.getId())
+                .queryParam("serializedEarnRequest", earnRequest.getSerializedEarnRequest())
+                .queryParam("earnAmount", earnRequest.getEarnAmount())
+                .queryParam("basketId", earnRequest.getBasketId())
                 .build();
     }
 
     @Test
     void validRequestTest(@Autowired WebTestClient webClient) {
+        UUID id = UUID.randomUUID();
+        UUID basketId = UUID.randomUUID();
         webClient.get()
-                .uri(uriBuilder -> buildRequestUri(uriBuilder, new CreditRequest(42, new Token(17), 5, 99)))
+                .uri(uriBuilder -> buildRequestUri(uriBuilder, new EarnRequest(id, "Some request", 5, basketId)))
                 .exchange()
                 .expectStatus()
                 .isOk()
                 .expectBody(CreditResponse.class)
-                .isEqualTo(new CreditResponse(42, new Token(17 + 5)));
+                .isEqualTo(new CreditResponse(id, "Test credit response"));
     }
 
     @Test
     void invalidRequestTest(@Autowired WebTestClient webClient) {
+        UUID id = UUID.randomUUID();
+        UUID basketId = UUID.randomUUID();
         webClient.get()
-                .uri(uriBuilder -> buildRequestUri(uriBuilder, new CreditRequest(42, new Token(17), -3, 99)))
+                .uri(uriBuilder -> buildRequestUri(uriBuilder, new EarnRequest(id, "Some request", -5, basketId)))
                 .exchange()
                 .expectStatus()
                 .isEqualTo(HttpStatus.FORBIDDEN);
