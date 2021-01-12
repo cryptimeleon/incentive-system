@@ -1,14 +1,16 @@
-package de.upb.crypto.incentive.protocolmock.issue;
+package de.upb.crypto.incentive.protocoldefinition.issuejoin;
 
-import de.upb.crypto.incentive.protocolmock.model.Token;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.UUID;
+
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class IssueResponse {
-    private int id;
-    private Token token;
+    private UUID id;
+    private String serializedIssueResponse;
 }

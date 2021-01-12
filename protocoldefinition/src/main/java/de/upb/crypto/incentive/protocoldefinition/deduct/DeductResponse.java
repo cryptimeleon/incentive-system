@@ -1,7 +1,7 @@
-package de.upb.crypto.incentive.protocolmock.deduct;
+package de.upb.crypto.incentive.protocoldefinition.deduct;
 
-import de.upb.crypto.incentive.protocolmock.model.Reward;
-import de.upb.crypto.incentive.protocolmock.model.Token;
+import de.upb.crypto.incentive.protocoldefinition.model.Reward;
+import de.upb.crypto.incentive.protocoldefinition.model.Token;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
