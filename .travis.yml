@@ -2,8 +2,10 @@ language: java
 jdk:
   - openjdk15
 
-before_install: ls -la
-after_install: ls -la
+before_install:
+  - ls -la
+  - cd ..
+  - ls -la
 
 services: docker
 
