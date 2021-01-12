@@ -5,3 +5,6 @@ include 'credit'
 include 'protocoldefinition'
 include 'cryptoprotocol'
 
+includeBuild "../upb.crypto.math"
+includeBuild "../upb.crypto.craco"
+
