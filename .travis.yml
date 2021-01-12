@@ -3,9 +3,10 @@ jdk:
   - openjdk15
 
 before_install:
-  - ls -la
-  - cd ..
-  - ls -la
+  - pushd ..
+  - git clone git@github.com:upbcuk/upb.crypto.math.git
+  - git clone git@github.com:upbcuk/upb.crypto.craco.git
+  - popd
 
 services: docker
 
