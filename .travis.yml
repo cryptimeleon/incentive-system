@@ -4,8 +4,8 @@ jdk:
 
 before_install:
   - pushd ..
-  - git clone git@github.com:upbcuk/upb.crypto.math.git
-  - git clone git@github.com:upbcuk/upb.crypto.craco.git
+  - git clone https://github.com/upbcuk/upb.crypto.craco.git
+  - git clone https://github.com/upbcuk/upb.crypto.math.git
   - popd
 
 services: docker
