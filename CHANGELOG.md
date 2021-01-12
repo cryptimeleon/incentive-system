@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [0.3.0] - WIP
-- Rename protocols to protocolmock and add protocols module [#6](https://github.com/upbcuk/incentive-services/pull/6)
+- Rename protocols to protocoldefinition and add cryptoprotocols module, include math and craco, add interfaces for cryptoprocools use [#6](https://github.com/upbcuk/incentive-services/pull/6)
 - Add local kubernetes support using KinD [#5](https://github.com/upbcuk/incentive-services/pull/5)
 
 ## [0.2.0] - 2020-12-24
