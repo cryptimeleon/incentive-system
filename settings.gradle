@@ -2,6 +2,6 @@ rootProject.name = 'incentive'
 
 include 'issue'
 include 'credit'
-include 'protocolmock'
-include 'protocol'
+include 'protocoldefinition'
+include 'cryptoprotocol'
 
