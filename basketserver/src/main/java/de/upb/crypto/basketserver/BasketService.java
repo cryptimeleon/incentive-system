@@ -14,8 +14,8 @@ import java.util.stream.Stream;
 @Service
 public class BasketService {
 
-    private HashMap<UUID, Basket> basketMap = new HashMap<>();
-    private ArrayList<Item> items = new ArrayList<>(
+    private final HashMap<UUID, Basket> basketMap = new HashMap<>();
+    private final ArrayList<Item> items = new ArrayList<>(
             Arrays.asList(
                     new Item(UUID.fromString("b363b7fa-14b9-402b-98b2-6e7370d62595"),
                             "Tomato",
@@ -30,7 +30,7 @@ public class BasketService {
                     new Item(UUID.fromString("c237b2bc-9f71-4673-bb8f-09fb477e71ba"), "Potatoes", 150),
                     new Item(UUID.fromString("06e64293-acd0-43fc-824d-7600bb6a1fa7"), "Mango", 90)
             ));
-    private Map<UUID, Item> itemMap = items.stream().collect(Collectors.toMap(Item::getId, Function.identity()));
+    private final Map<UUID, Item> itemMap = items.stream().collect(Collectors.toMap(Item::getId, Function.identity()));
 
 
     // Value field would be redundant and computational overhead should be small
@@ -121,7 +121,7 @@ public class BasketService {
         if (basket.get().isRedeemed() && !basket.get().getRedeemRequest().equals(redeemRequest))
             throw new BasketServiceException("Basket id already redeemed!");
         if (basket.get().isRedeemed() && basket.get().getRedeemRequest().equals(redeemRequest))
-            return;  // Same request Can be used twice bacause it yields the same token
+            return;  // Same request Can be used twice because it yields the same token
 
         basket.get().setRedeemed(true);
         basket.get().setRedeemRequest(redeemRequest);
