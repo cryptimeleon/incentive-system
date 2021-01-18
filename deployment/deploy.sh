@@ -88,6 +88,7 @@ kubectl apply -f deployment/ingress.yaml
 header "Deploy services"
 kubectl apply -f deployment/credit-service.yaml
 kubectl apply -f deployment/issue-service.yaml
+kubectl apply -f deployment/basketserver-service.yaml
 
 echo ""
 big-sep

@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: basketserver-service
+  labels:
+    app: basketserver-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: basketserver-service
+  template:
+    metadata:
+      labels:
+        app: basketserver-service
+    spec:
+      containers:
+        - name: basketserver-service
+          image: upbcuk/incentive-service-basketserver:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "production"
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: basketserver-service
+spec:
+  selector:
+    app: basketserver-service
+  type: ClusterIP
+  ports:
+    - port: 8000
