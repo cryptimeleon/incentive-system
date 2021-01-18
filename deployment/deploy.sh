@@ -66,8 +66,10 @@ set -e
 ./gradlew clean build
 ./gradlew ":credit:bootBuildImage"
 ./gradlew ":issue:bootBuildImage"
+./gradlew ":basketserver:bootBuildImage"
 kind load docker-image upbcuk/incentive-service-issue --name kind-t2
 kind load docker-image upbcuk/incentive-service-credit --name kind-t2
+kind load docker-image upbcuk/incentive-service-basketserver --name kind-t2
 set +e
 
 # Print available images
