@@ -58,7 +58,7 @@ public class Token
 
         // TODO check out group element vector, vector exponentiation operation
         // initializing bases array with deep copy of passed elements array
-        commitmentBases = new GroupElement[h.length];
+        this.commitmentBases = new GroupElement[h.length];
         for(int i = 0; i < h.length; i++)
         {
             this.commitmentBases[i] = h[i]; // note: due to 0-based indexing, the bases' indices are off by one wrt paper
