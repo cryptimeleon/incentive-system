@@ -5,6 +5,10 @@ jdk:
 before_install:
   - pushd ..
   - git clone https://github.com/upbcuk/upb.crypto.craco.git
+  - pushd upb.crupto.craco
+  - git checkut protocolupdates
+  - git pull
+  - popd
   - git clone https://github.com/upbcuk/upb.crypto.math.git
   - popd
 
