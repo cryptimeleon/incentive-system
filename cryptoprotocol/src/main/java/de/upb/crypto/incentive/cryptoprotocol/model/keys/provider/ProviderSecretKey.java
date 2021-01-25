@@ -9,7 +9,6 @@ import de.upb.crypto.math.structures.zn.Zn.ZnElement;
 public class ProviderSecretKey
 {
     SPSEQSigningKey skSpsEq;
-    // TODO: regular signature signing key is missing
     ZnElement[] q; // dlogs of the first six bases used in the Pedersen commitment in the token
     PrfKey betaProv;
 

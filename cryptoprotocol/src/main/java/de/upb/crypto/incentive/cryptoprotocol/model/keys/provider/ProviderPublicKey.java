@@ -7,7 +7,6 @@ import de.upb.crypto.math.interfaces.structures.GroupElement;
 public class ProviderPublicKey
 {
     SPSEQVerificationKey pkSpsEq;
-    // TODO: regular signature verification key is missing
     GroupElement[] h; // first six bases for the Pedersen commitment in the tokens
 
     public ProviderPublicKey(SPSEQVerificationKey pkSpsEq, GroupElement[] h) throws PedersenException
