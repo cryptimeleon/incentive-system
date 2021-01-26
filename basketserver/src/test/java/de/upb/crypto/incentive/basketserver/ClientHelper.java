@@ -2,9 +2,11 @@ package de.upb.crypto.incentive.basketserver;
 
 import de.upb.crypto.incentive.basketserver.model.Basket;
 import de.upb.crypto.incentive.basketserver.model.Item;
+import de.upb.crypto.incentive.basketserver.model.requests.RedeemRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.web.reactive.server.EntityExchangeResult;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.web.reactive.function.BodyInserters;
 
 import java.util.UUID;
 
@@ -88,15 +90,17 @@ public class ClientHelper {
                 .isEqualTo(expectedStatus);
     }
 
-    static void redeemBasket(WebTestClient webTestClient, UUID basketId, String redeemRequest, int value, HttpStatus expectedStatus) {
+    static void redeemBasket(WebTestClient webTestClient, RedeemRequest redeemRequest, HttpStatus expectedStatus) {
         webTestClient.post()
-                .uri(uriBuilder -> uriBuilder.path("/basket/redeem")
-                        .queryParam("basketId", basketId)
-                        .queryParam("redeemRequest", redeemRequest)
-                        .queryParam("value", value)
-                        .build())
+                .uri("/basket/redeem")
+                .body(BodyInserters.fromValue(redeemRequest))
                 .exchange()
                 .expectStatus()
                 .isEqualTo(expectedStatus);
+    }
+
+    static void redeemBasket(WebTestClient webTestClient, UUID basketId, String request, int value, HttpStatus expectedStatus) {
+        var redeemRequest = new RedeemRequest(basketId, request, value);
+        redeemBasket(webTestClient, redeemRequest, expectedStatus);
     }
 }

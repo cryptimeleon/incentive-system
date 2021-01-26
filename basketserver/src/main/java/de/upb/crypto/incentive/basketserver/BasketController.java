@@ -3,6 +3,7 @@ package de.upb.crypto.incentive.basketserver;
 import de.upb.crypto.incentive.basketserver.exceptions.*;
 import de.upb.crypto.incentive.basketserver.model.Basket;
 import de.upb.crypto.incentive.basketserver.model.Item;
+import de.upb.crypto.incentive.basketserver.model.requests.RedeemRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -107,12 +108,12 @@ public class BasketController {
      * TODO: shared secret to prevent users from doing this. Send 403 to normal users
      */
     @PostMapping("/basket/redeem")
-    void redeemBasket(@RequestParam UUID basketId, @RequestParam String redeemRequest, @RequestParam int value) throws BasketServiceException {
-        basketService.redeemBasket(basketId, redeemRequest, value);
+    void redeemBasket(@RequestBody RedeemRequest redeemRequest) throws BasketServiceException {
+        basketService.redeemBasket(redeemRequest.getBasketId(), redeemRequest.getRedeemRequest(), redeemRequest.getValue());
     }
 
     /*
-    * Some default error handlers
+     * Some default error handlers
      */
 
     @ResponseStatus(value = HttpStatus.NOT_FOUND,
