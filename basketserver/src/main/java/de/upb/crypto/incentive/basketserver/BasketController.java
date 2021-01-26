@@ -1,7 +1,9 @@
 package de.upb.crypto.incentive.basketserver;
 
+import de.upb.crypto.incentive.basketserver.exceptions.BasketNotFoundException;
 import de.upb.crypto.incentive.basketserver.exceptions.BasketServiceException;
 import de.upb.crypto.incentive.basketserver.model.Basket;
+import de.upb.crypto.incentive.basketserver.model.Item;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,9 +33,16 @@ public class BasketController {
 
     @GetMapping("/basket")
     ResponseEntity<Basket> getBasket(@RequestParam UUID basketId) {
-        logger.info("GET/basket?basketId" + basketId);
-        var basket = basketService.getBasketById(basketId);
-        return basket.isPresent() ? new ResponseEntity<>(basket.get(), HttpStatus.OK) : new ResponseEntity<>(HttpStatus.NOT_FOUND) ;
+        var basketOptional= basketService.getBasketById(basketId);
+        if (basketOptional.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Basket not found.");
+        }
+
+        var basket = basketOptional.get();
+        var basketValue = basketService.getBasketValue(basket);
+        basket.setValue(basketValue);
+
+        return new ResponseEntity<>(basket, HttpStatus.OK);
     }
 
     @DeleteMapping("/basket")
@@ -74,22 +83,15 @@ public class BasketController {
         // TODO add hashcode for integrity?
         try {
             basketService.payBasket(basketId, value);
-        } catch (BasketServiceException e) {
+        } catch (BasketNotFoundException e) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
+        } catch (BasketServiceException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
         }
     }
 
-    @GetMapping("/basket/pay")  // Kind of redundant with GET/basket
-    boolean isBasketPaid(@RequestParam UUID basketId) {
-        // TODO add hashcode for integrity?
-        try {
-            return basketService.isBasketPaid(basketId);
-        } catch (BasketServiceException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-        }
-    }
-
-    @PostMapping("/basket/redeem") // Redeem amount modelled as basket's value
+    @PostMapping("/basket/redeem")
+        // Redeem amount modelled as basket's value
     void redeemBasket(@RequestParam UUID basketId, @RequestParam String redeemRequest, @RequestParam int value) {
         try {
             basketService.redeemBasket(basketId, redeemRequest, value);
@@ -98,6 +100,8 @@ public class BasketController {
         }
     }
 
-
-
+    @GetMapping("/items")
+    Item[] getAllBasketItems() {
+        return basketService.getItems();
+    }
 }

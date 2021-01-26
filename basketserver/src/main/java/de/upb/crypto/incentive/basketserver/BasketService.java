@@ -34,13 +34,13 @@ public class BasketService {
 
 
     // Value field would be redundant and computational overhead should be small
-    private int getBasketValue(Basket basket) {
+    public int getBasketValue(Basket basket) {
         return getBasketItemsInBasket(basket)
                 .mapToInt((basketItem) -> basketItem.getItem().getPrice() * basketItem.getCount())
                 .sum();
     }
 
-    private boolean canBasketBeAltered(Basket basket) {
+    private boolean isBasketMutable(Basket basket) {
         return !basket.isPaid() && !basket.isRedeemed();
     }
 
@@ -70,17 +70,13 @@ public class BasketService {
         return itemMap.containsKey(itemId);
     }
 
-    Optional<Item> getItemById(UUID itemId) {
-        return Optional.ofNullable(itemMap.get(itemId));
-    }
-
     public void setItemInBasket(UUID basketId, UUID itemId, int count) throws BasketServiceException {
         assert count > 0;
 
         var basketOptional = getBasketById(basketId);
 
         if (basketOptional.isEmpty()) throw new BasketNotFoundException();
-        if (!canBasketBeAltered(basketOptional.get())) throw new BasketPaidException();
+        if (!isBasketMutable(basketOptional.get())) throw new BasketPaidException();
         if (!hasItem(itemId)) throw new ItemNotFoundException();
 
         basketOptional.get().getItems().put(itemId, count);
@@ -90,7 +86,7 @@ public class BasketService {
         var basket = getBasketById(basketId);
 
         if (basket.isEmpty()) throw new BasketNotFoundException();
-        if (!canBasketBeAltered(basket.get())) throw new BasketPaidException();
+        if (!isBasketMutable(basket.get())) throw new BasketPaidException();
 
         basket.get().getItems().remove(itemId);
     }
@@ -101,6 +97,7 @@ public class BasketService {
 
         var basketValue = getBasketValue(basket.get());
         if (value != basketValue) throw new WrongBasketValueException();
+        if (basket.get().getItems().isEmpty()) throw new BasketServiceException("Cannot pay empty baskets");
 
         basket.get().setPaid(true);
     }
@@ -125,6 +122,10 @@ public class BasketService {
 
         basket.get().setRedeemed(true);
         basket.get().setRedeemRequest(redeemRequest);
+    }
+
+    public Item[] getItems() {
+        return items.toArray(new Item[0]);
     }
 }
 
