@@ -141,8 +141,8 @@ public class BasketserverClientTests {
         assertThat(basket.isPaid()).isTrue();
 
         logger.info("Cannot alter paid basket");
-        putItem(webTestClient, basketId, firstTestItem.getId(), 5, HttpStatus.NOT_FOUND);
-        deleteBasketItem(webTestClient, basketId, secondTestItem.getId(), HttpStatus.NOT_FOUND);
+        putItem(webTestClient, basketId, firstTestItem.getId(), 5, HttpStatus.BAD_REQUEST);
+        deleteBasketItem(webTestClient, basketId, secondTestItem.getId(), HttpStatus.BAD_REQUEST);
         assertThat(basket.getItems())
                 .containsEntry(firstTestItem.getId(), 3)
                 .containsEntry(secondTestItem.getId(), 1);
@@ -177,7 +177,7 @@ public class BasketserverClientTests {
         assertThat(basket.isRedeemed()).isFalse();
 
         logger.info("Redeeming not paid basket not possible");
-        redeemBasket(webTestClient, basketId, "Some Request", basket.getValue(), HttpStatus.NOT_FOUND);
+        redeemBasket(webTestClient, basketId, "Some Request", basket.getValue(), HttpStatus.BAD_REQUEST);
 
         logger.info("Pay basket");
         payBasket(webTestClient, basketId, basket.getValue(), HttpStatus.OK);
@@ -186,7 +186,7 @@ public class BasketserverClientTests {
         assertThat(basket.isRedeemed()).isFalse();
 
         logger.info("Redeeming with the wrong redeem value is prohibited");
-        redeemBasket(webTestClient, basketId, "Some Request", basket.getValue() + 1, HttpStatus.NOT_FOUND);
+        redeemBasket(webTestClient, basketId, "Some Request", basket.getValue() + 1, HttpStatus.BAD_REQUEST);
 
         logger.info("Payed basket can be redeemed");
         redeemBasket(webTestClient, basketId, "Some Request", basket.getValue(), HttpStatus.OK);
@@ -194,13 +194,13 @@ public class BasketserverClientTests {
         assertThat(basket.isRedeemed()).isTrue();
 
         logger.info("Redeeming with the wrong redeem value is prohibited");
-        redeemBasket(webTestClient, basketId, "Some Request", basket.getValue() + 1, HttpStatus.NOT_FOUND);
+        redeemBasket(webTestClient, basketId, "Some Request", basket.getValue() + 1, HttpStatus.BAD_REQUEST);
 
         logger.info("Re-redeeming with the same request works");
         redeemBasket(webTestClient, basketId, "Some Request", basket.getValue(), HttpStatus.OK);
 
         logger.info("Re-redeeming with another request is prohibited");
-        redeemBasket(webTestClient, basketId, "Another Request", basket.getValue(), HttpStatus.NOT_FOUND);
+        redeemBasket(webTestClient, basketId, "Another Request", basket.getValue(), HttpStatus.BAD_REQUEST);
 
         logger.info("Delete basket");
         deleteBasket(webTestClient, basketId);
