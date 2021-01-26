@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class BasketItem{
+public class BasketItem {
     Item item;
     int count;
 }

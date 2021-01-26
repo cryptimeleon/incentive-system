@@ -27,8 +27,12 @@ public class BasketService {
                     new Item(UUID.fromString("a785cdb7-eac4-4b28-908b-2ba18944a79e"),
                             "Peach",
                             30),
-                    new Item(UUID.fromString("c237b2bc-9f71-4673-bb8f-09fb477e71ba"), "Potatoes", 150),
-                    new Item(UUID.fromString("06e64293-acd0-43fc-824d-7600bb6a1fa7"), "Mango", 90)
+                    new Item(UUID.fromString("c237b2bc-9f71-4673-bb8f-09fb477e71ba"),
+                            "Potatoes",
+                            150),
+                    new Item(UUID.fromString("06e64293-acd0-43fc-824d-7600bb6a1fa7"),
+                            "Mango",
+                            90)
             ));
     private final Map<UUID, Item> itemMap = items.stream().collect(Collectors.toMap(Item::getId, Function.identity()));
 
@@ -40,8 +44,8 @@ public class BasketService {
                 .sum();
     }
 
-    private boolean isBasketMutable(Basket basket) {
-        return !basket.isPaid() && !basket.isRedeemed();
+    private boolean isBasketImmutable(Basket basket) {
+        return basket.isPaid() || basket.isRedeemed();
     }
 
     Stream<BasketItem> getBasketItemsInBasket(Basket basket) {
@@ -76,7 +80,7 @@ public class BasketService {
         var basketOptional = getBasketById(basketId);
 
         if (basketOptional.isEmpty()) throw new BasketNotFoundException();
-        if (!isBasketMutable(basketOptional.get())) throw new BasketPaidException();
+        if (isBasketImmutable(basketOptional.get())) throw new BasketPaidException();
         if (!hasItem(itemId)) throw new ItemNotFoundException();
 
         basketOptional.get().getItems().put(itemId, count);
@@ -86,7 +90,7 @@ public class BasketService {
         var basket = getBasketById(basketId);
 
         if (basket.isEmpty()) throw new BasketNotFoundException();
-        if (!isBasketMutable(basket.get())) throw new BasketPaidException();
+        if (isBasketImmutable(basket.get())) throw new BasketPaidException();
 
         basket.get().getItems().remove(itemId);
     }

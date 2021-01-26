@@ -33,7 +33,7 @@ public class BasketController {
 
     @GetMapping("/basket")
     ResponseEntity<Basket> getBasket(@RequestParam UUID basketId) {
-        var basketOptional= basketService.getBasketById(basketId);
+        var basketOptional = basketService.getBasketById(basketId);
         if (basketOptional.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Basket not found.");
         }

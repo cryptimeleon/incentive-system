@@ -4,7 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
@@ -15,12 +17,12 @@ public class Basket {
     private boolean paid;
     private boolean redeemed;
     private String redeemRequest;
-    // value is computed, only for serialization
+    // value must be set manually for serialization
     private int value;
 
     public Basket(UUID id) {
         basketID = id;
-        items = new HashMap();
+        items = new HashMap<>();
         paid = false;
         redeemed = false;
         redeemRequest = "";
