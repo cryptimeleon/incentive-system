@@ -3,8 +3,9 @@ package de.upb.crypto.incentive.basketserver;
 import de.upb.crypto.incentive.basketserver.exceptions.*;
 import de.upb.crypto.incentive.basketserver.model.Basket;
 import de.upb.crypto.incentive.basketserver.model.Item;
-import de.upb.crypto.incentive.basketserver.model.requests.RedeemRequest;
-import de.upb.crypto.incentive.basketserver.model.requests.PayRequest;
+import de.upb.crypto.incentive.basketserver.model.requests.PayBasketRequest;
+import de.upb.crypto.incentive.basketserver.model.requests.PutItemRequest;
+import de.upb.crypto.incentive.basketserver.model.requests.RedeemBasketRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +14,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.UUID;
 
-// TODO ensure basketIds are not transmitted via url
 
 /**
  * A REST controller that defines and handles all requests of the basket server.
@@ -53,7 +53,7 @@ public class BasketController {
      * Query a basket by its id
      */
     @GetMapping("/basket")
-    ResponseEntity<Basket> getBasket(@RequestParam UUID basketId) throws BasketServiceException {
+    ResponseEntity<Basket> getBasket(@RequestHeader UUID basketId) throws BasketServiceException {
         var basket = basketService.getBasketById(basketId);
         var basketValue = basketService.getBasketValue(basket);
         basket.setValue(basketValue);
@@ -66,7 +66,7 @@ public class BasketController {
      */
     @DeleteMapping("/basket")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    void deleteBasket(@RequestParam UUID basketId) {
+    void deleteBasket(@RequestHeader UUID basketId) {
         basketService.removeBasketWithId(basketId);
     }
 
@@ -74,19 +74,19 @@ public class BasketController {
      * Adds #count many items with the matching itemId to the basket if not present. Overwrites the count if present.
      */
     @PutMapping("/basket/items")
-    void putItem(@RequestParam UUID basketId, @RequestParam UUID itemId, @RequestParam int count) throws BasketServiceException {
-        if (count <= 0) {
+    void putItem(@RequestBody PutItemRequest putItemRequest) throws BasketServiceException {
+        if (putItemRequest.getCount() <= 0) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Count must be positive.");
         }
 
-        basketService.setItemInBasket(basketId, itemId, count);
+        basketService.setItemInBasket(putItemRequest.getBasketId(), putItemRequest.getItemId(), putItemRequest.getCount());
     }
 
     /**
      * Removes an item from the basket.
      */
     @DeleteMapping("/basket/items")
-    void deleteItem(@RequestParam UUID basketId, @RequestParam UUID itemId) throws BasketServiceException {
+    void deleteItem(@RequestHeader UUID basketId, @RequestParam UUID itemId) throws BasketServiceException {
         basketService.deleteItemFromBasket(basketId, itemId);
     }
 
@@ -96,8 +96,8 @@ public class BasketController {
      * TODO add hashcode for integrity?
      */
     @PostMapping("/basket/pay")
-    void payBasket(@RequestBody PayRequest payRequest) throws BasketServiceException {
-        basketService.payBasket(payRequest.getBasketId(), payRequest.getValue());
+    void payBasket(@RequestBody PayBasketRequest payBasketRequest) throws BasketServiceException {
+        basketService.payBasket(payBasketRequest.getBasketId(), payBasketRequest.getValue());
     }
 
     /**
@@ -109,7 +109,7 @@ public class BasketController {
      * TODO: shared secret to prevent users from doing this. Send 403 to normal users
      */
     @PostMapping("/basket/redeem")
-    void redeemBasket(@RequestBody RedeemRequest redeemRequest) throws BasketServiceException {
+    void redeemBasket(@RequestBody RedeemBasketRequest redeemRequest) throws BasketServiceException {
         basketService.redeemBasket(redeemRequest.getBasketId(), redeemRequest.getRedeemRequest(), redeemRequest.getValue());
     }
 

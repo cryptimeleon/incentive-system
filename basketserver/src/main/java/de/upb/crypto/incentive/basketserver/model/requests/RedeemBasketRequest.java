@@ -9,7 +9,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class RedeemRequest {
+public class RedeemBasketRequest {
     UUID basketId;
     String redeemRequest;
     int value;

@@ -9,7 +9,8 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class PayRequest {
+public class PutItemRequest {
     UUID basketId;
-    int value;
+    UUID itemId;
+    int count;
 }
