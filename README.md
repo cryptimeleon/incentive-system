@@ -27,6 +27,8 @@ We use KinD (Kubernetes in Docker) for the deployment:
 
 You can now access the api at [http://$NODE-IP/crediting/swagger-ui/index.html]() [http://$NODE_IP/issuing/swagger-ui/index.html](). The node ip can be queried with the command `kubectl get nodes -o wide`.
 
+If you want to deploy your local changes to a cluster, use `./deployment/deploy.sh -l`. This builds the container images from your local code instead of pulling the last release from dockerhub. 
+
 ---
 
 ## Changelog
