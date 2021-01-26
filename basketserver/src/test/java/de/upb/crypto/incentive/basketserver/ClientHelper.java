@@ -2,6 +2,7 @@ package de.upb.crypto.incentive.basketserver;
 
 import de.upb.crypto.incentive.basketserver.model.Basket;
 import de.upb.crypto.incentive.basketserver.model.Item;
+import de.upb.crypto.incentive.basketserver.model.requests.PayRequest;
 import de.upb.crypto.incentive.basketserver.model.requests.RedeemRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.web.reactive.server.EntityExchangeResult;
@@ -80,11 +81,13 @@ public class ClientHelper {
     }
 
     static void payBasket(WebTestClient webTestClient, UUID basketId, int value, HttpStatus expectedStatus) {
+        var payRequest = new PayRequest(basketId, value);
+        payBasket(webTestClient, payRequest, expectedStatus);
+    }
+    static void payBasket(WebTestClient webTestClient, PayRequest payRequest, HttpStatus expectedStatus) {
         webTestClient.post()
-                .uri(uriBuilder -> uriBuilder.path("/basket/pay")
-                        .queryParam("basketId", basketId)
-                        .queryParam("value", value)
-                        .build())
+                .uri("/basket/pay")
+                .body(BodyInserters.fromValue(payRequest))
                 .exchange()
                 .expectStatus()
                 .isEqualTo(expectedStatus);

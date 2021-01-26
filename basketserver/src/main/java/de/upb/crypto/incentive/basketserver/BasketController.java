@@ -4,6 +4,7 @@ import de.upb.crypto.incentive.basketserver.exceptions.*;
 import de.upb.crypto.incentive.basketserver.model.Basket;
 import de.upb.crypto.incentive.basketserver.model.Item;
 import de.upb.crypto.incentive.basketserver.model.requests.RedeemRequest;
+import de.upb.crypto.incentive.basketserver.model.requests.PayRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -95,8 +96,8 @@ public class BasketController {
      * TODO add hashcode for integrity?
      */
     @PostMapping("/basket/pay")
-    void payBasket(@RequestParam UUID basketId, @RequestParam int value) throws BasketServiceException {
-        basketService.payBasket(basketId, value);
+    void payBasket(@RequestBody PayRequest payRequest) throws BasketServiceException {
+        basketService.payBasket(payRequest.getBasketId(), payRequest.getValue());
     }
 
     /**
