@@ -1,9 +1,9 @@
-package de.upb.crypto.basketserver;
+package de.upb.crypto.incentive.basketserver;
 
-import de.upb.crypto.basketserver.exceptions.*;
-import de.upb.crypto.basketserver.model.Basket;
-import de.upb.crypto.basketserver.model.BasketItem;
-import de.upb.crypto.basketserver.model.Item;
+import de.upb.crypto.incentive.basketserver.exceptions.*;
+import de.upb.crypto.incentive.basketserver.model.Basket;
+import de.upb.crypto.incentive.basketserver.model.BasketItem;
+import de.upb.crypto.incentive.basketserver.model.Item;
 import org.springframework.stereotype.Service;
 
 import java.util.*;

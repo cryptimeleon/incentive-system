@@ -1,4 +1,4 @@
-package de.upb.crypto.basketserver;
+package de.upb.crypto.incentive.basketserver;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

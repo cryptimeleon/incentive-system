@@ -1,4 +1,4 @@
-package de.upb.crypto.basketserver;
+package de.upb.crypto.incentive.basketserver;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

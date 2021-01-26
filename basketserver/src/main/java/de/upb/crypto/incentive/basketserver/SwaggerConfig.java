@@ -1,4 +1,4 @@
-package de.upb.crypto.basketserver;
+package de.upb.crypto.incentive.basketserver;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

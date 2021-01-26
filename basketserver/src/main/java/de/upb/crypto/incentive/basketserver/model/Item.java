@@ -1,4 +1,4 @@
-package de.upb.crypto.basketserver.model;
+package de.upb.crypto.incentive.basketserver.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

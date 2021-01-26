@@ -1,7 +1,7 @@
-package de.upb.crypto.basketserver;
+package de.upb.crypto.incentive.basketserver;
 
-import de.upb.crypto.basketserver.exceptions.BasketServiceException;
-import de.upb.crypto.basketserver.model.Basket;
+import de.upb.crypto.incentive.basketserver.exceptions.BasketServiceException;
+import de.upb.crypto.incentive.basketserver.model.Basket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +23,11 @@ public class BasketController {
 
 
     // TODO ensure basketIds are not transmitted via url
+
+    @GetMapping("/")
+    String getHelloWorld() {
+        return "Hello World";
+    }
 
     @GetMapping("/basket")
     ResponseEntity<Basket> getBasket(@RequestParam UUID basketId) {

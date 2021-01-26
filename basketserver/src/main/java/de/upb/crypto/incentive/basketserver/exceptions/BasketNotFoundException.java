@@ -1,4 +1,4 @@
-package de.upb.crypto.basketserver.exceptions;
+package de.upb.crypto.incentive.basketserver.exceptions;
 
 public class BasketNotFoundException extends BasketServiceException {
     public BasketNotFoundException() {
