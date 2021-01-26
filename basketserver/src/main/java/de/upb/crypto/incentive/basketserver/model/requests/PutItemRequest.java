@@ -6,6 +6,9 @@ import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
+/**
+ * Dataclass for put item request body.
+ */
 @NoArgsConstructor
 @AllArgsConstructor
 @Data

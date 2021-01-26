@@ -6,6 +6,9 @@ import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
+/**
+ * Dataclass for pay basket request body.
+ */
 @NoArgsConstructor
 @AllArgsConstructor
 @Data

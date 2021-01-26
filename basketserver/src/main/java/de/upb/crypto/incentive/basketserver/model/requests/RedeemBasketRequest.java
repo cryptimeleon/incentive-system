@@ -6,6 +6,9 @@ import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
+/**
+ * Dataclass for redeem request body.
+ */
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
