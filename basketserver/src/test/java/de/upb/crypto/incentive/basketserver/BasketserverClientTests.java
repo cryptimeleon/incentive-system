@@ -140,7 +140,7 @@ public class BasketserverClientTests {
         basket = queryBasket(webTestClient, basketId).getResponseBody();
         assertThat(basket.isPaid()).isTrue();
 
-        logger.info("Cannot alter payed basket");
+        logger.info("Cannot alter paid basket");
         putItem(webTestClient, basketId, firstTestItem.getId(), 5, HttpStatus.NOT_FOUND);
         deleteBasketItem(webTestClient, basketId, secondTestItem.getId(), HttpStatus.NOT_FOUND);
         assertThat(basket.getItems())
@@ -176,7 +176,7 @@ public class BasketserverClientTests {
                 .containsEntry(secondTestItem.getId(), 1);
         assertThat(basket.isRedeemed()).isFalse();
 
-        logger.info("Redeeming not payed basket not possible");
+        logger.info("Redeeming not paid basket not possible");
         redeemBasket(webTestClient, basketId, "Some Request", basket.getValue(), HttpStatus.NOT_FOUND);
 
         logger.info("Pay basket");
