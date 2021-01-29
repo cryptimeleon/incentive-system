@@ -137,5 +137,8 @@ public class Token implements Representable
         return ReprUtil.serialize(this);
     }
 
+    public GroupElement getToken() { return this.token; }
+
+    public SPSEQSignature getCertificate() { return this.certificate; }
 }
 
