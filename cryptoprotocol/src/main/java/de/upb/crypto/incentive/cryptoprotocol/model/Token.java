@@ -8,24 +8,33 @@ import de.upb.crypto.craco.sig.sps.eq.SPSEQSignatureScheme;
 import de.upb.crypto.incentive.cryptoprotocol.exceptions.PedersenException;
 import de.upb.crypto.incentive.cryptoprotocol.exceptions.SPSEQException;
 import de.upb.crypto.math.interfaces.structures.GroupElement;
+import de.upb.crypto.math.serialization.Representable;
 import de.upb.crypto.math.serialization.Representation;
+import de.upb.crypto.math.serialization.annotations.v2.ReprUtil;
+import de.upb.crypto.math.serialization.annotations.v2.Represented;
 import de.upb.crypto.math.structures.zn.Zn;
 import de.upb.crypto.math.structures.zn.Zn.ZnElement;
 
 
 /**
  * class representing a token from a mathematical point of view (meaning: as a bunch of group elements and exponents modulo p from which you can compute a Pedersen commitment)
+ * serialized representation of token does not contain secret exponents and token plain text (latter can be computed trivially)
  * @author Patrick Schürmann
  * TODO compute representation of token for serialization
  */
-public class Token
+public class Token implements Representable
 {
+    @Represented
     private Zn myRemainderClassRing; // the remainder class ring the token's exponents live in
+    @Represented
     private SPSEQSignatureScheme signatureScheme; // the instance of the signature scheme that is used to certify tokens
 
+    @Represented
     private GroupElement token; // the Pedersen commitment computed from the bases and the exponents, representing the actual token
     private GroupElementPlainText tokenPlainText; // plaintext version of token, needed for compliance with verification method
+    @Represented
     private SPSEQSignature certificate; // the SPS-EQ certifying the commitment as well-formed and valid
+    @Represented
     private VerificationKey verificationKey; // the SPS-EQ pk used to check validity of token-certificate pair
 
     private GroupElement[] commitmentBases; // array of the 7 group elements (h_i) needed to form the Pedersen commitment
@@ -41,7 +50,7 @@ public class Token
      * Note that certificate is not set since a token is usually not certified upon creation.
      * @param myRemClassRing remainder class ring of exponents
      * @param sigScheme signature scheme
-     * @param vKey verfication key
+     * @param vKey verification key
      * @param h array of the bases for the Pedersen commitment
      * @param USK secret key of user
      * @param esk ElGamal secret key
@@ -87,14 +96,13 @@ public class Token
     public void updateToken()
     {
         // note that indices of bases are off by one wrt paper (zero-based indexing)
-        // TODO get rid of getInteger calls
-        this.token = this.commitmentBases[0].pow(this.userSecretKey.getInteger()).op(
-                this.commitmentBases[1].pow(this.encryptionSecretKey.getInteger()).op(
-                        this.commitmentBases[2].pow(this.doubleSpendRandomness0.getInteger()).op(
-                                this.commitmentBases[3].pow(this.doubleSpendRandomness1.getInteger()).op(
-                                        this.commitmentBases[4].pow(this.points.getInteger()).op(
-                                                this.commitmentBases[5].pow(this.z.getInteger()).op(
-                                                        this.commitmentBases[6].pow(this.t.getInteger())
+        this.token = this.commitmentBases[0].pow(this.userSecretKey).op(
+                this.commitmentBases[1].pow(this.encryptionSecretKey).op(
+                        this.commitmentBases[2].pow(this.doubleSpendRandomness0).op(
+                                this.commitmentBases[3].pow(this.doubleSpendRandomness1).op(
+                                        this.commitmentBases[4].pow(this.points).op(
+                                                this.commitmentBases[5].pow(this.z).op(
+                                                        this.commitmentBases[6].pow(this.t)
                                                 )
                                         )
                                 )
@@ -125,10 +133,10 @@ public class Token
      * computes "dumb token" from mathematical representation of token
      * @return serialized version of token
      */
-    public Representation serializeToken()
+    @Override
+    public Representation getRepresentation()
     {
-        // TODO
-        return null;
+        return ReprUtil.serialize(this);
     }
 
 }
