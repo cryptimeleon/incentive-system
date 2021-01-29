@@ -19,8 +19,6 @@ import de.upb.crypto.math.structures.zn.Zn.ZnElement;
 /**
  * class representing a token from a mathematical point of view (meaning: as a bunch of group elements and exponents modulo p from which you can compute a Pedersen commitment)
  * serialized representation of token does not contain secret exponents and token plain text (latter can be computed trivially)
- * @author Patrick Schürmann
- * TODO compute representation of token for serialization
  */
 public class Token implements Representable
 {

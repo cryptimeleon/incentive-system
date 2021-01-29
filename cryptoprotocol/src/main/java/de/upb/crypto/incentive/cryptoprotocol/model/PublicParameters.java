@@ -11,7 +11,6 @@ import de.upb.crypto.math.pairings.generic.BilinearGroup;
 
 /**
  * a class representing the public parameters of the 2020 incentive system
- * @author Patrick Schürmann
  */
 
 public class PublicParameters

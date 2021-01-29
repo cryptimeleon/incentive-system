@@ -4,8 +4,6 @@ package de.upb.crypto.incentive.cryptoprotocol.model;
 import de.upb.crypto.craco.prf.PrfKey;
 import de.upb.crypto.craco.prf.aes.AesPseudorandomFunction;
 import de.upb.crypto.craco.sig.interfaces.SignatureKeyPair;
-import de.upb.crypto.craco.sig.interfaces.SigningKey;
-import de.upb.crypto.craco.sig.interfaces.VerificationKey;
 import de.upb.crypto.craco.sig.sps.eq.SPSEQPublicParameters;
 import de.upb.crypto.craco.sig.sps.eq.SPSEQSignatureScheme;
 import de.upb.crypto.craco.sig.sps.eq.SPSEQSigningKey;
@@ -21,7 +19,6 @@ import de.upb.crypto.math.interfaces.hash.HashIntoStructure;
 import de.upb.crypto.math.interfaces.structures.GroupElement;
 import de.upb.crypto.math.pairings.generic.BilinearGroup;
 import de.upb.crypto.math.pairings.type3.bn.BarretoNaehrigBilinearGroup;
-import de.upb.crypto.math.serialization.Representation;
 import de.upb.crypto.math.structures.zn.Zn;
 import de.upb.crypto.math.structures.zn.Zn.ZnElement;
 
