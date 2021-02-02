@@ -24,12 +24,12 @@ jobs:
       - name: Checkout math
         uses: actions/checkout@v2
         with:
-          repository: upbcup/upb.crypto.math
+          repository: upbcuk/upb.crypto.math
           path: main
       - name: Checkout craco
         uses: actions/checkout@v2
         with:
-          repository: upbcup/upb.crypto.craco
+          repository: upbcuk/upb.crypto.craco
           path: main
       - run: ls
       - uses: actions/setup-java@v1
