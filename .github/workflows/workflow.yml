@@ -36,9 +36,14 @@ jobs:
           java-version: '15.0.1' # The JDK version to make available on the path.
           java-package: jdk # (jre, jdk, or jdk+fx) - defaults to jdk
           architecture: x64 # (x64 or x86) - defaults to x64
-      - run: ls
-      - run: pushd incentive-services
-      - run: ls
+      - run: |
+          ls
+          pushd incentive-services
+          ls
+          popd
+          ls
+          cd incentive-services
+          ls
       - run: ./gradlew build
       - uses: actions/upload-artifact@v2
         with:
