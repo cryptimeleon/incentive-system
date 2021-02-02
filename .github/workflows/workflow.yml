@@ -14,11 +14,6 @@ on:
     - cron: '00 00 * * *'
 
 jobs:
-  hello-world:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - run: echo "Hello World!"
   build:
     runs-on: ubuntu-latest
     steps:
