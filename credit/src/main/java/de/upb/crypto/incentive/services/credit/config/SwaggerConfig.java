@@ -1,4 +1,4 @@
-package de.upv.crypto.incentive.services.credit;
+package de.upb.crypto.incentive.services.credit.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
