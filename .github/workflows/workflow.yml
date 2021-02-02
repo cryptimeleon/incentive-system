@@ -21,7 +21,23 @@ jobs:
     steps:
       - name: Checkout this repo
         uses: actions/checkout@v2
-      - uses: ./.github/actions/setup
+      - name: Checkout math
+        uses: actions/checkout@v2
+        with:
+          repository: upbcuk/upb.crypto.math
+          path: ../upb.crypto.math
+          ref: master
+      - name: Checkout craco
+        uses: actions/checkout@v2
+        with:
+          repository: upbcuk/upb.crypto.craco
+          path: ../upb.crypto.craco
+          ref: protocolupdates
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '15.0.1' # The JDK version to make available on the path.
+          java-package: jdk # (jre, jdk, or jdk+fx) - defaults to jdk
+          architecture: x64 # (x64 or x86) - defaults to x64
       - run: |
           pushd incentive-services
           ./gradlew build
@@ -29,10 +45,38 @@ jobs:
         if: ${{ failure() }}
         with:
           name: test-results
-          path: /*/reports/test/test/*
+          path: ./*/reports/test/test/*
   deploy:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
     needs: build
     steps:
-      - run: echo "Deploying"
+      - name: Checkout this repo
+        uses: actions/checkout@v2
+      - name: Checkout math
+        uses: actions/checkout@v2
+        with:
+          repository: upbcuk/upb.crypto.math
+          path: ../upb.crypto.math
+          ref: master
+      - name: Checkout craco
+        uses: actions/checkout@v2
+        with:
+          repository: upbcuk/upb.crypto.craco
+          path: ../upb.crypto.craco
+          ref: protocolupdates
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '15.0.1' # The JDK version to make available on the path.
+          java-package: jdk # (jre, jdk, or jdk+fx) - defaults to jdk
+          architecture: x64 # (x64 or x86) - defaults to x64
+      - name: Set tag
+        id: branch_name
+        run: |
+          echo ::set-output name=SOURCE_TAG::${GITHUB_REF#refs/tags/}
+      - name: Deploy
+        run: |
+          echo $SOURCE_TAG
+          ./.github/docker-release.sh
+        env:
+          SOURCE_TAG: ${{ steps.branch_name.outputs.SOURCE_TAG }}
