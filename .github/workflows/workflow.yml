@@ -11,10 +11,12 @@ on:
     branches:
       - develop
       - main
-  # Daily builds to ensure dependencies don't break anything
+  # Nightly builds to ensure dependencies don't break anything
   schedule:
     - cron: '00 00 * * *'
-
+defaults:
+  runs:
+    shell: bash
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -36,14 +38,14 @@ jobs:
           java-package: jdk # (jre, jdk, or jdk+fx) - defaults to jdk
           architecture: x64 # (x64 or x86) - defaults to x64
       - run: ./gradlew build
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v2  # Test results
         if: ${{ failure() }}
         with:
           name: test-results
           path: ./*/reports/test/test/*
   deploy:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')  # Only run this job on tags
     needs: build
     steps:
       - name: Checkout this repo
@@ -52,6 +54,9 @@ jobs:
         run: |
           pushd ..
           git clone https://github.com/upbcuk/upb.crypto.craco.git
+          pushd upb.crypto.craco
+          git checkout protocolupdates
+          popd
           git clone https://github.com/upbcuk/upb.crypto.math.git
           popd
       - uses: actions/setup-java@v1
@@ -61,12 +66,9 @@ jobs:
           architecture: x64 # (x64 or x86) - defaults to x64
       - name: Set tag
         id: branch_name
-        run: |
-          echo ::set-output name=SOURCE_TAG::${GITHUB_REF#refs/tags/}
+        run: echo ::set-output name=SOURCE_TAG::${GITHUB_REF#refs/tags/}
       - name: Deploy
-        run: |
-          echo $SOURCE_TAG
-          ./.github/docker-release.sh
+        run: ./docker-release.sh
         env:
           SOURCE_TAG: ${{ steps.branch_name.outputs.SOURCE_TAG }}
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
