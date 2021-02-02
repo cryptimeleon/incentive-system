@@ -22,7 +22,6 @@ do
 
   # Push docker image to dockerhub
   docker push "${IMAGE}:${VERSION}"
-  docker push "${IMAGE}:latest"
 
   echo "Finished deploying ${SERVICE}-service!"
 done
