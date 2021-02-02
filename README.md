@@ -1,6 +1,6 @@
 # T2 Incentive Services
 
-[![Build Status](https://travis-ci.com/upbcuk/incentive-services.svg?branch=develop)](https://travis-ci.com/upbcuk/incentive-services) [![Docker](https://img.shields.io/docker/cloud/build/eaudeweb/scratch?label=docker&style=flat)](https://hub.docker.com/repository/docker/upbcuk/incentive-service-issue/tags)
+![Develop](https://github.com/upbcuk/incentive-services/workflows/Default%20workflow/badge.svg?branch=develop) [![Docker](https://img.shields.io/docker/cloud/build/eaudeweb/scratch?label=docker&style=flat)](https://hub.docker.com/repository/docker/upbcuk/incentive-service-issue/tags)
 
 ----
 
