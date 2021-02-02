@@ -9,6 +9,8 @@ on:
     branches:
       - develop
       - main
+  create:
+    tags
   # Daily builds to ensure dependencies don't break anything
   schedule:
     - cron: '00 00 * * *'
@@ -26,11 +28,13 @@ jobs:
         with:
           repository: upbcuk/upb.crypto.math
           path: ./upb.crypto.math
+          ref: master
       - name: Checkout craco
         uses: actions/checkout@v2
         with:
           repository: upbcuk/upb.crypto.craco
           path: ./upb.crypto.craco
+          ref: protocolupdates
       - uses: actions/setup-java@v1
         with:
           java-version: '15.0.1' # The JDK version to make available on the path.
