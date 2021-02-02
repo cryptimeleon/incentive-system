@@ -19,27 +19,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout this repo
-        uses: actions/checkout@v2
-        with:
-          path: ./incentive-services
-      - name: Checkout math
-        uses: actions/checkout@v2
-        with:
-          repository: upbcuk/upb.crypto.math
-          path: ./upb.crypto.math
-          ref: master
-      - name: Checkout craco
-        uses: actions/checkout@v2
-        with:
-          repository: upbcuk/upb.crypto.craco
-          path: ./upb.crypto.craco
-          ref: protocolupdates
-      - uses: actions/setup-java@v1
-        with:
-          java-version: '15.0.1' # The JDK version to make available on the path.
-          java-package: jdk # (jre, jdk, or jdk+fx) - defaults to jdk
-          architecture: x64 # (x64 or x86) - defaults to x64
+      - uses: ./.github/actions/setup
       - run: |
           pushd incentive-services
           ./gradlew build
@@ -51,5 +31,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+    needs: build
     steps:
       - run: echo "Deploying"
