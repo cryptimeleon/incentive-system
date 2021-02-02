@@ -32,6 +32,7 @@ public class Setup {
 
     /**
      * generates public parameters from security parameter
+     *
      * @param securityParameter integer representation of security parameter
      * @return public parameters as object representation
      */
@@ -58,11 +59,11 @@ public class Setup {
 
     /**
      * generates a user key pair from public parameters
+     *
      * @param pp object representation of public parameters
      * @return object representation of a user key pair (see 2020 inc sys paper)
      */
-    public static UserKeyPair userKeyGen(PublicParameters pp)
-    {
+    public static UserKeyPair userKeyGen(PublicParameters pp) {
         // draw random exponent for the user secret key
         Zn usedZn = pp.getBg().getZn(); // the remainder class ring used in this instance of the incentive system
         ZnElement usk = usedZn.getUniformlyRandomElement(); // secret exponent
@@ -80,8 +81,7 @@ public class Setup {
     }
 
 
-    public static ProviderKeyPair providerKeyGen(PublicParameters pp)
-    {
+    public static ProviderKeyPair providerKeyGen(PublicParameters pp) {
         // draw the dlogs of the first 6 bases used in the Pedersen commitment in the token
         RingElementVector q = pp.getBg().getZn().getUniformlyRandomElements(6);
 

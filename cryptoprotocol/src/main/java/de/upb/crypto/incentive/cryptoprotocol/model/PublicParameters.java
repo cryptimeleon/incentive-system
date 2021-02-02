@@ -14,8 +14,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class PublicParameters
-{
+public class PublicParameters {
     private BilinearGroup bg;
     private GroupElement w;
     private GroupElement h7;

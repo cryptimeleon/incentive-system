@@ -23,8 +23,7 @@ import java.net.PortUnreachableException;
  * class representing a token from a mathematical point of view (meaning: as a bunch of group elements and exponents modulo p from which you can compute a Pedersen commitment)
  * serialized representation of token does not contain secret exponents and token plain text (latter can be computed trivially)
  */
-public class Token implements Representable
-{
+public class Token implements Representable {
     @Represented
     private PublicParameters pp; // public parameters for the inc sys instance in which the token was created
 
@@ -47,16 +46,16 @@ public class Token implements Representable
     /**
      * standard constructor, intializes an empty token, meaning a token storing 0 points represented as a Pedersen commitment.
      * Note that certificate is not set since a token is usually not certified upon creation.
-     * @param pp public parameters
-     * @param vKey verification key
-     * @param pk provider public key
-     * @param USK secret key of user
-     * @param esk ElGamal secret key
+     *
+     * @param pp     public parameters
+     * @param vKey   verification key
+     * @param pk     provider public key
+     * @param USK    secret key of user
+     * @param esk    ElGamal secret key
      * @param dsrnd0 double spending randomness
      * @param dsrnd1 other double spending randomness
      */
-    public Token(PublicParameters pp, VerificationKey vKey, ProviderPublicKey pk, ZnElement USK, ZnElement esk, ZnElement dsrnd0, ZnElement dsrnd1, ZnElement z, ZnElement t) throws IllegalArgumentException
-    {
+    public Token(PublicParameters pp, VerificationKey vKey, ProviderPublicKey pk, ZnElement USK, ZnElement esk, ZnElement dsrnd0, ZnElement dsrnd1, ZnElement z, ZnElement t) throws IllegalArgumentException {
         // retrieve commitment base array h from passed provider public key
         GroupElementVector h = pk.getH();
         this.commitmentBases = h;
@@ -79,8 +78,7 @@ public class Token implements Representable
     /**
      * updates token with the passed values and recomputes commitment
      */
-    private void updateToken(ZnElement USK, ZnElement esk, ZnElement dsrnd0, ZnElement dsrnd1, ZnElement v, ZnElement z, ZnElement t)
-    {
+    private void updateToken(ZnElement USK, ZnElement esk, ZnElement dsrnd0, ZnElement dsrnd1, ZnElement v, ZnElement z, ZnElement t) {
         this.userSecretKey = USK;
         this.encryptionSecretKey = esk;
         this.doubleSpendRandomness0 = dsrnd0;
@@ -94,10 +92,10 @@ public class Token implements Representable
 
     /**
      * update point count and recompute commitment
+     *
      * @param v new point count
      */
-    private void updatePoints(ZnElement v)
-    {
+    private void updatePoints(ZnElement v) {
         this.points = v;
 
         this.recomputeCommitment();
@@ -107,8 +105,7 @@ public class Token implements Representable
      * recomputes the Pedersen commitment representing the token from the group elements and exponents (and also updates its plaintext representation)
      * (see chapter 4 of 2020 incentive systems paper)
      */
-    private void recomputeCommitment()
-    {
+    private void recomputeCommitment() {
         // note that indices of bases are off by one wrt paper (zero-based indexing)
         this.token = this.commitmentBases.get(0).pow(this.userSecretKey)
                 .op(this.commitmentBases.get(1).pow(this.encryptionSecretKey))
@@ -124,16 +121,16 @@ public class Token implements Representable
 
     /**
      * sets the certificate for the token.
+     *
      * @param cert new certificate
      */
-    public void setCertificate(SPSEQSignature cert) throws SPSEQException
-    {
+    public void setCertificate(SPSEQSignature cert) throws SPSEQException {
         this.certificate = cert;
 
         SPSEQSignatureScheme signatureScheme = pp.getSpsEq();
 
         // immediately throw exception if signature not valid for token group element
-        if(!signatureScheme.verify(this.tokenPlainText, this.certificate, this.verificationKey)) // token plaintext needed for verification (API reasons)
+        if (!signatureScheme.verify(this.tokenPlainText, this.certificate, this.verificationKey)) // token plaintext needed for verification (API reasons)
         {
             throw new SPSEQException("token was associated with an invalid certificate");
         }
@@ -141,16 +138,20 @@ public class Token implements Representable
 
     /**
      * computes "dumb token" from mathematical representation of token
+     *
      * @return serialized version of token
      */
     @Override
-    public Representation getRepresentation()
-    {
+    public Representation getRepresentation() {
         return ReprUtil.serialize(this);
     }
 
-    public GroupElement getToken() { return this.token; }
+    public GroupElement getToken() {
+        return this.token;
+    }
 
-    public SPSEQSignature getCertificate() { return this.certificate; }
+    public SPSEQSignature getCertificate() {
+        return this.certificate;
+    }
 }
 

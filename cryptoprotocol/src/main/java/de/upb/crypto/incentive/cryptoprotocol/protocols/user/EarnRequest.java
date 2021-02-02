@@ -21,8 +21,7 @@ import de.upb.crypto.math.structures.zn.Zn.ZnElement;
  * as well as handling the providers response.
  * Note that not all fields of this class are part of its serialized representation (for privacy reasons).
  */
-public class EarnRequest implements EarnInterface, Representable
-{
+public class EarnRequest implements EarnInterface, Representable {
     @Represented
     private PublicParameters pp;
     @Represented
@@ -41,8 +40,7 @@ public class EarnRequest implements EarnInterface, Representable
     /**
      * @param k earn amount, name taken from 2020 inc sys paper
      */
-    public EarnRequest(PublicParameters pp, ProviderPublicKey pk, UserSecretKey usk, long k, Token token)
-    {
+    public EarnRequest(PublicParameters pp, ProviderPublicKey pk, UserSecretKey usk, long k, Token token) {
         Zn usedZn = pp.getBg().getZn();
         // draw blinding value
         this.s = usedZn.getUniformlyRandomNonzeroElement(); // s cannot be zero since we need to compute its inverse to unblind the signature
@@ -55,8 +53,7 @@ public class EarnRequest implements EarnInterface, Representable
         this.token = token;
     }
 
-    public String generateSerializedEarnRequest()
-    {
+    public String generateSerializedEarnRequest() {
         // change representative call to blind commitment and certificate
         SPSEQSignature certificate = this.token.getCertificate();
         SPSEQVerificationKey provSPSPk = this.pk.getPkSpsEq(); // store SPS EQ verification key from provider public key
@@ -70,8 +67,7 @@ public class EarnRequest implements EarnInterface, Representable
         return requestRepresentation.str().get();
     }
 
-    public String handleSerializedCreditResponse(String serializedCreditResponse)
-    {
+    public String handleSerializedCreditResponse(String serializedCreditResponse) {
         // deserialize response
 
         // unblind signature
@@ -81,8 +77,7 @@ public class EarnRequest implements EarnInterface, Representable
     }
 
     @Override
-    public Representation getRepresentation()
-    {
+    public Representation getRepresentation() {
         return ReprUtil.serialize(this);
     }
 }

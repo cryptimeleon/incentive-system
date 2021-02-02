@@ -7,17 +7,14 @@ import de.upb.crypto.math.structures.zn.Zn.ZnElement;
 
 import java.util.Arrays;
 
-public class ProviderSecretKey
-{
+public class ProviderSecretKey {
     private SPSEQSigningKey skSpsEq;
     private RingElementVector q; // dlogs of the first six bases used in the Pedersen commitment in the token
     private PrfKey betaProv;
 
-    public ProviderSecretKey(SPSEQSigningKey skSpsEq, RingElementVector q, PrfKey betaProv) throws IllegalArgumentException
-    {
+    public ProviderSecretKey(SPSEQSigningKey skSpsEq, RingElementVector q, PrfKey betaProv) throws IllegalArgumentException {
         // assert that correct number of Zn exponents is passed ()
-        if(q.length() != 6)
-        {
+        if (q.length() != 6) {
             throw new IllegalArgumentException("q is required to consist of 6 group elements, found: " + String.valueOf(q.length()));
         }
 
@@ -29,7 +26,11 @@ public class ProviderSecretKey
         this.betaProv = betaProv;
     }
 
-    public SPSEQSigningKey getSkSpsEq() { return skSpsEq; }
+    public SPSEQSigningKey getSkSpsEq() {
+        return skSpsEq;
+    }
 
-    public RingElementVector getQ() { return this.q; }
+    public RingElementVector getQ() {
+        return this.q;
+    }
 }
