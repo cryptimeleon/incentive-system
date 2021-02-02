@@ -6,19 +6,17 @@ runs:
     steps:
       - name: Checkout this repo
         uses: actions/checkout@v2
-        with:
-          path: ./incentive-services
       - name: Checkout math
         uses: actions/checkout@v2
         with:
           repository: upbcuk/upb.crypto.math
-          path: ./upb.crypto.math
+          path: ../upb.crypto.math
           ref: master
       - name: Checkout craco
         uses: actions/checkout@v2
         with:
           repository: upbcuk/upb.crypto.craco
-          path: ./upb.crypto.craco
+          path: ../upb.crypto.craco
           ref: protocolupdates
       - uses: actions/setup-java@v1
         with:
