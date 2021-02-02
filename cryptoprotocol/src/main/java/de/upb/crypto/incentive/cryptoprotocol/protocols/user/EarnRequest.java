@@ -29,7 +29,7 @@ public class EarnRequest implements EarnInterface, Representable
     private ProviderPublicKey pk;
     private UserSecretKey usk;
     @Represented
-    private long k;
+    private long k; // TODO: k must be given to EarnRequestHandler separately i.e. not in the serialized earn request
     private Token token; // TODO: is it a problem if token is unserialized? -> shouldn't be because serialization is no encryption
 
     @Represented
@@ -43,7 +43,7 @@ public class EarnRequest implements EarnInterface, Representable
      */
     public EarnRequest(PublicParameters pp, ProviderPublicKey pk, UserSecretKey usk, long k, Token token)
     {
-        Zn usedZn = pp.getBG().getZn();
+        Zn usedZn = pp.getBg().getZn();
         // draw blinding value
         this.s = usedZn.getUniformlyRandomNonzeroElement(); // s cannot be zero since we need to compute its inverse to unblind the signature
 

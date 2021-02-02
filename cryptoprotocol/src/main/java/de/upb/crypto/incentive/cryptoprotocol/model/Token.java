@@ -5,15 +5,18 @@ import de.upb.crypto.craco.common.GroupElementPlainText;
 import de.upb.crypto.craco.sig.interfaces.VerificationKey;
 import de.upb.crypto.craco.sig.sps.eq.SPSEQSignature;
 import de.upb.crypto.craco.sig.sps.eq.SPSEQSignatureScheme;
-import de.upb.crypto.incentive.cryptoprotocol.exceptions.PedersenException;
 import de.upb.crypto.incentive.cryptoprotocol.exceptions.SPSEQException;
+import de.upb.crypto.incentive.cryptoprotocol.model.keys.provider.ProviderPublicKey;
 import de.upb.crypto.math.interfaces.structures.GroupElement;
 import de.upb.crypto.math.serialization.Representable;
 import de.upb.crypto.math.serialization.Representation;
 import de.upb.crypto.math.serialization.annotations.v2.ReprUtil;
 import de.upb.crypto.math.serialization.annotations.v2.Represented;
+import de.upb.crypto.math.structures.cartesian.GroupElementVector;
 import de.upb.crypto.math.structures.zn.Zn;
 import de.upb.crypto.math.structures.zn.Zn.ZnElement;
+
+import java.net.PortUnreachableException;
 
 
 /**
@@ -23,9 +26,7 @@ import de.upb.crypto.math.structures.zn.Zn.ZnElement;
 public class Token implements Representable
 {
     @Represented
-    private Zn myRemainderClassRing; // the remainder class ring the token's exponents live in
-    @Represented
-    private SPSEQSignatureScheme signatureScheme; // the instance of the signature scheme that is used to certify tokens
+    private PublicParameters pp; // public parameters for the inc sys instance in which the token was created
 
     @Represented
     private GroupElement token; // the Pedersen commitment computed from the bases and the exponents, representing the actual token
@@ -35,7 +36,7 @@ public class Token implements Representable
     @Represented
     private VerificationKey verificationKey; // the SPS-EQ pk used to check validity of token-certificate pair
 
-    private GroupElement[] commitmentBases; // array of the 7 group elements (h_i) needed to form the Pedersen commitment
+    private GroupElementVector commitmentBases; // array of the 7 group elements (h_i) needed to form the Pedersen commitment
     private ZnElement userSecretKey; // secret key of the user the token belongs to
     private ZnElement encryptionSecretKey; // secret key used for the ElGamal encryption in the Spend algorithm
     private ZnElement doubleSpendRandomness0; // randomness used for the first challenge generation in double spending protection
@@ -46,34 +47,22 @@ public class Token implements Representable
     /**
      * standard constructor, intializes an empty token, meaning a token storing 0 points represented as a Pedersen commitment.
      * Note that certificate is not set since a token is usually not certified upon creation.
-     * @param myRemClassRing remainder class ring of exponents
-     * @param sigScheme signature scheme
+     * @param pp public parameters
      * @param vKey verification key
-     * @param h array of the bases for the Pedersen commitment
+     * @param pk provider public key
      * @param USK secret key of user
      * @param esk ElGamal secret key
      * @param dsrnd0 double spending randomness
      * @param dsrnd1 other double spending randomness
      */
-    public Token(Zn myRemClassRing, SPSEQSignatureScheme sigScheme, VerificationKey vKey,GroupElement[] h, ZnElement USK, ZnElement esk, ZnElement dsrnd0, ZnElement dsrnd1, ZnElement z, ZnElement t) throws PedersenException
+    public Token(PublicParameters pp, VerificationKey vKey, ProviderPublicKey pk, ZnElement USK, ZnElement esk, ZnElement dsrnd0, ZnElement dsrnd1, ZnElement z, ZnElement t) throws IllegalArgumentException
     {
-        // asserting correct number of group elements passed
-        if(h.length != 7)
-        {
-            throw new PedersenException("h is required to consist of 7 group elements, found: " + String.valueOf(h.length));
-        }
-
-        // TODO check out group element vector, vector exponentiation operation
-        // initializing bases array with deep copy of passed elements array
-        this.commitmentBases = new GroupElement[h.length];
-        for(int i = 0; i < h.length; i++)
-        {
-            this.commitmentBases[i] = h[i]; // note: due to 0-based indexing, the bases' indices are off by one wrt paper
-        }
+        // retrieve commitment base array h from passed provider public key
+        GroupElementVector h = pk.getH();
+        this.commitmentBases = h;
 
         // initializing respective object variables with other parameters
-        this.myRemainderClassRing = myRemClassRing;
-        this.signatureScheme = sigScheme;
+        Zn myRemainderClassRing = pp.getBg().getZn(); // needed to retrieve correct zero element to compute point count
         this.verificationKey = vKey;
         this.userSecretKey = USK;
         this.encryptionSecretKey = esk;
@@ -84,29 +73,50 @@ public class Token implements Representable
         this.t = t;
 
         // compute the token-representing Pedersen commitment for the first time
-        this.updateToken();
+        this.recomputeCommitment();
+    }
+
+    /**
+     * updates token with the passed values and recomputes commitment
+     */
+    private void updateToken(ZnElement USK, ZnElement esk, ZnElement dsrnd0, ZnElement dsrnd1, ZnElement v, ZnElement z, ZnElement t)
+    {
+        this.userSecretKey = USK;
+        this.encryptionSecretKey = esk;
+        this.doubleSpendRandomness0 = dsrnd0;
+        this.doubleSpendRandomness1 = dsrnd1;
+        this.points = v;
+        this.z = z;
+        this.t = t;
+
+        this.recomputeCommitment();
+    }
+
+    /**
+     * update point count and recompute commitment
+     * @param v new point count
+     */
+    private void updatePoints(ZnElement v)
+    {
+        this.points = v;
+
+        this.recomputeCommitment();
     }
 
     /**
      * recomputes the Pedersen commitment representing the token from the group elements and exponents (and also updates its plaintext representation)
      * (see chapter 4 of 2020 incentive systems paper)
      */
-    public void updateToken()
+    private void recomputeCommitment()
     {
         // note that indices of bases are off by one wrt paper (zero-based indexing)
-        this.token = this.commitmentBases[0].pow(this.userSecretKey).op(
-                this.commitmentBases[1].pow(this.encryptionSecretKey).op(
-                        this.commitmentBases[2].pow(this.doubleSpendRandomness0).op(
-                                this.commitmentBases[3].pow(this.doubleSpendRandomness1).op(
-                                        this.commitmentBases[4].pow(this.points).op(
-                                                this.commitmentBases[5].pow(this.z).op(
-                                                        this.commitmentBases[6].pow(this.t)
-                                                )
-                                        )
-                                )
-                        )
-                )
-        );
+        this.token = this.commitmentBases.get(0).pow(this.userSecretKey)
+                .op(this.commitmentBases.get(1).pow(this.encryptionSecretKey))
+                .op(this.commitmentBases.get(2).pow(this.doubleSpendRandomness0))
+                .op(this.commitmentBases.get(3).pow(this.doubleSpendRandomness1))
+                .op(this.commitmentBases.get(4).pow(this.points))
+                .op(this.commitmentBases.get(5).pow(this.z))
+                .op(this.commitmentBases.get(6).pow(this.t));
 
         tokenPlainText = new GroupElementPlainText(this.token);
     }
@@ -120,8 +130,10 @@ public class Token implements Representable
     {
         this.certificate = cert;
 
+        SPSEQSignatureScheme signatureScheme = pp.getSpsEq();
+
         // immediately throw exception if signature not valid for token group element
-        if(!signatureScheme.verify(this.tokenPlainText, this.certificate, this.verificationKey)); // token plaintext needed for verification (API reasons)
+        if(!signatureScheme.verify(this.tokenPlainText, this.certificate, this.verificationKey)) // token plaintext needed for verification (API reasons)
         {
             throw new SPSEQException("token was associated with an invalid certificate");
         }
