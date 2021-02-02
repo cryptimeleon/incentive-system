@@ -20,26 +20,25 @@ jobs:
       - name: Checkout this repo
         uses: actions/checkout@v2
         with:
-          path: main
+          path: ./incentive-services
       - name: Checkout math
         uses: actions/checkout@v2
         with:
           repository: upbcuk/upb.crypto.math
-          path: main
+          path: ./upb.crypto.math
       - name: Checkout craco
         uses: actions/checkout@v2
         with:
           repository: upbcuk/upb.crypto.craco
-          path: main
-      - run: ls
+          path: ./upb.crypto.craco
       - uses: actions/setup-java@v1
         with:
           java-version: '15.0.1' # The JDK version to make available on the path.
           java-package: jdk # (jre, jdk, or jdk+fx) - defaults to jdk
           architecture: x64 # (x64 or x86) - defaults to x64
-      - run: pushd main
       - run: ls
       - run: pushd incentive-services
+      - run: ls
       - run: ./gradlew build
       - uses: actions/upload-artifact@v2
         with:
