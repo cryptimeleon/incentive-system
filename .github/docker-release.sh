@@ -3,7 +3,7 @@
 set -e
 
 SERVICES=( issue credit )
-VERSION=$(echo "$TRAVIS_TAG" | cut -c 2-)  # Remove v from version
+VERSION=$(echo "$SOURCE_TAG" | cut -c 2-)  # Remove v from version
 echo "Building and deploying docker images with version: $VERSION"
 
 for SERVICE in "${SERVICES[@]}"
@@ -18,11 +18,10 @@ do
 
   echo "Uploading docker images for ${SERVICE}-service."
   # Login to dockerhubwith credentials
-  echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  echo "$DOCKER_ACCESS_TOKEN" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
   # Push docker image to dockerhub
   docker push "${IMAGE}:${VERSION}"
-  docker push "${IMAGE}:latest"
 
   echo "Finished deploying ${SERVICE}-service!"
 done
