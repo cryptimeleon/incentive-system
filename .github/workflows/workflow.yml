@@ -26,7 +26,7 @@ jobs:
           pushd ..
           git clone https://github.com/upbcuk/upb.crypto.craco.git
           pushd upb.crypto.craco
-          git checkout incentive-pipeline
+          git checkout protocolupdates
           popd
           git clone https://github.com/upbcuk/upb.crypto.math.git
           popd
