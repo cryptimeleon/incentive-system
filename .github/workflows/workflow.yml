@@ -22,10 +22,25 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout this repo
+        uses: actions/checkout@v2
+        with:
+          path: main
+      - name: Checkout math
+        uses: actions/checkout@v2
+        with:
+          repository: upbcup/upb.crypto.math
+          path: main
+      - name: Checkout craco
+        uses: actions/checkout@v2
+        with:
+          repository: upbcup/upb.crypto.craco
+          path: main
+      - run: ls
       - uses: actions/setup-java@v1
         with:
           java-version: '15.0.1' # The JDK version to make available on the path.
           java-package: jdk # (jre, jdk, or jdk+fx) - defaults to jdk
           architecture: x64 # (x64 or x86) - defaults to x64
+      - run: pushd main
       - run: ./gradlew build
