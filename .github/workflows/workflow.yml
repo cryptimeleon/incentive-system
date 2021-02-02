@@ -38,4 +38,10 @@ jobs:
           java-package: jdk # (jre, jdk, or jdk+fx) - defaults to jdk
           architecture: x64 # (x64 or x86) - defaults to x64
       - run: pushd main
+      - run: ls
+      - run: pushd incentive-services
       - run: ./gradlew build
+        - uses: actions/upload-artifact@v2
+          with:
+            name: test-results
+            path: */reports/test/test/
