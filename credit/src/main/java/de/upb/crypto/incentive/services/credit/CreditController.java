@@ -1,10 +1,9 @@
-package de.upv.crypto.incentive.services.credit;
+package de.upb.crypto.incentive.services.credit;
 
-import de.upb.crypto.incentive.protocoldefinition.creditearn.EarnRequest;
 import de.upb.crypto.incentive.protocoldefinition.creditearn.CreditResponse;
+import de.upb.crypto.incentive.protocoldefinition.creditearn.EarnRequest;
 import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,9 +13,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+@AllArgsConstructor
 @RestController
 @Slf4j
 public class CreditController {
+
+    private CreditService creditService;  // Automatically injects an instance of the service
 
     @GetMapping("/test")
     public ResponseEntity<String> test() {
@@ -26,16 +28,8 @@ public class CreditController {
 
     @GetMapping("/credit")
     @ApiOperation(value = "Credit protocol", notes = "Earn to a token.", response = CreditResponse.class)
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Success", response = CreditResponse.class),
-            @ApiResponse(code = 403, message = "Invalid Credit Request", response = String.class)
-    })
-    public ResponseEntity<CreditResponse> greeting(@Validated EarnRequest request) throws IncentiveException {
-        if (request.getEarnAmount() < 0) {
-            throw new IncentiveException();
-        }
-        // TODO query basket server to check if request is valid
-        return new ResponseEntity<>(new CreditResponse(request.getId(), "Test credit response") , HttpStatus.OK);
+    public CreditResponse credit(@Validated EarnRequest request) throws IncentiveException {
+        return creditService.handleEarnRequest(request);
     }
 
     @ResponseStatus(HttpStatus.FORBIDDEN)
