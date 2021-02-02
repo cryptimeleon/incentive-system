@@ -19,5 +19,5 @@ public class Item {
     @ApiModelProperty(value = "${item.title}")
     String title;
     @ApiModelProperty(value = "${item.price}")
-    int price;
+    long price;
 }

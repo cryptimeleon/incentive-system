@@ -82,7 +82,7 @@ public class ClientHelper {
                 .isEqualTo(expectedStatus);
     }
 
-    static void payBasket(WebTestClient webTestClient, UUID basketId, int value, HttpStatus expectedStatus) {
+    static void payBasket(WebTestClient webTestClient, UUID basketId, long value, HttpStatus expectedStatus) {
         var payRequest = new PayBasketRequest(basketId, value);
         payBasket(webTestClient, payRequest, expectedStatus);
     }
@@ -105,7 +105,7 @@ public class ClientHelper {
                 .isEqualTo(expectedStatus);
     }
 
-    static void redeemBasket(WebTestClient webTestClient, UUID basketId, String request, int value, HttpStatus expectedStatus) {
+    static void redeemBasket(WebTestClient webTestClient, UUID basketId, String request, long value, HttpStatus expectedStatus) {
         var redeemRequest = new RedeemBasketRequest(basketId, request, value);
         redeemBasket(webTestClient, redeemRequest, expectedStatus);
     }

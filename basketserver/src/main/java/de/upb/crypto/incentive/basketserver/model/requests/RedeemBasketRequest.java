@@ -15,5 +15,5 @@ import java.util.UUID;
 public class RedeemBasketRequest {
     UUID basketId;
     String redeemRequest;
-    int value;
+    long value;
 }

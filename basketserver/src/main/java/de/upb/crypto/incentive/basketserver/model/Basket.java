@@ -28,7 +28,7 @@ public class Basket {
     private String redeemRequest;
     // value must be set manually for serialization
     @ApiModelProperty(value = "${basketModel.value}")
-    private int value;
+    private long value;
 
     public Basket(UUID id) {
         basketID = id;

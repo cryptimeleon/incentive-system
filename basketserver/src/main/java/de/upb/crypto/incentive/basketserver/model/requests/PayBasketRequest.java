@@ -14,5 +14,5 @@ import java.util.UUID;
 @Data
 public class PayBasketRequest {
     UUID basketId;
-    int value;
+    long value;
 }

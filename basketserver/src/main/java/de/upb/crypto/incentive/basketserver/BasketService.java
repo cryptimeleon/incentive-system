@@ -88,17 +88,17 @@ public class BasketService {
         basket.getItems().remove(itemId);
     }
 
-    public void payBasket(UUID basketId, int value) throws BasketServiceException {
+    public void payBasket(UUID basketId, long value) throws BasketServiceException {
         var basket = getBasketById(basketId);
 
-        var basketValue = getBasketValue(basket);
+        long basketValue = getBasketValue(basket);
         if (value != basketValue) throw new WrongBasketValueException();
         if (basket.getItems().isEmpty()) throw new BasketServiceException("Cannot pay empty baskets");
 
         basket.setPaid(true);
     }
 
-    public void redeemBasket(UUID basketId, String redeemRequest, int value) throws BasketServiceException {
+    public void redeemBasket(UUID basketId, String redeemRequest, long value) throws BasketServiceException {
         var basket = getBasketById(basketId);
 
         if (!basket.isPaid()) throw new BasketServiceException("Basket not paid!");
@@ -116,9 +116,9 @@ public class BasketService {
      * Function for computing the value of a basket.
      * Basket does not know its value to prevent redundant data / weird data ownership.
      */
-    public int getBasketValue(Basket basket) {
+    public long getBasketValue(Basket basket) {
         return getBasketItemsInBasket(basket)
-                .mapToInt((basketItem) -> basketItem.getItem().getPrice() * basketItem.getCount())
+                .mapToLong((basketItem) -> basketItem.getItem().getPrice() * basketItem.getCount())
                 .sum();
     }
 
