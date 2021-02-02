@@ -40,6 +40,7 @@ jobs:
           pushd incentive-services
           ./gradlew build
       - uses: actions/upload-artifact@v2
+        if: ${{ failure() }}
         with:
           name: test-results
           path: /*/reports/test/test/*
