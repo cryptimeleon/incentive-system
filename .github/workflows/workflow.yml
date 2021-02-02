@@ -37,14 +37,8 @@ jobs:
           java-package: jdk # (jre, jdk, or jdk+fx) - defaults to jdk
           architecture: x64 # (x64 or x86) - defaults to x64
       - run: |
-          ls
           pushd incentive-services
-          ls
-          popd
-          ls
-          cd incentive-services
-          ls
-      - run: ./gradlew build
+          ./gradlew build
       - uses: actions/upload-artifact@v2
         with:
           name: test-results
