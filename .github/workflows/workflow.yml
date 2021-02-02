@@ -69,3 +69,5 @@ jobs:
           ./.github/docker-release.sh
         env:
           SOURCE_TAG: ${{ steps.branch_name.outputs.SOURCE_TAG }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_ACCESS_TOKEN: ${{ secrets.DOCKER_ACCESS_TOKEN}}
