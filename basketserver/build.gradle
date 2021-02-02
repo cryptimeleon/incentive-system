@@ -29,7 +29,7 @@ test {
 
 bootBuildImage {
     if (System.getenv('VERSION') == null || System.getenv('VERSION') == '') {
-        imageName = "upbcuk/incentive-service-basketserver"
+        imageName = "upbcuk/incentive-service-basketserver:" + file("../version").text.trim()
     } else {
         imageName = "upbcuk/incentive-service-basketserver:" + System.getenv('VERSION')
     }
