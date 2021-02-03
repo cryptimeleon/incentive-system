@@ -2,7 +2,7 @@ package de.upb.crypto.incentive.cryptoprotocol.model.keys.provider;
 
 import de.upb.crypto.craco.prf.PrfKey;
 import de.upb.crypto.craco.sig.sps.eq.SPSEQSigningKey;
-import de.upb.crypto.math.structures.cartesian.RingElementVector;
+import de.upb.crypto.math.structures.rings.cartesian.RingElementVector;
 
 public class ProviderSecretKey {
     private SPSEQSigningKey skSpsEq;

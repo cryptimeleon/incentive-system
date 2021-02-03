@@ -1,7 +1,7 @@
 package de.upb.crypto.incentive.cryptoprotocol.model.keys.user;
 
 import de.upb.crypto.craco.prf.PrfKey;
-import de.upb.crypto.math.structures.zn.Zn.ZnElement;
+import de.upb.crypto.math.structures.rings.zn.Zn.ZnElement;
 
 public class UserSecretKey {
     private ZnElement usk;

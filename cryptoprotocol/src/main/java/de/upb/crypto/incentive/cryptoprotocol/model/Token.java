@@ -1,22 +1,20 @@
 package de.upb.crypto.incentive.cryptoprotocol.model;
 
 
-import de.upb.crypto.craco.common.GroupElementPlainText;
-import de.upb.crypto.craco.sig.interfaces.VerificationKey;
+import de.upb.crypto.craco.common.plaintexts.GroupElementPlainText;
+import de.upb.crypto.craco.sig.VerificationKey;
 import de.upb.crypto.craco.sig.sps.eq.SPSEQSignature;
 import de.upb.crypto.craco.sig.sps.eq.SPSEQSignatureScheme;
 import de.upb.crypto.incentive.cryptoprotocol.exceptions.SPSEQException;
 import de.upb.crypto.incentive.cryptoprotocol.model.keys.provider.ProviderPublicKey;
-import de.upb.crypto.math.interfaces.structures.GroupElement;
 import de.upb.crypto.math.serialization.Representable;
 import de.upb.crypto.math.serialization.Representation;
-import de.upb.crypto.math.serialization.annotations.v2.ReprUtil;
-import de.upb.crypto.math.serialization.annotations.v2.Represented;
-import de.upb.crypto.math.structures.cartesian.GroupElementVector;
-import de.upb.crypto.math.structures.zn.Zn;
-import de.upb.crypto.math.structures.zn.Zn.ZnElement;
-
-import java.net.PortUnreachableException;
+import de.upb.crypto.math.serialization.annotations.ReprUtil;
+import de.upb.crypto.math.serialization.annotations.Represented;
+import de.upb.crypto.math.structures.groups.GroupElement;
+import de.upb.crypto.math.structures.groups.cartesian.GroupElementVector;
+import de.upb.crypto.math.structures.rings.zn.Zn;
+import de.upb.crypto.math.structures.rings.zn.Zn.ZnElement;
 
 
 /**

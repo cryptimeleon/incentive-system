@@ -1,8 +1,7 @@
 package de.upb.crypto.incentive.cryptoprotocol.model.keys.provider;
 
 import de.upb.crypto.craco.sig.sps.eq.SPSEQVerificationKey;
-import de.upb.crypto.math.interfaces.structures.GroupElement;
-import de.upb.crypto.math.structures.cartesian.GroupElementVector;
+import de.upb.crypto.math.structures.groups.cartesian.GroupElementVector;
 
 import java.util.Arrays;
 

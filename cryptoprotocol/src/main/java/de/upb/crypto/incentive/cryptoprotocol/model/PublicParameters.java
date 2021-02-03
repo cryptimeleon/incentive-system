@@ -3,8 +3,8 @@ package de.upb.crypto.incentive.cryptoprotocol.model;
 
 import de.upb.crypto.craco.prf.aes.AesPseudorandomFunction;
 import de.upb.crypto.craco.sig.sps.eq.SPSEQSignatureScheme;
-import de.upb.crypto.math.interfaces.structures.GroupElement;
-import de.upb.crypto.math.pairings.generic.BilinearGroup;
+import de.upb.crypto.math.structures.groups.GroupElement;
+import de.upb.crypto.math.structures.groups.elliptic.BilinearGroup;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

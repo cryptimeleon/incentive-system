@@ -3,7 +3,7 @@ package de.upb.crypto.incentive.cryptoprotocol.model;
 
 import de.upb.crypto.craco.prf.PrfKey;
 import de.upb.crypto.craco.prf.aes.AesPseudorandomFunction;
-import de.upb.crypto.craco.sig.interfaces.SignatureKeyPair;
+import de.upb.crypto.craco.sig.SignatureKeyPair;
 import de.upb.crypto.craco.sig.sps.eq.SPSEQPublicParameters;
 import de.upb.crypto.craco.sig.sps.eq.SPSEQSignatureScheme;
 import de.upb.crypto.craco.sig.sps.eq.SPSEQSigningKey;
@@ -14,14 +14,13 @@ import de.upb.crypto.incentive.cryptoprotocol.model.keys.provider.ProviderSecret
 import de.upb.crypto.incentive.cryptoprotocol.model.keys.user.UserKeyPair;
 import de.upb.crypto.incentive.cryptoprotocol.model.keys.user.UserPublicKey;
 import de.upb.crypto.incentive.cryptoprotocol.model.keys.user.UserSecretKey;
-import de.upb.crypto.math.interfaces.hash.HashIntoStructure;
-import de.upb.crypto.math.interfaces.structures.GroupElement;
-import de.upb.crypto.math.pairings.generic.BilinearGroup;
-import de.upb.crypto.math.pairings.type3.bn.BarretoNaehrigBilinearGroup;
-import de.upb.crypto.math.structures.cartesian.GroupElementVector;
-import de.upb.crypto.math.structures.cartesian.RingElementVector;
-import de.upb.crypto.math.structures.zn.Zn;
-import de.upb.crypto.math.structures.zn.Zn.ZnElement;
+import de.upb.crypto.math.structures.groups.GroupElement;
+import de.upb.crypto.math.structures.groups.cartesian.GroupElementVector;
+import de.upb.crypto.math.structures.groups.elliptic.BilinearGroup;
+import de.upb.crypto.math.structures.groups.elliptic.type3.bn.BarretoNaehrigBilinearGroup;
+import de.upb.crypto.math.structures.rings.cartesian.RingElementVector;
+import de.upb.crypto.math.structures.rings.zn.Zn;
+import de.upb.crypto.math.structures.rings.zn.Zn.ZnElement;
 
 /**
  * a class implementing the incentive system algorithms (of the incentive system from the 2020 paper) that are not part of any protocol
