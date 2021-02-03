@@ -1,0 +1,36 @@
+plugins {
+    id 'org.springframework.boot' version '2.4.2'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'java'
+    id "io.freefair.lombok" version "5.3.0"
+}
+
+group = 'de.upb.crypto'
+sourceCompatibility = '15'
+
+repositories {
+    mavenCentral()
+    jcenter()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation "io.springfox:springfox-boot-starter:3.0.0"
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    // https://mvnrepository.com/artifact/org.assertj/assertj-core
+    testCompile group: 'org.assertj', name: 'assertj-core', version: '3.19.0'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+bootBuildImage {
+    if (System.getenv('VERSION') == null || System.getenv('VERSION') == '') {
+        imageName = "upbcuk/incentive-service-basketserver:" + file("../version").text.trim()
+    } else {
+        imageName = "upbcuk/incentive-service-basketserver:" + System.getenv('VERSION')
+    }
+}

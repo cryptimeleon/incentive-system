@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Next Release
  - Add options for local deployment and deployment using the container images from dockerhub and fix ingress configuration in `deploy.sh` [#8](https://github.com/upbcuk/incentive-services/pull/8)
  - Fix wrong issue service configuration bug [#9](https://github.com/upbcuk/incentive-services/pull/9)
+ - Add basket server [#10](https://github.com/upbcuk/incentive-services/pull/10)
  - Migrate from travis to github workflows and replace latest version by version file [#12](https://github.com/upbcuk/incentive-services/pull/12)
 
 ## [0.3.0] - 2021-01-12

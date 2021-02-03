@@ -15,7 +15,13 @@
 
 ## Swagger API
 
-We use [springfox](http://springfox.github.io/springfox/docs/current/) to automatically generate a swagger api. After you started the application using`./gradlew bootRun`, you can access the swagger ui at [http://localhost:8001/swagger-ui/index.html](http://localhost:8001/swagger-ui/index.html) [http://localhost:8002/swagger-ui/index.html](http://localhost:8002/swagger-ui/index.html) when executed locally.
+We use [springfox](http://springfox.github.io/springfox/docs/current/) to automatically generate a swagger api. After you started the application (for example using the Spring Boot plugin or `./gradlew :[service-name]:bootRun`), you can access the swagger ui at 
+ - Issue service: [http://localhost:8001/swagger-ui/index.html](http://localhost:8001/swagger-ui/index.html) 
+- Credit service: [http://localhost:8002/swagger-ui/index.html](http://localhost:8002/swagger-ui/index.html)
+- Basket server: [http://localhost:8003/swagger-ui/index.html](http://localhost:8003/swagger-ui/index.html)
+
+when executed locally.
+
 
 ---
 

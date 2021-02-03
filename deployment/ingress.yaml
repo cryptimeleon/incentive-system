@@ -27,3 +27,19 @@ spec:
             backend:
               serviceName: issue-service
               servicePort: 8000
+
+---
+
+kind: Ingress
+apiVersion: extensions/v1beta1
+metadata:
+  name: t2-ingress-basketserver
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /basket-server
+            pathType: Prefix
+            backend:
+              serviceName: basketserver-service
+              servicePort: 8000
