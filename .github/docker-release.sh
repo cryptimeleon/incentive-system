@@ -14,7 +14,7 @@ do
 
   ./gradlew ":${SERVICE}:bootBuildImage"
 
-  docker tag "${IMAGE}:latest" "${IMAGE}:${VERSION}"
+  docker tag "${IMAGE}:${VERSION}"
 
   echo "Uploading docker images for ${SERVICE}-service."
   # Login to dockerhubwith credentials
