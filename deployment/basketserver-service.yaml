@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: basketserver-service
-          image: upbcuk/incentive-service-basketserver:0.3.0
+          image: upbcuk/incentive-service-basketserver:0.4.0
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
