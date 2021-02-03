@@ -3,9 +3,6 @@ package de.upb.crypto.incentive.cryptoprotocol.model.keys.provider;
 import de.upb.crypto.craco.prf.PrfKey;
 import de.upb.crypto.craco.sig.sps.eq.SPSEQSigningKey;
 import de.upb.crypto.math.structures.cartesian.RingElementVector;
-import de.upb.crypto.math.structures.zn.Zn.ZnElement;
-
-import java.util.Arrays;
 
 public class ProviderSecretKey {
     private SPSEQSigningKey skSpsEq;
@@ -19,8 +16,7 @@ public class ProviderSecretKey {
         }
 
         this.skSpsEq = skSpsEq;
-
-        // deep copy just to be sure
+        
         this.q = q;
 
         this.betaProv = betaProv;

@@ -27,8 +27,7 @@ public class EarnRequest implements EarnInterface, Representable {
     @Represented
     private ProviderPublicKey pk;
     private UserSecretKey usk;
-    @Represented
-    private long k; // TODO: k must be given to EarnRequestHandler separately i.e. not in the serialized earn request
+    private long k; // TODO: does k even need
     private Token token; // TODO: is it a problem if token is unserialized? -> shouldn't be because serialization is no encryption
 
     @Represented

@@ -20,8 +20,8 @@ import java.net.PortUnreachableException;
 
 
 /**
- * class representing a token from a mathematical point of view (meaning: as a bunch of group elements and exponents modulo p from which you can compute a Pedersen commitment)
- * serialized representation of token does not contain secret exponents and token plain text (latter can be computed trivially)
+ * data holding class representing a token from a mathematical point of view (meaning: as a bunch of group elements and exponents).
+ * serialized representation of token does not contain secret exponents and token plain text (latter can be computed trivially).
  */
 public class Token implements Representable {
     @Represented

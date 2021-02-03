@@ -75,9 +75,9 @@ public class Setup {
         GroupElement upkElem = pp.getW().pow(usk);
 
         // wrap up values
-        UserSecretKey USK = new UserSecretKey(usk, betaUsr);
-        UserPublicKey upk = new UserPublicKey(upkElem);
-        return new UserKeyPair(upk, USK);
+        UserSecretKey uSk = new UserSecretKey(usk, betaUsr);
+        UserPublicKey uPk = new UserPublicKey(upkElem);
+        return new UserKeyPair(uPk, uSk);
     }
 
 
