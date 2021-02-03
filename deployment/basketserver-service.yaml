@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: issue-service
+  name: basketserver-service
   labels:
-    app: issue-service
+    app: basketserver-service
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: issue-service
+      app: basketserver-service
   template:
     metadata:
       labels:
-        app: issue-service
+        app: basketserver-service
     spec:
       containers:
-        - name: issue-service
-          image: upbcuk/incentive-service-issue:0.4.0
+        - name: basketserver-service
+          image: upbcuk/incentive-service-basketserver:0.4.0
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
@@ -30,10 +30,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: issue-service
+  name: basketserver-service
 spec:
   selector:
-    app: issue-service
+    app: basketserver-service
   type: ClusterIP
   ports:
     - port: 8000
