@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Next Release
+ - Add basic crypto-entities (public parameters, user/provider keys, token, ...) [#11](https://github.com/upbcuk/incentive-services/pull/11)
+
 ## [0.4.0] - 2021-02-03
  - Add options for local deployment and deployment using the container images from dockerhub and fix ingress configuration in `deploy.sh` [#8](https://github.com/upbcuk/incentive-services/pull/8)
  - Fix wrong issue service configuration bug [#9](https://github.com/upbcuk/incentive-services/pull/9)
