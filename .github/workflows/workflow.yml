@@ -55,11 +55,12 @@ jobs:
           pushd ..
           git clone https://github.com/upbcuk/upb.crypto.craco.git
           pushd upb.crypto.craco
+          git pull --all
           git checkout protocolupdates
           popd
           git clone https://github.com/upbcuk/upb.crypto.math.git
           pushd upb.crypto.math
-          git checkout protocolupdates
+          git pull --all
           popd
       - uses: actions/setup-java@v1
         with:
