@@ -21,6 +21,7 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
 	implementation project(':protocoldefinition')
+	implementation project(':cryptoprotocol')
 }
 
 test {
