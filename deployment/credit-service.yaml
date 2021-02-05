@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: credit-service
-          image: upbcuk/incentive-service-credit:latest
+          image: upbcuk/incentive-service-credit:0.4.0
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000

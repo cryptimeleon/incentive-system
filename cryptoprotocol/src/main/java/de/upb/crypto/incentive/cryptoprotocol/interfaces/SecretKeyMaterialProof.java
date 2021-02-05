@@ -1,6 +1,6 @@
 package de.upb.crypto.incentive.cryptoprotocol.interfaces;
 
-public interface PPProof {
+public interface SecretKeyMaterialProof {
     // non-interactive ZKP for well-formedness of SPS-EQ secret key and knowing DLog of group elements h_1...h_6 (bases of token excluding h_7)
     String computeSerializedExponentsValidProof(String serializedPublicParameters, String serializedSecretKey);
 
