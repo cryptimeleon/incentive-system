@@ -46,14 +46,48 @@ jobs:
           architecture: x64 # (x64 or x86) - defaults to x64
       - run: ./gradlew build
       - uses: actions/upload-artifact@v2  # Test results
-        if: ${{ failure() }}
+        with:
+          name: test-results
+          path: ./*/reports/test/test/*
+  integration-test:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v2
+      - name: Checkout craco
+        run: |
+          pushd ..
+          git clone https://github.com/upbcuk/upb.crypto.craco.git
+          pushd upb.crypto.craco
+          git checkout protocolupdates
+          popd
+          popd
+      - name: Checkout math
+        run: |
+          pushd ..
+          git clone https://github.com/upbcuk/upb.crypto.math.git
+          pushd upb.crypto.math
+          git checkout protocolupdates
+          popd
+          popd
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '15.0.1' # The JDK version to make available on the path.
+          java-package: jdk # (jre, jdk, or jdk+fx) - defaults to jdk
+          architecture: x64 # (x64 or x86) - defaults to x64
+      - run: ./deployment/build-docker-images.sh
+      - run: docker-compose -f ./deployment/docker-compose.yaml up -d
+      - run: sleep 200
+      - run: ./gradlew :client:integrationTest
+      - uses: actions/upload-artifact@v2  # Test results
         with:
           name: test-results
           path: ./*/reports/test/test/*
   deploy:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')  # Only run this job on tags
-    needs: build
+    needs: integration-test
     steps:
       - name: Checkout this repo
         uses: actions/checkout@v2
