@@ -1,4 +1,4 @@
-package de.upb.crypto.incentive.services.credit;
+package de.upb.crypto.incentive.services.credit.mock;
 
 import de.upb.crypto.incentive.cryptoprotocol.interfaces.provider.CreditInterface;
 import lombok.AllArgsConstructor;

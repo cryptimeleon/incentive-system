@@ -1,6 +1,6 @@
-package de.upb.crypto.incentive.services.credit;
+package de.upb.crypto.incentive.services.credit.mock;
 
-import de.upb.crypto.incentive.services.credit.model.Basket;
+import de.upb.crypto.incentive.basketserver.model.Basket;
 import de.upb.crypto.incentive.services.credit.model.interfaces.BasketServerClientInterface;
 import lombok.Data;
 import lombok.NoArgsConstructor;

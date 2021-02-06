@@ -1,8 +1,8 @@
 package de.upb.crypto.incentive.services.credit.config;
 
 import de.upb.crypto.incentive.cryptoprotocol.interfaces.provider.CreditInterface;
+import de.upb.crypto.incentive.services.credit.BasketServerClientHelper;
 import de.upb.crypto.incentive.services.credit.model.interfaces.BasketServerClientInterface;
-import de.upb.crypto.incentive.services.credit.mock.BasketServerClientMock;
 import de.upb.crypto.incentive.services.credit.mock.CryptoCreditMock;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -16,7 +16,7 @@ public class CreditConfiguration {
     @Bean
     @ConditionalOnMissingBean
     BasketServerClientInterface basketServerClientInterface() {
-        return new BasketServerClientMock();
+        return new BasketServerClientHelper();
     }
 
     @Bean

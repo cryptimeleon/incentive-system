@@ -13,7 +13,6 @@ public class SwaggerConfig {
     @Bean
     public Docket apiDocket() {
         return new Docket(DocumentationType.SWAGGER_2)
-                .groupName("credit-api")
                 .select()
                 .build();
     }

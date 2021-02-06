@@ -37,4 +37,9 @@ public class CreditController {
     public String handleIncentiveException(IncentiveException ex) {
         return "An incentive exception occurred!";
     }
+
+    @ExceptionHandler(BasketServerException.class)
+    public ResponseEntity<String> handleBasketServerException(BasketServerException basketServerException) {
+        return new ResponseEntity<>(basketServerException.getMessage(), basketServerException.getHttpStatus());
+    }
 }
