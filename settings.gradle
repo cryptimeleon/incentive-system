@@ -5,6 +5,7 @@ include 'credit'
 include 'basketserver'
 include 'protocoldefinition'
 include 'cryptoprotocol'
+include 'client'
 
 includeBuild "../upb.crypto.math"
 includeBuild "../upb.crypto.craco"
