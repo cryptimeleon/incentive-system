@@ -53,15 +53,18 @@ msg() {
 ###############################################################################
 
 usage() {
-  echo "Usage: $0 [-l]" 1>&2; exit 1;
+  echo "Usage: $0 [-l]" 1>&2
+  exit 1
 }
 
 while getopts "l" flag; do
   case "${flag}" in
-    l)
-      LOCAL=true ;;
-    ?)
-      usage ;;
+  l)
+    LOCAL=true
+    ;;
+  ?)
+    usage
+    ;;
   esac
 done
 
@@ -85,11 +88,9 @@ kind create cluster --name kind-t2 --config deployment/kind-t2-config.yaml
 if [[ $LOCAL == true ]]; then
   # Build and load docker images of services
   header "Build and load images of services"
-  set -e
-  ./gradlew clean build
-  ./gradlew ":credit:bootBuildImage"
-  ./gradlew ":issue:bootBuildImage"
-  ./gradlew ":basketserver:bootBuildImage"
+
+  ./deployment/build-docker-images.sh
+
   kind load docker-image upbcuk/incentive-service-issue --name kind-t2
   kind load docker-image upbcuk/incentive-service-credit --name kind-t2
   kind load docker-image upbcuk/incentive-service-basketserver --name kind-t2

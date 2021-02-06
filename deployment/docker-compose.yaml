@@ -1,0 +1,18 @@
+version: "3"
+
+services:
+  basketserver:
+    image: upbcuk/incentive-service-basketserver:0.4.0
+    ports:
+      - "8003:8003"
+    hostname: basketserver
+  creditservice:
+    image: upbcuk/incentive-service-credit:0.4.0
+    ports:
+      - "8002:8002"
+    hostname: creditservice
+  issueservice:
+    image: upbcuk/incentive-service-issue:0.4.0
+    ports:
+      - "8001:8001"
+    hostname: issueservice
