@@ -6,7 +6,7 @@ import de.upb.crypto.incentive.basketserver.model.Item;
 import de.upb.crypto.incentive.basketserver.model.requests.PayBasketRequest;
 import de.upb.crypto.incentive.basketserver.model.requests.PutItemRequest;
 import de.upb.crypto.incentive.basketserver.model.requests.RedeemBasketRequest;
-import lombok.AllArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,11 +18,22 @@ import java.util.UUID;
 /**
  * A REST controller that defines and handles all requests of the basket server.
  */
-@AllArgsConstructor
 @RestController
 public class BasketController {
 
     private BasketService basketService;  // Spring boot automatically injects a BasketService object
+
+    @Value("${basketserver.pay-secret}")
+    private String paymentSecret;
+
+    @Value("${basketserver.redeem-secret}")
+    private String redeemSecret;
+
+    public BasketController(BasketService basketService, @Value("${basketserver.pay-secret}") String paymentSecret, @Value("${basketserver.redeem-secret}") String redeemSecret) {
+        this.basketService = basketService;
+        this.paymentSecret = paymentSecret;
+        this.redeemSecret = redeemSecret;
+    }
 
     /**
      * Can be used for health checking.
@@ -92,11 +103,13 @@ public class BasketController {
 
     /**
      * Sets a basket to paid.
-     * TODO: shared secret to prevent users from doing this. Send 403 to normal users
      * TODO add hashcode for integrity?
      */
     @PostMapping("/basket/pay")
-    void payBasket(@RequestBody PayBasketRequest payBasketRequest) throws BasketServiceException {
+    void payBasket(@RequestHeader("pay-secret") String clientPaySecret, @RequestBody PayBasketRequest payBasketRequest) throws BasketServiceException {
+        if (!clientPaySecret.equals(paymentSecret)) {
+            throw new BasketUnauthorizedException("You are not authorized to access '/basket/pay'!");
+        }
         basketService.payBasket(payBasketRequest.getBasketId(), payBasketRequest.getValue());
     }
 
@@ -106,10 +119,12 @@ public class BasketController {
      * Returns an error code if the basket cannot be redeemed.
      * The same request can be used multiple times to allow users to recover from network errors etc.
      * <p>
-     * TODO: shared secret to prevent users from doing this. Send 403 to normal users
      */
     @PostMapping("/basket/redeem")
-    void redeemBasket(@RequestBody RedeemBasketRequest redeemRequest) throws BasketServiceException {
+    void redeemBasket(@RequestHeader("redeem-secret") String clientRedeemSecret, @RequestBody RedeemBasketRequest redeemRequest) throws BasketServiceException {
+        if (!clientRedeemSecret.equals(redeemSecret)) {
+            throw new BasketUnauthorizedException("You are not authorized to access '/basket/redeem'!");
+        }
         basketService.redeemBasket(redeemRequest.getBasketId(), redeemRequest.getRedeemRequest(), redeemRequest.getValue());
     }
 
@@ -143,6 +158,11 @@ public class BasketController {
     @ExceptionHandler(WrongBasketValueException.class)
     public void handleWrongBasketValueException() {
 
+    }
+
+    @ExceptionHandler(BasketUnauthorizedException.class)
+    public ResponseEntity<String> handleUnauthorizedException(BasketUnauthorizedException basketUnauthorizedException) {
+        return new ResponseEntity<>(basketUnauthorizedException.getMessage(), HttpStatus.UNAUTHORIZED);
     }
 
     /*
