@@ -20,10 +20,12 @@ public class CreditController {
 
     private CreditService creditService;  // Automatically injects an instance of the service
 
-    @GetMapping("/test")
+    /*
+     * Endpoint for alive testing etc.
+     */
+    @GetMapping("/")
     public ResponseEntity<String> test() {
-        log.debug("Called test function");
-        return new ResponseEntity<>("Its working", HttpStatus.OK);
+        return new ResponseEntity<>("Credit Service", HttpStatus.OK);
     }
 
     @GetMapping("/credit")

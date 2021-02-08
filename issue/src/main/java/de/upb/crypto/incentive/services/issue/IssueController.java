@@ -2,19 +2,29 @@ package de.upb.crypto.incentive.services.issue;
 
 import de.upb.crypto.incentive.protocoldefinition.issuejoin.IssueResponse;
 import de.upb.crypto.incentive.protocoldefinition.issuejoin.JoinRequest;
-import de.upb.crypto.incentive.protocoldefinition.model.Token;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class IssueController {
 
-    @GetMapping("/issue")
+    /*
+     * Endpoint for alive testing etc.
+     */
+    @GetMapping("/")
+    public ResponseEntity<String> test() {
+        return new ResponseEntity<>("Issue Service", HttpStatus.OK);
+    }
+
+        @GetMapping("/issue")
     @ApiOperation(value = "Issuing protocol", notes = "Issue a new incentive token.", response = IssueResponse.class)
     @ApiResponses({
             @ApiResponse(code = 200, message = "Success", response = IssueResponse.class),

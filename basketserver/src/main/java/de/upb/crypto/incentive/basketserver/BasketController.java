@@ -40,7 +40,7 @@ public class BasketController {
      */
     @GetMapping("/")
     String getHelloWorld() {
-        return "Hello World";
+        return "Basketserver";
     }
 
 

@@ -33,7 +33,7 @@ public class BasketTest {
                 .expectStatus()
                 .isOk()
                 .expectBody(String.class)
-                .isEqualTo("Hello World");
+                .isEqualTo("Basketserver");
     }
 
     @Test
