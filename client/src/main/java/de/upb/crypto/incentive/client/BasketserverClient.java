@@ -10,13 +10,12 @@ import reactor.core.publisher.Mono;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class CreditClient {
+public class BasketserverClient {
 
-    private WebClient creditClient;
-    private String redeemSecret;
+    private WebClient basketClient;
 
     public Mono<String> sendAliveRequest() {
-        return creditClient.get()
+        return basketClient.get()
                 .uri("/")
                 .retrieve()
                 .bodyToMono(String.class);
