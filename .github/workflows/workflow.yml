@@ -23,14 +23,21 @@ jobs:
     steps:
       - name: Checkout this repo
         uses: actions/checkout@v2
-      - name: Checkout dependencies
+      - name: Checkout craco
         run: |
           pushd ..
           git clone https://github.com/upbcuk/upb.crypto.craco.git
           pushd upb.crypto.craco
           git checkout protocolupdates
           popd
+          popd
+      - name: Checkout math
+        run: |
+          pushd ..
           git clone https://github.com/upbcuk/upb.crypto.math.git
+          pushd upb.crypto.math
+          git checkout protocolupdates
+          popd
           popd
       - uses: actions/setup-java@v1
         with:
@@ -39,7 +46,6 @@ jobs:
           architecture: x64 # (x64 or x86) - defaults to x64
       - run: ./gradlew build
       - uses: actions/upload-artifact@v2  # Test results
-        if: ${{ failure() }}
         with:
           name: test-results
           path: ./*/reports/test/test/*
@@ -50,14 +56,21 @@ jobs:
     steps:
       - name: Checkout this repo
         uses: actions/checkout@v2
-      - name: Checkout dependencies
+      - name: Checkout craco
         run: |
           pushd ..
           git clone https://github.com/upbcuk/upb.crypto.craco.git
           pushd upb.crypto.craco
           git checkout protocolupdates
           popd
+          popd
+      - name: Checkout math
+        run: |
+          pushd ..
           git clone https://github.com/upbcuk/upb.crypto.math.git
+          pushd upb.crypto.math
+          git checkout protocolupdates
+          popd
           popd
       - uses: actions/setup-java@v1
         with:
