@@ -3,11 +3,14 @@ package de.upb.crypto.incentive.cryptoprotocol.model.keys.provider;
 import de.upb.crypto.math.serialization.Representable;
 import de.upb.crypto.math.serialization.Representation;
 import de.upb.crypto.math.serialization.annotations.ReprUtil;
+import de.upb.crypto.math.serialization.annotations.Represented;
 import lombok.Data;
 
 @Data
 public class ProviderKeyPair implements Representable {
+    @Represented
     private ProviderPublicKey pk;
+    @Represented
     private ProviderSecretKey sk;
 
     public ProviderKeyPair(ProviderSecretKey sk, ProviderPublicKey pk) {
