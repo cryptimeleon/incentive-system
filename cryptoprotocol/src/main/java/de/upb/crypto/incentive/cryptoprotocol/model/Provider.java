@@ -1,13 +1,13 @@
 package de.upb.crypto.incentive.cryptoprotocol.model;
 
 import de.upb.crypto.incentive.cryptoprotocol.model.keys.provider.ProviderKeyPair;
+import de.upb.crypto.math.serialization.StringRepresentation;
 import lombok.Data;
 
 @Data
 public class Provider
 {
     private ProviderKeyPair providerKeyPair;
-    // TODO: does it need more fields?
 
     /**
      * effectively a no args constructor, generating a new key pair. Used for starting a new session.
@@ -25,9 +25,8 @@ public class Provider
     public Provider(String serializedProviderKeyPair)
     {
         // deserialize key pair
-
-        // initialize object variables
-
+        StringRepresentation providerKeyPairRepr = new StringRepresentation(serializedProviderKeyPair);
+        this.providerKeyPair = new ProviderKeyPair(providerKeyPairRepr);
     }
 
     /**

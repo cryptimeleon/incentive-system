@@ -2,6 +2,8 @@ package de.upb.crypto.incentive.cryptoprotocol.model;
 
 import de.upb.crypto.incentive.cryptoprotocol.model.keys.provider.ProviderPublicKey;
 import de.upb.crypto.incentive.cryptoprotocol.model.keys.user.UserKeyPair;
+import de.upb.crypto.math.serialization.StringRepresentation;
+import de.upb.crypto.math.serialization.annotations.ReprUtil;
 import de.upb.crypto.math.structures.rings.zn.Zn;
 import de.upb.crypto.math.structures.rings.zn.Zn.ZnElement;
 import lombok.Data;
@@ -41,11 +43,12 @@ public class User
     public User(String serializedUserKeyPair, String serializedUserToken)
     {
         // deserialize key pair
+        StringRepresentation userKeyPairRepr = new StringRepresentation(serializedUserKeyPair); // create a string representation object from the plain string
+        this.userKeyPair = new UserKeyPair(userKeyPairRepr); // create user key pair object from representation
 
-        // deserialize token
-
-        // initialize object variables
-
+        // deserialize token (analogous to user key pair)
+        StringRepresentation userTokenRepr = new StringRepresentation(serializedUserToken);
+        this.userToken = new Token(userTokenRepr);
     }
 
     /**

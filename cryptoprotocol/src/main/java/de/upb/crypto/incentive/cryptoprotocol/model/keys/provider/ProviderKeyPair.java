@@ -1,6 +1,12 @@
 package de.upb.crypto.incentive.cryptoprotocol.model.keys.provider;
 
-public class ProviderKeyPair {
+import de.upb.crypto.math.serialization.Representable;
+import de.upb.crypto.math.serialization.Representation;
+import de.upb.crypto.math.serialization.annotations.ReprUtil;
+import lombok.Data;
+
+@Data
+public class ProviderKeyPair implements Representable {
     private ProviderPublicKey pk;
     private ProviderSecretKey sk;
 
@@ -9,11 +15,17 @@ public class ProviderKeyPair {
         this.pk = pk;
     }
 
-    public ProviderPublicKey getPk() {
-        return this.pk;
+    /**
+     * constructor for construction of object by deserialization
+     * @param repr serialized representation
+     */
+    public ProviderKeyPair(Representation repr)
+    {
+        new ReprUtil(this).deserialize(repr); // side effect reflection magic used to restore fields
     }
 
-    public ProviderSecretKey getSk() {
-        return this.sk;
+    public Representation getRepresentation()
+    {
+        return ReprUtil.serialize(this);
     }
 }

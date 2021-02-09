@@ -46,7 +46,6 @@ public class Token implements Representable {
      * Note that certificate is not set since a token is usually not certified upon creation.
      *
      * @param pp     public parameters
-     * @param vKey   verification key
      * @param pk     provider public key
      * @param USK    secret key of user
      * @param esk    ElGamal secret key
@@ -74,6 +73,15 @@ public class Token implements Representable {
     }
 
     /**
+     * constructor for construction of object by deserialization
+     * @param repr serialized representation
+     */
+    public Token(Representation repr)
+    {
+        new ReprUtil(this).deserialize(repr); // side effect reflection magic used to restore fields
+    }
+
+    /**
      * updates token with the passed values and recomputes commitment
      */
     private void updateToken(ZnElement USK, ZnElement esk, ZnElement dsrnd0, ZnElement dsrnd1, ZnElement v, ZnElement z, ZnElement t) {
@@ -89,7 +97,7 @@ public class Token implements Representable {
     }
 
     /**
-     * update point count and recompute commitment
+     * update point count only and recompute commitment
      *
      * @param v new point count
      */
