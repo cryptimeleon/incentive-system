@@ -53,14 +53,14 @@ public class Token implements Representable {
      * @param dsrnd0 double spending randomness
      * @param dsrnd1 other double spending randomness
      */
-    public Token(PublicParameters pp, VerificationKey vKey, ProviderPublicKey pk, ZnElement USK, ZnElement esk, ZnElement dsrnd0, ZnElement dsrnd1, ZnElement z, ZnElement t) throws IllegalArgumentException {
+    public Token(PublicParameters pp, ProviderPublicKey pk, ZnElement USK, ZnElement esk, ZnElement dsrnd0, ZnElement dsrnd1, ZnElement z, ZnElement t) throws IllegalArgumentException {
         // retrieve commitment base array h from passed provider public key
         GroupElementVector h = pk.getH();
         this.commitmentBases = h;
 
         // initializing respective object variables with other parameters
         Zn myRemainderClassRing = pp.getBg().getZn(); // needed to retrieve correct zero element to compute point count
-        this.verificationKey = vKey;
+        this.verificationKey = pk.getPkSpsEq();
         this.userSecretKey = USK;
         this.encryptionSecretKey = esk;
         this.doubleSpendRandomness0 = dsrnd0;
