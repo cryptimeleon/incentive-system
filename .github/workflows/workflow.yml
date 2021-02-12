@@ -54,17 +54,11 @@ jobs:
         run: |
           pushd ..
           git clone https://github.com/upbcuk/upb.crypto.craco.git
-          pushd upb.crypto.craco
-          git checkout protocolupdates
-          popd
           popd
       - name: Checkout math
         run: |
           pushd ..
           git clone https://github.com/upbcuk/upb.crypto.math.git
-          pushd upb.crypto.math
-          git checkout protocolupdates
-          popd
           popd
       - uses: actions/setup-java@v1
         with:
