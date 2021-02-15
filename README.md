@@ -25,15 +25,11 @@ when executed locally.
 
 ---
 
-## Deploying to Kubernetes
+## Running the Services using Docker Compose
 
-We use KinD (Kubernetes in Docker) for the deployment:
- 1. Install (KinD)[https://kind.sigs.k8s.io/docs/user/quick-start/#installation] and (kubectl)[https://kubernetes.io/docs/tasks/tools/install-kubectl/].
- 2. Run `./deployment/deploy.sh` from the projects
+You can then use the `docker-compose.yaml` with the command `docker-compose -f deployment/docker-compose.yaml up`. You can then reach the services at the localhost ports described above.
+If you want to build docker images locally from your local code, you can use the command `./deployment/build-docker-images.sh`.
 
-You can now access the api at [http://$NODE-IP/crediting/swagger-ui/index.html]() [http://$NODE_IP/issuing/swagger-ui/index.html](). The node ip can be queried with the command `kubectl get nodes -o wide`.
-
-If you want to deploy your local changes to a cluster, use `./deployment/deploy.sh -l`. This builds the container images from your local code instead of pulling the last release from dockerhub. 
 
 ---
 
