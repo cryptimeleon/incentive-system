@@ -5,28 +5,17 @@ import de.upb.crypto.incentive.client.CreditClient;
 import de.upb.crypto.incentive.client.IssueClient;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.CommandLineRunner;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.FilterType;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-// Needed to access application.properties
-@Configuration
-@ComponentScan(excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, value = CommandLineRunner.class))
-@EnableAutoConfiguration
-class TestApplicationConfiguration {
-}
 
 @SpringBootTest(classes = TestApplicationConfiguration.class)
-public class IncentiveSystemIntegrationTest implements IntegrationTest {
+public class IncentiveSystemIntegrationTest {
 
     /*
-     * Development configuration
+     * Development configuration, load url and shared secrets needed for testing.
      */
     @Value("${issue.url}")
     private String issueUrl;
