@@ -1,4 +1,4 @@
-package de.upb.crypto.incentive.protocoldefinition.creditearn;
+package de.upb.crypto.incentive.services.credit.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

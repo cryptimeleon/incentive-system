@@ -3,7 +3,6 @@ rootProject.name = 'incentive'
 include 'issue'
 include 'credit'
 include 'basketserver'
-include 'protocoldefinition'
 include 'cryptoprotocol'
 include 'client'
 

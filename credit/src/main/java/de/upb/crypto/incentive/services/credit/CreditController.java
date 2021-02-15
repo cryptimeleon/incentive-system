@@ -1,7 +1,7 @@
 package de.upb.crypto.incentive.services.credit;
 
-import de.upb.crypto.incentive.protocoldefinition.creditearn.CreditResponse;
-import de.upb.crypto.incentive.protocoldefinition.creditearn.EarnRequest;
+import de.upb.crypto.incentive.services.credit.model.CreditResponse;
+import de.upb.crypto.incentive.services.credit.model.EarnRequest;
 import io.swagger.annotations.ApiOperation;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

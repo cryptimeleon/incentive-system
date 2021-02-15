@@ -2,10 +2,10 @@ package de.upb.crypto.incentive.services.credit;
 
 import de.upb.crypto.incentive.basketserver.model.Basket;
 import de.upb.crypto.incentive.cryptoprotocol.interfaces.provider.CreditInterface;
-import de.upb.crypto.incentive.protocoldefinition.creditearn.CreditResponse;
-import de.upb.crypto.incentive.protocoldefinition.creditearn.EarnRequest;
 import de.upb.crypto.incentive.services.credit.mock.TestBasketServerClientMock;
 import de.upb.crypto.incentive.services.credit.mock.TestCryptoCreditMock;
+import de.upb.crypto.incentive.services.credit.model.CreditResponse;
+import de.upb.crypto.incentive.services.credit.model.EarnRequest;
 import de.upb.crypto.incentive.services.credit.model.interfaces.BasketServerClientInterface;
 import lombok.Data;
 import org.junit.jupiter.api.Test;

@@ -1,7 +1,7 @@
 package de.upb.crypto.incentive.services.issue;
 
-import de.upb.crypto.incentive.protocoldefinition.issuejoin.IssueResponse;
-import de.upb.crypto.incentive.protocoldefinition.issuejoin.JoinRequest;
+import de.upb.crypto.incentive.services.issue.model.IssueResponse;
+import de.upb.crypto.incentive.services.issue.model.JoinRequest;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
