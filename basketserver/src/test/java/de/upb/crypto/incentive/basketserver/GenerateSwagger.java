@@ -14,6 +14,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
 /*
+ * This test case generates the swagger api using springfox and stores it to the api folder.
  * https://github.com/springfox/springfox/issues/1959
  */
 @SpringBootTest
