@@ -1,7 +1,7 @@
 package de.upv.crypto.incentive.services.credit;
 
-import de.upb.crypto.incentive.protocoldefinition.creditearn.EarnRequest;
 import de.upb.crypto.incentive.protocoldefinition.creditearn.CreditResponse;
+import de.upb.crypto.incentive.protocoldefinition.creditearn.EarnRequest;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
@@ -18,29 +18,34 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 public class CreditController {
 
-    @GetMapping("/test")
-    public ResponseEntity<String> test() {
-        log.debug("Called test function");
-        return new ResponseEntity<>("Its working", HttpStatus.OK);
-    }
+  @GetMapping("/test")
+  public ResponseEntity<String> test() {
+    log.debug("Called test function");
+    return new ResponseEntity<>("Its working", HttpStatus.OK);
+  }
 
-    @GetMapping("/credit")
-    @ApiOperation(value = "Credit protocol", notes = "Earn to a token.", response = CreditResponse.class)
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Success", response = CreditResponse.class),
-            @ApiResponse(code = 403, message = "Invalid Credit Request", response = String.class)
-    })
-    public ResponseEntity<CreditResponse> greeting(@Validated EarnRequest request) throws IncentiveException {
-        if (request.getEarnAmount() < 0) {
-            throw new IncentiveException();
-        }
-        // TODO query basket server to check if request is valid
-        return new ResponseEntity<>(new CreditResponse(request.getId(), "Test credit response") , HttpStatus.OK);
+  @GetMapping("/credit")
+  @ApiOperation(
+      value = "Credit protocol",
+      notes = "Earn to a token.",
+      response = CreditResponse.class)
+  @ApiResponses({
+    @ApiResponse(code = 200, message = "Success", response = CreditResponse.class),
+    @ApiResponse(code = 403, message = "Invalid Credit Request", response = String.class)
+  })
+  public ResponseEntity<CreditResponse> greeting(@Validated EarnRequest request)
+      throws IncentiveException {
+    if (request.getEarnAmount() < 0) {
+      throw new IncentiveException();
     }
+    // TODO query basket server to check if request is valid
+    return new ResponseEntity<>(
+        new CreditResponse(request.getId(), "Test credit response"), HttpStatus.OK);
+  }
 
-    @ResponseStatus(HttpStatus.FORBIDDEN)
-    @ExceptionHandler(IncentiveException.class)
-    public String handleIncentiveException(IncentiveException ex) {
-        return "An incentive exception occurred!";
-    }
+  @ResponseStatus(HttpStatus.FORBIDDEN)
+  @ExceptionHandler(IncentiveException.class)
+  public String handleIncentiveException(IncentiveException ex) {
+    return "An incentive exception occurred!";
+  }
 }

@@ -5,28 +5,31 @@ import de.upb.crypto.craco.sig.sps.eq.SPSEQSigningKey;
 import de.upb.crypto.math.structures.rings.cartesian.RingElementVector;
 
 public class ProviderSecretKey {
-    private SPSEQSigningKey skSpsEq;
-    private RingElementVector q; // dlogs of the first six bases used in the Pedersen commitment in the token
-    private PrfKey betaProv;
+  private SPSEQSigningKey skSpsEq;
+  private RingElementVector
+      q; // dlogs of the first six bases used in the Pedersen commitment in the token
+  private PrfKey betaProv;
 
-    public ProviderSecretKey(SPSEQSigningKey skSpsEq, RingElementVector q, PrfKey betaProv) throws IllegalArgumentException {
-        // assert that correct number of Zn exponents is passed ()
-        if (q.length() != 6) {
-            throw new IllegalArgumentException("q is required to consist of 6 group elements, found: " + String.valueOf(q.length()));
-        }
-
-        this.skSpsEq = skSpsEq;
-        
-        this.q = q;
-
-        this.betaProv = betaProv;
+  public ProviderSecretKey(SPSEQSigningKey skSpsEq, RingElementVector q, PrfKey betaProv)
+      throws IllegalArgumentException {
+    // assert that correct number of Zn exponents is passed ()
+    if (q.length() != 6) {
+      throw new IllegalArgumentException(
+          "q is required to consist of 6 group elements, found: " + String.valueOf(q.length()));
     }
 
-    public SPSEQSigningKey getSkSpsEq() {
-        return skSpsEq;
-    }
+    this.skSpsEq = skSpsEq;
 
-    public RingElementVector getQ() {
-        return this.q;
-    }
+    this.q = q;
+
+    this.betaProv = betaProv;
+  }
+
+  public SPSEQSigningKey getSkSpsEq() {
+    return skSpsEq;
+  }
+
+  public RingElementVector getQ() {
+    return this.q;
+  }
 }

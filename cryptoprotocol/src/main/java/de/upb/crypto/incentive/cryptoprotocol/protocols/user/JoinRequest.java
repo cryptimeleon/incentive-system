@@ -5,15 +5,15 @@ import de.upb.crypto.math.serialization.Representable;
 import de.upb.crypto.math.serialization.Representation;
 
 public class JoinRequest implements JoinInterface, Representable {
-    public String generateSerializedJoinRequest() {
-        return null;
-    }
+  public String generateSerializedJoinRequest() {
+    return null;
+  }
 
-    public String handleSerializedIssueResponse(String serializedIssueResponse) {
-        return null;
-    }
+  public String handleSerializedIssueResponse(String serializedIssueResponse) {
+    return null;
+  }
 
-    public Representation getRepresentation() {
-        return null;
-    }
+  public Representation getRepresentation() {
+    return null;
+  }
 }

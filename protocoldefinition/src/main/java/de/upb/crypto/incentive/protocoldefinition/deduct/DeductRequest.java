@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DeductRequest {
-    private Token token;
-    private int rewardValue;
+  private Token token;
+  private int rewardValue;
 }

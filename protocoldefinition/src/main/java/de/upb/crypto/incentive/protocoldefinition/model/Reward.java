@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Reward {
-    private String name;
-    private int value;
+  private String name;
+  private int value;
 }
