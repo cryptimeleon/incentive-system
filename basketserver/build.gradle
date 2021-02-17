@@ -17,16 +17,6 @@ test {
     useJUnitPlatform()
 }
 
-// Build normal jar to allow using this project as a dependency. Future: basketserverlib for model and client?
-bootJar {
-    enabled = true
-}
-
-// Build normal jar to allow using this project as a dependency. Future: basketserverlib for model and client?
-jar {
-    enabled = true
-}
-
 bootBuildImage {
     if (System.getenv('VERSION') == null || System.getenv('VERSION') == '') {
         imageName = "upbcuk/incentive-service-basketserver:" + file("../version").text.trim()

@@ -1,6 +1,6 @@
 package de.upb.crypto.incentive.services.credit.mock;
 
-import de.upb.crypto.incentive.basketserver.model.Basket;
+import de.upb.crypto.incentive.client.dto.BasketDto;
 import de.upb.crypto.incentive.services.credit.model.interfaces.BasketServerClientInterface;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,10 +12,10 @@ import java.util.UUID;
 @Data
 public class TestBasketServerClientMock implements BasketServerClientInterface {
 
-    private ArrayList<Basket> baskets;
+    private ArrayList<BasketDto> baskets;
 
     @Override
-    public Basket getBasket(UUID basketId) {
+    public BasketDto getBasket(UUID basketId) {
         return baskets.stream().filter(b -> b.getBasketID().equals(basketId)).findFirst().get();
     }
 

@@ -1,6 +1,6 @@
 package de.upb.crypto.incentive.services.credit;
 
-import de.upb.crypto.incentive.basketserver.model.Basket;
+import de.upb.crypto.incentive.client.dto.BasketDto;
 import de.upb.crypto.incentive.cryptoprotocol.interfaces.provider.CreditInterface;
 import de.upb.crypto.incentive.services.credit.mock.TestBasketServerClientMock;
 import de.upb.crypto.incentive.services.credit.mock.TestCryptoCreditMock;
@@ -63,7 +63,7 @@ public class HttpApiTest {
     void validRequestTest(@Autowired WebTestClient webClient) {
         prepareTests();
         var earnAmount = 42;
-        var testBasket = new Basket();
+        var testBasket = new BasketDto();
         var items = Collections.singletonMap(UUID.randomUUID(), earnAmount);
         testBasket.setBasketID(UUID.randomUUID());
         testBasket.setPaid(true);
@@ -86,7 +86,7 @@ public class HttpApiTest {
     void unpaidBasketTest(@Autowired WebTestClient webClient) {
         prepareTests();
         var earnAmount = 42;
-        var testBasket = new Basket();
+        var testBasket = new BasketDto();
         var items = Collections.singletonMap(UUID.randomUUID(), earnAmount);
         testBasket.setBasketID(UUID.randomUUID());
         testBasket.setPaid(false);  // Unpaid baskets cannot be redeemed

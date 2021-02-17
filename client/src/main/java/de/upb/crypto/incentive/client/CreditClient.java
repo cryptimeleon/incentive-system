@@ -17,10 +17,6 @@ public class CreditClient {
      */
     private WebClient creditClient;
 
-    /*
-     * Shared secret of the credit service needed to authenticate a redeemRequest
-     */
-    private String redeemSecret;
 
     /*
      * Sends an request to the / endpoint which is configured to return the name of the service
@@ -33,4 +29,13 @@ public class CreditClient {
                 .bodyToMono(String.class);
     }
 
+    /*
+     * Sends an earn request
+     */
+    public Mono<String> sendEarnRequest() {
+        return creditClient.get()
+                .uri("/")
+                .retrieve()
+                .bodyToMono(String.class);
+    }
 }

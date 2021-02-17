@@ -1,9 +1,8 @@
 package de.upb.crypto.incentive.services.credit;
 
-import de.upb.crypto.incentive.basketserver.BasketController;
-import de.upb.crypto.incentive.basketserver.client.BasketServerClient;
-import de.upb.crypto.incentive.basketserver.model.Basket;
-import de.upb.crypto.incentive.basketserver.model.requests.RedeemBasketRequest;
+import de.upb.crypto.incentive.client.BasketserverClient;
+import de.upb.crypto.incentive.client.dto.BasketDto;
+import de.upb.crypto.incentive.client.dto.PostRedeemBasketDto;
 import de.upb.crypto.incentive.services.credit.model.interfaces.BasketServerClientInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,11 +18,11 @@ import java.util.UUID;
  */
 public class BasketServerClientHelper implements BasketServerClientInterface {
 
-    Logger logger = LoggerFactory.getLogger(BasketController.class);
+    Logger logger = LoggerFactory.getLogger(BasketServerClientHelper.class);
 
     @Value("${basketserver.url}")
     private String basketServerUrl;
-    private BasketServerClient basketServerClient;
+    private BasketserverClient basketServerClient;
 
     private WebClient basketWebClient;
 
@@ -52,19 +51,19 @@ public class BasketServerClientHelper implements BasketServerClientInterface {
                 .baseUrl(basketServerUrl)
                 .filter(errorHandlingFilter())
                 .build();
-        this.basketServerClient = new BasketServerClient(basketWebClient, "", redeemSecret);
+        this.basketServerClient = new BasketserverClient(basketWebClient);
     }
 
     @Override
-    public Basket getBasket(UUID basketId) {
+    public BasketDto getBasket(UUID basketId) {
         return basketServerClient.getBasket(basketId)
                 .block();
     }
 
     @Override
     public void redeem(UUID basketId, String redeemRequestText, long value) {
-        var redeemRequest = new RedeemBasketRequest(basketId, redeemRequestText, value);
-        basketServerClient.redeem(redeemRequest)
+        var redeemRequest = new PostRedeemBasketDto(basketId, redeemRequestText, value);
+        basketServerClient.redeemBasket(redeemRequest, redeemSecret)
                 .block();
     }
 }
