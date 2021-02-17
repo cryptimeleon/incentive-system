@@ -41,7 +41,7 @@ public class BasketserverClient {
     }
 
     public Mono<UUID> createBasket() {
-        return  basketClient.get()
+        return basketClient.get()
                 .uri("/basket/new")
                 .retrieve()
                 .bodyToMono(UUID.class);
@@ -71,6 +71,7 @@ public class BasketserverClient {
         var postPayBasketDto = new PostPayBasketDto(basketId, value);
         return payBasket(postPayBasketDto, paymentSecret);
     }
+
     public Mono<Void> payBasket(PostPayBasketDto postPayBasketDto, String paymentSecret) {
         return basketClient.post()
                 .uri("/basket/pay")
@@ -81,7 +82,7 @@ public class BasketserverClient {
     }
 
     public Mono<Void> redeemBasket(PostRedeemBasketDto postRedeemBasketDto, String redeemSecret) {
-        return  basketClient.post()
+        return basketClient.post()
                 .uri("/basket/redeem")
                 .header("redeem-secret", redeemSecret)
                 .body(BodyInserters.fromValue(postRedeemBasketDto))
