@@ -19,7 +19,6 @@ subprojects {
 
     spotless {
         java {
-            importOrder()
             removeUnusedImports()
             googleJavaFormat()
         }
