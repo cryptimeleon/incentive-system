@@ -5,7 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Next Release
- - Update gradle setup, basketserver authentication (shared secrets) and test structure, automatically generated swagger files, client project with integration tests, move protocoldefinition to services, replace kubernetes with docker-compose, add alive endpoints to all services [#14](https://github.com/upbcuk/incentive-services/pull/14)
+ - Update gradle setup, basketserver authentication (shared secrets) and test structure, automatically generated swagger files, client project with integration tests, move protocoldefinition to services, replace kubernetes with docker-compose, add alive endpoints to all services, move basketserver client to client project [#14](https://github.com/upbcuk/incentive-services/pull/14)
  - Add basic crypto-entities (public parameters, user/provider keys, token, ...) [#11](https://github.com/upbcuk/incentive-services/pull/11)
 
 ## [0.4.0] - 2021-02-03
