@@ -22,4 +22,10 @@ subprojects {
 
     group = 'de.upb.crypto'
     sourceCompatibility = '15'
+
+    spotless {
+        java {
+            removeUnusedImports()
+        }
+    }
 }

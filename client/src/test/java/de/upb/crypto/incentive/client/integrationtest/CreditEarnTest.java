@@ -5,7 +5,6 @@ import de.upb.crypto.incentive.client.CreditClient;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class CreditEarnTest extends IncentiveSystemIntegrationTest {
 
