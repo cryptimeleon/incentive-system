@@ -1,5 +1,6 @@
 package de.upb.crypto.incentive.services.credit;
 
+import de.upb.crypto.incentive.client.IncentiveClientException;
 import de.upb.crypto.incentive.services.credit.model.CreditResponse;
 import de.upb.crypto.incentive.services.credit.model.EarnRequest;
 import io.swagger.annotations.ApiOperation;
@@ -38,6 +39,11 @@ public class CreditController {
     @ExceptionHandler(IncentiveException.class)
     public String handleIncentiveException(IncentiveException ex) {
         return "An incentive exception occurred!";
+    }
+
+    @ExceptionHandler(IncentiveClientException.class)
+    public ResponseEntity<String> handleIncentiveClientException(IncentiveClientException incentiveClientException) {
+        return new ResponseEntity<>(incentiveClientException.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(BasketServerException.class)

@@ -1,14 +1,12 @@
 package de.upb.crypto.incentive.client.integrationtest;
 
 import de.upb.crypto.incentive.client.BasketserverClient;
+import de.upb.crypto.incentive.client.IncentiveClientException;
 import de.upb.crypto.incentive.client.dto.PostRedeemBasketDto;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.util.UUID;
 
@@ -27,13 +25,12 @@ public class BasketServerTest extends IncentiveSystemIntegrationTest {
 
     @Test
     void testGetBasket() {
-        var webClient = WebClient.builder().baseUrl(basketserverUrl).build();
-        var basketServerClient = new BasketserverClient(webClient);
+        var basketServerClient = new BasketserverClient(basketserverUrl);
 
         logger.info("Testing getBasket for not existing basket");
         var wrongBasketId = UUID.randomUUID();
-        // TODO improve exception handling of webclient
-        assertThatExceptionOfType(WebClientResponseException.class).isThrownBy(() -> basketServerClient.getBasket(wrongBasketId).block());
+        assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> basketServerClient.getBasket(wrongBasketId).block())
+                .withCauseInstanceOf(IncentiveClientException.class);
 
         logger.info("Testing getBasket for existing basket");
         var basketId = basketServerClient.createBasket().block();
@@ -44,8 +41,7 @@ public class BasketServerTest extends IncentiveSystemIntegrationTest {
 
     @Test
     void testRedeemBasket() {
-        var webClient = WebClient.builder().baseUrl(basketserverUrl).build();
-        var basketServerClient = new BasketserverClient(webClient);
+        var basketServerClient = new BasketserverClient(basketserverUrl);
 
         logger.info("Create new basket and adding items");
         UUID basketId = basketServerClient.createBasket().block();
@@ -60,17 +56,16 @@ public class BasketServerTest extends IncentiveSystemIntegrationTest {
 
         logger.info("Redeeming not paid basket throws exception");
         var redeemRequest = new PostRedeemBasketDto(basketId, "Some request", basket.getValue());
-        // TODO improve exception handling of webclient
-        assertThatExceptionOfType(WebClientResponseException.class).isThrownBy(() ->
-                basketServerClient.redeemBasket(redeemRequest, redeemSecret).block());
+        assertThatExceptionOfType(RuntimeException.class).isThrownBy(() ->
+                basketServerClient.redeemBasket(redeemRequest, redeemSecret).block())
+                .withCauseInstanceOf(IncentiveClientException.class);
 
 
         basketServerClient.payBasket(basketId, basket.getValue(), paymentSecret).block();
 
         logger.info("Payed basket can be redeemed");
-        basket = basketServerClient.getBasket(basketId).block();
         basketServerClient.redeemBasket(redeemRequest, redeemSecret).block();
         basket = basketServerClient.getBasket(basketId).block();
-        Assertions.assertThat(basket.isRedeemed()).isTrue();
+        assertThat(basket.isRedeemed()).isTrue();
     }
 }

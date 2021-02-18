@@ -33,10 +33,14 @@ public class CreditClient {
     /*
      * Sends an earn request
      */
-    public Mono<String> sendEarnRequest() {
+    public Mono<GetEarnResponseDto> sendEarnRequest(UUID requestId, String serializedRequest, UUID basketId) {
         return creditClient.get()
-                .uri("/")
+                .uri(uriBuilder -> uriBuilder.path("/credit")
+                        .queryParam("id", requestId)
+                        .queryParam("serializedEarnRequest", serializedRequest)
+                        .queryParam("basketId", basketId)
+                        .build())
                 .retrieve()
-                .bodyToMono(String.class);
+                .bodyToMono(GetEarnResponseDto.class);
     }
 }
