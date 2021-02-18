@@ -16,7 +16,7 @@ public class AliveTest extends IncentiveSystemIntegrationTest {
     @Test
     void testCreditAlive() {
         var creditWebClient = WebClient.builder().baseUrl(creditUrl).build();
-        var creditClient = new CreditClient(creditWebClient);
+        var creditClient = new CreditClient(creditUrl);
         var result = creditClient.sendAliveRequest().block();
         assertThat(result).containsIgnoringCase("Credit");
         System.out.println("Result: " + result);
@@ -28,7 +28,7 @@ public class AliveTest extends IncentiveSystemIntegrationTest {
     @Test
     void testBasketserverAlive() {
         var basketserverWebClient = WebClient.builder().baseUrl(basketserverUrl).build();
-        var basketserverClient = new BasketserverClient(basketserverWebClient);
+        var basketserverClient = new BasketserverClient(basketserverUrl);
         var result = basketserverClient.sendAliveRequest().block();
         assertThat(result).containsIgnoringCase("Basketserver");
         System.out.println("Result: " + result);
@@ -40,7 +40,7 @@ public class AliveTest extends IncentiveSystemIntegrationTest {
     @Test
     void testIssueAlive() {
         var issueWebClient = WebClient.builder().baseUrl(issueUrl).build();
-        var issueClient = new IssueClient(issueWebClient);
+        var issueClient = new IssueClient(issueUrl);
         var result = issueClient.sendAliveRequest().block();
         assertThat(result).containsIgnoringCase("Issue");
         System.out.println("Result: " + result);
