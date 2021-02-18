@@ -12,6 +12,5 @@ import java.util.UUID;
 public class EarnRequest {
     private UUID id;
     private String serializedEarnRequest;
-    private long earnAmount;
     private UUID basketId;
 }

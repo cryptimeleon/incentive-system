@@ -44,7 +44,6 @@ public class HttpApiTest {
                 .path("/credit")
                 .queryParam("id", earnRequest.getId())
                 .queryParam("serializedEarnRequest", earnRequest.getSerializedEarnRequest())
-                .queryParam("earnAmount", earnRequest.getEarnAmount())
                 .queryParam("basketId", earnRequest.getBasketId())
                 .build();
     }
@@ -74,7 +73,7 @@ public class HttpApiTest {
 
         UUID id = UUID.randomUUID();
         webClient.get()
-                .uri(uriBuilder -> buildRequestUri(uriBuilder, new EarnRequest(id, validRequest, testBasket.getValue(), testBasket.getBasketID())))
+                .uri(uriBuilder -> buildRequestUri(uriBuilder, new EarnRequest(id, validRequest, testBasket.getBasketID())))
                 .exchange()
                 .expectStatus()
                 .isOk()
@@ -96,7 +95,7 @@ public class HttpApiTest {
         testBasketServerClientMock.getBaskets().add(testBasket);
 
         webClient.get()
-                .uri(uriBuilder -> buildRequestUri(uriBuilder, new EarnRequest(id, validRequest, testBasket.getValue(), testBasket.getBasketID())))
+                .uri(uriBuilder -> buildRequestUri(uriBuilder, new EarnRequest(id, validRequest, testBasket.getBasketID())))
                 .exchange()
                 .expectStatus()
                 .isEqualTo(HttpStatus.FORBIDDEN);
