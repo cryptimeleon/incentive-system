@@ -1,15 +1,12 @@
 package de.upb.crypto.incentive.client;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import de.upb.crypto.incentive.client.dto.GetEarnResponseDto;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
 
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
+
 public class CreditClient {
 
     /*
@@ -17,6 +14,10 @@ public class CreditClient {
      */
     private WebClient creditClient;
 
+
+    public CreditClient(String creditServiceUrl) {
+        this.creditClient = WebClientHelper.buildWebClient(creditServiceUrl);
+    }
 
     /*
      * Sends an request to the / endpoint which is configured to return the name of the service

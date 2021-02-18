@@ -1,9 +1,6 @@
 package de.upb.crypto.incentive.client;
 
 import de.upb.crypto.incentive.client.dto.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -11,15 +8,16 @@ import reactor.core.publisher.Mono;
 import java.util.UUID;
 
 
-@AllArgsConstructor
-@NoArgsConstructor
-@Data
 public class BasketserverClient {
 
     /*
      * Webclient configured with the url of the basketserver
      */
     private WebClient basketClient;
+
+    public BasketserverClient(String basketserverUrl) {
+        this.basketClient = WebClientHelper.buildWebClient(basketserverUrl);
+    }
 
     /*
      * Sends a request to the / endpoint which is configured to return the name of the service
