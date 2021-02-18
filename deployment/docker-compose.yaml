@@ -6,16 +6,15 @@ services:
     ports:
       - "8003:8003"
     hostname: basketserver
-    network_mode: "host"
   creditservice:
     image: upbcuk/incentive-service-credit:0.4.0
     ports:
       - "8002:8002"
     hostname: creditservice
-    network_mode: "host"
+    environment:
+      - BASKETSERVER.URL=http://basketserver:8003
   issueservice:
     image: upbcuk/incentive-service-issue:0.4.0
     ports:
       - "8001:8001"
     hostname: issueservice
-    network_mode: "host"
