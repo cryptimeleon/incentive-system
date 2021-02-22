@@ -3,7 +3,7 @@ plugins {
     id "io.freefair.lombok" version "5.3.0"
 }
 
-group 'de.upb.crypto'
+group 'org.cryptimeleon'
 version '1.0-SNAPSHOT'
 
 repositories {
@@ -12,8 +12,8 @@ repositories {
 }
 
 dependencies {
-    implementation 'de.upb.crypto:math:2.0.0' + (Boolean.valueOf(System.getProperty("disablesnapshot")) ? "" : "-SNAPSHOT")
-    implementation 'de.upb.crypto:craco:2.0.0' + (Boolean.valueOf(System.getProperty("disablesnapshot")) ? "" : "-SNAPSHOT")
+    implementation 'org.cryptimeleon:math:2.0.0' + (Boolean.valueOf(System.getProperty("disablesnapshot")) ? "" : "-SNAPSHOT")
+    implementation 'org.cryptimeleon:craco:2.0.0' + (Boolean.valueOf(System.getProperty("disablesnapshot")) ? "" : "-SNAPSHOT")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.0")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.0")
