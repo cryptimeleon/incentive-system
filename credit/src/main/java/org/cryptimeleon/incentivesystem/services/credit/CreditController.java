@@ -1,11 +1,11 @@
 package org.cryptimeleon.incentivesystem.services.credit;
 
-import org.cryptimeleon.incentivesystem.client.IncentiveClientException;
-import org.cryptimeleon.incentivesystem.services.credit.model.CreditResponse;
-import org.cryptimeleon.incentivesystem.services.credit.model.EarnRequest;
 import io.swagger.annotations.ApiOperation;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cryptimeleon.incentivesystem.client.IncentiveClientException;
+import org.cryptimeleon.incentivesystem.services.credit.model.CreditResponse;
+import org.cryptimeleon.incentivesystem.services.credit.model.EarnRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;

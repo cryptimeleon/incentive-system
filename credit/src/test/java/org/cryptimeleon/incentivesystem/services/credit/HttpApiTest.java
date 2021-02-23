@@ -1,13 +1,13 @@
 package org.cryptimeleon.incentivesystem.services.credit;
 
-import org.cryptimeleon.incentivesystem.services.credit.mock.TestBasketServerClientMock;
-import org.cryptimeleon.incentivesystem.services.credit.mock.TestCryptoCreditMock;
+import lombok.Data;
 import org.cryptimeleon.incentivesystem.client.dto.BasketDto;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.interfaces.provider.CreditInterface;
+import org.cryptimeleon.incentivesystem.services.credit.mock.TestBasketServerClientMock;
+import org.cryptimeleon.incentivesystem.services.credit.mock.TestCryptoCreditMock;
 import org.cryptimeleon.incentivesystem.services.credit.model.CreditResponse;
 import org.cryptimeleon.incentivesystem.services.credit.model.EarnRequest;
 import org.cryptimeleon.incentivesystem.services.credit.model.interfaces.BasketServerClientInterface;
-import lombok.Data;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

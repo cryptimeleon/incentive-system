@@ -116,24 +116,6 @@ public class Token implements Representable {
         tokenPlainText = new GroupElementPlainText(this.token);
     }
 
-
-    /**
-     * sets the certificate for the token.
-     *
-     * @param cert new certificate
-     */
-    public void setCertificate(SPSEQSignature cert) throws SPSEQException {
-        this.certificate = cert;
-
-        SPSEQSignatureScheme signatureScheme = pp.getSpsEq();
-
-        // immediately throw exception if signature not valid for token group element
-        if (!signatureScheme.verify(this.tokenPlainText, this.certificate, this.verificationKey)) // token plaintext needed for verification (API reasons)
-        {
-            throw new SPSEQException("token was associated with an invalid certificate");
-        }
-    }
-
     /**
      * computes "dumb token" from mathematical representation of token
      *
@@ -150,6 +132,23 @@ public class Token implements Representable {
 
     public SPSEQSignature getCertificate() {
         return this.certificate;
+    }
+
+    /**
+     * sets the certificate for the token.
+     *
+     * @param cert new certificate
+     */
+    public void setCertificate(SPSEQSignature cert) throws SPSEQException {
+        this.certificate = cert;
+
+        SPSEQSignatureScheme signatureScheme = pp.getSpsEq();
+
+        // immediately throw exception if signature not valid for token group element
+        if (!signatureScheme.verify(this.tokenPlainText, this.certificate, this.verificationKey)) // token plaintext needed for verification (API reasons)
+        {
+            throw new SPSEQException("token was associated with an invalid certificate");
+        }
     }
 }
 

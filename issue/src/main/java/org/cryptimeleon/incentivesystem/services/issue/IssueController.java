@@ -1,10 +1,10 @@
 package org.cryptimeleon.incentivesystem.services.issue;
 
-import org.cryptimeleon.incentivesystem.services.issue.model.IssueResponse;
-import org.cryptimeleon.incentivesystem.services.issue.model.JoinRequest;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import org.cryptimeleon.incentivesystem.services.issue.model.IssueResponse;
+import org.cryptimeleon.incentivesystem.services.issue.model.JoinRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -24,7 +24,7 @@ public class IssueController {
         return new ResponseEntity<>("Issue Service", HttpStatus.OK);
     }
 
-        @GetMapping("/issue")
+    @GetMapping("/issue")
     @ApiOperation(value = "Issuing protocol", notes = "Issue a new incentive token.", response = IssueResponse.class)
     @ApiResponses({
             @ApiResponse(code = 200, message = "Success", response = IssueResponse.class),

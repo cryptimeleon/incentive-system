@@ -1,9 +1,9 @@
 package org.cryptimeleon.incentivesystem.services.credit.mock;
 
-import org.cryptimeleon.incentivesystem.client.dto.BasketDto;
-import org.cryptimeleon.incentivesystem.services.credit.model.interfaces.BasketServerClientInterface;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.cryptimeleon.incentivesystem.client.dto.BasketDto;
+import org.cryptimeleon.incentivesystem.services.credit.model.interfaces.BasketServerClientInterface;
 
 import java.util.ArrayList;
 import java.util.UUID;

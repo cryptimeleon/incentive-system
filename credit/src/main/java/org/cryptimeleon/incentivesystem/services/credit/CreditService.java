@@ -1,11 +1,11 @@
 package org.cryptimeleon.incentivesystem.services.credit;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.interfaces.provider.CreditInterface;
 import org.cryptimeleon.incentivesystem.services.credit.model.CreditResponse;
 import org.cryptimeleon.incentivesystem.services.credit.model.EarnRequest;
 import org.cryptimeleon.incentivesystem.services.credit.model.interfaces.BasketServerClientInterface;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

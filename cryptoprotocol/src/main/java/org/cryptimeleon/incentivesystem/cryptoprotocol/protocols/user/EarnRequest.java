@@ -1,12 +1,12 @@
 package org.cryptimeleon.incentivesystem.cryptoprotocol.protocols.user;
 
+import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
+import org.cryptimeleon.craco.sig.sps.eq.SPSEQVerificationKey;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.interfaces.user.EarnInterface;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.PublicParameters;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.Token;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserSecretKey;
-import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
-import org.cryptimeleon.craco.sig.sps.eq.SPSEQVerificationKey;
-import org.cryptimeleon.incentivesystem.cryptoprotocol.interfaces.user.EarnInterface;
 import org.cryptimeleon.math.serialization.Representable;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.annotations.ReprUtil;

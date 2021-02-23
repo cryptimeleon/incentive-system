@@ -11,8 +11,8 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.util.UUID;
 
-import static org.cryptimeleon.incentivesystem.basketserver.ClientHelper.*;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.cryptimeleon.incentivesystem.basketserver.ClientHelper.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class BasketTest {
