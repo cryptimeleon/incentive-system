@@ -26,12 +26,12 @@ jobs:
       - name: Checkout craco
         run: |
           pushd ..
-          git clone https://github.com/upbcuk/upb.crypto.craco.git
+          git clone https://github.com/cryptimeleon/craco.git
           popd
       - name: Checkout math
         run: |
           pushd ..
-          git clone https://github.com/upbcuk/upb.crypto.math.git
+          git clone https://github.com/cryptimeleon/math.git
 
           popd
       - uses: actions/setup-java@v1
@@ -83,12 +83,12 @@ jobs:
       - name: Checkout craco
         run: |
           pushd ..
-          git clone https://github.com/upbcuk/upb.crypto.craco.git
+          git clone https://github.com/cryptimeleon/craco.git
           popd
       - name: Checkout math
         run: |
           pushd ..
-          git clone https://github.com/upbcuk/upb.crypto.math.git
+          git clone https://github.com/cryptimeleon/math.git
           popd
       - uses: actions/setup-java@v1
         with:

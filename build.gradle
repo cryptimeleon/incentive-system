@@ -6,6 +6,8 @@ plugins {
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 }
 
+group = 'org.cryptimeleon'
+
 repositories {
     mavenCentral()
     jcenter()
