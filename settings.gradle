@@ -6,6 +6,6 @@ include 'basketserver'
 include 'protocoldefinition'
 include 'cryptoprotocol'
 
-includeBuild "../upb.crypto.math"
-includeBuild "../upb.crypto.craco"
+includeBuild "../math"
+includeBuild "../craco"
 

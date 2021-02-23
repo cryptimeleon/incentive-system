@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: issue-service
-          image: upbcuk/incentive-service-issue:0.4.0
+          image: cryptimeleon/incentive-service-issue:0.4.0
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8000
