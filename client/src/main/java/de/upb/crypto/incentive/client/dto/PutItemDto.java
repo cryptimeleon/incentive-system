@@ -1,4 +1,4 @@
-package de.upb.crypto.incentive.client.dto;
+package org.cryptimeleon.incentivesystem.client.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

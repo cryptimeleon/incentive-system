@@ -1,4 +1,4 @@
-package de.upb.crypto.incentive.basketserver;
+package org.cryptimeleon.incentivesystem.basketserver;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

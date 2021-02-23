@@ -1,4 +1,4 @@
-package de.upb.crypto.incentive.services.issue;
+package org.cryptimeleon.incentivesystem.services.issue;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

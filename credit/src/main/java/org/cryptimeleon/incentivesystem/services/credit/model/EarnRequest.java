@@ -1,4 +1,4 @@
-package de.upb.crypto.incentive.services.credit.model;
+package org.cryptimeleon.incentivesystem.services.credit.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

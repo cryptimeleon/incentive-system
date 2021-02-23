@@ -1,4 +1,4 @@
-package de.upb.crypto.incentive.basketserver;
+package org.cryptimeleon.incentivesystem.basketserver;
 
 import org.cryptimeleon.incentivesystem.basketserver.exceptions.*;
 import org.cryptimeleon.incentivesystem.basketserver.model.Basket;

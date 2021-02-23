@@ -1,7 +1,7 @@
-package de.upb.crypto.incentive.services.credit.model.interfaces;
+package org.cryptimeleon.incentivesystem.services.credit.model.interfaces;
 
-import de.upb.crypto.incentive.client.dto.BasketDto;
-import de.upb.crypto.incentive.services.credit.IncentiveException;
+import org.cryptimeleon.incentivesystem.client.dto.BasketDto;
+import org.cryptimeleon.incentivesystem.services.credit.IncentiveException;
 
 import java.util.UUID;
 

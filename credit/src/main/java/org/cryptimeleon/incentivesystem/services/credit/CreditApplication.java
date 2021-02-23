@@ -1,4 +1,4 @@
-package de.upb.crypto.incentive.services.credit;
+package org.cryptimeleon.incentivesystem.services.credit;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

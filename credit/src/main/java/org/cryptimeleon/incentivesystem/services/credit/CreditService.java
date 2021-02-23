@@ -1,9 +1,9 @@
-package de.upb.crypto.incentive.services.credit;
+package org.cryptimeleon.incentivesystem.services.credit;
 
-import de.upb.crypto.incentive.cryptoprotocol.interfaces.provider.CreditInterface;
-import de.upb.crypto.incentive.services.credit.model.CreditResponse;
-import de.upb.crypto.incentive.services.credit.model.EarnRequest;
-import de.upb.crypto.incentive.services.credit.model.interfaces.BasketServerClientInterface;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.interfaces.provider.CreditInterface;
+import org.cryptimeleon.incentivesystem.services.credit.model.CreditResponse;
+import org.cryptimeleon.incentivesystem.services.credit.model.EarnRequest;
+import org.cryptimeleon.incentivesystem.services.credit.model.interfaces.BasketServerClientInterface;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;

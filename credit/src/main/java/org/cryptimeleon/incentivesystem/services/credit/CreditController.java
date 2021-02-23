@@ -1,8 +1,8 @@
-package de.upb.crypto.incentive.services.credit;
+package org.cryptimeleon.incentivesystem.services.credit;
 
-import de.upb.crypto.incentive.client.IncentiveClientException;
-import de.upb.crypto.incentive.services.credit.model.CreditResponse;
-import de.upb.crypto.incentive.services.credit.model.EarnRequest;
+import org.cryptimeleon.incentivesystem.client.IncentiveClientException;
+import org.cryptimeleon.incentivesystem.services.credit.model.CreditResponse;
+import org.cryptimeleon.incentivesystem.services.credit.model.EarnRequest;
 import io.swagger.annotations.ApiOperation;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

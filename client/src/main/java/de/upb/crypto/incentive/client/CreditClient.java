@@ -1,6 +1,6 @@
-package de.upb.crypto.incentive.client;
+package org.cryptimeleon.incentivesystem.client;
 
-import de.upb.crypto.incentive.client.dto.GetEarnResponseDto;
+import org.cryptimeleon.incentivesystem.client.dto.GetEarnResponseDto;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 

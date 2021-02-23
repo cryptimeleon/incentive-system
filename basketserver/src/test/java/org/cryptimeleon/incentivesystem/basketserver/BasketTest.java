@@ -1,4 +1,4 @@
-package de.upb.crypto.incentive.basketserver;
+package org.cryptimeleon.incentivesystem.basketserver;
 
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -11,7 +11,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.util.UUID;
 
-import static de.upb.crypto.incentive.basketserver.ClientHelper.*;
+import static org.cryptimeleon.incentivesystem.basketserver.ClientHelper.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)

@@ -1,9 +1,9 @@
-package de.upb.crypto.incentive.services.credit;
+package org.cryptimeleon.incentivesystem.services.credit;
 
-import de.upb.crypto.incentive.client.BasketserverClient;
-import de.upb.crypto.incentive.client.dto.BasketDto;
-import de.upb.crypto.incentive.client.dto.PostRedeemBasketDto;
-import de.upb.crypto.incentive.services.credit.model.interfaces.BasketServerClientInterface;
+import org.cryptimeleon.incentivesystem.client.BasketserverClient;
+import org.cryptimeleon.incentivesystem.client.dto.BasketDto;
+import org.cryptimeleon.incentivesystem.client.dto.PostRedeemBasketDto;
+import org.cryptimeleon.incentivesystem.services.credit.model.interfaces.BasketServerClientInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

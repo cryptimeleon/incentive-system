@@ -1,9 +1,9 @@
-package de.upb.crypto.incentive.services.credit.config;
+package org.cryptimeleon.incentivesystem.services.credit.config;
 
-import de.upb.crypto.incentive.cryptoprotocol.interfaces.provider.CreditInterface;
-import de.upb.crypto.incentive.services.credit.BasketServerClientHelper;
-import de.upb.crypto.incentive.services.credit.mock.CryptoCreditMock;
-import de.upb.crypto.incentive.services.credit.model.interfaces.BasketServerClientInterface;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.interfaces.provider.CreditInterface;
+import org.cryptimeleon.incentivesystem.services.credit.BasketServerClientHelper;
+import org.cryptimeleon.incentivesystem.services.credit.mock.CryptoCreditMock;
+import org.cryptimeleon.incentivesystem.services.credit.model.interfaces.BasketServerClientInterface;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;

@@ -1,4 +1,4 @@
-package de.upb.crypto.incentive.client;
+package org.cryptimeleon.incentivesystem.client;
 
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;

@@ -1,7 +1,7 @@
-package de.upb.crypto.incentive.services.credit.mock;
+package org.cryptimeleon.incentivesystem.services.credit.mock;
 
-import de.upb.crypto.incentive.client.dto.BasketDto;
-import de.upb.crypto.incentive.services.credit.model.interfaces.BasketServerClientInterface;
+import org.cryptimeleon.incentivesystem.client.dto.BasketDto;
+import org.cryptimeleon.incentivesystem.services.credit.model.interfaces.BasketServerClientInterface;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

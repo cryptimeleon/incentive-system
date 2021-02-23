@@ -1,7 +1,7 @@
-package de.upb.crypto.incentive.client.integrationtest;
+package org.cryptimeleon.incentivesystem.client.integrationtest;
 
-import de.upb.crypto.incentive.client.BasketserverClient;
-import de.upb.crypto.incentive.client.dto.BasketDto;
+import org.cryptimeleon.incentivesystem.client.BasketserverClient;
+import org.cryptimeleon.incentivesystem.client.dto.BasketDto;
 
 import java.util.UUID;
 

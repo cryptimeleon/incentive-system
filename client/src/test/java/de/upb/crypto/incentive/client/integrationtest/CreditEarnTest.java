@@ -1,8 +1,8 @@
-package de.upb.crypto.incentive.client.integrationtest;
+package org.cryptimeleon.incentivesystem.client.integrationtest;
 
-import de.upb.crypto.incentive.client.BasketserverClient;
-import de.upb.crypto.incentive.client.CreditClient;
-import de.upb.crypto.incentive.client.IncentiveClientException;
+import org.cryptimeleon.incentivesystem.client.BasketserverClient;
+import org.cryptimeleon.incentivesystem.client.CreditClient;
+import org.cryptimeleon.incentivesystem.client.IncentiveClientException;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

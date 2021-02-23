@@ -1,4 +1,4 @@
-package de.upb.crypto.incentive.basketserver.exceptions;
+package org.cryptimeleon.incentivesystem.basketserver.exceptions;
 
 public class BasketUnauthorizedException extends BasketServiceException{
     public BasketUnauthorizedException(String message) {

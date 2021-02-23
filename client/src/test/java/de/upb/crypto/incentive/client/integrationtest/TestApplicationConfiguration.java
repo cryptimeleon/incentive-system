@@ -1,4 +1,4 @@
-package de.upb.crypto.incentive.client.integrationtest;
+package org.cryptimeleon.incentivesystem.client.integrationtest;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;

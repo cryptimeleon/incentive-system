@@ -1,4 +1,4 @@
-package de.upb.crypto.incentive.client;
+package org.cryptimeleon.incentivesystem.client;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunctions;

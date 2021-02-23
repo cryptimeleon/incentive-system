@@ -1,4 +1,4 @@
-package de.upb.crypto.incentive.client.integrationtest;
+package org.cryptimeleon.incentivesystem.client.integrationtest;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;

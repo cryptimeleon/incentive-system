@@ -1,4 +1,4 @@
-package de.upb.crypto.incentive.services.issue.model;
+package org.cryptimeleon.incentivesystem.services.issue.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
