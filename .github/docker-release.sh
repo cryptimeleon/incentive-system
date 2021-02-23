@@ -8,7 +8,7 @@ echo "Building and deploying docker images with version: $VERSION"
 
 for SERVICE in "${SERVICES[@]}"
 do
-  IMAGE=upbcuk/incentive-service-${SERVICE}
+  IMAGE=cryptimeleon/incentive-service-${SERVICE}
 
   echo "Building docker images for ${SERVICE}-service."
 

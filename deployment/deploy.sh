@@ -90,9 +90,10 @@ if [[ $LOCAL == true ]]; then
   ./gradlew ":credit:bootBuildImage"
   ./gradlew ":issue:bootBuildImage"
   ./gradlew ":basketserver:bootBuildImage"
-  kind load docker-image upbcuk/incentive-service-issue --name kind-t2
-  kind load docker-image upbcuk/incentive-service-credit --name kind-t2
-  kind load docker-image upbcuk/incentive-service-basketserver --name kind-t2
+
+  kind load docker-image cryptimeleon/incentive-service-issue:0.4.0 --name kind-t2
+  kind load docker-image cryptimeleon/incentive-service-credit:0.4.0 --name kind-t2
+  kind load docker-image cryptimeleon/incentive-service-basketserver:0.4.0 --name kind-t2
   set +e
 
   # Print available images

@@ -6,7 +6,7 @@ plugins {
 
 }
 
-group = 'de.upb.crypto'
+group = 'org.cryptimeleon'
 sourceCompatibility = '15'
 
 repositories {
@@ -29,8 +29,8 @@ test {
 
 bootBuildImage {
     if (System.getenv('VERSION') == null || System.getenv('VERSION') == '') {
-        imageName = "upbcuk/incentive-service-issue:" + file("../version").text.trim()
+        imageName = "cryptimeleon/incentive-service-issue:" + file("../version").text.trim()
     } else {
-        imageName = "upbcuk/incentive-service-issue:" + System.getenv('VERSION')
+        imageName = "cryptimeleon/incentive-service-issue:" + System.getenv('VERSION')
     }
 }
