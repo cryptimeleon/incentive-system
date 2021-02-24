@@ -23,7 +23,7 @@ import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
  */
 public class Token implements Representable {
     @Represented
-    private PublicParameters pp; // public parameters for the inc sys instance in which the token was created
+    private IncentivePublicParameters pp; // public parameters for the inc sys instance in which the token was created
 
     @Represented
     private GroupElement token; // the Pedersen commitment computed from the bases and the exponents, representing the actual token
@@ -52,10 +52,10 @@ public class Token implements Representable {
      * @param dsrnd0 double spending randomness
      * @param dsrnd1 other double spending randomness
      */
-    public Token(PublicParameters pp, ProviderPublicKey pk, ZnElement USK, ZnElement esk, ZnElement dsrnd0, ZnElement dsrnd1, ZnElement z, ZnElement t) throws IllegalArgumentException {
+    public Token(IncentivePublicParameters pp, ProviderPublicKey pk, ZnElement USK, ZnElement esk, ZnElement dsrnd0, ZnElement dsrnd1, ZnElement z, ZnElement t) throws IllegalArgumentException {
         // retrieve commitment base array h from passed provider public key
-        GroupElementVector h = pk.getH();
-        this.commitmentBases = h;
+
+        this.commitmentBases = pk.getH();
 
         // initializing respective object variables with other parameters
         Zn myRemainderClassRing = pp.getBg().getZn(); // needed to retrieve correct zero element to compute point count
@@ -74,10 +74,10 @@ public class Token implements Representable {
 
     /**
      * constructor for construction of object by deserialization
+     *
      * @param repr serialized representation
      */
-    public Token(Representation repr)
-    {
+    public Token(Representation repr) {
         new ReprUtil(this).deserialize(repr); // side effect reflection magic used to restore fields
     }
 
@@ -124,24 +124,6 @@ public class Token implements Representable {
         tokenPlainText = new GroupElementPlainText(this.token);
     }
 
-
-    /**
-     * sets the certificate for the token.
-     *
-     * @param cert new certificate
-     */
-    public void setCertificate(SPSEQSignature cert) throws SPSEQException {
-        this.certificate = cert;
-
-        SPSEQSignatureScheme signatureScheme = pp.getSpsEq();
-
-        // immediately throw exception if signature not valid for token group element
-        if (!signatureScheme.verify(this.tokenPlainText, this.certificate, this.verificationKey)) // token plaintext needed for verification (API reasons)
-        {
-            throw new SPSEQException("token was associated with an invalid certificate");
-        }
-    }
-
     /**
      * computes "dumb token" from mathematical representation of token
      *
@@ -158,6 +140,23 @@ public class Token implements Representable {
 
     public SPSEQSignature getCertificate() {
         return this.certificate;
+    }
+
+    /**
+     * sets the certificate for the token.
+     *
+     * @param cert new certificate
+     */
+    public void setCertificate(SPSEQSignature cert) throws SPSEQException {
+        this.certificate = cert;
+
+        SPSEQSignatureScheme signatureScheme = pp.getSpsEq();
+
+        // immediately throw exception if signature not valid for token group element
+        if (!signatureScheme.verify(this.tokenPlainText, this.certificate, this.verificationKey)) // token plaintext needed for verification (API reasons)
+        {
+            throw new SPSEQException("token was associated with an invalid certificate");
+        }
     }
 }
 
