@@ -1,12 +1,12 @@
 package org.cryptimeleon.incentivesystem.cryptoprotocol.protocols.user;
 
-import org.cryptimeleon.incentivesystem.cryptoprotocol.model.PublicParameters;
-import org.cryptimeleon.incentivesystem.cryptoprotocol.model.Token;
-import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderPublicKey;
-import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserSecretKey;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQVerificationKey;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.interfaces.user.EarnInterface;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.model.IncentivePublicParameters;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.model.Token;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderPublicKey;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserSecretKey;
 import org.cryptimeleon.math.serialization.Representable;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.annotations.ReprUtil;
@@ -23,23 +23,23 @@ import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
  */
 public class EarnRequest implements EarnInterface, Representable {
     @Represented
-    private PublicParameters pp;
+    private final IncentivePublicParameters pp;
     @Represented
-    private ProviderPublicKey pk;
-    private UserSecretKey usk;
-    private long k; // TODO: does k even need
-    private Token token; // TODO: is it a problem if token is unserialized? -> shouldn't be because serialization is no encryption
+    private final ProviderPublicKey pk;
+    private final UserSecretKey usk;
+    private final long k; // TODO: does k even need
+    private final Token token; // TODO: is it a problem if token is unserialized? -> shouldn't be because serialization is no encryption
 
     @Represented
     private GroupElement blindedCommitment; // the blinded commitment sent in the earn request
     @Represented
     private SPSEQSignature blindedCertificate;
-    private ZnElement s; // blinding randomness, maybe easier to retry requests if the randomness is saved in the requests instance
+    private final ZnElement s; // blinding randomness, maybe easier to retry requests if the randomness is saved in the requests instance
 
     /**
      * @param k earn amount, name taken from 2020 inc sys paper
      */
-    public EarnRequest(PublicParameters pp, ProviderPublicKey pk, UserSecretKey usk, long k, Token token) {
+    public EarnRequest(IncentivePublicParameters pp, ProviderPublicKey pk, UserSecretKey usk, long k, Token token) {
         Zn usedZn = pp.getBg().getZn();
         // draw blinding value
         this.s = usedZn.getUniformlyRandomNonzeroElement(); // s cannot be zero since we need to compute its inverse to unblind the signature
