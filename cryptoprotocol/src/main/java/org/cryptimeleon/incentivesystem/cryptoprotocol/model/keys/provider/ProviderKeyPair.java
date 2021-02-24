@@ -1,34 +1,13 @@
 package org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider;
 
-import de.upb.crypto.math.serialization.Representable;
-import de.upb.crypto.math.serialization.Representation;
-import de.upb.crypto.math.serialization.annotations.ReprUtil;
-import de.upb.crypto.math.serialization.annotations.Represented;
-import lombok.Data;
+import lombok.Value;
+import org.cryptimeleon.math.serialization.annotations.Represented;
 
-@Data
-public class ProviderKeyPair implements Representable {
+@Value
+public class ProviderKeyPair {
     @Represented
-    private ProviderPublicKey pk;
+    ProviderSecretKey sk;
+
     @Represented
-    private ProviderSecretKey sk;
-
-    public ProviderKeyPair(ProviderSecretKey sk, ProviderPublicKey pk) {
-        this.sk = sk;
-        this.pk = pk;
-    }
-
-    /**
-     * constructor for construction of object by deserialization
-     * @param repr serialized representation
-     */
-    public ProviderKeyPair(Representation repr)
-    {
-        new ReprUtil(this).deserialize(repr); // side effect reflection magic used to restore fields
-    }
-
-    public Representation getRepresentation()
-    {
-        return ReprUtil.serialize(this);
-    }
+    ProviderPublicKey pk;
 }
