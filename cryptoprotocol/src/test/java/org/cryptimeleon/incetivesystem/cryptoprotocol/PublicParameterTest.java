@@ -2,20 +2,24 @@ package org.cryptimeleon.incetivesystem.cryptoprotocol;
 
 import org.cryptimeleon.incentivesystem.cryptoprotocol.IncentiveSystem;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.IncentivePublicParameters;
-import org.cryptimeleon.math.serialization.converter.JSONPrettyConverter;
 import org.junit.jupiter.api.Test;
+
+import java.util.logging.Logger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class SetupTest {
+/*
+ * Contains test cases for the Public Parameters.
+ */
+public class PublicParameterTest {
 
-    JSONPrettyConverter jsonPrettyConverter = new JSONPrettyConverter();
+    Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
     @Test
     void testSetup() {
+        logger.info("Testing representation of Public Parameters");
         var pp = IncentiveSystem.setup();
-        var serializedPP = jsonPrettyConverter.serialize(pp.getRepresentation());
-        var deserializedPP = new IncentivePublicParameters(jsonPrettyConverter.deserialize(serializedPP));
+        var deserializedPP = new IncentivePublicParameters(pp.getRepresentation());
 
         assertThat(deserializedPP).isEqualTo(pp);
     }

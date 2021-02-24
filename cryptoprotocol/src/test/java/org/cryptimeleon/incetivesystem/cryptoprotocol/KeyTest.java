@@ -5,33 +5,33 @@ import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.Provi
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderSecretKey;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserSecretKey;
-import org.cryptimeleon.math.serialization.converter.JSONPrettyConverter;
 import org.junit.jupiter.api.Test;
+
+import java.util.logging.Logger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+/*
+ * This class contains tests of the key representations.
+ */
 public class KeyTest {
 
-    JSONPrettyConverter jsonPrettyConverter = new JSONPrettyConverter();
+    Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
     @Test
     void testProviderKeyPair() {
         var pp = IncentiveSystem.setup();
         var incentiveSystem = new IncentiveSystem(pp);
-
         var providerKeyPair = incentiveSystem.generateProviderKeys();
 
+        logger.info("Provider Secret Key representation");
         var providerSecretKey = providerKeyPair.getSk();
-        var serializedProviderSecretKey = jsonPrettyConverter.serialize(providerSecretKey.getRepresentation());
-        var deserializedProviderSecretKey = new ProviderSecretKey(jsonPrettyConverter.deserialize(serializedProviderSecretKey), pp.getSpsEq(), pp.getBg().getZn(), pp.getPrf());
-
+        var deserializedProviderSecretKey = new ProviderSecretKey(providerSecretKey.getRepresentation(), pp.getSpsEq(), pp.getBg().getZn(), pp.getPrf());
         assertThat(deserializedProviderSecretKey).isEqualTo(providerSecretKey);
 
-
+        logger.info("Provider Public Key representation");
         var providerPublicKey = providerKeyPair.getPk();
-        var serializedProviderPublicKey = jsonPrettyConverter.serialize(providerPublicKey.getRepresentation());
-        var deserializedProviderPublicKey = new ProviderPublicKey(jsonPrettyConverter.deserialize(serializedProviderPublicKey), pp.getSpsEq(), pp.getBg().getG1());
-
+        var deserializedProviderPublicKey = new ProviderPublicKey(providerPublicKey.getRepresentation(), pp.getSpsEq(), pp.getBg().getG1());
         assertThat(deserializedProviderPublicKey).isEqualTo(providerPublicKey);
     }
 
@@ -39,18 +39,16 @@ public class KeyTest {
     void testUserKeyPair() {
         var pp = IncentiveSystem.setup();
         var incentiveSystem = new IncentiveSystem(pp);
-
         var userKeyPair = incentiveSystem.generateUserKeys();
-        var userSecretKey = userKeyPair.getSk();
-        var serializedUserSecretKey = jsonPrettyConverter.serialize(userSecretKey.getRepresentation());
-        var deserializedUserSecretKey = new UserSecretKey(jsonPrettyConverter.deserialize(serializedUserSecretKey), pp.getBg().getZn(), pp.getPrf());
 
+        logger.info("User Secret Key representation");
+        var userSecretKey = userKeyPair.getSk();
+        var deserializedUserSecretKey = new UserSecretKey(userSecretKey.getRepresentation(), pp.getBg().getZn(), pp.getPrf());
         assertThat(deserializedUserSecretKey).isEqualTo(userSecretKey);
 
+        logger.info("User Public Key representation");
         var userPublicKey = userKeyPair.getPk();
-        var serializedUserPublicKey = jsonPrettyConverter.serialize(userPublicKey.getRepresentation());
-        var deserializedUserPublicKey = new UserPublicKey(jsonPrettyConverter.deserialize(serializedUserPublicKey), pp.getBg().getG1());
-
+        var deserializedUserPublicKey = new UserPublicKey(userPublicKey.getRepresentation(), pp.getBg().getG1());
         assertThat(deserializedUserPublicKey).isEqualTo(userPublicKey);
     }
 }
