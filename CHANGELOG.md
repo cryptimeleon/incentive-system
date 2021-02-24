@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Next Release
+ - Add data classes for token, keys and public parameters and change structure of crypto package [#16](https://github.com/upbcuk/incentive-services/pull/18)
  - Rename organization to cryptimeleon  [#18](https://github.com/upbcuk/incentive-services/pull/18)
  - Add basic crypto-entities (public parameters, user/provider keys, token, ...) [#11](https://github.com/upbcuk/incentive-services/pull/11)
 
