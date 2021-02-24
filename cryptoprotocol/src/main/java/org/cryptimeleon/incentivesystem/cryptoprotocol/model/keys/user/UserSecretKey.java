@@ -4,7 +4,6 @@ import lombok.Value;
 import lombok.experimental.NonFinal;
 import org.cryptimeleon.craco.prf.PrfKey;
 import org.cryptimeleon.craco.prf.aes.AesPseudorandomFunction;
-import org.cryptimeleon.math.serialization.ObjectRepresentation;
 import org.cryptimeleon.math.serialization.Representable;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.annotations.ReprUtil;
@@ -15,11 +14,11 @@ import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
 @Value
 public class UserSecretKey implements Representable {
     @NonFinal
-    @Represented
+    @Represented(restorer = "Zn")
     ZnElement usk;
 
     @NonFinal
-    @Represented
+    @Represented(restorer = "aes")
     PrfKey prfKey; // user's key for generating pseudorandomness using the PRF
 
     public UserSecretKey(ZnElement usk, PrfKey prfKey) {
@@ -28,9 +27,10 @@ public class UserSecretKey implements Representable {
     }
 
     public UserSecretKey(Representation repr, Zn zn, AesPseudorandomFunction aes) {
-        ObjectRepresentation objectRepresentation = repr.obj();
-        usk = zn.getElement(objectRepresentation.get("usk"));
-        prfKey = aes.getKey(objectRepresentation.get("prfKey"));
+        new ReprUtil(this)
+                .register(zn, "Zn")
+                .register(aes::getKey, "aes")
+                .deserialize(repr);
     }
 
     @Override
