@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentivesystem.cryptoprotocol.model;
+package org.cryptimeleon.incentivesystem.cryptoprotocol;
 
 
 import org.cryptimeleon.craco.prf.PrfKey;
@@ -8,6 +8,7 @@ import org.cryptimeleon.craco.sig.sps.eq.SPSEQPublicParameters;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignatureScheme;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSigningKey;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQVerificationKey;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.model.IncentivePublicParameters;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderSecretKey;
@@ -27,7 +28,7 @@ import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
  * (namely Setup, P.KeyGen, U.KeyGen)
  */
 public class Setup {
-    public static final int PRF_KEY_LENGTH = 256;
+    public static final int PRF_KEY_LENGTH = 128;
 
     /**
      * generates public parameters from security parameter
@@ -35,7 +36,7 @@ public class Setup {
      * @param securityParameter integer representation of security parameter
      * @return public parameters as object representation
      */
-    public static PublicParameters trustedSetup(int securityParameter) {
+    public static IncentivePublicParameters trustedSetup(int securityParameter) {
         // generate a bilinear group from the security parameter (type 3, Barreto-Naehrig)
         BilinearGroup bg = new BarretoNaehrigBilinearGroup(securityParameter);
 
@@ -53,7 +54,7 @@ public class Setup {
         SPSEQSignatureScheme spsEq = new SPSEQSignatureScheme(new SPSEQPublicParameters(bg));
 
         // wrap up all values
-        return new PublicParameters(bg, w, h7, prf, spsEq);
+        return new IncentivePublicParameters(bg, w, h7, prf, spsEq);
     }
 
     /**
@@ -62,7 +63,7 @@ public class Setup {
      * @param pp object representation of public parameters
      * @return object representation of a user key pair (see 2020 inc sys paper)
      */
-    public static UserKeyPair userKeyGen(PublicParameters pp) {
+    public static UserKeyPair userKeyGen(IncentivePublicParameters pp) {
         // draw random exponent for the user secret key
         Zn usedZn = pp.getBg().getZn(); // the remainder class ring used in this instance of the incentive system
         ZnElement usk = usedZn.getUniformlyRandomElement(); // secret exponent
@@ -80,7 +81,7 @@ public class Setup {
     }
 
 
-    public static ProviderKeyPair providerKeyGen(PublicParameters pp) {
+    public static ProviderKeyPair providerKeyGen(IncentivePublicParameters pp) {
         // draw the dlogs of the first 6 bases used in the Pedersen commitment in the token
         RingElementVector q = pp.getBg().getZn().getUniformlyRandomElements(6);
 
