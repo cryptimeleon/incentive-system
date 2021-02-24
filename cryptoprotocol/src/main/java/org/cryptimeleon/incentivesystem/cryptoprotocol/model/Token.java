@@ -147,7 +147,7 @@ public class Token implements Representable {
      *
      * @param cert new certificate
      */
-    public void setCertificate(SPSEQSignature cert) throws SPSEQException {
+    public void setCertificate(SPSEQSignature cert) {
         this.certificate = cert;
 
         SPSEQSignatureScheme signatureScheme = pp.getSpsEq();

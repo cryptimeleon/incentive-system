@@ -1,8 +1,14 @@
 package org.cryptimeleon.incentivesystem.cryptoprotocol;
 
+import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
+import org.cryptimeleon.craco.sig.sps.eq.SPSEQVerificationKey;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.IncentivePublicParameters;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.model.Token;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderKeyPair;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserKeyPair;
+import org.cryptimeleon.math.serialization.Representation;
+import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 /*
  * Contains all main algorithms of the T2 incentive system.
@@ -37,7 +43,18 @@ public class IncentiveSystem {
     void handleJoinRequestResponse() {
     }
 
-    void generateEarnRequest() {
+    void generateEarnRequest(Token token, UserKeyPair userKeyPair, ProviderPublicKey providerPublicKey) {
+        // change representative call to blind commitment and certificate
+        var pk = userKeyPair.getPk();
+        var sk = userKeyPair.getSk();
+
+        Zn usedZn = pp.getBg().getZn(); // draw blinding value
+        var s = usedZn.getUniformlyRandomNonzeroElement(); // s cannot be zero since we need to compute its inverse to unblind the signature
+
+        var certificate = token.getCertificate();
+        var provSPSPk = providerPublicKey.getPkSpsEq(); // store SPS EQ verification key from provider public key
+        var blindedCommitment = token.getToken().pow(s); // computing another representative with blinding randomness (the implemented SPS-EQ is over R_exp)
+        var blindedCertificate = (SPSEQSignature) pp.getSpsEq().chgRep(certificate, s, provSPSPk); // note: in contrast to formal specification, chgrep only takes three arguments (no message) and thus only updates the signature
     }
 
     void generateEarnRequestResponse() {
