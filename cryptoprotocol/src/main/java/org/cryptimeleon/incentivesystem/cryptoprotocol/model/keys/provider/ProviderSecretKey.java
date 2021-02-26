@@ -41,9 +41,9 @@ public class ProviderSecretKey implements Representable {
 
     public ProviderSecretKey(Representation repr, SPSEQSignatureScheme spseqSignatureScheme, Zn zn, AesPseudorandomFunction aes) {
         ObjectRepresentation objectRepresentation = repr.obj();
-        skSpsEq = spseqSignatureScheme.getSigningKey(objectRepresentation.get("skSpsEq"));
-        q = zn.getVector(objectRepresentation.get("q"));
-        betaProv = aes.getKey(objectRepresentation.get("betaProv"));
+        skSpsEq = spseqSignatureScheme.restoreSigningKey(objectRepresentation.get("skSpsEq"));
+        q = zn.restoreVector(objectRepresentation.get("q"));
+        betaProv = aes.restoreKey(objectRepresentation.get("betaProv"));
     }
 
     @Override

@@ -29,7 +29,7 @@ public class UserSecretKey implements Representable {
     public UserSecretKey(Representation repr, Zn zn, AesPseudorandomFunction aes) {
         new ReprUtil(this)
                 .register(zn, "Zn")
-                .register(aes::getKey, "aes")
+                .register(aes::restoreKey, "aes")
                 .deserialize(repr);
     }
 
