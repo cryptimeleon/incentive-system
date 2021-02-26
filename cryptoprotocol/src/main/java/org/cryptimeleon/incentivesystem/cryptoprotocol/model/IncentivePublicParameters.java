@@ -13,7 +13,7 @@ import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.groups.elliptic.BilinearGroup;
 
 /**
- * a class representing the public parameters of the 2020 incentive system
+ * A class representing the public parameters of the 2020 incentive system
  */
 @Value
 @AllArgsConstructor

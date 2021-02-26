@@ -9,7 +9,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.logging.Logger;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 
 /*
  * Contains tests of the Token class.
@@ -50,6 +51,6 @@ public class TokenTest {
         );
 
         var deserializedToken = new Token(token.getRepresentation(), pp);
-        assertThat(deserializedToken).isEqualTo(token);
+        assertEquals(deserializedToken, token);
     }
 }

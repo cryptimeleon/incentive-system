@@ -6,7 +6,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.logging.Logger;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 
 /*
  * Contains test cases for the Public Parameters.
@@ -21,6 +22,6 @@ public class PublicParameterTest {
         var pp = IncentiveSystem.setup();
         var deserializedPP = new IncentivePublicParameters(pp.getRepresentation());
 
-        assertThat(deserializedPP).isEqualTo(pp);
+        assertEquals(deserializedPP, pp);
     }
 }

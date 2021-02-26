@@ -14,7 +14,7 @@ import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
 
 
 /**
- * data holding class representing a token from a mathematical point of view (meaning: as a bunch of group elements and exponents).
+ * Data holding class representing a token from a mathematical point of view (meaning: as a bunch of group elements and exponents).
  * serialized representation of token does not contain secret exponents and token plain text (latter can be computed trivially).
  */
 @Value

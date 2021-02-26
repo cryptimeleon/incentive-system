@@ -9,7 +9,7 @@ import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserKeyPa
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 /*
- * Contains all main algorithms of the T2 incentive system.
+ * Contains all main algorithms of the incentive system.
  */
 public class IncentiveSystem {
 
