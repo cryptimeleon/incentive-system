@@ -16,7 +16,7 @@ public class ProviderSecretKey {
         }
 
         this.skSpsEq = skSpsEq;
-        
+
         this.q = q;
 
         this.betaProv = betaProv;

@@ -3,7 +3,6 @@ package org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQVerificationKey;
 import org.cryptimeleon.math.structures.groups.cartesian.GroupElementVector;
 
-import java.util.Arrays;
 
 public class ProviderPublicKey {
     private final SPSEQVerificationKey pkSpsEq;
