@@ -1,19 +1,13 @@
 package org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider;
 
+import lombok.Value;
+import org.cryptimeleon.math.serialization.annotations.Represented;
+
+@Value
 public class ProviderKeyPair {
-    private ProviderPublicKey pk;
-    private ProviderSecretKey sk;
+    @Represented
+    ProviderSecretKey sk;
 
-    public ProviderKeyPair(ProviderSecretKey sk, ProviderPublicKey pk) {
-        this.sk = sk;
-        this.pk = pk;
-    }
-
-    public ProviderPublicKey getPk() {
-        return this.pk;
-    }
-
-    public ProviderSecretKey getSk() {
-        return this.sk;
-    }
+    @Represented
+    ProviderPublicKey pk;
 }

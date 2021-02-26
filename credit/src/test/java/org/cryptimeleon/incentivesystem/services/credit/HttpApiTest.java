@@ -2,7 +2,7 @@ package org.cryptimeleon.incentivesystem.services.credit;
 
 import lombok.Data;
 import org.cryptimeleon.incentivesystem.client.dto.BasketDto;
-import org.cryptimeleon.incentivesystem.cryptoprotocol.interfaces.provider.CreditInterface;
+import org.cryptimeleon.incentivesystem.services.credit.interfaces.CreditInterface;
 import org.cryptimeleon.incentivesystem.services.credit.mock.TestBasketServerClientMock;
 import org.cryptimeleon.incentivesystem.services.credit.mock.TestCryptoCreditMock;
 import org.cryptimeleon.incentivesystem.services.credit.model.CreditResponse;

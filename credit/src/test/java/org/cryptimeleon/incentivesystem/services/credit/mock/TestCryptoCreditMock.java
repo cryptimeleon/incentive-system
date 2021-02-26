@@ -3,7 +3,7 @@ package org.cryptimeleon.incentivesystem.services.credit.mock;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.cryptimeleon.incentivesystem.cryptoprotocol.interfaces.provider.CreditInterface;
+import org.cryptimeleon.incentivesystem.services.credit.interfaces.CreditInterface;
 
 @Data
 @NoArgsConstructor

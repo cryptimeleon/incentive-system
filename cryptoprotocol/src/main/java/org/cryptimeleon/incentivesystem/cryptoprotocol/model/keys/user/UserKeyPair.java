@@ -1,11 +1,13 @@
 package org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user;
 
-public class UserKeyPair {
-    private UserPublicKey userPublicKey;
-    private UserSecretKey userSecretKey;
+import lombok.Value;
+import org.cryptimeleon.math.serialization.annotations.Represented;
 
-    public UserKeyPair(UserPublicKey upk, UserSecretKey usk) {
-        this.userPublicKey = upk;
-        this.userSecretKey = usk;
-    }
+@Value
+public class UserKeyPair {
+    @Represented
+    UserPublicKey pk;
+
+    @Represented
+    UserSecretKey sk;
 }

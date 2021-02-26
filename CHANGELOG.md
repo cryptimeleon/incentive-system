@@ -14,6 +14,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   project [#14](https://github.com/upbcuk/incentive-services/pull/14)
 - Add basic crypto-entities (public parameters, user/provider keys, token,
   ...) [#11](https://github.com/upbcuk/incentive-services/pull/11)
+- Add data classes for token, keys and public parameters and change structure of crypto package [#16](https://github.com/upbcuk/incentive-services/pull/18)
 
 ## [0.4.0] - 2021-02-03
 

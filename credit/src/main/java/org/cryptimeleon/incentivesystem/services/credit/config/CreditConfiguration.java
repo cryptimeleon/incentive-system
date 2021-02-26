@@ -1,7 +1,7 @@
 package org.cryptimeleon.incentivesystem.services.credit.config;
 
-import org.cryptimeleon.incentivesystem.cryptoprotocol.interfaces.provider.CreditInterface;
 import org.cryptimeleon.incentivesystem.services.credit.BasketServerClientHelper;
+import org.cryptimeleon.incentivesystem.services.credit.interfaces.CreditInterface;
 import org.cryptimeleon.incentivesystem.services.credit.mock.CryptoCreditMock;
 import org.cryptimeleon.incentivesystem.services.credit.model.interfaces.BasketServerClientInterface;
 import org.springframework.beans.factory.annotation.Value;
