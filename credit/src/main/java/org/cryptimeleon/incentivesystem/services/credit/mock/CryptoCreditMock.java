@@ -1,6 +1,7 @@
 package org.cryptimeleon.incentivesystem.services.credit.mock;
 
-import org.cryptimeleon.incentivesystem.cryptoprotocol.interfaces.provider.CreditInterface;
+
+import org.cryptimeleon.incentivesystem.services.credit.interfaces.CreditInterface;
 
 /*
  * Mock for use until crypto credit-earn protocol is implemented

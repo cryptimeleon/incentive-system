@@ -2,7 +2,7 @@ package org.cryptimeleon.incentivesystem.services.credit;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.cryptimeleon.incentivesystem.cryptoprotocol.interfaces.provider.CreditInterface;
+import org.cryptimeleon.incentivesystem.services.credit.interfaces.CreditInterface;
 import org.cryptimeleon.incentivesystem.services.credit.model.CreditResponse;
 import org.cryptimeleon.incentivesystem.services.credit.model.EarnRequest;
 import org.cryptimeleon.incentivesystem.services.credit.model.interfaces.BasketServerClientInterface;
