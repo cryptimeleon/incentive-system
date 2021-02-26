@@ -2,12 +2,11 @@
 
 set -e
 
-SERVICES=( issue credit basketserver )
-VERSION=$(echo "$SOURCE_TAG" | cut -c 2-)  # Remove v from version
+SERVICES=(issue credit basketserver)
+VERSION=$(echo "$SOURCE_TAG" | cut -c 2-) # Remove v from version
 echo "Building and deploying docker images with version: $VERSION"
 
-for SERVICE in "${SERVICES[@]}"
-do
+for SERVICE in "${SERVICES[@]}"; do
   IMAGE=cryptimeleon/incentive-service-${SERVICE}
 
   echo "Building docker images for ${SERVICE}-service."

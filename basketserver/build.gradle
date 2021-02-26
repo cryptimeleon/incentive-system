@@ -1,16 +1,6 @@
 plugins {
-    id 'org.springframework.boot' version '2.4.2'
-    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
-    id 'java'
-    id "io.freefair.lombok" version "5.3.0"
-}
-
-group = 'org.cryptimeleon'
-sourceCompatibility = '15'
-
-repositories {
-    mavenCentral()
-    jcenter()
+    id 'org.springframework.boot'
+    id 'io.spring.dependency-management'
 }
 
 dependencies {
@@ -20,7 +10,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
     // https://mvnrepository.com/artifact/org.assertj/assertj-core
-    testCompile group: 'org.assertj', name: 'assertj-core', version: '3.19.0'
+    testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.19.0'
 }
 
 test {

@@ -1,11 +1,11 @@
 package org.cryptimeleon.incentivesystem.services.credit;
 
-import org.cryptimeleon.incentivesystem.protocoldefinition.creditearn.EarnRequest;
-import org.cryptimeleon.incentivesystem.protocoldefinition.creditearn.CreditResponse;
 import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cryptimeleon.incentivesystem.client.IncentiveClientException;
+import org.cryptimeleon.incentivesystem.services.credit.model.CreditResponse;
+import org.cryptimeleon.incentivesystem.services.credit.model.EarnRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -14,33 +14,40 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+@AllArgsConstructor
 @RestController
 @Slf4j
 public class CreditController {
 
-    @GetMapping("/test")
+    private CreditService creditService;  // Automatically injects an instance of the service
+
+    /*
+     * Endpoint for alive testing etc.
+     */
+    @GetMapping("/")
     public ResponseEntity<String> test() {
-        log.debug("Called test function");
-        return new ResponseEntity<>("Its working", HttpStatus.OK);
+        return new ResponseEntity<>("Credit Service", HttpStatus.OK);
     }
 
     @GetMapping("/credit")
     @ApiOperation(value = "Credit protocol", notes = "Earn to a token.", response = CreditResponse.class)
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Success", response = CreditResponse.class),
-            @ApiResponse(code = 403, message = "Invalid Credit Request", response = String.class)
-    })
-    public ResponseEntity<CreditResponse> greeting(@Validated EarnRequest request) throws IncentiveException {
-        if (request.getEarnAmount() < 0) {
-            throw new IncentiveException();
-        }
-        // TODO query basket server to check if request is valid
-        return new ResponseEntity<>(new CreditResponse(request.getId(), "Test credit response") , HttpStatus.OK);
+    public CreditResponse credit(@Validated EarnRequest request) throws IncentiveException {
+        return creditService.handleEarnRequest(request);
     }
 
     @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(IncentiveException.class)
     public String handleIncentiveException(IncentiveException ex) {
         return "An incentive exception occurred!";
+    }
+
+    @ExceptionHandler(IncentiveClientException.class)
+    public ResponseEntity<String> handleIncentiveClientException(IncentiveClientException incentiveClientException) {
+        return new ResponseEntity<>(incentiveClientException.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(BasketServerException.class)
+    public ResponseEntity<String> handleBasketServerException(BasketServerException basketServerException) {
+        return new ResponseEntity<>(basketServerException.getMessage(), basketServerException.getHttpStatus());
     }
 }

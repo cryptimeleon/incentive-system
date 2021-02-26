@@ -1,0 +1,20 @@
+version: "3"
+
+services:
+  basketserver:
+    image: cryptimeleon/incentive-service-basketserver:0.4.0
+    ports:
+      - "8003:8003"
+    hostname: basketserver
+  creditservice:
+    image: cryptimeleon/incentive-service-credit:0.4.0
+    ports:
+      - "8002:8002"
+    hostname: creditservice
+    environment:
+      - BASKETSERVER.URL=http://basketserver:8003
+  issueservice:
+    image: cryptimeleon/incentive-service-issue:0.4.0
+    ports:
+      - "8001:8001"
+    hostname: issueservice
