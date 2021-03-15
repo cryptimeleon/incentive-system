@@ -23,6 +23,14 @@ public class IncentivePublicParameters implements PublicParameters {
     BilinearGroup bg;
 
     @NonFinal
+    @Represented
+    GroupElement g1Generator;
+
+    @NonFinal
+    @Represented
+    GroupElement g2Generator;
+
+    @NonFinal
     @Represented(restorer = "bg::getG1")
     GroupElement w;
 

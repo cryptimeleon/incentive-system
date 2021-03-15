@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentivesystem.cryptoprotocol.model.proofs.commitmentwellformedness;
+package org.cryptimeleon.incentivesystem.cryptoprotocol.model.proofs;
 
 import lombok.AllArgsConstructor;
 import lombok.Value;

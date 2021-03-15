@@ -1,6 +1,8 @@
 package org.cryptimeleon.incentivesystem.cryptoprotocol;
 
 import org.cryptimeleon.craco.common.PublicParameters;
+import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProof;
+import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.IncentivePublicParameters;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.Token;
@@ -10,12 +12,15 @@ import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserKeyPa
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserSecretKey;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.messages.JoinRequest;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.model.proofs.CommitmentWellformednessCommonInput;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.model.proofs.CommitmentWellformednessProtocol;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.model.proofs.CommitmentWellformednessWitness;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
 
-/*
+/**
  * Contains all main algorithms of the incentive system according to 2020 incentive systems paper.
  */
 public class IncentiveSystem {
@@ -54,7 +59,7 @@ public class IncentiveSystem {
         ZnElement dsrnd1  = usedZn.getUniformlyRandomElement(); // randomness for the second challenge generation in double-spending protection
         ZnElement z  = usedZn.getUniformlyRandomElement(); // blinding randomness needed to make (C^u, g^u) uniformly random
         ZnElement t  = usedZn.getUniformlyRandomElement(); // blinding randomness needed for special DDH trick in a proof
-        ZnElement u  = usedZn.getUniformlyRandomElement(); //
+        ZnElement u  = usedZn.getUniformlyRandomNonzeroElement(); // != 0 needed for trick in the commitment well-formedness proof
 
         // compute Pedersen commitment for user token
         RingElementVector exponents = new RingElementVector(usk.getUsk(), eskUsr, dsrnd0, dsrnd1, usedZn.getZeroElement(), z); // need to retrieve exponent from usk object; point count of 0 is reresented by zero in used Z_n
@@ -63,10 +68,17 @@ public class IncentiveSystem {
         );
 
 
+
         // compute NIZKP to prove well-formedness of token
+        FiatShamirProofSystem cwfProofSystem = new FiatShamirProofSystem(new CommitmentWellformednessProtocol(pp, pk));
+        CommitmentWellformednessCommonInput cwfCommon = new CommitmentWellformednessCommonInput(upk.getUpk(), c0Pre, c1Pre);
+        CommitmentWellformednessWitness cwfWitness = new CommitmentWellformednessWitness(usk, eskUsr, dsrnd0, dsrnd1, z, t, u.inv());
+        FiatShamirProof cwfProof = cwfProofSystem.createProof(cwfCommon, cwfWitness);
+
+
 
         // assemble and return join request object (commitment, proof of well-formedness)
-        return null;
+        return new JoinRequest(c0Pre, c1Pre, cwfProof);
     }
 
     void generateJoinRequestResponse() {
