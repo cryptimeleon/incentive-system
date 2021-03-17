@@ -9,6 +9,7 @@ import org.cryptimeleon.math.serialization.Representable;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.annotations.ReprUtil;
 import org.cryptimeleon.math.serialization.annotations.Represented;
+import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.groups.cartesian.GroupElementVector;
 import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
 
@@ -22,7 +23,11 @@ import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
 public class Token implements Representable {
     @NonFinal
     @Represented(restorer = "G1")
-    GroupElementVector c; // the vector containing Pedersen commitment and g1
+    GroupElement c1; // the vector containing Pedersen commitment
+
+    @NonFinal
+    @Represented(restorer = "G1")
+    GroupElement c2; // the vector containing usually g1
 
     @NonFinal
     @Represented(restorer = "Zn")

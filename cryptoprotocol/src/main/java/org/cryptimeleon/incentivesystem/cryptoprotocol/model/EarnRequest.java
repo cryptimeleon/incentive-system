@@ -8,7 +8,7 @@ import org.cryptimeleon.math.serialization.Representable;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.annotations.ReprUtil;
 import org.cryptimeleon.math.serialization.annotations.Represented;
-import org.cryptimeleon.math.structures.groups.cartesian.GroupElementVector;
+import org.cryptimeleon.math.structures.groups.GroupElement;
 
 @Value
 @AllArgsConstructor
@@ -19,7 +19,11 @@ public class EarnRequest implements Representable {
 
     @NonFinal
     @Represented(restorer = "G1")
-    GroupElementVector blindedC;
+    GroupElement c1; // first element of the tuple C
+
+    @NonFinal
+    @Represented(restorer = "G1")
+    GroupElement c2; // second element of the tuple C
 
     @Override
     public Representation getRepresentation() {
@@ -29,6 +33,7 @@ public class EarnRequest implements Representable {
     public EarnRequest(Representation repr, IncentivePublicParameters pp) {
         new ReprUtil(this)
                 .register(pp.getBg().getG1(), "G1")
-                .register(pp.getSpsEq(), "SPSEQ");
+                .register(pp.getSpsEq(), "SPSEQ")
+                .deserialize(repr);
     }
 }

@@ -48,52 +48,83 @@ public class IncentiveSystem {
     void handleJoinRequestResponse() {
     }
 
-    public EarnRequest generateEarnRequest(Token token, UserKeyPair userKeyPair, ProviderPublicKey providerPublicKey, Zn.ZnElement s) {
+    /**
+     * Generate an earn request for adding to the value of users' tokens.
+     *
+     * @param token the token to update
+     * @param providerPublicKey the public key of the provider
+     * @param s randomness, TODO replace by PRF(token)
+     * @return request to give to a provider
+     */
+    public EarnRequest generateEarnRequest(Token token, ProviderPublicKey providerPublicKey, Zn.ZnElement s) {
         return new EarnRequest(
-                (SPSEQSignature) pp.getSpsEq().chgRep(token.getSignature(), s, providerPublicKey.getPkSpsEq()),
-                token.getC().pow(s)
+                (SPSEQSignature) pp.getSpsEq().chgRep(
+                        token.getSignature(),
+                        s,
+                        providerPublicKey.getPkSpsEq()
+                ),
+                token.getC1().pow(s),
+                token.getC2().pow(s)
         );
     }
 
-    public SPSEQSignature generateEarnRequestResponse(EarnRequest earnRequest, long earnAmount, ProviderKeyPair providerKeyPair) {
-        var signatureValid = pp.getSpsEq().verify(vectorToMessageBlock(earnRequest.getBlindedC()), earnRequest.getBlindedSignature(), providerKeyPair.getPk().getPkSpsEq());
+    /**
+     * Generate the response for users' earn requests to update the blinded token.
+     *
+     * @param earnRequest the earn request to process
+     * @param k the increase for the users token value
+     * @param providerKeyPair the provider key pair
+     * @return a signature on a blinded, updated token
+     */
+    public SPSEQSignature generateEarnRequestResponse(EarnRequest earnRequest, long k, ProviderKeyPair providerKeyPair) {
+        var isSignatureValid = pp.getSpsEq().verify(
+                providerKeyPair.getPk().getPkSpsEq(),
+                earnRequest.getBlindedSignature(),
+                earnRequest.getC1(),
+                earnRequest.getC2()
+        );
 
-        if (!signatureValid) {
-            // TODO: better error handling
-            throw new RuntimeException("Signature is not valid");
+        if (!isSignatureValid) {
+            throw new IllegalArgumentException("Signature is not valid");
         }
 
-        var newC = new GroupElementVector(
-                earnRequest.getBlindedC().get(0).op(earnRequest.getBlindedC().get(1).pow(providerKeyPair.getSk().getQ().get(4).mul(earnAmount))),
-                earnRequest.getBlindedC().get(1)
-        );
+        var C1 = earnRequest.getC1();
+        var C2 = earnRequest.getC2();
+        var q4 = providerKeyPair.getSk().getQ().get(4);
 
-        var changedSignature = pp.getSpsEq().sign(
-                vectorToMessageBlock(newC),
-                providerKeyPair.getSk().getSkSpsEq()
+        return (SPSEQSignature) pp.getSpsEq().sign(
+                providerKeyPair.getSk().getSkSpsEq(),
+                C1.op(C2.pow(q4.mul(k))),
+                C2
         );
-
-        return (SPSEQSignature) changedSignature;
     }
 
+    /**
+     * @param earnRequest the earn request that was originally sent
+     * @param earnRequest
+     * @param changedSignature
+     * @param k the increase for the users token value
+     * @param token the old token
+     * @param userKeyPair key pair of the user
+     * @param providerPublicKey public key of the provider
+     * @param s randomness TODO replace by PRF(token)
+     * @return new token with value of the old token + k
+     */
     public Token handleEarnRequestResponse(EarnRequest earnRequest, SPSEQSignature changedSignature, long k, Token token, UserKeyPair userKeyPair, ProviderPublicKey providerPublicKey, Zn.ZnElement s) {
 
-        var signedC = new GroupElementVector(
-                earnRequest.getBlindedC().get(0).op((providerPublicKey.getH().get(4).pow(s)).pow(k)),
-                earnRequest.getBlindedC().get(1)
-        );
+        var c1 = earnRequest.getC1().op((providerPublicKey.getH().get(4).pow(s)).pow(k));
+        var c2 = earnRequest.getC2();
 
-        var signatureValid = pp.getSpsEq().verify(vectorToMessageBlock(signedC), changedSignature, providerPublicKey.getPkSpsEq());
+        var signatureValid = pp.getSpsEq().verify(providerPublicKey.getPkSpsEq(), changedSignature, c1, c2);
         if (!signatureValid) {
-            // TODO: better error handling
-            throw new RuntimeException("Signature is not valid");
+            throw new IllegalArgumentException("Signature is not valid");
         }
 
         var newSignature = pp.getSpsEq().chgRep(changedSignature, s.inv(), providerPublicKey.getPkSpsEq());
-        var finalC = signedC.pow(s.inv());
 
         return new Token(
-                finalC,
+                c1.pow(s.inv()),
+                c2.pow(s.inv()),
                 token.getEncryptionSecretKey(),
                 token.getDoubleSpendRandomness0(),
                 token.getDoubleSpendRandomness1(),
@@ -102,10 +133,6 @@ public class IncentiveSystem {
                 token.getPoints().add(pp.getBg().getZn().valueOf(k)),
                 (SPSEQSignature) newSignature
         );
-    }
-
-    public static MessageBlock vectorToMessageBlock(GroupElementVector groupElementVector) {
-        return new MessageBlock(groupElementVector.map(groupElement -> new GroupElementPlainText(groupElement)));
     }
 
     void generateSpendRequest() {
