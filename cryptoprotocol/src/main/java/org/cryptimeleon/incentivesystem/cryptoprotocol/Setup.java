@@ -53,8 +53,12 @@ public class Setup {
         // instantiate SPS-EQ scheme used in this instance of the incentive system
         SPSEQSignatureScheme spsEq = new SPSEQSignatureScheme(new SPSEQPublicParameters(bg));
 
+        // Random generators
+        GroupElement g1 = bg.getG1().getGenerator();
+        GroupElement g2 = bg.getG2().getGenerator();
+
         // wrap up all values
-        return new IncentivePublicParameters(bg, w, h7, prf, spsEq);
+        return new IncentivePublicParameters(bg, w, h7, g1, g2, prf, spsEq);
     }
 
     /**
