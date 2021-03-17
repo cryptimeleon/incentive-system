@@ -10,6 +10,9 @@ import org.cryptimeleon.math.serialization.annotations.ReprUtil;
 import org.cryptimeleon.math.serialization.annotations.Represented;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 
+/**
+ * Data class for the request sent in the credit-earn protocol.
+ */
 @Value
 @AllArgsConstructor
 public class EarnRequest implements Representable {

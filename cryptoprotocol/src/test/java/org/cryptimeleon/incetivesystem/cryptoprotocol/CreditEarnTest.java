@@ -6,27 +6,39 @@ import org.cryptimeleon.incentivesystem.cryptoprotocol.model.EarnRequest;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.Token;
 import org.junit.jupiter.api.Test;
 
+import java.util.logging.Logger;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Tests for the credit-earn protocol.
+ */
 public class CreditEarnTest {
 
+    Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
+
+    /**
+     * Positive test for credit earn.
+     */
     @Test
     void testSuccessFullCreditEarn() {
+        logger.info("Setup test");
         var pp = IncentiveSystem.setup();
         var incentiveSystem = new IncentiveSystem(pp);
         var providerKeyPair = incentiveSystem.generateProviderKeys();
         var userKeyPair = incentiveSystem.generateUserKeys();
-
+        var earnAmount = 7;
 
         // Create a dummy token.
         // This should be replaced by the actual methods that handle tokens when they are implemented.
-        var g1 = pp.getBg().getG1();
         var zp = pp.getBg().getZn();
         var vectorH = providerKeyPair.getPk().getH();
 
         var s = zp.getUniformlyRandomNonzeroElement(); // TODO this should become part of the methods using a PRF
 
+        // Manually create a token since issue-join is not yet implemented
+        logger.info("Build token");
         var encryptionSecretKey = zp.getUniformlyRandomNonzeroElement();
         var dsrd1 = zp.getUniformlyRandomElement();
         var dsrd2 = zp.getUniformlyRandomElement();
@@ -66,25 +78,23 @@ public class CreditEarnTest {
                 token.getC2()
         ));
 
-        var earnAmount = 7;
-        System.out.println("start earn request");
+        logger.info("start earn request");
         var earnRequest = incentiveSystem.generateEarnRequest(token, providerKeyPair.getPk(), s);
 
         // Test representation of earnRequest
         var restoredEarnRequest = new EarnRequest(earnRequest.getRepresentation(), pp);
         assertEquals(earnRequest, restoredEarnRequest);
 
-        System.out.println("start earn response");
+        logger.info("start earn response");
         var signature = incentiveSystem.generateEarnRequestResponse(earnRequest, earnAmount, providerKeyPair);
 
         // Test representation of signature (to be sure)
         var restoredSignature = new SPSEQSignature(signature.getRepresentation(), pp.getBg().getG1(), pp.getBg().getG2() );
         assertEquals(signature, restoredSignature);
 
-        System.out.println("handle earn response");
+        logger.info("handle earn response");
         var newToken = incentiveSystem.handleEarnRequestResponse(earnRequest, signature, earnAmount, token, userKeyPair, providerKeyPair.getPk(), s);
 
-        System.out.println("Done");
 
         assertEquals(
                 newToken.getPoints().getInteger().longValue(),

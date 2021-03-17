@@ -1,7 +1,5 @@
 package org.cryptimeleon.incentivesystem.cryptoprotocol;
 
-import org.cryptimeleon.craco.common.plaintexts.GroupElementPlainText;
-import org.cryptimeleon.craco.common.plaintexts.MessageBlock;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.EarnRequest;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.IncentivePublicParameters;
@@ -9,7 +7,6 @@ import org.cryptimeleon.incentivesystem.cryptoprotocol.model.Token;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserKeyPair;
-import org.cryptimeleon.math.structures.groups.cartesian.GroupElementVector;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 
@@ -51,9 +48,9 @@ public class IncentiveSystem {
     /**
      * Generate an earn request for adding to the value of users' tokens.
      *
-     * @param token the token to update
+     * @param token             the token to update
      * @param providerPublicKey the public key of the provider
-     * @param s randomness, TODO replace by PRF(token)
+     * @param s                 randomness, TODO replace by PRF(token)
      * @return request to give to a provider
      */
     public EarnRequest generateEarnRequest(Token token, ProviderPublicKey providerPublicKey, Zn.ZnElement s) {
@@ -71,8 +68,8 @@ public class IncentiveSystem {
     /**
      * Generate the response for users' earn requests to update the blinded token.
      *
-     * @param earnRequest the earn request to process
-     * @param k the increase for the users token value
+     * @param earnRequest     the earn request to process
+     * @param k               the increase for the users token value
      * @param providerKeyPair the provider key pair
      * @return a signature on a blinded, updated token
      */
@@ -100,14 +97,13 @@ public class IncentiveSystem {
     }
 
     /**
-     * @param earnRequest the earn request that was originally sent
-     * @param earnRequest
-     * @param changedSignature
-     * @param k the increase for the users token value
-     * @param token the old token
-     * @param userKeyPair key pair of the user
+     * @param earnRequest       the earn request that was originally sent
+     * @param changedSignature  the signature computed by the provider
+     * @param k                 the increase for the users token value
+     * @param token             the old token
+     * @param userKeyPair       key pair of the user
      * @param providerPublicKey public key of the provider
-     * @param s randomness TODO replace by PRF(token)
+     * @param s                 randomness TODO replace by PRF(token)
      * @return new token with value of the old token + k
      */
     public Token handleEarnRequestResponse(EarnRequest earnRequest, SPSEQSignature changedSignature, long k, Token token, UserKeyPair userKeyPair, ProviderPublicKey providerPublicKey, Zn.ZnElement s) {
