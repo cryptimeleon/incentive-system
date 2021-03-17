@@ -90,8 +90,7 @@ public class Setup {
         RingElementVector q = pp.getBg().getZn().getUniformlyRandomElements(6);
 
         // compute above first 6 bases
-        GroupElement g1Generator = pp.getBg().getG1().getGenerator();
-        GroupElementVector h = g1Generator.pow(q);
+        GroupElementVector h = pp.getG1().pow(q);
 
         // generate PRF key for provider
         PrfKey betaProv = pp.getPrf().generateKey();
