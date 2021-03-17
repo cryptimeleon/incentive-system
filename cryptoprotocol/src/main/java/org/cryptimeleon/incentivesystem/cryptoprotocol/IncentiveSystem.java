@@ -1,12 +1,17 @@
 package org.cryptimeleon.incentivesystem.cryptoprotocol;
 
+import org.cryptimeleon.craco.common.plaintexts.GroupElementPlainText;
+import org.cryptimeleon.craco.common.plaintexts.MessageBlock;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.model.EarnRequest;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.IncentivePublicParameters;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.Token;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserKeyPair;
+import org.cryptimeleon.math.structures.groups.cartesian.GroupElementVector;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
+
 
 /*
  * Contains all main algorithms of the incentive system.
@@ -43,24 +48,64 @@ public class IncentiveSystem {
     void handleJoinRequestResponse() {
     }
 
-    void generateEarnRequest(Token token, UserKeyPair userKeyPair, ProviderPublicKey providerPublicKey) {
-        // change representative call to blind commitment and certificate
-        var pk = userKeyPair.getPk();
-        var sk = userKeyPair.getSk();
-
-        Zn usedZn = pp.getBg().getZn(); // draw blinding value
-        var s = usedZn.getUniformlyRandomNonzeroElement(); // s cannot be zero since we need to compute its inverse to unblind the signature
-
-        var certificate = token.getSignature();
-        var provSPSPk = providerPublicKey.getPkSpsEq(); // store SPS EQ verification key from provider public key
-        var blindedCommitment = token.getCommitment().pow(s); // computing another representative with blinding randomness (the implemented SPS-EQ is over R_exp)
-        var blindedCertificate = (SPSEQSignature) pp.getSpsEq().chgRep(certificate, s, provSPSPk); // note: in contrast to formal specification, chgrep only takes three arguments (no message) and thus only updates the signature
+    public EarnRequest generateEarnRequest(Token token, UserKeyPair userKeyPair, ProviderPublicKey providerPublicKey, Zn.ZnElement s) {
+        return new EarnRequest(
+                (SPSEQSignature) pp.getSpsEq().chgRep(token.getSignature(), s, providerPublicKey.getPkSpsEq()),
+                token.getC().pow(s)
+        );
     }
 
-    void generateEarnRequestResponse() {
+    public SPSEQSignature generateEarnRequestResponse(EarnRequest earnRequest, long earnAmount, ProviderKeyPair providerKeyPair) {
+        var signatureValid = pp.getSpsEq().verify(vectorToMessageBlock(earnRequest.getBlindedC()), earnRequest.getBlindedSignature(), providerKeyPair.getPk().getPkSpsEq());
+
+        if (!signatureValid) {
+            // TODO: better error handling
+            throw new RuntimeException("Signature is not valid");
+        }
+
+        var newC = new GroupElementVector(
+                earnRequest.getBlindedC().get(0).op(earnRequest.getBlindedC().get(1).pow(providerKeyPair.getSk().getQ().get(4).mul(earnAmount))),
+                earnRequest.getBlindedC().get(1)
+        );
+
+        var changedSignature = pp.getSpsEq().sign(
+                vectorToMessageBlock(newC),
+                providerKeyPair.getSk().getSkSpsEq()
+        );
+
+        return (SPSEQSignature) changedSignature;
     }
 
-    void handleEarnRequestResponse() {
+    public Token handleEarnRequestResponse(EarnRequest earnRequest, SPSEQSignature changedSignature, long k, Token token, UserKeyPair userKeyPair, ProviderPublicKey providerPublicKey, Zn.ZnElement s) {
+
+        var signedC = new GroupElementVector(
+                earnRequest.getBlindedC().get(0).op((providerPublicKey.getH().get(4).pow(s)).pow(k)),
+                earnRequest.getBlindedC().get(1)
+        );
+
+        var signatureValid = pp.getSpsEq().verify(vectorToMessageBlock(signedC), changedSignature, providerPublicKey.getPkSpsEq());
+        if (!signatureValid) {
+            // TODO: better error handling
+            throw new RuntimeException("Signature is not valid");
+        }
+
+        var newSignature = pp.getSpsEq().chgRep(changedSignature, s.inv(), providerPublicKey.getPkSpsEq());
+        var finalC = signedC.pow(s.inv());
+
+        return new Token(
+                finalC,
+                token.getEncryptionSecretKey(),
+                token.getDoubleSpendRandomness0(),
+                token.getDoubleSpendRandomness1(),
+                token.getZ(),
+                token.getT(),
+                token.getPoints().add(pp.getBg().getZn().valueOf(k)),
+                (SPSEQSignature) newSignature
+        );
+    }
+
+    public static MessageBlock vectorToMessageBlock(GroupElementVector groupElementVector) {
+        return new MessageBlock(groupElementVector.map(groupElement -> new GroupElementPlainText(groupElement)));
     }
 
     void generateSpendRequest() {
