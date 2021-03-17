@@ -7,6 +7,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Next Release
 
+- Add credit-earn protocol [#27](https://github.com/upbcuk/incentive-services/pull/27)
 - Rename organization to cryptimeleon  [#18](https://github.com/upbcuk/incentive-services/pull/18)
 - Update gradle setup, basketserver authentication (shared secrets) and test structure, automatically generated swagger
   files, client project with integration tests, move protocoldefinition to services, replace kubernetes with
