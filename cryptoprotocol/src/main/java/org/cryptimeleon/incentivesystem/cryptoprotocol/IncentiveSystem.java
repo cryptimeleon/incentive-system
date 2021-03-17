@@ -1,6 +1,7 @@
 package org.cryptimeleon.incentivesystem.cryptoprotocol;
 
-import org.cryptimeleon.craco.common.PublicParameters;
+import lombok.AllArgsConstructor;
+import lombok.Value;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProof;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
@@ -8,10 +9,13 @@ import org.cryptimeleon.incentivesystem.cryptoprotocol.model.IncentivePublicPara
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.Token;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderPublicKey;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderSecretKey;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserSecretKey;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.model.messages.JoinOutput;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.messages.JoinRequest;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.model.messages.JoinResponse;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.proofs.CommitmentWellformednessCommonInput;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.proofs.CommitmentWellformednessProtocol;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.proofs.CommitmentWellformednessWitness;
@@ -23,14 +27,12 @@ import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
 /**
  * Contains all main algorithms of the incentive system according to 2020 incentive systems paper.
  */
+@Value
+@AllArgsConstructor
 public class IncentiveSystem {
 
     // public parameters
-    IncentivePublicParameters pp;
-
-    public IncentiveSystem(IncentivePublicParameters pp) {
-        this.pp = pp;
-    }
+    private IncentivePublicParameters pp;
 
     public static IncentivePublicParameters setup() {
         return Setup.trustedSetup(Setup.PRF_KEY_LENGTH);
@@ -51,40 +53,91 @@ public class IncentiveSystem {
      * implementation of the Issue<->Join protocol
      */
 
-    public JoinRequest generateJoinRequest(IncentivePublicParameters pp, ProviderPublicKey pk, UserPublicKey upk, UserSecretKey usk) {
-        // generate random values needed for generation of fresh user token
-        Zn usedZn = pp.getBg().getZn();
-        ZnElement eskUsr  = usedZn.getUniformlyRandomElement(); // user's share of the encryption secret key for the tracing information's encryption
-        ZnElement dsrnd0  = usedZn.getUniformlyRandomElement(); // randomness for the first challenge generation in double-spending protection
-        ZnElement dsrnd1  = usedZn.getUniformlyRandomElement(); // randomness for the second challenge generation in double-spending protection
-        ZnElement z  = usedZn.getUniformlyRandomElement(); // blinding randomness needed to make (C^u, g^u) uniformly random
-        ZnElement t  = usedZn.getUniformlyRandomElement(); // blinding randomness needed for special DDH trick in a proof
-        ZnElement u  = usedZn.getUniformlyRandomNonzeroElement(); // != 0 needed for trick in the commitment well-formedness proof
+
+    /**
+     * functionality of the first part of the Issue algorithm of the Cryptimeleon incentive system
+     * @param pp public parameters of the respective incentive system instance
+     * @param pk provider public key of the provider the user interacts with
+     * @param ukp user key pair
+     * @return
+     */
+    public JoinRequest generateJoinRequest(IncentivePublicParameters pp, ProviderPublicKey pk, UserKeyPair ukp, ZnElement eskUsr, ZnElement dsrnd0, ZnElement dsrnd1, ZnElement z, ZnElement t, ZnElement u) {
+        UserPublicKey upk = ukp.getPk();
+        UserSecretKey usk = ukp.getSk();
+
+        // TODO: generate random values needed for generation of fresh user token using PRF (currently, they are passed as method parameters until PRF stuff has been figured out)
 
         // compute Pedersen commitment for user token
-        RingElementVector exponents = new RingElementVector(usk.getUsk(), eskUsr, dsrnd0, dsrnd1, usedZn.getZeroElement(), z); // need to retrieve exponent from usk object; point count of 0 is reresented by zero in used Z_n
-        GroupElement preCommitment = pk.getH().pow(exponents) // need to turn this into a single element // .op(
-                pp.getH7().pow(t)
-        );
-
-
+        RingElementVector exponents = new RingElementVector(usk.getUsk(), eskUsr, dsrnd0, dsrnd1, pp.getBg().getZn().getZeroElement(), z); // need to retrieve exponent from usk object; point count of 0 is reresented by zero in used Z_n
+        GroupElement c0Pre = pk.getH().innerProduct(exponents).op(pp.getH7().pow(t)).pow(u);
+        GroupElement c1Pre = pp.getG1Generator().pow(u);
 
         // compute NIZKP to prove well-formedness of token
         FiatShamirProofSystem cwfProofSystem = new FiatShamirProofSystem(new CommitmentWellformednessProtocol(pp, pk));
         CommitmentWellformednessCommonInput cwfCommon = new CommitmentWellformednessCommonInput(upk.getUpk(), c0Pre, c1Pre);
-        CommitmentWellformednessWitness cwfWitness = new CommitmentWellformednessWitness(usk, eskUsr, dsrnd0, dsrnd1, z, t, u.inv());
+        CommitmentWellformednessWitness cwfWitness = new CommitmentWellformednessWitness(usk.getUsk(), eskUsr, dsrnd0, dsrnd1, z, t, u.inv());
         FiatShamirProof cwfProof = cwfProofSystem.createProof(cwfCommon, cwfWitness);
 
 
 
         // assemble and return join request object (commitment, proof of well-formedness)
-        return new JoinRequest(c0Pre, c1Pre, cwfProof);
+        return new JoinRequest(c0Pre, c1Pre, cwfProof, cwfCommon);
     }
 
-    void generateJoinRequestResponse() {
+    public JoinResponse generateJoinRequestResponse(IncentivePublicParameters pp, ProviderKeyPair pkp, JoinRequest jr) throws IllegalArgumentException {
+        ProviderPublicKey pk = pkp.getPk();
+        ProviderSecretKey sk = pkp.getSk();
+
+        // read out parts of the precommitment and the commitment well-formedness proof from the join request object
+        GroupElement c0Pre = jr.getPreCommitment0();
+        GroupElement c1Pre = jr.getPreCommitment1();
+        FiatShamirProof cwfProof = jr.getCwfProof();
+        CommitmentWellformednessCommonInput cwfProofCommonInput = jr.getCwfProofCommonInput();
+
+        // check commitment well-formedness proof for validity
+        FiatShamirProofSystem cwfProofSystem = new FiatShamirProofSystem(new CommitmentWellformednessProtocol(pp, pk));
+        if(!cwfProofSystem.checkProof(cwfProofCommonInput, cwfProof))
+        {
+            throw new IllegalArgumentException("The proof of the commitment being well-formed was rejected.");
+        }
+
+        // modify precommitment 0 using homorphism trick and randomly chosen exponent
+        ZnElement eskProv = pp.getBg().getZn().getUniformlyRandomElement();
+        GroupElement modifiedC0Pre = c0Pre.op(c1Pre.pow(sk.getQ().get(1).mul(eskProv)));
+
+        // create certificate for modified pre-commitment vector
+        SPSEQSignature cert = (SPSEQSignature) pp.getSpsEq().sign(sk.getSkSpsEq(), modifiedC0Pre, c1Pre); // first argument: signing keys, other arguments form the msg vector
+
+        // assemble and return join response object
+        return new JoinResponse(cert, eskProv);
     }
 
-    void handleJoinRequestResponse() {
+    public JoinOutput handleJoinRequestResponse(IncentivePublicParameters pp, ProviderPublicKey pk, UserKeyPair ukp, JoinRequest jReq, JoinResponse jRes, ZnElement eskUsr, ZnElement dsrnd0, ZnElement dsrnd1, ZnElement z, ZnElement t, ZnElement u) {
+        // extract relevant variables from join request and join response
+        GroupElement c0Pre = jReq.getPreCommitment0();
+        GroupElement c1Pre = jReq.getPreCommitment1();
+        SPSEQSignature preCert = jRes.getPreCertificate();
+        ZnElement eskProv = jRes.getEskProv();
+
+        // re-compute modified pre-commitment for token
+        GroupElement h2 = pk.getH().get(1);
+        GroupElement modifiedC0Pre = c0Pre.op(h2.pow(u.mul(eskProv)));
+
+        // change representation of token-certificate pair
+        SPSEQSignature finalCert = (SPSEQSignature) pp.getSpsEq().chgRep(preCert, u.inv(), pk.getPkSpsEq()); // adapt signature
+        GroupElement finalCommitment0 = modifiedC0Pre.pow(u.inv()); // need to adapt message manually (entry by entry), used equivalence relation is R_exp
+        GroupElement finalCommitment1 = c1Pre.pow(u.inv());
+
+        // assemble token
+        ZnElement esk = eskUsr.add(eskProv);
+        Zn usedZn = pp.getBg().getZn();
+        Token token = new Token(finalCommitment0, finalCommitment1, esk, dsrnd0, dsrnd1, z, t, usedZn.getZeroElement(), finalCert);
+
+        // compute dsid
+        GroupElement dsid = pp.getW().pow(esk);
+
+        // assemble and return join output object
+        return new JoinOutput(token, dsid);
     }
 
     /**

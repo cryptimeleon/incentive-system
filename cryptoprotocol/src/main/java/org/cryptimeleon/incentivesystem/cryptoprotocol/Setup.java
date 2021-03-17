@@ -15,6 +15,7 @@ import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.Provi
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserSecretKey;
+import org.cryptimeleon.math.structures.groups.Group;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.groups.cartesian.GroupElementVector;
 import org.cryptimeleon.math.structures.groups.elliptic.BilinearGroup;
@@ -40,6 +41,10 @@ public class Setup {
         // generate a bilinear group from the security parameter (type 3, Barreto-Naehrig)
         BilinearGroup bg = new BarretoNaehrigBilinearGroup(securityParameter);
 
+        // generate generators for the groups that make up the domain
+        GroupElement g1Generator = bg.getG1().getGenerator();
+        GroupElement g2Generator = bg.getG2().getGenerator();
+
         // TODO: rewrite computation of w and h7 once proper hashing of bilinear groups is possible
         // compute w (base used in double spending protection, see 2020 incsys paper)
         GroupElement w = bg.getG1().getUniformlyRandomElement(); // w=e not a problem, see discord #questions 2.2.21
@@ -48,13 +53,13 @@ public class Setup {
         GroupElement h7 = bg.getG1().getUniformlyRandomElement();
 
         // instantiate prf used in this instance of the incentive system with a proper key length
-        AesPseudorandomFunction prf = new AesPseudorandomFunction(PRF_KEY_LENGTH);
+        AesPseudorandomFunction prf = new AesPseudorandomFunction(securityParameter);
 
         // instantiate SPS-EQ scheme used in this instance of the incentive system
         SPSEQSignatureScheme spsEq = new SPSEQSignatureScheme(new SPSEQPublicParameters(bg));
 
         // wrap up all values
-        return new IncentivePublicParameters(bg, w, h7, prf, spsEq);
+        return new IncentivePublicParameters(bg, g1Generator, g2Generator, w, h7, prf, spsEq);
     }
 
     /**
@@ -86,7 +91,7 @@ public class Setup {
         RingElementVector q = pp.getBg().getZn().getUniformlyRandomElements(6);
 
         // compute above first 6 bases
-        GroupElement g1Generator = pp.getBg().getG1().getGenerator();
+        GroupElement g1Generator = pp.getG1Generator();
         GroupElementVector h = g1Generator.pow(q);
 
         // generate PRF key for provider
