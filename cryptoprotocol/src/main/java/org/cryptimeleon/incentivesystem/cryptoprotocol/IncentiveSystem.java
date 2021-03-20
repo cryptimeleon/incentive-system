@@ -60,15 +60,16 @@ public class IncentiveSystem {
                         s,
                         providerPublicKey.getPkSpsEq()
                 ),
-                token.getC1().pow(s),
-                token.getC2().pow(s)
+                token.getC1().pow(s).compute(),  // Compute for concurrent computation
+                token.getC2().pow(s).compute()
         );
     }
 
     /**
      * Generate the response for users' earn requests to update the blinded token.
      *
-     * @param earnRequest     the earn request to process
+     * @param earnRequest     the earn request to process. It can be assumed, that all group elements of earnRequest
+     *                        are already computed since they are usually directly parsed from a representation
      * @param k               the increase for the users token value
      * @param providerKeyPair the provider key pair
      * @return a signature on a blinded, updated token
@@ -91,13 +92,14 @@ public class IncentiveSystem {
 
         return (SPSEQSignature) pp.getSpsEq().sign(
                 providerKeyPair.getSk().getSkSpsEq(),
-                C1.op(C2.pow(q4.mul(k))),
+                C1.op(C2.pow(q4.mul(k))).compute(),
                 C2
         );
     }
 
     /**
-     * @param earnRequest       the earn request that was originally sent
+     * @param earnRequest       the earn request that was originally sent. Again, it can be assumed that all elements
+     *                          are computed since the earnRequest usually is serialized to a representation before.
      * @param changedSignature  the signature computed by the provider
      * @param k                 the increase for the users token value
      * @param token             the old token
@@ -108,7 +110,7 @@ public class IncentiveSystem {
      */
     public Token handleEarnRequestResponse(EarnRequest earnRequest, SPSEQSignature changedSignature, long k, Token token, UserKeyPair userKeyPair, ProviderPublicKey providerPublicKey, Zn.ZnElement s) {
 
-        var c1 = earnRequest.getC1().op((providerPublicKey.getH().get(4).pow(s)).pow(k));
+        var c1 = earnRequest.getC1().op((providerPublicKey.getH().get(4).pow(s)).pow(k)).compute();
         var c2 = earnRequest.getC2();
 
         var signatureValid = pp.getSpsEq().verify(providerPublicKey.getPkSpsEq(), changedSignature, c1, c2);
@@ -119,8 +121,8 @@ public class IncentiveSystem {
         var newSignature = pp.getSpsEq().chgRep(changedSignature, s.inv(), providerPublicKey.getPkSpsEq());
 
         return new Token(
-                c1.pow(s.inv()),
-                c2.pow(s.inv()),
+                c1.pow(s.inv()).compute(),
+                c2.pow(s.inv()).compute(),
                 token.getEncryptionSecretKey(),
                 token.getDoubleSpendRandomness0(),
                 token.getDoubleSpendRandomness1(),

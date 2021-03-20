@@ -52,7 +52,7 @@ public class CreditEarnTest {
                 .op(vectorH.get(3).pow(dsrd2))
                 .op(vectorH.get(4).pow(pointsZp))
                 .op(vectorH.get(5).pow(z))
-                .op(pp.getH7().pow(t));
+                .op(pp.getH7().pow(t)).compute();
         var c2 = pp.getG1();
 
         var token = new Token(
@@ -78,23 +78,31 @@ public class CreditEarnTest {
                 token.getC2()
         ));
 
-        logger.info("start earn request");
+        logger.info("compute earn request");
         var earnRequest = incentiveSystem.generateEarnRequest(token, providerKeyPair.getPk(), s);
+        logger.info("represent earn request");
+        var earnRequestRepresentation = earnRequest.getRepresentation();
+        logger.info("parse earn request");
+        var earnRequestParsed = new EarnRequest(earnRequestRepresentation, pp);
+        logger.info("compute earn response");
+        var signature = incentiveSystem.generateEarnRequestResponse(earnRequestParsed, earnAmount, providerKeyPair);
+        logger.info("represent earn response");
+        var signatureRepresentation = signature.getRepresentation();
+        logger.info("parse earn response");
+        var signatureParsed = new SPSEQSignature(signatureRepresentation, pp.getBg().getG1(), pp.getBg().getG2());
+        logger.info("handle earn response");
+        var newToken = incentiveSystem.handleEarnRequestResponse(earnRequest, signatureParsed, earnAmount, token, userKeyPair, providerKeyPair.getPk(), s);
+        logger.info("retrieved new token");
 
+
+        // Some representation tests. Outsourced for a better measure of performance
         // Test representation of earnRequest
         var restoredEarnRequest = new EarnRequest(earnRequest.getRepresentation(), pp);
         assertEquals(earnRequest, restoredEarnRequest);
 
-        logger.info("start earn response");
-        var signature = incentiveSystem.generateEarnRequestResponse(earnRequest, earnAmount, providerKeyPair);
-
         // Test representation of signature (to be sure)
         var restoredSignature = new SPSEQSignature(signature.getRepresentation(), pp.getBg().getG1(), pp.getBg().getG2() );
         assertEquals(signature, restoredSignature);
-
-        logger.info("handle earn response");
-        var newToken = incentiveSystem.handleEarnRequestResponse(earnRequest, signature, earnAmount, token, userKeyPair, providerKeyPair.getPk(), s);
-
 
         assertEquals(
                 newToken.getPoints().getInteger().longValue(),
