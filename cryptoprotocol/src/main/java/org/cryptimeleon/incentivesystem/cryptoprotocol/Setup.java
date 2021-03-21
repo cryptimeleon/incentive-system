@@ -53,8 +53,12 @@ public class Setup {
         // instantiate SPS-EQ scheme used in this instance of the incentive system
         SPSEQSignatureScheme spsEq = new SPSEQSignatureScheme(new SPSEQPublicParameters(bg));
 
+        // Random generators
+        GroupElement g1 = bg.getG1().getGenerator();
+        GroupElement g2 = bg.getG2().getGenerator();
+
         // wrap up all values
-        return new IncentivePublicParameters(bg, w, h7, prf, spsEq);
+        return new IncentivePublicParameters(bg, w, h7, g1, g2, prf, spsEq);
     }
 
     /**
@@ -86,8 +90,7 @@ public class Setup {
         RingElementVector q = pp.getBg().getZn().getUniformlyRandomElements(6);
 
         // compute above first 6 bases
-        GroupElement g1Generator = pp.getBg().getG1().getGenerator();
-        GroupElementVector h = g1Generator.pow(q);
+        GroupElementVector h = pp.getG1().pow(q);
 
         // generate PRF key for provider
         PrfKey betaProv = pp.getPrf().generateKey();

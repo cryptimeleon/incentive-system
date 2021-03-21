@@ -22,7 +22,11 @@ import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
 public class Token implements Representable {
     @NonFinal
     @Represented(restorer = "G1")
-    GroupElement commitment; // the Pedersen commitment computed from the bases and the exponents, representing the actual token
+    GroupElement c1; // the vector containing Pedersen commitment
+
+    @NonFinal
+    @Represented(restorer = "G1")
+    GroupElement c2; // the vector containing usually g1
 
     @NonFinal
     @Represented(restorer = "Zn")
