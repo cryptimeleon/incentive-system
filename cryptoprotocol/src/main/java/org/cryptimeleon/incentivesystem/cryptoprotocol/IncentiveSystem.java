@@ -7,7 +7,16 @@ import org.cryptimeleon.incentivesystem.cryptoprotocol.model.Token;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserKeyPair;
+import org.cryptimeleon.math.hash.impl.SHA512HashFunction;
+import org.cryptimeleon.math.hash.impl.SHAHashAccumulator;
+import org.cryptimeleon.math.structures.cartesian.Vector;
+import org.cryptimeleon.math.structures.groups.GroupElement;
+import org.cryptimeleon.math.structures.rings.integers.IntegerRing;
+import org.cryptimeleon.math.structures.rings.zn.HashIntoZn;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
+
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 
 /*
@@ -103,12 +112,11 @@ public class IncentiveSystem {
      * @param changedSignature  the signature computed by the provider
      * @param k                 the increase for the users token value
      * @param token             the old token
-     * @param userKeyPair       key pair of the user
      * @param providerPublicKey public key of the provider
      * @param s                 randomness TODO replace by PRF(token)
      * @return new token with value of the old token + k
      */
-    public Token handleEarnRequestResponse(EarnRequest earnRequest, SPSEQSignature changedSignature, long k, Token token, UserKeyPair userKeyPair, ProviderPublicKey providerPublicKey, Zn.ZnElement s) {
+    public Token handleEarnRequestResponse(EarnRequest earnRequest, SPSEQSignature changedSignature, long k, Token token, ProviderPublicKey providerPublicKey, Zn.ZnElement s) {
 
         var c1 = earnRequest.getC1().op((providerPublicKey.getH().get(4).pow(s)).pow(k)).compute();
         var c2 = earnRequest.getC2();
@@ -133,7 +141,63 @@ public class IncentiveSystem {
         );
     }
 
-    void generateSpendRequest() {
+    public void generateSpendRequest(Token token,
+                              ProviderPublicKey providerPublicKey,
+                              long k,
+                              UserKeyPair userKeyPair,
+                              Zn.ZnElement eskUsrS,
+                              Zn.ZnElement dsrnd0S,
+                              Zn.ZnElement dsrnd1S,
+                              Zn.ZnElement zS,
+                              Zn.ZnElement tS,
+                              Zn.ZnElement uS,
+                              Vector<Zn.ZnElement> vectorR, // length numDigits
+                              Zn.ZnElement tid // TODO how is this retrieved in practise?
+    ) {
+        var dsid = pp.getW().pow(token.getEncryptionSecretKey());
+        var zp = pp.getBg().getZn();
+        var hashfunction = new HashIntoZn(new SHA512HashFunction(), zp);
+        var usk = userKeyPair.getSk().getUsk();
+        var esk = token.getEncryptionSecretKey();
+        var vectorH = providerPublicKey.getH().pad(pp.getH7(), 7);
+        var base = zp.valueOf(17); // TODO which value to choose? Check BA?
+        var numDigits = IntegerRing.decomposeIntoDigits(zp.getCharacteristic(), base.asInteger()).length;
+
+        assert vectorR.length() == numDigits;
+
+        var exponents = new Vector(
+                usk,
+                eskUsrS,
+                dsrnd0S,
+                dsrnd1S,
+                token.getPoints().sub(zp.valueOf(k)),
+                zS,
+                tS);
+        var cPre0 = vectorH.pow(exponents).reduce(GroupElement::op).pow(uS);
+        var cPre1 = pp.getG1().pow(uS);
+
+
+        // Compute gamma, ? TODO as extra function
+        var accumulator = new SHAHashAccumulator("SHA-512");
+        accumulator.append(zp.valueOf(k));
+        accumulator.append(dsid);
+        accumulator.append(tid);
+        accumulator.append(cPre0);
+        accumulator.append(cPre1);
+        var gamma = hashfunction.hash(accumulator.extractBytes());
+
+        var c0 = usk.mul(gamma).add(token.getDoubleSpendRandomness0());
+        var c1 = esk.mul(gamma).add(token.getDoubleSpendRandomness0());
+
+        var eskDecomp = new Vector<Zn.ZnElement>(Arrays.stream(
+                IntegerRing.decomposeIntoDigits(eskUsrS.asInteger(), base.asInteger(), numDigits))
+                .map(bigInteger -> zp.valueOf(bigInteger))
+                .collect(Collectors.toList()));
+        var ctrace0 = pp.getW().pow(vectorR);
+        var ctrace1 = ctrace0.pow(esk).op(pp.getW().pow(eskDecomp));
+
+        // Send c0, c1, sigma, C, Cpre, ctrace
+        // + ZKP
     }
 
     void generateSpendRequestResponse() {
