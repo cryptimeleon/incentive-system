@@ -59,13 +59,15 @@ public class IncentiveSystem {
      * @param pp public parameters of the respective incentive system instance
      * @param pk provider public key of the provider the user interacts with
      * @param ukp user key pair
-     * @return
+     * @return join request, i.e. object representing the first two messages in the Issue-Join protocol of the Cryptimeleon incentive system
      */
     public JoinRequest generateJoinRequest(IncentivePublicParameters pp, ProviderPublicKey pk, UserKeyPair ukp, ZnElement eskUsr, ZnElement dsrnd0, ZnElement dsrnd1, ZnElement z, ZnElement t, ZnElement u) {
         UserPublicKey upk = ukp.getPk();
         UserSecretKey usk = ukp.getSk();
 
-        // TODO: generate random values needed for generation of fresh user token using PRF (currently, they are passed as method parameters until PRF stuff has been figured out)
+        // TODO: generate random values needed for generation of fresh user token using PRF
+        //  (currently, they are passed as method parameters until PRF stuff has been figured out),
+        //  use Paul's stuff
 
         // compute Pedersen commitment for user token
         RingElementVector exponents = new RingElementVector(usk.getUsk(), eskUsr, dsrnd0, dsrnd1, pp.getBg().getZn().getZeroElement(), z); // need to retrieve exponent from usk object; point count of 0 is reresented by zero in used Z_n
@@ -78,12 +80,19 @@ public class IncentiveSystem {
         CommitmentWellformednessWitness cwfWitness = new CommitmentWellformednessWitness(usk.getUsk(), eskUsr, dsrnd0, dsrnd1, z, t, u.inv());
         FiatShamirProof cwfProof = cwfProofSystem.createProof(cwfCommon, cwfWitness);
 
-
-
         // assemble and return join request object (commitment, proof of well-formedness)
         return new JoinRequest(c0Pre, c1Pre, cwfProof, cwfCommon);
     }
 
+    /**
+     * Implements the functionality of the Issue algorithm of the Cryptimeleon incentive system, i.e. handles a join request by signing the
+     * included preliminary commitment after adding the provider's share for the tracking key esk.
+     * @param pp public parameters of the respective incentive system instance
+     * @param pkp key pair of the provider
+     * @param jr join request to be handled
+     * @return join response, i.e. object representing the third message in the Issue-Join protocol
+     * @throws IllegalArgumentException indicating that the proof for commitment well-formedness was rejected
+     */
     public JoinResponse generateJoinRequestResponse(IncentivePublicParameters pp, ProviderKeyPair pkp, JoinRequest jr) throws IllegalArgumentException {
         ProviderPublicKey pk = pkp.getPk();
         ProviderSecretKey sk = pkp.getSk();
@@ -112,7 +121,17 @@ public class IncentiveSystem {
         return new JoinResponse(cert, eskProv);
     }
 
-    public JoinOutput handleJoinRequestResponse(IncentivePublicParameters pp, ProviderPublicKey pk, UserKeyPair ukp, JoinRequest jReq, JoinResponse jRes, ZnElement eskUsr, ZnElement dsrnd0, ZnElement dsrnd1, ZnElement z, ZnElement t, ZnElement u) {
+    /**
+     * Implements the second part of the functionality of the Issue algorithm from the Cryptimeleon incentive system, i.e. computes the final user data
+     * (token and corresponding certificate) from the signed preliminary token from the passed join request and response.
+     * @param pp public parameters of the respective incentive system instance
+     * @param pk public key of the provider the user interacted with
+     * @param ukp key pair of the user handling the response
+     * @param jReq the initial join request of the user handling the response to it
+     * @param jRes join response to be handled
+     * @return token containing 0 points
+     */
+    public Token handleJoinRequestResponse(IncentivePublicParameters pp, ProviderPublicKey pk, UserKeyPair ukp, JoinRequest jReq, JoinResponse jRes, ZnElement eskUsr, ZnElement dsrnd0, ZnElement dsrnd1, ZnElement z, ZnElement t, ZnElement u) {
         // extract relevant variables from join request and join response
         GroupElement c0Pre = jReq.getPreCommitment0();
         GroupElement c1Pre = jReq.getPreCommitment1();
@@ -128,16 +147,11 @@ public class IncentiveSystem {
         GroupElement finalCommitment0 = modifiedC0Pre.pow(u.inv()); // need to adapt message manually (entry by entry), used equivalence relation is R_exp
         GroupElement finalCommitment1 = c1Pre.pow(u.inv());
 
-        // assemble token
+        // assemble and return token
         ZnElement esk = eskUsr.add(eskProv);
         Zn usedZn = pp.getBg().getZn();
         Token token = new Token(finalCommitment0, finalCommitment1, esk, dsrnd0, dsrnd1, z, t, usedZn.getZeroElement(), finalCert);
-
-        // compute dsid
-        GroupElement dsid = pp.getW().pow(esk);
-
-        // assemble and return join output object
-        return new JoinOutput(token, dsid);
+        return token;
     }
 
     /**

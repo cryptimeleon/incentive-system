@@ -1,10 +1,25 @@
 package org.cryptimeleon.incetivesystem.cryptoprotocol;
 
+import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProof;
+import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.IncentiveSystem;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.Setup;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.model.IncentivePublicParameters;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderKeyPair;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.messages.JoinRequest;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.model.proofs.CommitmentWellformednessCommonInput;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.model.proofs.CommitmentWellformednessProtocol;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.model.proofs.CommitmentWellformednessWitness;
+import org.cryptimeleon.math.serialization.Representation;
+import org.cryptimeleon.math.serialization.annotations.ReprUtil;
+import org.cryptimeleon.math.structures.groups.Group;
+import org.cryptimeleon.math.structures.groups.GroupElement;
+import org.cryptimeleon.math.structures.groups.elliptic.type3.bn.BarretoNaehrigGroup1Impl;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
+import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -64,7 +79,43 @@ public class IssueJoinCryptoTest
     @Test
     void joinRequestRepresentationTest()
     {
+        // generate public parameters to ensure that correctly generated groups are used for testing
+        IncentivePublicParameters pp = Setup.trustedSetup(Setup.PRF_KEY_LENGTH);
 
+        // extract group from which commitments are drawn
+        Group group1 = pp.getBg().getG1();
+
+        // generate dummy commitments (i.e. random group elements)
+        GroupElement c0Pre = group1.getUniformlyRandomElement();
+        GroupElement c1Pre = group1.getUniformlyRandomElement();
+
+        // create dummy values for creation of dummy cwf proof (upk, randomness)
+        GroupElement upk = group1.getUniformlyRandomElement(); // create dummy user public key
+        ZnElement usk = pp.getBg().getZn().getUniformlyRandomElement();
+        ZnElement eskUsr = pp.getBg().getZn().getUniformlyRandomElement();
+        ZnElement dsrnd0 = pp.getBg().getZn().getUniformlyRandomElement();
+        ZnElement dsrnd1 = pp.getBg().getZn().getUniformlyRandomElement();
+        ZnElement z = pp.getBg().getZn().getUniformlyRandomElement();
+        ZnElement t = pp.getBg().getZn().getUniformlyRandomElement();
+        ZnElement uInverse = pp.getBg().getZn().getUniformlyRandomElement();
+
+        // create a dummy cwf proof + common input
+        CommitmentWellformednessCommonInput cwfProofCommonInput = new CommitmentWellformednessCommonInput(upk, c0Pre, c1Pre);
+        CommitmentWellformednessWitness cwfProofWitness = new CommitmentWellformednessWitness(usk, eskUsr, dsrnd0, dsrnd1, z, t, uInverse);
+        FiatShamirProofSystem fsps = new FiatShamirProofSystem(new CommitmentWellformednessProtocol(pp, new ProviderPublicKey(null, null)));
+        FiatShamirProof cwfProof = fsps.createProof(cwfProofCommonInput, cwfProofWitness);
+
+        // generate dummy join request
+        JoinRequest jReq = new JoinRequest(c0Pre, c1Pre, cwfProof, cwfProofCommonInput);
+
+        // serialize + deserialize join request
+        Representation jReqRepr = jReq.getRepresentation();
+        JoinRequest deserializedJReq = new JoinRequest(jReqRepr, pp, fsps);
+
+        // check original and deserialized join request for equality
+        Assertions.assertTrue(jReq.getPreCommitment0().equals(deserializedJReq.getPreCommitment0()));
+        Assertions.assertTrue(jReq.getPreCommitment1().equals(deserializedJReq.getPreCommitment1()));
+        // TODO: how to check proofs + common inputs for equality? -> implement equals-method?
     }
 
     /**
@@ -74,16 +125,12 @@ public class IssueJoinCryptoTest
     @Test
     void joinResponseRepresentationTest()
     {
+        // generate public parameters to ensure that correctly generated remainder class rings are used for testing
+        IncentivePublicParameters pp = Setup.trustedSetup(Setup.PRF_KEY_LENGTH);
 
-    }
+        // extract used remainder class ring from public parameters
+        Zn usedZn = pp.getBg().getZn();
 
-    /**
-     * generates a dummy join output, then serializes and deserializes it,
-     * testing whether the result of the deserialization is equal to the original output object.
-     */
-    @Test
-    void joinOutputRepresentationTest()
-    {
-
+        // TODO: finish test method
     }
 }

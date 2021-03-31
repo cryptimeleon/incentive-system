@@ -5,8 +5,10 @@ import lombok.Value;
 import lombok.experimental.NonFinal;
 import org.cryptimeleon.craco.protocols.CommonInput;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProof;
+import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.IncentivePublicParameters;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.proofs.CommitmentWellformednessCommonInput;
+import org.cryptimeleon.math.serialization.ObjectRepresentation;
 import org.cryptimeleon.math.serialization.Representable;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.annotations.ReprUtil;
@@ -35,11 +37,22 @@ public class JoinRequest implements Representable {
     @Represented
     private CommitmentWellformednessCommonInput cwfProofCommonInput; // common input of proof for well-formedness of token and knowledge of usk corresp. to upk
 
-    public JoinRequest(Representation repr, IncentivePublicParameters pp) {
+    public JoinRequest(Representation repr, IncentivePublicParameters pp, FiatShamirProofSystem fsps) {
+        // automatic deserialization of the fields where it is possible
         new ReprUtil(this)
                 .register(pp.getBg().getZn(), "Zn")
                 .register(pp.getBg().getG1(), "G1")
                 .deserialize(repr);
+
+        // obtain a representation of the commitment well-formedness proof and the common input
+        Representation proofRepr = repr.obj().get("cwfProof");
+        Representation proofCommonInputRepr = repr.obj().get("cwfProofCommonInput");
+
+        // restore common input
+        this.cwfProofCommonInput = new CommitmentWellformednessCommonInput(proofCommonInputRepr, pp);
+
+        // restore proof using common input and passed proof system
+        this.cwfProof = fsps.restoreProof(this.cwfProofCommonInput, proofRepr);
     }
 
     public Representation getRepresentation()
