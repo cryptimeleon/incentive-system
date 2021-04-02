@@ -194,7 +194,7 @@ public class IncentiveSystem {
         var c0 = usk.mul(gamma).add(token.getDoubleSpendRandomness0());
         var c1 = esk.mul(gamma).add(token.getDoubleSpendRandomness0());
 
-        var eskDecomp = new Vector<Zn.ZnElement>(Arrays.stream(
+        var eskDecomp = new Vector<>(Arrays.stream(
                 IntegerRing.decomposeIntoDigits(eskUsrS.asInteger(), base.asInteger(), numDigits))
                 .map(bigInteger -> zp.valueOf(bigInteger))
                 .collect(Collectors.toList()));
@@ -205,7 +205,8 @@ public class IncentiveSystem {
         // + ZKP
         var fiatShamirProofSystem = new FiatShamirProofSystem(new SpendDeductZkp(pp));
 
-        var proof = fiatShamirProofSystem.createProof(new SpendDeductCommonInput(dsid, pp.getW()), new SpendDeductWitnessInput(esk));
+        var witness = new SpendDeductWitnessInput(usk, token.getPoints(), token.getZ(), zS, token.getT(), tS, uS, esk, eskUsrS, token.getDoubleSpendRandomness0(), dsrnd0S, token.getDoubleSpendRandomness1(), dsrnd1S, eskDecomp, vectorR);
+        var proof = fiatShamirProofSystem.createProof(new SpendDeductCommonInput(dsid, pp.getW()), witness);
 
         return new SpendRequest(dsid, proof);
     }
