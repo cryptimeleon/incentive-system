@@ -1,6 +1,9 @@
 package org.cryptimeleon.incetivesystem.cryptoprotocol;
 
+import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.IncentiveSystem;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.model.SpendRequest;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.proof.SpendDeductZkp;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.rings.integers.IntegerRing;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
@@ -38,7 +41,7 @@ public class SpendDeductTest {
         Zn.ZnElement tid = zp.getUniformlyRandomElement();
         // TODO how is this retrieved in practise?
 
-        incentiveSystem.generateSpendRequest(
+        var spendRequest = incentiveSystem.generateSpendRequest(
                 token,
                 providerKeyPair.getPk(),
                 k,
@@ -52,5 +55,12 @@ public class SpendDeductTest {
                 vectorR,
                 tid
         );
+
+        var serializedSpendRequest = spendRequest.getRepresentation();
+
+        var fiatShamirProofSystem = new FiatShamirProofSystem(new SpendDeductZkp(pp));
+        var deserializedSpendRequest = new SpendRequest(serializedSpendRequest, pp, fiatShamirProofSystem);
+
+        incentiveSystem.generateSpendRequestResponse(deserializedSpendRequest, providerKeyPair);
     }
 }

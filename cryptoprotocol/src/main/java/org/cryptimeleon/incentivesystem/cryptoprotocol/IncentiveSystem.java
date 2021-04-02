@@ -1,12 +1,17 @@
 package org.cryptimeleon.incentivesystem.cryptoprotocol;
 
+import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.EarnRequest;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.IncentivePublicParameters;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.model.SpendRequest;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.Token;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserKeyPair;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.proof.SpendDeductCommonInput;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.proof.SpendDeductWitnessInput;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.proof.SpendDeductZkp;
 import org.cryptimeleon.math.hash.impl.SHA512HashFunction;
 import org.cryptimeleon.math.hash.impl.SHAHashAccumulator;
 import org.cryptimeleon.math.structures.cartesian.Vector;
@@ -141,24 +146,24 @@ public class IncentiveSystem {
         );
     }
 
-    public void generateSpendRequest(Token token,
-                              ProviderPublicKey providerPublicKey,
-                              long k,
-                              UserKeyPair userKeyPair,
-                              Zn.ZnElement eskUsrS,
-                              Zn.ZnElement dsrnd0S,
-                              Zn.ZnElement dsrnd1S,
-                              Zn.ZnElement zS,
-                              Zn.ZnElement tS,
-                              Zn.ZnElement uS,
-                              Vector<Zn.ZnElement> vectorR, // length numDigits
-                              Zn.ZnElement tid // TODO how is this retrieved in practise?
+    public SpendRequest generateSpendRequest(Token token,
+                                             ProviderPublicKey providerPublicKey,
+                                             long k,
+                                             UserKeyPair userKeyPair,
+                                             Zn.ZnElement eskUsrS,
+                                             Zn.ZnElement dsrnd0S,
+                                             Zn.ZnElement dsrnd1S,
+                                             Zn.ZnElement zS,
+                                             Zn.ZnElement tS,
+                                             Zn.ZnElement uS,
+                                             Vector<Zn.ZnElement> vectorR, // length numDigits
+                                             Zn.ZnElement tid // TODO how is this retrieved in practise?
     ) {
-        var dsid = pp.getW().pow(token.getEncryptionSecretKey());
         var zp = pp.getBg().getZn();
         var hashfunction = new HashIntoZn(new SHA512HashFunction(), zp);
         var usk = userKeyPair.getSk().getUsk();
         var esk = token.getEncryptionSecretKey();
+        var dsid = pp.getW().pow(esk);
         var vectorH = providerPublicKey.getH().pad(pp.getH7(), 7);
         var base = zp.valueOf(17); // TODO which value to choose? Check BA?
         var numDigits = IntegerRing.decomposeIntoDigits(zp.getCharacteristic(), base.asInteger()).length;
@@ -198,9 +203,18 @@ public class IncentiveSystem {
 
         // Send c0, c1, sigma, C, Cpre, ctrace
         // + ZKP
+        var fiatShamirProofSystem = new FiatShamirProofSystem(new SpendDeductZkp(pp));
+
+        var proof = fiatShamirProofSystem.createProof(new SpendDeductCommonInput(dsid, pp.getW()), new SpendDeductWitnessInput(esk));
+
+        return new SpendRequest(dsid, proof);
     }
 
-    void generateSpendRequestResponse() {
+    public void generateSpendRequestResponse(SpendRequest spendRequest, ProviderKeyPair providerKeyPair) {
+        var fiatShamirProofSystem = new FiatShamirProofSystem(new SpendDeductZkp(pp));
+        var proof = spendRequest.getSpendDeductZkp();
+        var commonInput = new SpendDeductCommonInput(spendRequest.getDsid(), pp.getW());
+        assert fiatShamirProofSystem.checkProof(commonInput, proof);
     }
 
     void handleSpendRequestResponse() {
