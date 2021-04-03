@@ -9,6 +9,8 @@ import org.cryptimeleon.math.structures.rings.integers.IntegerRing;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigInteger;
+
 public class SpendDeductTest {
 
     @Test
@@ -25,7 +27,7 @@ public class SpendDeductTest {
         var base = zp.valueOf(17); // TODO which value to choose? Check BA?
         var numDigits = IntegerRing.decomposeIntoDigits(zp.getCharacteristic(), base.asInteger()).length;
 
-        long k = 4;
+        BigInteger k = BigInteger.valueOf(4);
         Zn.ZnElement eskUsrS = zp.getUniformlyRandomElement();
         Zn.ZnElement dsrnd0S = zp.getUniformlyRandomElement();
         Zn.ZnElement dsrnd1S = zp.getUniformlyRandomElement();
@@ -33,7 +35,7 @@ public class SpendDeductTest {
         Zn.ZnElement tS = zp.getUniformlyRandomElement();
         Zn.ZnElement uS = zp.getUniformlyRandomElement();
         Vector<Zn.ZnElement> vectorR = Vector.generatePlain(
-                () -> zp.getUniformlyRandomElement(),
+                zp::getUniformlyRandomElement,
                 numDigits
         );
 
@@ -59,8 +61,8 @@ public class SpendDeductTest {
         var serializedSpendRequest = spendRequest.getRepresentation();
 
         var fiatShamirProofSystem = new FiatShamirProofSystem(new SpendDeductZkp(pp));
-        var deserializedSpendRequest = new SpendRequest(serializedSpendRequest, pp, fiatShamirProofSystem);
+        var deserializedSpendRequest = new SpendRequest(serializedSpendRequest, pp, fiatShamirProofSystem, k, tid);
 
-        incentiveSystem.generateSpendRequestResponse(deserializedSpendRequest, providerKeyPair);
+        incentiveSystem.generateSpendRequestResponse(deserializedSpendRequest, k, tid);
     }
 }

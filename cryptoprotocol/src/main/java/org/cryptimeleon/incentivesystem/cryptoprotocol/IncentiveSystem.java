@@ -13,13 +13,13 @@ import org.cryptimeleon.incentivesystem.cryptoprotocol.proof.SpendDeductCommonIn
 import org.cryptimeleon.incentivesystem.cryptoprotocol.proof.SpendDeductWitnessInput;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.proof.SpendDeductZkp;
 import org.cryptimeleon.math.hash.impl.SHA512HashFunction;
-import org.cryptimeleon.math.hash.impl.SHAHashAccumulator;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.integers.IntegerRing;
 import org.cryptimeleon.math.structures.rings.zn.HashIntoZn;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
@@ -148,7 +148,7 @@ public class IncentiveSystem {
 
     public SpendRequest generateSpendRequest(Token token,
                                              ProviderPublicKey providerPublicKey,
-                                             long k,
+                                             BigInteger k,
                                              UserKeyPair userKeyPair,
                                              Zn.ZnElement eskUsrS,
                                              Zn.ZnElement dsrnd0S,
@@ -170,7 +170,7 @@ public class IncentiveSystem {
 
         assert vectorR.length() == numDigits;
 
-        var exponents = new Vector(
+        var exponents = new Vector<>(
                 usk,
                 eskUsrS,
                 dsrnd0S,
@@ -182,21 +182,14 @@ public class IncentiveSystem {
         var cPre1 = pp.getG1().pow(uS);
 
 
-        // Compute gamma, ? TODO as extra function
-        var accumulator = new SHAHashAccumulator("SHA-512");
-        accumulator.append(zp.valueOf(k));
-        accumulator.append(dsid);
-        accumulator.append(tid);
-        accumulator.append(cPre0);
-        accumulator.append(cPre1);
-        var gamma = hashfunction.hash(accumulator.extractBytes());
+        var gamma = Util.hashGamma(zp, k, dsid, tid, cPre0, cPre1);
 
         var c0 = usk.mul(gamma).add(token.getDoubleSpendRandomness0());
-        var c1 = esk.mul(gamma).add(token.getDoubleSpendRandomness0());
+        var c1 = esk.mul(gamma).add(token.getDoubleSpendRandomness1());
 
         var eskDecomp = new Vector<>(Arrays.stream(
                 IntegerRing.decomposeIntoDigits(eskUsrS.asInteger(), base.asInteger(), numDigits))
-                .map(bigInteger -> zp.valueOf(bigInteger))
+                .map(zp::valueOf)
                 .collect(Collectors.toList()));
         var ctrace0 = pp.getW().pow(vectorR);
         var ctrace1 = ctrace0.pow(esk).op(pp.getW().pow(eskDecomp));
@@ -205,16 +198,54 @@ public class IncentiveSystem {
         // + ZKP
         var fiatShamirProofSystem = new FiatShamirProofSystem(new SpendDeductZkp(pp));
 
-        var witness = new SpendDeductWitnessInput(usk, token.getPoints(), token.getZ(), zS, token.getT(), tS, uS, esk, eskUsrS, token.getDoubleSpendRandomness0(), dsrnd0S, token.getDoubleSpendRandomness1(), dsrnd1S, eskDecomp, vectorR);
-        var proof = fiatShamirProofSystem.createProof(new SpendDeductCommonInput(dsid, pp.getW()), witness);
+        var witness = new SpendDeductWitnessInput(usk,
+                token.getPoints(),
+                token.getZ(),
+                zS,
+                token.getT(),
+                tS,
+                uS,
+                esk,
+                eskUsrS,
+                token.getDoubleSpendRandomness0(),
+                dsrnd0S,
+                token.getDoubleSpendRandomness1(),
+                dsrnd1S,
+                eskDecomp,
+                vectorR);
+        var commonInput = new SpendDeductCommonInput(k,
+                gamma,
+                c0,
+                c1,
+                dsid,
+                pp.getW(),
+                cPre0,
+                cPre1,
+                token.getC1(),
+                token.getC2(),
+                ctrace0,
+                ctrace1);
+        var proof = fiatShamirProofSystem.createProof(commonInput, witness);
 
-        return new SpendRequest(dsid, proof);
+        return new SpendRequest(dsid, proof, c0, c1, cPre0, cPre1, ctrace0, ctrace1, token.getC1(), token.getC2());
     }
 
-    public void generateSpendRequestResponse(SpendRequest spendRequest, ProviderKeyPair providerKeyPair) {
+    public void generateSpendRequestResponse(SpendRequest spendRequest, BigInteger earnAmount, Zn.ZnElement tid) {
         var fiatShamirProofSystem = new FiatShamirProofSystem(new SpendDeductZkp(pp));
         var proof = spendRequest.getSpendDeductZkp();
-        var commonInput = new SpendDeductCommonInput(spendRequest.getDsid(), pp.getW());
+        var gamma = Util.hashGamma(pp.getBg().getZn(), earnAmount, spendRequest.getDsid(), tid, spendRequest.getCPre0(), spendRequest.getCPre1());
+        var commonInput = new SpendDeductCommonInput(earnAmount,
+                gamma,
+                spendRequest.getC0(),
+                spendRequest.getC1(),
+                spendRequest.getDsid(),
+                pp.getW(),
+                spendRequest.getCPre0(),
+                spendRequest.getCPre1(),
+                spendRequest.getCommitmentC0(),
+                spendRequest.getCommitmentC1(),
+                spendRequest.getCtrace0(),
+                spendRequest.getCtrace1());
         assert fiatShamirProofSystem.checkProof(commonInput, proof);
     }
 
