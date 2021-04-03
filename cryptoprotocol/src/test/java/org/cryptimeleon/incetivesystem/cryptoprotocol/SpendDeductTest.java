@@ -23,11 +23,11 @@ public class SpendDeductTest {
         System.out.println(zp.getCharacteristic().bitLength());
         var s = zp.getUniformlyRandomNonzeroElement(); // TODO this should become part of the methods using a PRF
 
-        var token = Helper.generateToken(pp, userKeyPair, providerKeyPair);
+        BigInteger k = BigInteger.valueOf(4);
+        var token = Helper.generateToken(pp, userKeyPair, providerKeyPair, k);
         var base = zp.valueOf(17); // TODO which value to choose? Check BA?
         var numDigits = IntegerRing.decomposeIntoDigits(zp.getCharacteristic(), base.asInteger()).length;
 
-        BigInteger k = BigInteger.valueOf(4);
         Zn.ZnElement eskUsrS = zp.getUniformlyRandomElement();
         Zn.ZnElement dsrnd0S = zp.getUniformlyRandomElement();
         Zn.ZnElement dsrnd1S = zp.getUniformlyRandomElement();
@@ -60,9 +60,9 @@ public class SpendDeductTest {
 
         var serializedSpendRequest = spendRequest.getRepresentation();
 
-        var fiatShamirProofSystem = new FiatShamirProofSystem(new SpendDeductZkp(pp));
+        var fiatShamirProofSystem = new FiatShamirProofSystem(new SpendDeductZkp(pp, providerKeyPair.getPk()));
         var deserializedSpendRequest = new SpendRequest(serializedSpendRequest, pp, fiatShamirProofSystem, k, tid);
 
-        incentiveSystem.generateSpendRequestResponse(deserializedSpendRequest, k, tid);
+        incentiveSystem.generateSpendRequestResponse(deserializedSpendRequest, providerKeyPair, k, tid);
     }
 }

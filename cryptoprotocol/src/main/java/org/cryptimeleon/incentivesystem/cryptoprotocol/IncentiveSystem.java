@@ -160,7 +160,6 @@ public class IncentiveSystem {
                                              Zn.ZnElement tid // TODO how is this retrieved in practise?
     ) {
         var zp = pp.getBg().getZn();
-        var hashfunction = new HashIntoZn(new SHA512HashFunction(), zp);
         var usk = userKeyPair.getSk().getUsk();
         var esk = token.getEncryptionSecretKey();
         var dsid = pp.getW().pow(esk);
@@ -196,9 +195,10 @@ public class IncentiveSystem {
 
         // Send c0, c1, sigma, C, Cpre, ctrace
         // + ZKP
-        var fiatShamirProofSystem = new FiatShamirProofSystem(new SpendDeductZkp(pp));
+        var fiatShamirProofSystem = new FiatShamirProofSystem(new SpendDeductZkp(pp, providerPublicKey));
 
-        var witness = new SpendDeductWitnessInput(usk,
+        var witness = new SpendDeductWitnessInput(
+                usk,
                 token.getPoints(),
                 token.getZ(),
                 zS,
@@ -213,7 +213,8 @@ public class IncentiveSystem {
                 dsrnd1S,
                 eskDecomp,
                 vectorR);
-        var commonInput = new SpendDeductCommonInput(k,
+        var commonInput = new SpendDeductCommonInput(
+                k,
                 gamma,
                 c0,
                 c1,
@@ -230,8 +231,8 @@ public class IncentiveSystem {
         return new SpendRequest(dsid, proof, c0, c1, cPre0, cPre1, ctrace0, ctrace1, token.getC1(), token.getC2());
     }
 
-    public void generateSpendRequestResponse(SpendRequest spendRequest, BigInteger earnAmount, Zn.ZnElement tid) {
-        var fiatShamirProofSystem = new FiatShamirProofSystem(new SpendDeductZkp(pp));
+    public void generateSpendRequestResponse(SpendRequest spendRequest, ProviderKeyPair providerKeyPair, BigInteger earnAmount, Zn.ZnElement tid) {
+        var fiatShamirProofSystem = new FiatShamirProofSystem(new SpendDeductZkp(pp, providerKeyPair.getPk()));
         var proof = spendRequest.getSpendDeductZkp();
         var gamma = Util.hashGamma(pp.getBg().getZn(), earnAmount, spendRequest.getDsid(), tid, spendRequest.getCPre0(), spendRequest.getCPre1());
         var commonInput = new SpendDeductCommonInput(earnAmount,

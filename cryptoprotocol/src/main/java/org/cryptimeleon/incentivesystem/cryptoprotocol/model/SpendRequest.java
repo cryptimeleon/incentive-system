@@ -76,7 +76,7 @@ public class SpendRequest implements Representable {
         this.cPre0 = groupG1.restoreElement(listRepr.get(3));
         this.cPre1 = groupG1.restoreElement(listRepr.get(4));
         this.commitmentC0 = groupG1.restoreElement(listRepr.get(5));
-        this.commitmentC0 = groupG1.restoreElement(listRepr.get(6));
+        this.commitmentC1 = groupG1.restoreElement(listRepr.get(6));
         this.ctrace0 = groupG1.restoreVector(listRepr.get(7));
         this.ctrace1 = groupG1.restoreVector(listRepr.get(8));
 

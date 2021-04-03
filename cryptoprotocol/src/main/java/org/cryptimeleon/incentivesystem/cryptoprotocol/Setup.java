@@ -42,10 +42,10 @@ public class Setup {
 
         // TODO: rewrite computation of w and h7 once proper hashing of bilinear groups is possible
         // compute w (base used in double spending protection, see 2020 incsys paper)
-        GroupElement w = bg.getG1().getUniformlyRandomElement(); // w=e not a problem, see discord #questions 2.2.21
+        GroupElement w = bg.getG1().getUniformlyRandomElement().compute(); // w=e not a problem, see discord #questions 2.2.21
 
         // compute seventh base for user token (h7 in 2020 incsys paper)
-        GroupElement h7 = bg.getG1().getUniformlyRandomElement();
+        GroupElement h7 = bg.getG1().getUniformlyRandomElement().compute();
 
         // instantiate prf used in this instance of the incentive system with a proper key length
         AesPseudorandomFunction prf = new AesPseudorandomFunction(PRF_KEY_LENGTH);
@@ -54,8 +54,8 @@ public class Setup {
         SPSEQSignatureScheme spsEq = new SPSEQSignatureScheme(new SPSEQPublicParameters(bg));
 
         // Random generators
-        GroupElement g1 = bg.getG1().getGenerator();
-        GroupElement g2 = bg.getG2().getGenerator();
+        GroupElement g1 = bg.getG1().getGenerator().compute();
+        GroupElement g2 = bg.getG2().getGenerator().compute();
 
         // wrap up all values
         return new IncentivePublicParameters(bg, w, h7, g1, g2, prf, spsEq);
@@ -76,7 +76,7 @@ public class Setup {
         PrfKey betaUsr = pp.getPrf().generateKey(); // key the user uses to generate pseudorandomness
 
         // compute user public key from secret exponent
-        GroupElement upkElem = pp.getW().pow(usk);
+        GroupElement upkElem = pp.getW().pow(usk).compute();
 
         // wrap up values
         UserSecretKey uSk = new UserSecretKey(usk, betaUsr);
@@ -90,7 +90,7 @@ public class Setup {
         RingElementVector q = pp.getBg().getZn().getUniformlyRandomElements(6);
 
         // compute above first 6 bases
-        GroupElementVector h = pp.getG1().pow(q);
+        GroupElementVector h = pp.getG1().pow(q).compute();
 
         // generate PRF key for provider
         PrfKey betaProv = pp.getPrf().generateKey();

@@ -6,8 +6,14 @@ import org.cryptimeleon.incentivesystem.cryptoprotocol.model.Token;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserKeyPair;
 
+import java.math.BigInteger;
+
 public class Helper {
     static Token generateToken(IncentivePublicParameters pp, UserKeyPair userKeyPair, ProviderKeyPair providerKeyPair) {
+        return generateToken(pp, userKeyPair, providerKeyPair, BigInteger.valueOf(0));
+    }
+
+    static Token generateToken(IncentivePublicParameters pp, UserKeyPair userKeyPair, ProviderKeyPair providerKeyPair, BigInteger points) {
         var vectorH = providerKeyPair.getPk().getH();
         var zp = pp.getBg().getZn();
         // Manually create a token since issue-join is not yet implemented
@@ -16,7 +22,6 @@ public class Helper {
         var dsrd2 = zp.getUniformlyRandomElement();
         var z = zp.getUniformlyRandomElement();
         var t = zp.getUniformlyRandomElement();
-        var points = 0;
         var pointsZp = zp.valueOf(points);
         var c1 = vectorH.get(0).pow(userKeyPair.getSk().getUsk())
                 .op(vectorH.get(1).pow(encryptionSecretKey))
