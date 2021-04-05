@@ -13,11 +13,7 @@ import org.cryptimeleon.math.structures.groups.elliptic.BilinearGroup;
 import org.cryptimeleon.math.structures.rings.integers.IntegerRing;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
-import java.math.BigInteger;
 import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * A class representing the public parameters of the 2020 incentive system
@@ -47,6 +43,9 @@ public class IncentivePublicParameters implements PublicParameters {
     @Represented(restorer = "bg::getZn")
     private Zn.ZnElement eskDecBase; // TODO which value to choose? Check BA?
 
+    @Represented
+    private Integer maxPointBasePower; // eskDecBase^this determines the maximum point count that is considered valid
+
     private SetMembershipPublicParameters eskBaseSetMembershipPublicParameters;
 
     private int numEskDigits;
@@ -66,7 +65,7 @@ public class IncentivePublicParameters implements PublicParameters {
         return repr;
     }
 
-    public IncentivePublicParameters(BilinearGroup bg, GroupElement w, GroupElement h7, GroupElement g1, GroupElement g2, AesPseudorandomFunction prf, SPSEQSignatureScheme spsEq, Zn.ZnElement eskDecBase, SetMembershipPublicParameters eskBaseSetMembershipPublicParameters) {
+    public IncentivePublicParameters(BilinearGroup bg, GroupElement w, GroupElement h7, GroupElement g1, GroupElement g2, AesPseudorandomFunction prf, SPSEQSignatureScheme spsEq, Zn.ZnElement eskDecBase, int maxPointBasePower, SetMembershipPublicParameters eskBaseSetMembershipPublicParameters) {
         this.bg = bg;
         this.w = w;
         this.h7 = h7;
@@ -75,6 +74,7 @@ public class IncentivePublicParameters implements PublicParameters {
         this.prf = prf;
         this.spsEq = spsEq;
         this.eskDecBase = eskDecBase;
+        this.maxPointBasePower = maxPointBasePower;
         this.eskBaseSetMembershipPublicParameters = eskBaseSetMembershipPublicParameters;
         init();
     }
@@ -122,6 +122,10 @@ public class IncentivePublicParameters implements PublicParameters {
         return numEskDigits;
     }
 
+    public int getMaxPointBasePower() {
+        return maxPointBasePower;
+    }
+
     public SetMembershipPublicParameters getEskBaseSetMembershipPublicParameters() {
         return eskBaseSetMembershipPublicParameters;
     }
@@ -131,21 +135,11 @@ public class IncentivePublicParameters implements PublicParameters {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         IncentivePublicParameters that = (IncentivePublicParameters) o;
-        var eq = numEskDigits == that.numEskDigits;
-        eq &= Objects.equals(bg, that.bg);
-        eq &= Objects.equals(w, that.w);
-        eq &= Objects.equals(h7, that.h7);
-        eq &=  Objects.equals(g1, that.g1);
-        eq &= Objects.equals(g2, that.g2);
-        eq &= Objects.equals(prf, that.prf);
-        eq &= Objects.equals(spsEq, that.spsEq);
-        eq &= Objects.equals(eskDecBase, that.eskDecBase);
-        eq &= Objects.equals(eskBaseSetMembershipPublicParameters, that.eskBaseSetMembershipPublicParameters);
-        return eq;
+        return numEskDigits == that.numEskDigits && Objects.equals(bg, that.bg) && Objects.equals(w, that.w) && Objects.equals(h7, that.h7) && Objects.equals(g1, that.g1) && Objects.equals(g2, that.g2) && Objects.equals(prf, that.prf) && Objects.equals(spsEq, that.spsEq) && Objects.equals(eskDecBase, that.eskDecBase) && Objects.equals(maxPointBasePower, that.maxPointBasePower) && Objects.equals(eskBaseSetMembershipPublicParameters, that.eskBaseSetMembershipPublicParameters);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(bg, w, h7, g1, g2, prf, spsEq, eskDecBase, eskBaseSetMembershipPublicParameters, numEskDigits);
+        return Objects.hash(bg, w, h7, g1, g2, prf, spsEq, eskDecBase, maxPointBasePower, eskBaseSetMembershipPublicParameters, numEskDigits);
     }
 }

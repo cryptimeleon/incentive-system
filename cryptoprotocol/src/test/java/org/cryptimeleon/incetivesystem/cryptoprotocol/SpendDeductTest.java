@@ -22,8 +22,9 @@ public class SpendDeductTest {
         System.out.println(zp.getCharacteristic().bitLength());
         var s = zp.getUniformlyRandomNonzeroElement(); // TODO this should become part of the methods using a PRF
 
+        BigInteger budget = BigInteger.valueOf(7);
         BigInteger k = BigInteger.valueOf(4);
-        var token = Helper.generateToken(pp, userKeyPair, providerKeyPair, k);
+        var token = Helper.generateToken(pp, userKeyPair, providerKeyPair, budget);
 
         Zn.ZnElement eskUsrS = zp.getUniformlyRandomElement();
         Zn.ZnElement dsrnd0S = zp.getUniformlyRandomElement();

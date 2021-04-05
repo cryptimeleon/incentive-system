@@ -66,9 +66,10 @@ public class Setup {
 
         var eskBaseSet = Stream.iterate(BigInteger.ZERO, i -> i.compareTo(eskBase) < 0, i -> i.add(BigInteger.ONE)).collect(Collectors.toSet());
         var eskBaseSetMembershipPublicParameters = SetMembershipPublicParameters.generate(bg, eskBaseSet);
+        var maxPointBasePower = 6;
 
         // wrap up all values
-        return new IncentivePublicParameters(bg, w, h7, g1, g2, prf, spsEq, bg.getZn().valueOf(eskBase), eskBaseSetMembershipPublicParameters);
+        return new IncentivePublicParameters(bg, w, h7, g1, g2, prf, spsEq, bg.getZn().valueOf(eskBase), maxPointBasePower, eskBaseSetMembershipPublicParameters);
     }
 
     /**

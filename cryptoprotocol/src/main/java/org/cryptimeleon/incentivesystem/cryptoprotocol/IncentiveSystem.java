@@ -209,13 +209,11 @@ public class IncentiveSystem {
                 eskDecomp,
                 vectorR);
         var commonInput = new SpendDeductCommonInput(
-                pp.getNumEskDigits(),
                 k,
                 gamma,
                 c0,
                 c1,
                 dsid,
-                pp.getW(),
                 cPre0,
                 cPre1,
                 token.getC1(),
@@ -232,13 +230,11 @@ public class IncentiveSystem {
         var proof = spendRequest.getSpendDeductZkp();
         var gamma = Util.hashGamma(pp.getBg().getZn(), earnAmount, spendRequest.getDsid(), tid, spendRequest.getCPre0(), spendRequest.getCPre1());
         var commonInput = new SpendDeductCommonInput(
-                pp.getNumEskDigits(),
                 earnAmount,
                 gamma,
                 spendRequest.getC0(),
                 spendRequest.getC1(),
                 spendRequest.getDsid(),
-                pp.getW(),
                 spendRequest.getCPre0(),
                 spendRequest.getCPre1(),
                 spendRequest.getCommitmentC0(),
