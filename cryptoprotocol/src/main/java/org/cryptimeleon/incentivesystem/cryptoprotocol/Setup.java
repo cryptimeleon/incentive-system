@@ -3,6 +3,7 @@ package org.cryptimeleon.incentivesystem.cryptoprotocol;
 
 import org.cryptimeleon.craco.prf.PrfKey;
 import org.cryptimeleon.craco.prf.aes.AesPseudorandomFunction;
+import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.setmembership.SetMembershipPublicParameters;
 import org.cryptimeleon.craco.sig.SignatureKeyPair;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQPublicParameters;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignatureScheme;
@@ -22,6 +23,10 @@ import org.cryptimeleon.math.structures.groups.elliptic.type3.bn.BarretoNaehrigB
 import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
+
+import java.math.BigInteger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * a class implementing the incentive system algorithms (of the incentive system from the 2020 paper) that are not part of any protocol
@@ -57,8 +62,13 @@ public class Setup {
         GroupElement g1 = bg.getG1().getGenerator().compute();
         GroupElement g2 = bg.getG2().getGenerator().compute();
 
+        BigInteger eskBase = BigInteger.valueOf(47);
+
+        var eskBaseSet = Stream.iterate(BigInteger.ZERO, i -> i.compareTo(eskBase) < 0, i -> i.add(BigInteger.ONE)).collect(Collectors.toSet());
+        var eskBaseSetMembershipPublicParameters = SetMembershipPublicParameters.generate(bg, eskBaseSet);
+
         // wrap up all values
-        return new IncentivePublicParameters(bg, w, h7, g1, g2, prf, spsEq);
+        return new IncentivePublicParameters(bg, w, h7, g1, g2, prf, spsEq, bg.getZn().valueOf(eskBase), eskBaseSetMembershipPublicParameters);
     }
 
     /**

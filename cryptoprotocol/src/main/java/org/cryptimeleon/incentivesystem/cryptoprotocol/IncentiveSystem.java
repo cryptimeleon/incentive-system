@@ -12,11 +12,9 @@ import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserKeyPa
 import org.cryptimeleon.incentivesystem.cryptoprotocol.proof.SpendDeductCommonInput;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.proof.SpendDeductWitnessInput;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.proof.SpendDeductZkp;
-import org.cryptimeleon.math.hash.impl.SHA512HashFunction;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.integers.IntegerRing;
-import org.cryptimeleon.math.structures.rings.zn.HashIntoZn;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 import java.math.BigInteger;
@@ -164,10 +162,8 @@ public class IncentiveSystem {
         var esk = token.getEncryptionSecretKey();
         var dsid = pp.getW().pow(esk);
         var vectorH = providerPublicKey.getH().pad(pp.getH7(), 7);
-        var base = zp.valueOf(17); // TODO which value to choose? Check BA?
-        var numDigits = IntegerRing.decomposeIntoDigits(zp.getCharacteristic(), base.asInteger()).length;
 
-        assert vectorR.length() == numDigits;
+        assert vectorR.length() == pp.getNumEskDigits();
 
         var exponents = new Vector<>(
                 usk,
@@ -180,14 +176,13 @@ public class IncentiveSystem {
         var cPre0 = vectorH.pow(exponents).reduce(GroupElement::op).pow(uS);
         var cPre1 = pp.getG1().pow(uS);
 
-
         var gamma = Util.hashGamma(zp, k, dsid, tid, cPre0, cPre1);
 
         var c0 = usk.mul(gamma).add(token.getDoubleSpendRandomness0());
         var c1 = esk.mul(gamma).add(token.getDoubleSpendRandomness1());
 
         var eskDecomp = new Vector<>(Arrays.stream(
-                IntegerRing.decomposeIntoDigits(eskUsrS.asInteger(), base.asInteger(), numDigits))
+                IntegerRing.decomposeIntoDigits(eskUsrS.asInteger(), pp.getEskDecBase().asInteger(), pp.getNumEskDigits()))
                 .map(zp::valueOf)
                 .collect(Collectors.toList()));
         var ctrace0 = pp.getW().pow(vectorR);
@@ -214,6 +209,7 @@ public class IncentiveSystem {
                 eskDecomp,
                 vectorR);
         var commonInput = new SpendDeductCommonInput(
+                pp.getNumEskDigits(),
                 k,
                 gamma,
                 c0,
@@ -235,7 +231,9 @@ public class IncentiveSystem {
         var fiatShamirProofSystem = new FiatShamirProofSystem(new SpendDeductZkp(pp, providerKeyPair.getPk()));
         var proof = spendRequest.getSpendDeductZkp();
         var gamma = Util.hashGamma(pp.getBg().getZn(), earnAmount, spendRequest.getDsid(), tid, spendRequest.getCPre0(), spendRequest.getCPre1());
-        var commonInput = new SpendDeductCommonInput(earnAmount,
+        var commonInput = new SpendDeductCommonInput(
+                pp.getNumEskDigits(),
+                earnAmount,
                 gamma,
                 spendRequest.getC0(),
                 spendRequest.getC1(),

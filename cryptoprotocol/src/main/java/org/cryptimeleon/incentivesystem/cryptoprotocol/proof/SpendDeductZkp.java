@@ -6,6 +6,7 @@ import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.DelegateProtocol
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.LinearExponentStatementFragment;
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.LinearStatementFragment;
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.SendThenDelegateFragment;
+import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.setmembership.SetMembershipFragment;
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.variables.SchnorrZnVariable;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.IncentivePublicParameters;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderPublicKey;
@@ -20,7 +21,6 @@ import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 import java.math.BigInteger;
-import java.util.List;
 
 public class SpendDeductZkp extends DelegateProtocol {
 
@@ -42,15 +42,13 @@ public class SpendDeductZkp extends DelegateProtocol {
     @Override
     protected SendThenDelegateFragment.SubprotocolSpec provideSubprotocolSpec(CommonInput pCommonInput, SendThenDelegateFragment.SubprotocolSpecBuilder builder) {
         var commonInput = (SpendDeductCommonInput) pCommonInput;
-        var H = new GroupElementExpressionVector(providerPublicKey.getH().map(GroupElement::expr));
-        H = H.pad(pp.getH7().expr(), 7);  // H array
+        var H = new GroupElementExpressionVector(providerPublicKey.getH().pad(pp.getH7(), 7).map(GroupElement::expr));
 
         // Variables to use
         var eskVar = builder.addZnVariable("esk", zn);
         var uskVar = builder.addZnVariable("usk", zn);
         var dsrnd0Var = builder.addZnVariable("dsrnd0", zn);
         var dsrnd1Var = builder.addZnVariable("dsrnd1", zn);
-        var eskStarUserVar = builder.addZnVariable("eskStarUser", zn);
         var dsrndStar0Var = builder.addZnVariable("dsrndStar0", zn);
         var dsrndStar1Var = builder.addZnVariable("dsrndStar1", zn);
         var vVar = builder.addZnVariable("v", zn);
@@ -59,6 +57,11 @@ public class SpendDeductZkp extends DelegateProtocol {
         var zStarVar = builder.addZnVariable("zStar", zn);
         var tStarVar = builder.addZnVariable("tStar", zn);
         var uStarVar = builder.addZnVariable("uStar", zn);
+        var uStarInverseVar = builder.addZnVariable("uStarInverse", zn);
+        var eskDecVarVector = new SchnorrZnVariable[commonInput.eskDecVectorSize];
+        for (int i = 0; i < commonInput.eskDecVectorSize; i++) {
+            eskDecVarVector[i] = builder.addZnVariable("eskStarUserDec_" + i, zn);
+        }
 
         // c0=usk*gamma+dsrnd0
         var c0statement = new ExponentSumExpr(new ExponentMulExpr(uskVar, new ExponentConstantExpr(commonInput.gamma)), dsrnd0Var);
@@ -86,17 +89,21 @@ public class SpendDeductZkp extends DelegateProtocol {
         builder.addSubprotocol("C1", new LinearStatementFragment(commonInput.commitmentC1.expr().isEqualTo(pp.getG1())));
 
         // C=(H.pow(usk, esk^*_usr, dsrnd^*_0, dsrnd^*_1, v-k, z^*, t^*), g_1^(u^*)) split into two subprotocols
-        var cPre0Statement = H.pow(new Vector<>(
-                uskVar,
-                eskStarUserVar,
-                dsrndStar0Var,
-                dsrndStar1Var,
-                vVar.sub(zn.valueOf(commonInput.k)),
-                zStarVar,
-                tStarVar
-        )).reduce(GroupElementExpression::op).isEqualTo(commonInput.c0Pre.pow(uStarVar.invert())); // How to make this linear?
-        // builder.addSubprotocol("C0Pre", new LinearStatementFragment(cPre0Statement));
+        var exponents = new Vector<>(uskVar, BigInteger.ZERO, dsrndStar0Var, dsrndStar1Var, vVar.sub(zn.valueOf(commonInput.k)), zStarVar, tStarVar); // 0 because h_2^(esk^*_usr) is handled separately
+        GroupElementExpression eskPart = groupG1.getNeutralElement().expr();
+        for (int i = 0; i< commonInput.eskDecVectorSize; i++) {
+            eskPart = eskPart.op(H.get(1).pow(eskDecVarVector[i].mul(pp.getEskDecBase().pow(BigInteger.valueOf(i)))));
+        }
+
+        var cPre0Statement = H.pow(exponents).reduce(GroupElementExpression::op).op(eskPart).isEqualTo(commonInput.c0Pre.pow(uStarInverseVar));
+        builder.addSubprotocol("C0Pre", new LinearStatementFragment(cPre0Statement));
         builder.addSubprotocol("C1Pre", new LinearStatementFragment(commonInput.c1Pre.expr().isEqualTo(pp.getG1().pow(uStarVar))));
+        builder.addSubprotocol("u^*-inverse", new LinearStatementFragment(commonInput.c1Pre.pow(uStarInverseVar).isEqualTo(pp.getG1()))); // Prove that the inverse is actually the inverse
+
+        // esk^*_(usr,i)\in[base]
+        for (int i = 0; i< commonInput.eskDecVectorSize; i++) {
+            builder.addSubprotocol("eskDigitSetMembership_" + i, new SetMembershipFragment(pp.getEskBaseSetMembershipPublicParameters(), eskDecVarVector[i]));
+        }
 
         return builder.build();
     }
@@ -113,13 +120,21 @@ public class SpendDeductZkp extends DelegateProtocol {
         builder.putWitnessValue("dsrnd1", secretInput.dsrnd1);
         builder.putWitnessValue("dsrndStar0", secretInput.dsrndStar0);
         builder.putWitnessValue("dsrndStar1", secretInput.dsrndStar1);
-        builder.putWitnessValue("eskStarUser", secretInput.eskStarUser);
         builder.putWitnessValue("v", secretInput.v);
         builder.putWitnessValue("z", secretInput.z);
         builder.putWitnessValue("t", secretInput.t);
         builder.putWitnessValue("zStar", secretInput.zStar);
-        builder.putWitnessValue("tStar", secretInput.zStar);
+        builder.putWitnessValue("tStar", secretInput.tStar);
         builder.putWitnessValue("uStar", secretInput.uStar);
+        builder.putWitnessValue("uStarInverse", secretInput.uStar.inv());
+
+        assert commonInput.eskDecVectorSize == secretInput.eskStarUserDec.length();
+        for (int i = 0; i < commonInput.eskDecVectorSize; i++) {
+            builder.putWitnessValue("eskStarUserDec_" + i, secretInput.eskStarUserDec.get(i));
+        }
+
+        // Ensure that decomposition works
+        assert secretInput.eskStarUser.equals(secretInput.eskStarUserDec.map((integer, znElement) -> znElement.mul(pp.getEskDecBase().pow(BigInteger.valueOf(integer)))).reduce(Zn.ZnElement::add));
 
         return builder.build();
     }

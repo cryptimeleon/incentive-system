@@ -22,6 +22,8 @@ public class PublicParameterTest {
         var pp = IncentiveSystem.setup();
         var deserializedPP = new IncentivePublicParameters(pp.getRepresentation());
 
+        System.out.println(pp.toString());
+        System.out.println(deserializedPP.toString());
         assertEquals(deserializedPP, pp);
     }
 }

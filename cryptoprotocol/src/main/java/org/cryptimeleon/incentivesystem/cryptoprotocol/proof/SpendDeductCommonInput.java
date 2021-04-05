@@ -10,6 +10,7 @@ import java.math.BigInteger;
 
 @AllArgsConstructor
 public class SpendDeductCommonInput implements CommonInput {
+    public final int eskDecVectorSize;
     public final BigInteger k;
     public final Zn.ZnElement gamma;
     public final Zn.ZnElement c0;

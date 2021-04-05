@@ -5,7 +5,6 @@ import org.cryptimeleon.incentivesystem.cryptoprotocol.IncentiveSystem;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.SpendRequest;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.proof.SpendDeductZkp;
 import org.cryptimeleon.math.structures.cartesian.Vector;
-import org.cryptimeleon.math.structures.rings.integers.IntegerRing;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.junit.jupiter.api.Test;
 
@@ -25,8 +24,6 @@ public class SpendDeductTest {
 
         BigInteger k = BigInteger.valueOf(4);
         var token = Helper.generateToken(pp, userKeyPair, providerKeyPair, k);
-        var base = zp.valueOf(17); // TODO which value to choose? Check BA?
-        var numDigits = IntegerRing.decomposeIntoDigits(zp.getCharacteristic(), base.asInteger()).length;
 
         Zn.ZnElement eskUsrS = zp.getUniformlyRandomElement();
         Zn.ZnElement dsrnd0S = zp.getUniformlyRandomElement();
@@ -36,7 +33,7 @@ public class SpendDeductTest {
         Zn.ZnElement uS = zp.getUniformlyRandomElement();
         Vector<Zn.ZnElement> vectorR = Vector.generatePlain(
                 zp::getUniformlyRandomElement,
-                numDigits
+                pp.getNumEskDigits()
         );
 
         // length numDigits
