@@ -2,8 +2,10 @@ package org.cryptimeleon.incentivesystem.cryptoprotocol.proof;
 
 import lombok.AllArgsConstructor;
 import org.cryptimeleon.craco.protocols.CommonInput;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.model.SpendRequest;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.groups.GroupElement;
+import org.cryptimeleon.math.structures.groups.cartesian.GroupElementVector;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 import java.math.BigInteger;
@@ -19,6 +21,23 @@ public class SpendDeductCommonInput implements CommonInput {
     public final GroupElement c1Pre;
     public final GroupElement commitmentC0;
     public final GroupElement commitmentC1;
-    public final Vector<GroupElement> ctrace0;
-    public final Vector<GroupElement> ctrace1;
+    public final GroupElementVector ctrace0;
+    public final GroupElementVector ctrace1;
+
+    /**
+     * Alternative Constructor using a SpendRequest as input
+     */
+    public SpendDeductCommonInput(SpendRequest spendRequest, BigInteger earnAmount, Zn.ZnElement gamma) {
+        this.k = earnAmount;
+        this.gamma = gamma;
+        this.c0 = spendRequest.getC0();
+        this.c1 = spendRequest.getC1();
+        this.dsid = spendRequest.getDsid();
+        this.c0Pre = spendRequest.getCPre0();
+        this.c1Pre = spendRequest.getCPre1();
+        this.commitmentC0 = spendRequest.getCommitmentC0();
+        this.commitmentC1 = spendRequest.getCommitmentC1();
+        this.ctrace0 = spendRequest.getCtrace0();
+        this.ctrace1 = spendRequest.getCtrace1();
+    }
 }

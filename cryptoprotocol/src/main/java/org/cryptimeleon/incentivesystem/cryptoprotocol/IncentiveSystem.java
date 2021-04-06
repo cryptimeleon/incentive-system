@@ -177,6 +177,7 @@ public class IncentiveSystem {
         var cPre1 = pp.getG1().pow(uS);
 
         var gamma = Util.hashGamma(zp, k, dsid, tid, cPre0, cPre1);
+        System.out.println(gamma);
 
         var c0 = usk.mul(gamma).add(token.getDoubleSpendRandomness0());
         var c1 = esk.mul(gamma).add(token.getDoubleSpendRandomness1());
@@ -230,17 +231,9 @@ public class IncentiveSystem {
         var proof = spendRequest.getSpendDeductZkp();
         var gamma = Util.hashGamma(pp.getBg().getZn(), earnAmount, spendRequest.getDsid(), tid, spendRequest.getCPre0(), spendRequest.getCPre1());
         var commonInput = new SpendDeductCommonInput(
+                spendRequest,
                 earnAmount,
-                gamma,
-                spendRequest.getC0(),
-                spendRequest.getC1(),
-                spendRequest.getDsid(),
-                spendRequest.getCPre0(),
-                spendRequest.getCPre1(),
-                spendRequest.getCommitmentC0(),
-                spendRequest.getCommitmentC1(),
-                spendRequest.getCtrace0(),
-                spendRequest.getCtrace1());
+                gamma);
         assert fiatShamirProofSystem.checkProof(commonInput, proof);
     }
 

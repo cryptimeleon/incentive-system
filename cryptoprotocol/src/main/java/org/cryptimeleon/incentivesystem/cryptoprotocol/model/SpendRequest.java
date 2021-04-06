@@ -81,8 +81,8 @@ public class SpendRequest implements Representable {
         this.ctrace1 = groupG1.restoreVector(listRepr.get(8));
 
         var gamma = Util.hashGamma(zn, k, dsid, tid, cPre0, cPre1);
+        System.out.println(gamma.toString());
         var spendDeductCommonInput = new SpendDeductCommonInput(k, gamma, c0, c1, dsid, cPre0, cPre1, commitmentC0, commitmentC1, ctrace0, ctrace1);
         this.spendDeductZkp = fiatShamirProofSystem.restoreProof(spendDeductCommonInput, listRepr.get(9));
-
     }
 }

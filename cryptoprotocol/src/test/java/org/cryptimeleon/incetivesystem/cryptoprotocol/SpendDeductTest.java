@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 public class SpendDeductTest {
 
     @Test
@@ -60,6 +62,7 @@ public class SpendDeductTest {
 
         var fiatShamirProofSystem = new FiatShamirProofSystem(new SpendDeductZkp(pp, providerKeyPair.getPk()));
         var deserializedSpendRequest = new SpendRequest(serializedSpendRequest, pp, fiatShamirProofSystem, k, tid);
+        assertEquals(spendRequest, deserializedSpendRequest);
 
         incentiveSystem.generateSpendRequestResponse(deserializedSpendRequest, providerKeyPair, k, tid);
     }
