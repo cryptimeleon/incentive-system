@@ -21,13 +21,12 @@ public class SpendDeductTest {
         var providerKeyPair = incentiveSystem.generateProviderKeys();
         var userKeyPair = incentiveSystem.generateUserKeys();
         var zp = pp.getBg().getZn();
-        System.out.println(zp.getCharacteristic().bitLength());
-        var s = zp.getUniformlyRandomNonzeroElement(); // TODO this should become part of the methods using a PRF
 
         BigInteger budget = BigInteger.valueOf(7);
         BigInteger k = BigInteger.valueOf(4);
         var token = Helper.generateToken(pp, userKeyPair, providerKeyPair, budget);
 
+        // TODO retrieve these using PRF?
         Zn.ZnElement eskUsrS = zp.getUniformlyRandomElement();
         Zn.ZnElement dsrnd0S = zp.getUniformlyRandomElement();
         Zn.ZnElement dsrnd1S = zp.getUniformlyRandomElement();
@@ -64,6 +63,10 @@ public class SpendDeductTest {
         var deserializedSpendRequest = new SpendRequest(serializedSpendRequest, pp, fiatShamirProofSystem, k, tid);
         assertEquals(spendRequest, deserializedSpendRequest);
 
-        incentiveSystem.generateSpendRequestResponse(deserializedSpendRequest, providerKeyPair, k, tid);
+        var proverOutput = incentiveSystem.generateSpendRequestResponse(deserializedSpendRequest, providerKeyPair, k, tid);
+        var spendResponse = proverOutput.getSpendResponse();
+        var doubleSpendingTag = proverOutput.getDstag();
+
+        var newToken = incentiveSystem.handleSpendRequestResponse(spendResponse, spendRequest, token, providerKeyPair.getPk(), k, userKeyPair, eskUsrS, dsrnd0S, dsrnd1S, zS, tS, uS, vectorR, tid);
     }
 }

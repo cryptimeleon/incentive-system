@@ -1,11 +1,10 @@
 package org.cryptimeleon.incentivesystem.cryptoprotocol;
 
+import org.cryptimeleon.craco.common.plaintexts.GroupElementPlainText;
+import org.cryptimeleon.craco.common.plaintexts.MessageBlock;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
-import org.cryptimeleon.incentivesystem.cryptoprotocol.model.EarnRequest;
-import org.cryptimeleon.incentivesystem.cryptoprotocol.model.IncentivePublicParameters;
-import org.cryptimeleon.incentivesystem.cryptoprotocol.model.SpendRequest;
-import org.cryptimeleon.incentivesystem.cryptoprotocol.model.Token;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.model.*;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserKeyPair;
@@ -177,7 +176,6 @@ public class IncentiveSystem {
         var cPre1 = pp.getG1().pow(uS);
 
         var gamma = Util.hashGamma(zp, k, dsid, tid, cPre0, cPre1);
-        System.out.println(gamma);
 
         var c0 = usk.mul(gamma).add(token.getDoubleSpendRandomness0());
         var c1 = esk.mul(gamma).add(token.getDoubleSpendRandomness1());
@@ -223,21 +221,76 @@ public class IncentiveSystem {
                 ctrace1);
         var proof = fiatShamirProofSystem.createProof(commonInput, witness);
 
-        return new SpendRequest(dsid, proof, c0, c1, cPre0, cPre1, ctrace0, ctrace1, token.getC1(), token.getC2());
+        return new SpendRequest(dsid, proof, c0, c1, cPre0, cPre1, ctrace0, ctrace1, token.getC1(), token.getC2(), token.getSignature());
     }
 
-    public void generateSpendRequestResponse(SpendRequest spendRequest, ProviderKeyPair providerKeyPair, BigInteger earnAmount, Zn.ZnElement tid) {
+    public SpendProverOutput generateSpendRequestResponse(SpendRequest spendRequest, ProviderKeyPair providerKeyPair, BigInteger earnAmount, Zn.ZnElement tid) {
+        // SPSEQ.verify
+        var signatureValid = pp.getSpsEq().verify(
+                providerKeyPair.getPk().getPkSpsEq(),
+                spendRequest.getSigma(),
+                spendRequest.getCommitmentC0(),
+                spendRequest.getCommitmentC1()
+        );
+        assert signatureValid;
+
+        // Validate ZKP
         var fiatShamirProofSystem = new FiatShamirProofSystem(new SpendDeductZkp(pp, providerKeyPair.getPk()));
-        var proof = spendRequest.getSpendDeductZkp();
         var gamma = Util.hashGamma(pp.getBg().getZn(), earnAmount, spendRequest.getDsid(), tid, spendRequest.getCPre0(), spendRequest.getCPre1());
-        var commonInput = new SpendDeductCommonInput(
-                spendRequest,
-                earnAmount,
-                gamma);
-        assert fiatShamirProofSystem.checkProof(commonInput, proof);
+        var commonInput = new SpendDeductCommonInput(spendRequest, earnAmount, gamma);
+        assert fiatShamirProofSystem.checkProof(commonInput, spendRequest.getSpendDeductZkp());
+
+        // TODO retrieve esk_prov via PRF
+        var eskStarProv = pp.getBg().getZn().getUniformlyRandomElement();
+
+        // Compute new Signature
+        var cPre0 = spendRequest.getCPre0();
+        var cPre1 = spendRequest.getCPre1();
+        var sigmaPrime = (SPSEQSignature) pp.getSpsEq().sign(
+                providerKeyPair.getSk().getSkSpsEq(),
+                cPre0.op(cPre1.pow(eskStarProv.mul(providerKeyPair.getSk().getQ().get(1)))),
+                cPre1
+        );
+
+        return new SpendProverOutput(
+                new SpendResponse(sigmaPrime, eskStarProv),
+                new DoubleSpendingTag(commonInput.c0, commonInput.c1, gamma, eskStarProv, commonInput.ctrace0, commonInput.ctrace1)
+        );
+
+
     }
 
-    void handleSpendRequestResponse() {
+    public Token handleSpendRequestResponse(SpendResponse spendResponse,
+                                            SpendRequest spendRequest,
+                                            Token token,
+                                            ProviderPublicKey providerPublicKey,
+                                            BigInteger k,
+                                            UserKeyPair userKeyPair,
+                                            Zn.ZnElement eskUsrS,
+                                            Zn.ZnElement dsrnd0S,
+                                            Zn.ZnElement dsrnd1S,
+                                            Zn.ZnElement zS,
+                                            Zn.ZnElement tS,
+                                            Zn.ZnElement uS,
+                                            Vector<Zn.ZnElement> vectorR, // length numDigits
+                                            Zn.ZnElement tid) {
+        // SPSEQ.verify and chgRep
+        var cStar0 = spendRequest.getCPre0().op(providerPublicKey.getH().get(1).pow(spendResponse.getEskProvStar().mul(uS)));
+        var cStar1 = spendRequest.getCPre1(); // TODO or just use g_1?
+        var sigmaStar = (SPSEQSignature) pp.getSpsEq().chgRepWithVerify(
+                new MessageBlock(new GroupElementPlainText(cStar0), new GroupElementPlainText(cStar1)),
+                spendResponse.getSigma(),
+                uS.inv(),
+                providerPublicKey.getPkSpsEq());
+        // Change representation of commitments
+        cStar0 = cStar0.pow(uS.inv());
+        cStar1 = cStar1.pow(uS.inv()); // TODO: this is just 'pp.getG1()'
+
+        // Compute new esk
+        var eskStar = eskUsrS.add(spendResponse.getEskProvStar());
+
+        // Assemble new token
+        return new Token(cStar0, cStar1, eskStar, dsrnd0S, dsrnd1S, zS, tS, token.getPoints().sub(pp.getBg().getZn().valueOf(k)), sigmaStar);
     }
 
     void link() {
