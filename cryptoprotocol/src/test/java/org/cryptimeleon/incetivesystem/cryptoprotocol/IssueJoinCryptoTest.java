@@ -2,6 +2,7 @@ package org.cryptimeleon.incetivesystem.cryptoprotocol;
 
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProof;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
+import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.IncentiveSystem;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.Setup;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.IncentivePublicParameters;
@@ -9,6 +10,7 @@ import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.Provi
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.messages.JoinRequest;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.model.messages.JoinResponse;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.proofs.CommitmentWellformednessCommonInput;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.proofs.CommitmentWellformednessProtocol;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.proofs.CommitmentWellformednessWitness;
@@ -89,7 +91,7 @@ public class IssueJoinCryptoTest
         GroupElement c0Pre = group1.getUniformlyRandomElement();
         GroupElement c1Pre = group1.getUniformlyRandomElement();
 
-        // create dummy values for creation of dummy cwf proof (upk, randomness)
+        // create dummy values for creation of dummy cwf proof (upk, randomness) TODO: use PRFtoZn to generate exponents
         GroupElement upk = group1.getUniformlyRandomElement(); // create dummy user public key
         ZnElement usk = pp.getBg().getZn().getUniformlyRandomElement();
         ZnElement eskUsr = pp.getBg().getZn().getUniformlyRandomElement();
@@ -115,7 +117,7 @@ public class IssueJoinCryptoTest
         // check original and deserialized join request for equality
         Assertions.assertTrue(jReq.getPreCommitment0().equals(deserializedJReq.getPreCommitment0()));
         Assertions.assertTrue(jReq.getPreCommitment1().equals(deserializedJReq.getPreCommitment1()));
-        // TODO: how to check proofs + common inputs for equality? -> implement equals-method?
+        // TODO: how to check proofs + common inputs for equality? -> implement equals-method? do they even need to be part of the request?
     }
 
     /**
@@ -131,6 +133,27 @@ public class IssueJoinCryptoTest
         // extract used remainder class ring from public parameters
         Zn usedZn = pp.getBg().getZn();
 
-        // TODO: finish test method
+        // extract group from which elements of the SPSEQ signature are drawn
+        Group group1 = pp.getBg().getG1();
+
+        // draw random group elements and form a valid SPS-EQ signature
+        GroupElement a1 = group1.getUniformlyRandomElement();
+        GroupElement a2 = group1.getUniformlyRandomElement();
+        GroupElement a3 = group1.getUniformlyRandomElement();
+        SPSEQSignature preCertificate = new SPSEQSignature(a1, a2, a3);
+
+        // draw random provider share for the encryption secret key for the join response
+        ZnElement eskProv = usedZn.getUniformlyRandomElement();
+
+        // generate dummy join response
+        JoinResponse jRes = new JoinResponse(preCertificate, eskProv);
+
+        // serialize + deserialize join response
+        Representation jResRepr = jRes.getRepresentation();
+        JoinResponse deserializedJRes = new JoinResponse(jResRepr, pp);
+
+        // check original and deserialized join response for equality
+        Assertions.assertTrue(jRes.getPreCertificate().equals(deserializedJRes.getPreCertificate()));
+        Assertions.assertTrue(jRes.getEskProv().equals(deserializedJRes.getEskProv()));
     }
 }

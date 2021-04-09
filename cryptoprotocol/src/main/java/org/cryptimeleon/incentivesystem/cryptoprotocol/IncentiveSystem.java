@@ -67,7 +67,7 @@ public class IncentiveSystem {
 
         // TODO: generate random values needed for generation of fresh user token using PRF
         //  (currently, they are passed as method parameters until PRF stuff has been figured out),
-        //  use Paul's stuff
+        //  use Paul's stuff (see notes)
 
         // compute Pedersen commitment for user token
         RingElementVector exponents = new RingElementVector(usk.getUsk(), eskUsr, dsrnd0, dsrnd1, pp.getBg().getZn().getZeroElement(), z); // need to retrieve exponent from usk object; point count of 0 is reresented by zero in used Z_n
