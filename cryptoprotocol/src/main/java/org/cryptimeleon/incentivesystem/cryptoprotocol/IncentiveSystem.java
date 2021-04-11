@@ -13,7 +13,6 @@ import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.Provi
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserSecretKey;
-import org.cryptimeleon.incentivesystem.cryptoprotocol.model.messages.JoinOutput;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.messages.JoinRequest;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.messages.JoinResponse;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.proofs.CommitmentWellformednessCommonInput;
@@ -81,7 +80,7 @@ public class IncentiveSystem {
         FiatShamirProof cwfProof = cwfProofSystem.createProof(cwfCommon, cwfWitness);
 
         // assemble and return join request object (commitment, proof of well-formedness)
-        return new JoinRequest(c0Pre, c1Pre, cwfProof, cwfCommon);
+        return new JoinRequest(c0Pre, c1Pre, cwfProof);
     }
 
     /**
@@ -89,11 +88,12 @@ public class IncentiveSystem {
      * included preliminary commitment after adding the provider's share for the tracking key esk.
      * @param pp public parameters of the respective incentive system instance
      * @param pkp key pair of the provider
+     * @param upk public key of user (needed to restore upk needed to check validity of the commitment well-formedness proof)
      * @param jr join request to be handled
      * @return join response, i.e. object representing the third message in the Issue-Join protocol
      * @throws IllegalArgumentException indicating that the proof for commitment well-formedness was rejected
      */
-    public JoinResponse generateJoinRequestResponse(IncentivePublicParameters pp, ProviderKeyPair pkp, JoinRequest jr) throws IllegalArgumentException {
+    public JoinResponse generateJoinRequestResponse(IncentivePublicParameters pp, ProviderKeyPair pkp, GroupElement upk, JoinRequest jr) throws IllegalArgumentException {
         ProviderPublicKey pk = pkp.getPk();
         ProviderSecretKey sk = pkp.getSk();
 
@@ -101,7 +101,9 @@ public class IncentiveSystem {
         GroupElement c0Pre = jr.getPreCommitment0();
         GroupElement c1Pre = jr.getPreCommitment1();
         FiatShamirProof cwfProof = jr.getCwfProof();
-        CommitmentWellformednessCommonInput cwfProofCommonInput = jr.getCwfProofCommonInput();
+
+        // reassemble common input for the commitment well-formedness proof
+        CommitmentWellformednessCommonInput cwfProofCommonInput = new CommitmentWellformednessCommonInput(upk, c0Pre, c1Pre);
 
         // check commitment well-formedness proof for validity
         FiatShamirProofSystem cwfProofSystem = new FiatShamirProofSystem(new CommitmentWellformednessProtocol(pp, pk));
@@ -165,17 +167,7 @@ public class IncentiveSystem {
      */
 
     void generateEarnRequest(Token token, UserKeyPair userKeyPair, ProviderPublicKey providerPublicKey) {
-        // change representative call to blind commitment and certificate
-        var pk = userKeyPair.getPk();
-        var sk = userKeyPair.getSk();
 
-        Zn usedZn = pp.getBg().getZn(); // draw blinding value
-        var s = usedZn.getUniformlyRandomNonzeroElement(); // s cannot be zero since we need to compute its inverse to unblind the signature
-
-        var certificate = token.getSignature();
-        var provSPSPk = providerPublicKey.getPkSpsEq(); // store SPS EQ verification key from provider public key
-        var blindedCommitment = token.getCommitment().pow(s); // computing another representative with blinding randomness (the implemented SPS-EQ is over R_exp)
-        var blindedCertificate = (SPSEQSignature) pp.getSpsEq().chgRep(certificate, s, provSPSPk); // note: in contrast to formal specification, chgrep only takes three arguments (no message) and thus only updates the signature
     }
 
     void generateEarnRequestResponse() {

@@ -33,11 +33,7 @@ public class JoinRequest implements Representable {
     @Represented
     private FiatShamirProof cwfProof; // proof for well-formedness of token and knowledge of usk corresp. to upk
 
-    @NonFinal
-    @Represented
-    private CommitmentWellformednessCommonInput cwfProofCommonInput; // common input of proof for well-formedness of token and knowledge of usk corresp. to upk
-
-    public JoinRequest(Representation repr, IncentivePublicParameters pp, FiatShamirProofSystem fsps) {
+    public JoinRequest(Representation repr, IncentivePublicParameters pp, FiatShamirProofSystem fsps, CommitmentWellformednessCommonInput cwfProofCommonInput) {
         // automatic deserialization of the fields where it is possible
         new ReprUtil(this)
                 .register(pp.getBg().getZn(), "Zn")
@@ -48,11 +44,8 @@ public class JoinRequest implements Representable {
         Representation proofRepr = repr.obj().get("cwfProof");
         Representation proofCommonInputRepr = repr.obj().get("cwfProofCommonInput");
 
-        // restore common input
-        this.cwfProofCommonInput = new CommitmentWellformednessCommonInput(proofCommonInputRepr, pp);
-
         // restore proof using common input and passed proof system
-        this.cwfProof = fsps.restoreProof(this.cwfProofCommonInput, proofRepr);
+        this.cwfProof = fsps.restoreProof(cwfProofCommonInput, proofRepr);
     }
 
     public Representation getRepresentation()
