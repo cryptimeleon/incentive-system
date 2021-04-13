@@ -42,7 +42,6 @@ public class JoinRequest implements Representable {
 
         // obtain a representation of the commitment well-formedness proof and the common input
         Representation proofRepr = repr.obj().get("cwfProof");
-        Representation proofCommonInputRepr = repr.obj().get("cwfProofCommonInput");
 
         // restore proof using common input and passed proof system
         this.cwfProof = fsps.restoreProof(cwfProofCommonInput, proofRepr);

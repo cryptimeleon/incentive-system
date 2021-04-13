@@ -7,6 +7,7 @@ import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignatureScheme;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.IncentiveSystem;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.Setup;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.IncentivePublicParameters;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.messages.JoinRequest;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.messages.JoinResponse;
@@ -74,7 +75,7 @@ public class IssueJoinCryptoTest
 
         // check output token for sanity (certficate valid, zero points)
         SPSEQSignatureScheme usedSpsEq = incSys.getPp().getSpsEq();
-        Assertions.assertTrue(usedSpsEq.verify(pkp.getPk(), testOutput.getCommitment0(), testOutput.getCommitment1())); // TODO: fix craco dependency so Java finds this method
+        Assertions.assertTrue(usedSpsEq.verify(pkp.getPk().getPkSpsEq(), testOutput.getSignature(), testOutput.getCommitment0(), testOutput.getCommitment1()));
         Assertions.assertTrue(testOutput.getPoints().asInteger().compareTo(BigInteger.ZERO) == 0);
     }
 
@@ -106,9 +107,10 @@ public class IssueJoinCryptoTest
         ZnElement uInverse = pp.getBg().getZn().getUniformlyRandomElement();
 
         // create a dummy cwf proof + common input
+        ProviderKeyPair pkp = Setup.providerKeyGen(pp);
         CommitmentWellformednessCommonInput cwfProofCommonInput = new CommitmentWellformednessCommonInput(upk, c0Pre, c1Pre);
         CommitmentWellformednessWitness cwfProofWitness = new CommitmentWellformednessWitness(usk, eskUsr, dsrnd0, dsrnd1, z, t, uInverse);
-        FiatShamirProofSystem fsps = new FiatShamirProofSystem(new CommitmentWellformednessProtocol(pp, new ProviderPublicKey(null, null)));
+        FiatShamirProofSystem fsps = new FiatShamirProofSystem(new CommitmentWellformednessProtocol(pp, pkp.getPk()));
         FiatShamirProof cwfProof = fsps.createProof(cwfProofCommonInput, cwfProofWitness);
 
         // generate dummy join request

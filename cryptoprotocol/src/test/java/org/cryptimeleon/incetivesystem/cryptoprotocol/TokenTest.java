@@ -38,6 +38,7 @@ public class TokenTest {
         logger.info("Testing represention of tokens");
         var token = new Token(
                 g1.getUniformlyRandomElement(),
+                g1.getUniformlyRandomElement(),
                 zp.getUniformlyRandomNonzeroElement(),
                 zp.getUniformlyRandomElement(),
                 zp.getUniformlyRandomElement(),
