@@ -13,7 +13,7 @@ import java.math.BigInteger;
  * Common Input for the spend-deduct ZKP
  */
 @AllArgsConstructor
-public class SpendDeductCommonInput implements CommonInput {
+public class SpendDeductZkpCommonInput implements CommonInput {
     public final BigInteger k;
     public final Zn.ZnElement gamma;
     public final Zn.ZnElement c0;
@@ -29,7 +29,7 @@ public class SpendDeductCommonInput implements CommonInput {
     /**
      * Alternative Constructor using a SpendRequest as input
      */
-    public SpendDeductCommonInput(SpendRequest spendRequest, BigInteger earnAmount, Zn.ZnElement gamma) {
+    public SpendDeductZkpCommonInput(SpendRequest spendRequest, BigInteger earnAmount, Zn.ZnElement gamma) {
         this.k = earnAmount;
         this.gamma = gamma;
         this.c0 = spendRequest.getC0();

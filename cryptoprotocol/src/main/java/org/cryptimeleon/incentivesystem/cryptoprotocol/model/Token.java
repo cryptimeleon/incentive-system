@@ -1,6 +1,5 @@
 package org.cryptimeleon.incentivesystem.cryptoprotocol.model;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Value;
 import lombok.experimental.NonFinal;
@@ -15,7 +14,6 @@ import org.cryptimeleon.math.serialization.annotations.ReprUtil;
 import org.cryptimeleon.math.serialization.annotations.Represented;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
-
 
 /**
  * Data holding class representing a token from a mathematical point of view (meaning: as a bunch of group elements and exponents).

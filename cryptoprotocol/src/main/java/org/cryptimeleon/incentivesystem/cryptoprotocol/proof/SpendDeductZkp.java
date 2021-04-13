@@ -43,7 +43,7 @@ public class SpendDeductZkp extends DelegateProtocol {
 
     @Override
     protected SendThenDelegateFragment.SubprotocolSpec provideSubprotocolSpec(CommonInput pCommonInput, SendThenDelegateFragment.SubprotocolSpecBuilder builder) {
-        var commonInput = (SpendDeductCommonInput) pCommonInput;
+        var commonInput = (SpendDeductZkpCommonInput) pCommonInput;
         var H = new GroupElementExpressionVector(providerPublicKey.getH().pad(pp.getH7(), 7).map(GroupElement::expr));
         var w = pp.getW();
 
@@ -126,7 +126,7 @@ public class SpendDeductZkp extends DelegateProtocol {
 
     @Override
     protected SendThenDelegateFragment.ProverSpec provideProverSpecWithNoSendFirst(CommonInput pCommonInput, SecretInput pSecretInput, SendThenDelegateFragment.ProverSpecBuilder builder) {
-        var secretInput = (SpendDeductWitnessInput) pSecretInput;
+        var secretInput = (SpendDeductZkpWitnessInput) pSecretInput;
 
         // Add variables to witness
         builder.putWitnessValue("esk", secretInput.esk);

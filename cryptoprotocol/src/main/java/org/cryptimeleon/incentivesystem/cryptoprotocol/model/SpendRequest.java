@@ -7,7 +7,7 @@ import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProof;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.Util;
-import org.cryptimeleon.incentivesystem.cryptoprotocol.proof.SpendDeductCommonInput;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.proof.SpendDeductZkpCommonInput;
 import org.cryptimeleon.math.serialization.ListRepresentation;
 import org.cryptimeleon.math.serialization.Representable;
 import org.cryptimeleon.math.serialization.Representation;
@@ -90,7 +90,7 @@ public class SpendRequest implements Representable {
         this.ctrace1 = groupG1.restoreVector(listRepr.get(8));
 
         var gamma = Util.hashGamma(zn, k, dsid, tid, cPre0, cPre1);
-        var spendDeductCommonInput = new SpendDeductCommonInput(k, gamma, c0, c1, dsid, cPre0, cPre1, commitmentC0, commitmentC1, ctrace0, ctrace1);
+        var spendDeductCommonInput = new SpendDeductZkpCommonInput(k, gamma, c0, c1, dsid, cPre0, cPre1, commitmentC0, commitmentC1, ctrace0, ctrace1);
         this.spendDeductZkp = fiatShamirProofSystem.restoreProof(spendDeductCommonInput, listRepr.get(9));
         this.sigma = new SPSEQSignature(listRepr.get(10), groupG1, groupG2);
     }

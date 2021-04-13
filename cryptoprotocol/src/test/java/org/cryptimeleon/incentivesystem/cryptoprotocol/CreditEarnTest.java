@@ -30,8 +30,6 @@ public class CreditEarnTest {
 
         // Create a dummy token.
         // This should be replaced by the actual methods that handle tokens when they are implemented.
-        var zp = pp.getBg().getZn();
-
         var token = Helper.generateToken(pp, userKeyPair, providerKeyPair);
 
         assertTrue(pp.getSpsEq().verify(
@@ -64,7 +62,7 @@ public class CreditEarnTest {
         assertEquals(earnRequest, restoredEarnRequest);
 
         // Test representation of signature (to be sure)
-        var restoredSignature = new SPSEQSignature(signature.getRepresentation(), pp.getBg().getG1(), pp.getBg().getG2() );
+        var restoredSignature = new SPSEQSignature(signature.getRepresentation(), pp.getBg().getG1(), pp.getBg().getG2());
         assertEquals(signature, restoredSignature);
 
         assertEquals(

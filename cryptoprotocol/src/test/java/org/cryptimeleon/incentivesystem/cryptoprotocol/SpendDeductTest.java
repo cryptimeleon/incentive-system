@@ -2,6 +2,7 @@ package org.cryptimeleon.incentivesystem.cryptoprotocol;
 
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.SpendRequest;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.model.SpendResponse;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.proof.SpendDeductZkp;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.junit.jupiter.api.Test;
@@ -13,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class SpendDeductTest {
 
     @Test
-    void firstTest() {
+    void testSuccessFulCreditEarn() {
         var pp = IncentiveSystem.setup();
         var incentiveSystem = new IncentiveSystem(pp);
         var providerKeyPair = incentiveSystem.generateProviderKeys();
@@ -26,7 +27,6 @@ public class SpendDeductTest {
 
         // length numDigits
         Zn.ZnElement tid = zp.getUniformlyRandomElement();
-        // TODO how is this retrieved in practise?
 
         var spendRequest = incentiveSystem.generateSpendRequest(
                 token,
@@ -43,9 +43,10 @@ public class SpendDeductTest {
         assertEquals(spendRequest, deserializedSpendRequest);
 
         var proverOutput = incentiveSystem.generateSpendRequestResponse(deserializedSpendRequest, providerKeyPair, k, tid);
-        var spendResponse = proverOutput.getSpendResponse();
+        var serializedSpendResponse = proverOutput.getSpendResponse().getRepresentation();
         var doubleSpendingTag = proverOutput.getDstag();
 
-        var newToken = incentiveSystem.handleSpendRequestResponse(spendResponse, spendRequest, token, k, providerKeyPair.getPk(), userKeyPair);
+        var newToken = incentiveSystem.handleSpendRequestResponse(new SpendResponse(serializedSpendResponse, zp, pp.getSpsEq()), spendRequest, token, k, providerKeyPair.getPk(), userKeyPair);
+        assertEquals(newToken.getPoints().getInteger(), budget.subtract(k));
     }
 }

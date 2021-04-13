@@ -9,8 +9,8 @@ import org.cryptimeleon.incentivesystem.cryptoprotocol.model.*;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserKeyPair;
-import org.cryptimeleon.incentivesystem.cryptoprotocol.proof.SpendDeductCommonInput;
-import org.cryptimeleon.incentivesystem.cryptoprotocol.proof.SpendDeductWitnessInput;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.proof.SpendDeductZkpCommonInput;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.proof.SpendDeductZkpWitnessInput;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.proof.SpendDeductZkp;
 import org.cryptimeleon.math.hash.impl.ByteArrayAccumulator;
 import org.cryptimeleon.math.structures.cartesian.Vector;
@@ -214,8 +214,8 @@ public class IncentiveSystem {
         // + ZKP
         var fiatShamirProofSystem = new FiatShamirProofSystem(new SpendDeductZkp(pp, providerPublicKey));
 
-        var witness = new SpendDeductWitnessInput(usk, token.getPoints(), token.getZ(), zS, token.getT(), tS, uS, esk, eskUsrS, token.getDoubleSpendRandomness0(), dsrnd0S, token.getDoubleSpendRandomness1(), dsrnd1S, eskDecomp, vectorR);
-        var commonInput = new SpendDeductCommonInput(k, gamma, c0, c1, dsid, cPre0, cPre1, token.getC1(), token.getC2(), ctrace0, ctrace1);
+        var witness = new SpendDeductZkpWitnessInput(usk, token.getPoints(), token.getZ(), zS, token.getT(), tS, uS, esk, eskUsrS, token.getDoubleSpendRandomness0(), dsrnd0S, token.getDoubleSpendRandomness1(), dsrnd1S, eskDecomp, vectorR);
+        var commonInput = new SpendDeductZkpCommonInput(k, gamma, c0, c1, dsid, cPre0, cPre1, token.getC1(), token.getC2(), ctrace0, ctrace1);
         var proof = fiatShamirProofSystem.createProof(commonInput, witness);
 
         return new SpendRequest(dsid, proof, c0, c1, cPre0, cPre1, ctrace0, ctrace1, token.getC1(), token.getC2(), token.getSignature());
@@ -244,7 +244,7 @@ public class IncentiveSystem {
         // Validate ZKP
         var fiatShamirProofSystem = new FiatShamirProofSystem(new SpendDeductZkp(pp, providerKeyPair.getPk()));
         var gamma = Util.hashGamma(pp.getBg().getZn(), k, spendRequest.getDsid(), tid, spendRequest.getCPre0(), spendRequest.getCPre1());
-        var commonInput = new SpendDeductCommonInput(spendRequest, k, gamma);
+        var commonInput = new SpendDeductZkpCommonInput(spendRequest, k, gamma);
         assert fiatShamirProofSystem.checkProof(commonInput, spendRequest.getSpendDeductZkp());
 
         // Retrieve esk via PRF
