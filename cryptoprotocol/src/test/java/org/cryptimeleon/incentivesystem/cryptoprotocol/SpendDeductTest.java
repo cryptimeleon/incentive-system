@@ -46,6 +46,6 @@ public class SpendDeductTest {
         var spendResponse = proverOutput.getSpendResponse();
         var doubleSpendingTag = proverOutput.getDstag();
 
-        var newToken = incentiveSystem.handleSpendRequestResponse(spendResponse, spendRequest, token, providerKeyPair.getPk(), k, userKeyPair);
+        var newToken = incentiveSystem.handleSpendRequestResponse(spendResponse, spendRequest, token, k, providerKeyPair.getPk(), userKeyPair);
     }
 }

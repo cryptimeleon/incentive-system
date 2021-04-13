@@ -17,6 +17,9 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 import java.math.BigInteger;
 
+/**
+ * Data class for the request sent by a user in spend-deduct.
+ */
 @Value
 @AllArgsConstructor
 public class SpendRequest implements Representable {
@@ -67,7 +70,7 @@ public class SpendRequest implements Representable {
                 ctrace1.getRepresentation(),
                 spendDeductZkp.getRepresentation(),
                 sigma.getRepresentation()
-                );
+        );
     }
 
     public SpendRequest(Representation repr, IncentivePublicParameters pp, FiatShamirProofSystem fiatShamirProofSystem, BigInteger k, Zn.ZnElement tid) {

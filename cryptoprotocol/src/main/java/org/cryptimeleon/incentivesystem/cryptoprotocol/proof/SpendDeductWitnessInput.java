@@ -5,6 +5,9 @@ import org.cryptimeleon.craco.protocols.SecretInput;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
+/**
+ * Witness for the spend-deduct ZKP
+ */
 @AllArgsConstructor
 public class SpendDeductWitnessInput implements SecretInput {
     public final Zn.ZnElement usk;

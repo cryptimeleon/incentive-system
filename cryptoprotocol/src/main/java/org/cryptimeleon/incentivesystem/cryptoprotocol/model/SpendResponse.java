@@ -11,6 +11,9 @@ import org.cryptimeleon.math.serialization.annotations.ReprUtil;
 import org.cryptimeleon.math.serialization.annotations.Represented;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
+/**
+ * Provider's response to a spend-deduct request.
+ */
 @Value
 @AllArgsConstructor
 public class SpendResponse implements Representable {

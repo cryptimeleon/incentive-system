@@ -23,6 +23,9 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 import java.math.BigInteger;
 
+/**
+ * The ZKP used in the spend-deduct protocol
+ */
 public class SpendDeductZkp extends DelegateProtocol {
 
     private final IncentivePublicParameters pp;
@@ -123,7 +126,6 @@ public class SpendDeductZkp extends DelegateProtocol {
 
     @Override
     protected SendThenDelegateFragment.ProverSpec provideProverSpecWithNoSendFirst(CommonInput pCommonInput, SecretInput pSecretInput, SendThenDelegateFragment.ProverSpecBuilder builder) {
-        var commonInput = (SpendDeductCommonInput) pCommonInput;
         var secretInput = (SpendDeductWitnessInput) pSecretInput;
 
         // Add variables to witness
@@ -141,13 +143,13 @@ public class SpendDeductZkp extends DelegateProtocol {
         builder.putWitnessValue("uStar", secretInput.uStar);
         builder.putWitnessValue("uStarInverse", secretInput.uStar.inv());
 
-        // assert pp.getNumEskDigits() == secretInput.eskStarUserDec.length();
         for (int i = 0; i < pp.getNumEskDigits(); i++) {
             builder.putWitnessValue("eskStarUserDec_" + i, secretInput.eskStarUserDec.get(i));
             builder.putWitnessValue("r_" + i, secretInput.rVector.get(i));
         }
 
-        // Ensure that decomposition works, TODO: remove this, only for debugging
+        // Some asserts that might be useful for debugging:
+        // assert pp.getNumEskDigits() == secretInput.eskStarUserDec.length();
         // assert secretInput.eskStarUser.equals(secretInput.eskStarUserDec.map((integer, znElement) -> znElement.mul(pp.getEskDecBase().pow(BigInteger.valueOf(integer)))).reduce(Zn.ZnElement::add));
         // assert commonInput.ctrace0.equals(pp.getW().pow(secretInput.rVector));
         // assert commonInput.ctrace1.equals(commonInput.ctrace0.pow(secretInput.esk).op(pp.getW().pow(secretInput.eskStarUserDec)));

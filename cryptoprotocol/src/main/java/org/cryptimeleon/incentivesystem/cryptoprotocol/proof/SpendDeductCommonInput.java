@@ -3,13 +3,15 @@ package org.cryptimeleon.incentivesystem.cryptoprotocol.proof;
 import lombok.AllArgsConstructor;
 import org.cryptimeleon.craco.protocols.CommonInput;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.SpendRequest;
-import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.groups.cartesian.GroupElementVector;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 import java.math.BigInteger;
 
+/**
+ * Common Input for the spend-deduct ZKP
+ */
 @AllArgsConstructor
 public class SpendDeductCommonInput implements CommonInput {
     public final BigInteger k;

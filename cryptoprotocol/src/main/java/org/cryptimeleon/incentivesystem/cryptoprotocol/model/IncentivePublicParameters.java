@@ -1,7 +1,7 @@
 package org.cryptimeleon.incentivesystem.cryptoprotocol.model;
 
+import lombok.EqualsAndHashCode;
 import org.cryptimeleon.craco.common.PublicParameters;
-import org.cryptimeleon.craco.prf.aes.AesPseudorandomFunction;
 import org.cryptimeleon.craco.prf.zn.HashThenPrfToZn;
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.setmembership.SetMembershipPublicParameters;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignatureScheme;
@@ -14,11 +14,11 @@ import org.cryptimeleon.math.structures.groups.elliptic.BilinearGroup;
 import org.cryptimeleon.math.structures.rings.integers.IntegerRing;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
-import java.util.Objects;
 
 /**
  * A class representing the public parameters of the 2020 incentive system
  */
+@EqualsAndHashCode
 public class IncentivePublicParameters implements PublicParameters {
     @Represented
     private BilinearGroup bg;
@@ -133,18 +133,5 @@ public class IncentivePublicParameters implements PublicParameters {
 
     public SetMembershipPublicParameters getEskBaseSetMembershipPublicParameters() {
         return eskBaseSetMembershipPublicParameters;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        IncentivePublicParameters that = (IncentivePublicParameters) o;
-        return numEskDigits == that.numEskDigits && Objects.equals(bg, that.bg) && Objects.equals(w, that.w) && Objects.equals(h7, that.h7) && Objects.equals(g1, that.g1) && Objects.equals(g2, that.g2) && Objects.equals(prfToZn, that.prfToZn) && Objects.equals(spsEq, that.spsEq) && Objects.equals(eskDecBase, that.eskDecBase) && Objects.equals(maxPointBasePower, that.maxPointBasePower) && Objects.equals(eskBaseSetMembershipPublicParameters, that.eskBaseSetMembershipPublicParameters);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(bg, w, h7, g1, g2, prfToZn, spsEq, eskDecBase, maxPointBasePower, eskBaseSetMembershipPublicParameters, numEskDigits);
     }
 }

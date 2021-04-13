@@ -158,7 +158,7 @@ public class IncentiveSystem {
                                              ProviderPublicKey providerPublicKey,
                                              BigInteger k,
                                              UserKeyPair userKeyPair,
-                                             Zn.ZnElement tid // TODO how is this retrieved in practise?
+                                             Zn.ZnElement tid
     ) {
         var zp = pp.getBg().getZn();
         var usk = userKeyPair.getSk().getUsk();
@@ -208,34 +208,8 @@ public class IncentiveSystem {
         // + ZKP
         var fiatShamirProofSystem = new FiatShamirProofSystem(new SpendDeductZkp(pp, providerPublicKey));
 
-        var witness = new SpendDeductWitnessInput(
-                usk,
-                token.getPoints(),
-                token.getZ(),
-                zS,
-                token.getT(),
-                tS,
-                uS,
-                esk,
-                eskUsrS,
-                token.getDoubleSpendRandomness0(),
-                dsrnd0S,
-                token.getDoubleSpendRandomness1(),
-                dsrnd1S,
-                eskDecomp,
-                vectorR);
-        var commonInput = new SpendDeductCommonInput(
-                k,
-                gamma,
-                c0,
-                c1,
-                dsid,
-                cPre0,
-                cPre1,
-                token.getC1(),
-                token.getC2(),
-                ctrace0,
-                ctrace1);
+        var witness = new SpendDeductWitnessInput(usk, token.getPoints(), token.getZ(), zS, token.getT(), tS, uS, esk, eskUsrS, token.getDoubleSpendRandomness0(), dsrnd0S, token.getDoubleSpendRandomness1(), dsrnd1S, eskDecomp, vectorR);
+        var commonInput = new SpendDeductCommonInput(k, gamma, c0, c1, dsid, cPre0, cPre1, token.getC1(), token.getC2(), ctrace0, ctrace1);
         var proof = fiatShamirProofSystem.createProof(commonInput, witness);
 
         return new SpendRequest(dsid, proof, c0, c1, cPre0, cPre1, ctrace0, ctrace1, token.getC1(), token.getC2(), token.getSignature());
@@ -267,7 +241,7 @@ public class IncentiveSystem {
         var commonInput = new SpendDeductCommonInput(spendRequest, k, gamma);
         assert fiatShamirProofSystem.checkProof(commonInput, spendRequest.getSpendDeductZkp());
 
-        // TODO retrieve esk_prov via PRF
+        // Retrieve esk via PRF
         var preimage = new ByteArrayAccumulator();
         preimage.append(commonInput.c0Pre);
         preimage.append(commonInput.c1Pre);
@@ -290,11 +264,22 @@ public class IncentiveSystem {
 
     }
 
+    /**
+     * Process the response to a spendRequest and compute the updated token.
+     *
+     * @param spendResponse     the provider's response
+     * @param spendRequest      the original request
+     * @param token             the old token
+     * @param providerPublicKey public key of the provider
+     * @param k                 amount to add to the token
+     * @param userKeyPair       keypair of the user
+     * @return token with the value of the old token + k
+     */
     public Token handleSpendRequestResponse(SpendResponse spendResponse,
                                             SpendRequest spendRequest,
                                             Token token,
-                                            ProviderPublicKey providerPublicKey,
                                             BigInteger k,
+                                            ProviderPublicKey providerPublicKey,
                                             UserKeyPair userKeyPair) {
         // Re-compute pseudorandom values
         var prfZnElements = pp.getPrfToZn().hashThenPrfToZnVector(userKeyPair.getSk().getPrfKey(), token, 6, "SpendDeduct");
@@ -307,7 +292,7 @@ public class IncentiveSystem {
 
         // SPSEQ.verify and chgRep
         var cStar0 = spendRequest.getCPre0().op(providerPublicKey.getH().get(1).pow(spendResponse.getEskProvStar().mul(uS)));
-        var cStar1 = spendRequest.getCPre1(); // TODO or just use g_1?
+        var cStar1 = spendRequest.getCPre1(); // same as g_1
         var sigmaStar = (SPSEQSignature) pp.getSpsEq().chgRepWithVerify(
                 new MessageBlock(new GroupElementPlainText(cStar0), new GroupElementPlainText(cStar1)),
                 spendResponse.getSigma(),
@@ -315,7 +300,7 @@ public class IncentiveSystem {
                 providerPublicKey.getPkSpsEq());
         // Change representation of commitments
         cStar0 = cStar0.pow(uS.inv());
-        cStar1 = cStar1.pow(uS.inv()); // TODO: this is just 'pp.getG1()'
+        cStar1 = pp.getG1(); // is the same as cStar1.pow(uS.inv())
 
         // Compute new esk
         var eskStar = eskUsrS.add(spendResponse.getEskProvStar());

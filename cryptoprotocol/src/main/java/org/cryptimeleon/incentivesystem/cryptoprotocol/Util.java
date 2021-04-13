@@ -32,5 +32,4 @@ public class Util {
         accumulator.append(cPre1);
         return hashfunction.hash(accumulator.extractBytes());
     }
-
 }
