@@ -1,5 +1,6 @@
 package org.cryptimeleon.incentivesystem.cryptoprotocol;
 
+import org.cryptimeleon.craco.common.ByteArrayImplementation;
 import org.cryptimeleon.craco.common.plaintexts.GroupElementPlainText;
 import org.cryptimeleon.craco.common.plaintexts.MessageBlock;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
@@ -61,10 +62,12 @@ public class IncentiveSystem {
      *
      * @param token             the token to update
      * @param providerPublicKey the public key of the provider
-     * @param s                 randomness, TODO replace by PRF(token)
      * @return request to give to a provider
      */
-    public EarnRequest generateEarnRequest(Token token, ProviderPublicKey providerPublicKey, Zn.ZnElement s) {
+    public EarnRequest generateEarnRequest(Token token, ProviderPublicKey providerPublicKey, UserKeyPair userKeyPair) {
+        // Pseudorandom s
+        var s = pp.getPrfToZn().hashThenPrfToZn(userKeyPair.getSk().getPrfKey(), token, "CreditEarn-s");
+
         return new EarnRequest(
                 (SPSEQSignature) pp.getSpsEq().chgRep(
                         token.getSignature(),
@@ -115,10 +118,13 @@ public class IncentiveSystem {
      * @param k                 the increase for the users token value
      * @param token             the old token
      * @param providerPublicKey public key of the provider
-     * @param s                 randomness TODO replace by PRF(token)
+     * @param  userKeyPair keypair of the user
      * @return new token with value of the old token + k
      */
-    public Token handleEarnRequestResponse(EarnRequest earnRequest, SPSEQSignature changedSignature, long k, Token token, ProviderPublicKey providerPublicKey, Zn.ZnElement s) {
+    public Token handleEarnRequestResponse(EarnRequest earnRequest, SPSEQSignature changedSignature, long k, Token token, ProviderPublicKey providerPublicKey, UserKeyPair userKeyPair) {
+
+        // Pseudorandom s
+        var s = pp.getPrfToZn().hashThenPrfToZn(userKeyPair.getSk().getPrfKey(), token, "CreditEarn-s");
 
         var c1 = earnRequest.getC1().op((providerPublicKey.getH().get(4).pow(s)).pow(k)).compute();
         var c2 = earnRequest.getC2();
@@ -245,7 +251,7 @@ public class IncentiveSystem {
         var preimage = new ByteArrayAccumulator();
         preimage.append(commonInput.c0Pre);
         preimage.append(commonInput.c1Pre);
-        var eskStarProv = pp.getPrfToZn().hashThenPrfToZn(providerKeyPair.getSk().getBetaProv(), preimage.extractBytes());
+        var eskStarProv = pp.getPrfToZn().hashThenPrfToZn(providerKeyPair.getSk().getBetaProv(), new ByteArrayImplementation(preimage.extractBytes()), "eskStarProv");
 
         // Compute new Signature
         var cPre0 = spendRequest.getCPre0();

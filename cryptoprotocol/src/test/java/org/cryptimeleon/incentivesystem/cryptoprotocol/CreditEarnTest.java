@@ -32,8 +32,6 @@ public class CreditEarnTest {
         // This should be replaced by the actual methods that handle tokens when they are implemented.
         var zp = pp.getBg().getZn();
 
-        var s = zp.getUniformlyRandomNonzeroElement(); // TODO this should become part of the methods using a PRF
-
         var token = Helper.generateToken(pp, userKeyPair, providerKeyPair);
 
         assertTrue(pp.getSpsEq().verify(
@@ -44,7 +42,7 @@ public class CreditEarnTest {
         ));
 
         logger.info("compute earn request");
-        var earnRequest = incentiveSystem.generateEarnRequest(token, providerKeyPair.getPk(), s);
+        var earnRequest = incentiveSystem.generateEarnRequest(token, providerKeyPair.getPk(), userKeyPair);
         logger.info("represent earn request");
         var earnRequestRepresentation = earnRequest.getRepresentation();
         logger.info("parse earn request");
@@ -56,7 +54,7 @@ public class CreditEarnTest {
         logger.info("parse earn response");
         var signatureParsed = new SPSEQSignature(signatureRepresentation, pp.getBg().getG1(), pp.getBg().getG2());
         logger.info("handle earn response");
-        var newToken = incentiveSystem.handleEarnRequestResponse(earnRequest, signatureParsed, earnAmount, token, providerKeyPair.getPk(), s);
+        var newToken = incentiveSystem.handleEarnRequestResponse(earnRequest, signatureParsed, earnAmount, token, providerKeyPair.getPk(), userKeyPair);
         logger.info("retrieved new token");
 
 
