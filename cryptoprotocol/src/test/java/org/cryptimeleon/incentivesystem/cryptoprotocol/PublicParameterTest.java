@@ -1,6 +1,5 @@
-package org.cryptimeleon.incetivesystem.cryptoprotocol;
+package org.cryptimeleon.incentivesystem.cryptoprotocol;
 
-import org.cryptimeleon.incentivesystem.cryptoprotocol.IncentiveSystem;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.IncentivePublicParameters;
 import org.junit.jupiter.api.Test;
 

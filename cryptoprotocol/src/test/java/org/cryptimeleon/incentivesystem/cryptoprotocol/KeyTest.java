@@ -1,6 +1,5 @@
-package org.cryptimeleon.incetivesystem.cryptoprotocol;
+package org.cryptimeleon.incentivesystem.cryptoprotocol;
 
-import org.cryptimeleon.incentivesystem.cryptoprotocol.IncentiveSystem;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderSecretKey;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserPublicKey;
@@ -26,7 +25,7 @@ public class KeyTest {
 
         logger.info("Provider Secret Key representation");
         var providerSecretKey = providerKeyPair.getSk();
-        var deserializedProviderSecretKey = new ProviderSecretKey(providerSecretKey.getRepresentation(), pp.getSpsEq(), pp.getBg().getZn(), pp.getPrf());
+        var deserializedProviderSecretKey = new ProviderSecretKey(providerSecretKey.getRepresentation(), pp.getSpsEq(), pp.getBg().getZn(), pp.getPrfToZn());
         assertEquals(deserializedProviderSecretKey, providerSecretKey);
 
         logger.info("Provider Public Key representation");
@@ -43,7 +42,7 @@ public class KeyTest {
 
         logger.info("User Secret Key representation");
         var userSecretKey = userKeyPair.getSk();
-        var deserializedUserSecretKey = new UserSecretKey(userSecretKey.getRepresentation(), pp.getBg().getZn(), pp.getPrf());
+        var deserializedUserSecretKey = new UserSecretKey(userSecretKey.getRepresentation(), pp.getBg().getZn(), pp.getPrfToZn());
         assertEquals(deserializedUserSecretKey, userSecretKey);
 
         logger.info("User Public Key representation");

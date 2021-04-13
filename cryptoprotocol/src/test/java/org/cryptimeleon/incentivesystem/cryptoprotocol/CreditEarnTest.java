@@ -1,7 +1,6 @@
-package org.cryptimeleon.incetivesystem.cryptoprotocol;
+package org.cryptimeleon.incentivesystem.cryptoprotocol;
 
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
-import org.cryptimeleon.incentivesystem.cryptoprotocol.IncentiveSystem;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.EarnRequest;
 import org.junit.jupiter.api.Test;
 

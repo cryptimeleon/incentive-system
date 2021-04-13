@@ -2,6 +2,7 @@ package org.cryptimeleon.incentivesystem.cryptoprotocol.model;
 
 import org.cryptimeleon.craco.common.PublicParameters;
 import org.cryptimeleon.craco.prf.aes.AesPseudorandomFunction;
+import org.cryptimeleon.craco.prf.zn.HashThenPrfToZn;
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.setmembership.SetMembershipPublicParameters;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignatureScheme;
 import org.cryptimeleon.math.serialization.ListRepresentation;
@@ -35,7 +36,7 @@ public class IncentivePublicParameters implements PublicParameters {
     private GroupElement g2;
 
     @Represented
-    private AesPseudorandomFunction prf; // not in paper, but we need to store PRF that is used in incentive system instance somewhere
+    private HashThenPrfToZn prfToZn; // not in paper, but we need to store PRF that is used in incentive system instance somewhere
 
     @Represented
     private SPSEQSignatureScheme spsEq; // same here for SPS-EQ scheme
@@ -65,13 +66,13 @@ public class IncentivePublicParameters implements PublicParameters {
         return repr;
     }
 
-    public IncentivePublicParameters(BilinearGroup bg, GroupElement w, GroupElement h7, GroupElement g1, GroupElement g2, AesPseudorandomFunction prf, SPSEQSignatureScheme spsEq, Zn.ZnElement eskDecBase, int maxPointBasePower, SetMembershipPublicParameters eskBaseSetMembershipPublicParameters) {
+    public IncentivePublicParameters(BilinearGroup bg, GroupElement w, GroupElement h7, GroupElement g1, GroupElement g2, HashThenPrfToZn prfToZn, SPSEQSignatureScheme spsEq, Zn.ZnElement eskDecBase, int maxPointBasePower, SetMembershipPublicParameters eskBaseSetMembershipPublicParameters) {
         this.bg = bg;
         this.w = w;
         this.h7 = h7;
         this.g1 = g1;
         this.g2 = g2;
-        this.prf = prf;
+        this.prfToZn = prfToZn;
         this.spsEq = spsEq;
         this.eskDecBase = eskDecBase;
         this.maxPointBasePower = maxPointBasePower;
@@ -106,8 +107,12 @@ public class IncentivePublicParameters implements PublicParameters {
         return g2;
     }
 
-    public AesPseudorandomFunction getPrf() {
-        return prf;
+    public HashThenPrfToZn getPrfToZn() {
+        return prfToZn;
+    }
+
+    public void setPrfToZn(HashThenPrfToZn prfToZn) {
+        this.prfToZn = prfToZn;
     }
 
     public SPSEQSignatureScheme getSpsEq() {
@@ -135,11 +140,11 @@ public class IncentivePublicParameters implements PublicParameters {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         IncentivePublicParameters that = (IncentivePublicParameters) o;
-        return numEskDigits == that.numEskDigits && Objects.equals(bg, that.bg) && Objects.equals(w, that.w) && Objects.equals(h7, that.h7) && Objects.equals(g1, that.g1) && Objects.equals(g2, that.g2) && Objects.equals(prf, that.prf) && Objects.equals(spsEq, that.spsEq) && Objects.equals(eskDecBase, that.eskDecBase) && Objects.equals(maxPointBasePower, that.maxPointBasePower) && Objects.equals(eskBaseSetMembershipPublicParameters, that.eskBaseSetMembershipPublicParameters);
+        return numEskDigits == that.numEskDigits && Objects.equals(bg, that.bg) && Objects.equals(w, that.w) && Objects.equals(h7, that.h7) && Objects.equals(g1, that.g1) && Objects.equals(g2, that.g2) && Objects.equals(prfToZn, that.prfToZn) && Objects.equals(spsEq, that.spsEq) && Objects.equals(eskDecBase, that.eskDecBase) && Objects.equals(maxPointBasePower, that.maxPointBasePower) && Objects.equals(eskBaseSetMembershipPublicParameters, that.eskBaseSetMembershipPublicParameters);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(bg, w, h7, g1, g2, prf, spsEq, eskDecBase, maxPointBasePower, eskBaseSetMembershipPublicParameters, numEskDigits);
+        return Objects.hash(bg, w, h7, g1, g2, prfToZn, spsEq, eskDecBase, maxPointBasePower, eskBaseSetMembershipPublicParameters, numEskDigits);
     }
 }

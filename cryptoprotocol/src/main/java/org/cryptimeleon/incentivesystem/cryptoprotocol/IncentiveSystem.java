@@ -11,6 +11,7 @@ import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserKeyPa
 import org.cryptimeleon.incentivesystem.cryptoprotocol.proof.SpendDeductCommonInput;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.proof.SpendDeductWitnessInput;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.proof.SpendDeductZkp;
+import org.cryptimeleon.math.hash.impl.ByteArrayAccumulator;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.integers.IntegerRing;
@@ -27,7 +28,7 @@ import java.util.stream.Collectors;
 public class IncentiveSystem {
 
     // Public parameters
-    IncentivePublicParameters pp;
+    public final IncentivePublicParameters pp;
 
     public IncentiveSystem(IncentivePublicParameters pp) {
         this.pp = pp;
@@ -44,7 +45,6 @@ public class IncentiveSystem {
     public UserKeyPair generateUserKeys() {
         return Setup.userKeyGen(this.pp);
     }
-
 
     // This is highly WIP
     void generateJoinRequest() {
@@ -143,17 +143,21 @@ public class IncentiveSystem {
         );
     }
 
+    /**
+     * Generates a request to add value k to token.
+     * Random ZnElements are passed until HasThenPrfToZn is on develop.
+     *
+     * @param token             the token
+     * @param providerPublicKey public key of the provider
+     * @param k                 amount to add to the token's value
+     * @param userKeyPair       keypair of the user that owns the token
+     * @param tid               transaction ID, provided by the provider
+     * @return serializable spendRequest that can be sent to the provider
+     */
     public SpendRequest generateSpendRequest(Token token,
                                              ProviderPublicKey providerPublicKey,
                                              BigInteger k,
                                              UserKeyPair userKeyPair,
-                                             Zn.ZnElement eskUsrS,
-                                             Zn.ZnElement dsrnd0S,
-                                             Zn.ZnElement dsrnd1S,
-                                             Zn.ZnElement zS,
-                                             Zn.ZnElement tS,
-                                             Zn.ZnElement uS,
-                                             Vector<Zn.ZnElement> vectorR, // length numDigits
                                              Zn.ZnElement tid // TODO how is this retrieved in practise?
     ) {
         var zp = pp.getBg().getZn();
@@ -161,6 +165,19 @@ public class IncentiveSystem {
         var esk = token.getEncryptionSecretKey();
         var dsid = pp.getW().pow(esk);
         var vectorH = providerPublicKey.getH().pad(pp.getH7(), 7);
+        Vector<Zn.ZnElement> vectorR = Vector.generatePlain(
+                zp::getUniformlyRandomElement,
+                pp.getNumEskDigits()
+        );
+
+        // Compute pseudorandom values
+        var prfZnElements = pp.getPrfToZn().hashThenPrfToZnVector(userKeyPair.getSk().getPrfKey(), token, 6, "SpendDeduct");
+        Zn.ZnElement eskUsrS = prfZnElements.get(0);
+        Zn.ZnElement dsrnd0S = prfZnElements.get(1);
+        Zn.ZnElement dsrnd1S = prfZnElements.get(2);
+        Zn.ZnElement zS = prfZnElements.get(3);
+        Zn.ZnElement tS = prfZnElements.get(4);
+        Zn.ZnElement uS = prfZnElements.get(5);
 
         assert vectorR.length() == pp.getNumEskDigits();
 
@@ -172,8 +189,8 @@ public class IncentiveSystem {
                 token.getPoints().sub(zp.valueOf(k)),
                 zS,
                 tS);
-        var cPre0 = vectorH.pow(exponents).reduce(GroupElement::op).pow(uS);
-        var cPre1 = pp.getG1().pow(uS);
+        var cPre0 = vectorH.pow(exponents).reduce(GroupElement::op).pow(uS).compute();
+        var cPre1 = pp.getG1().pow(uS).compute();
 
         var gamma = Util.hashGamma(zp, k, dsid, tid, cPre0, cPre1);
 
@@ -184,8 +201,8 @@ public class IncentiveSystem {
                 IntegerRing.decomposeIntoDigits(eskUsrS.asInteger(), pp.getEskDecBase().asInteger(), pp.getNumEskDigits()))
                 .map(zp::valueOf)
                 .collect(Collectors.toList()));
-        var ctrace0 = pp.getW().pow(vectorR);
-        var ctrace1 = ctrace0.pow(esk).op(pp.getW().pow(eskDecomp));
+        var ctrace0 = pp.getW().pow(vectorR).compute();
+        var ctrace1 = ctrace0.pow(esk).op(pp.getW().pow(eskDecomp)).compute();
 
         // Send c0, c1, sigma, C, Cpre, ctrace
         // + ZKP
@@ -224,7 +241,17 @@ public class IncentiveSystem {
         return new SpendRequest(dsid, proof, c0, c1, cPre0, cPre1, ctrace0, ctrace1, token.getC1(), token.getC2(), token.getSignature());
     }
 
-    public SpendProverOutput generateSpendRequestResponse(SpendRequest spendRequest, ProviderKeyPair providerKeyPair, BigInteger earnAmount, Zn.ZnElement tid) {
+    /**
+     * React to a legitimate spend request to allow the user retrieving an updated token with the value increased by k.
+     * Returns additional data for double-spending protection.
+     *
+     * @param spendRequest    the user's request
+     * @param providerKeyPair keypair of the provider
+     * @param k               the amount to add to the user's token
+     * @param tid             transaction id, should be verified by the provider
+     * @return tuple of response to send to the user and information required for double-spending protection
+     */
+    public SpendProverOutput generateSpendRequestResponse(SpendRequest spendRequest, ProviderKeyPair providerKeyPair, BigInteger k, Zn.ZnElement tid) {
         // SPSEQ.verify
         var signatureValid = pp.getSpsEq().verify(
                 providerKeyPair.getPk().getPkSpsEq(),
@@ -236,12 +263,15 @@ public class IncentiveSystem {
 
         // Validate ZKP
         var fiatShamirProofSystem = new FiatShamirProofSystem(new SpendDeductZkp(pp, providerKeyPair.getPk()));
-        var gamma = Util.hashGamma(pp.getBg().getZn(), earnAmount, spendRequest.getDsid(), tid, spendRequest.getCPre0(), spendRequest.getCPre1());
-        var commonInput = new SpendDeductCommonInput(spendRequest, earnAmount, gamma);
+        var gamma = Util.hashGamma(pp.getBg().getZn(), k, spendRequest.getDsid(), tid, spendRequest.getCPre0(), spendRequest.getCPre1());
+        var commonInput = new SpendDeductCommonInput(spendRequest, k, gamma);
         assert fiatShamirProofSystem.checkProof(commonInput, spendRequest.getSpendDeductZkp());
 
         // TODO retrieve esk_prov via PRF
-        var eskStarProv = pp.getBg().getZn().getUniformlyRandomElement();
+        var preimage = new ByteArrayAccumulator();
+        preimage.append(commonInput.c0Pre);
+        preimage.append(commonInput.c1Pre);
+        var eskStarProv = pp.getPrfToZn().hashThenPrfToZn(providerKeyPair.getSk().getBetaProv(), preimage.extractBytes());
 
         // Compute new Signature
         var cPre0 = spendRequest.getCPre0();
@@ -265,15 +295,16 @@ public class IncentiveSystem {
                                             Token token,
                                             ProviderPublicKey providerPublicKey,
                                             BigInteger k,
-                                            UserKeyPair userKeyPair,
-                                            Zn.ZnElement eskUsrS,
-                                            Zn.ZnElement dsrnd0S,
-                                            Zn.ZnElement dsrnd1S,
-                                            Zn.ZnElement zS,
-                                            Zn.ZnElement tS,
-                                            Zn.ZnElement uS,
-                                            Vector<Zn.ZnElement> vectorR, // length numDigits
-                                            Zn.ZnElement tid) {
+                                            UserKeyPair userKeyPair) {
+        // Re-compute pseudorandom values
+        var prfZnElements = pp.getPrfToZn().hashThenPrfToZnVector(userKeyPair.getSk().getPrfKey(), token, 6, "SpendDeduct");
+        Zn.ZnElement eskUsrS = prfZnElements.get(0);
+        Zn.ZnElement dsrnd0S = prfZnElements.get(1);
+        Zn.ZnElement dsrnd1S = prfZnElements.get(2);
+        Zn.ZnElement zS = prfZnElements.get(3);
+        Zn.ZnElement tS = prfZnElements.get(4);
+        Zn.ZnElement uS = prfZnElements.get(5);
+
         // SPSEQ.verify and chgRep
         var cStar0 = spendRequest.getCPre0().op(providerPublicKey.getH().get(1).pow(spendResponse.getEskProvStar().mul(uS)));
         var cStar1 = spendRequest.getCPre1(); // TODO or just use g_1?

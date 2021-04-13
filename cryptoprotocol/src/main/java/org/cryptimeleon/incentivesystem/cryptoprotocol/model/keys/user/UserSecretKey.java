@@ -3,7 +3,7 @@ package org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user;
 import lombok.Value;
 import lombok.experimental.NonFinal;
 import org.cryptimeleon.craco.prf.PrfKey;
-import org.cryptimeleon.craco.prf.aes.AesPseudorandomFunction;
+import org.cryptimeleon.craco.prf.zn.HashThenPrfToZn;
 import org.cryptimeleon.math.serialization.Representable;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.annotations.ReprUtil;
@@ -18,18 +18,18 @@ public class UserSecretKey implements Representable {
     ZnElement usk;
 
     @NonFinal
-    @Represented(restorer = "aes")
-    PrfKey prfKey; // user's key for generating pseudorandomness using the PRF
+    @Represented(restorer = "longAes")
+    PrfKey prfKey; // user's key for generating pseudorandom ZnElements using the PRF
 
     public UserSecretKey(ZnElement usk, PrfKey prfKey) {
         this.usk = usk;
         this.prfKey = prfKey;
     }
 
-    public UserSecretKey(Representation repr, Zn zn, AesPseudorandomFunction aes) {
+    public UserSecretKey(Representation repr, Zn zn, HashThenPrfToZn hashThenPrfToZn) {
         new ReprUtil(this)
                 .register(zn, "Zn")
-                .register(aes::restoreKey, "aes")
+                .register(hashThenPrfToZn.getLongAesPseudoRandomFunction()::restoreKey, "longAes")
                 .deserialize(repr);
     }
 

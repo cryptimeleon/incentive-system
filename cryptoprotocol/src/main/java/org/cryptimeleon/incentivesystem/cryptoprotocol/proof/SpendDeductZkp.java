@@ -26,7 +26,6 @@ import java.math.BigInteger;
 public class SpendDeductZkp extends DelegateProtocol {
 
     private final IncentivePublicParameters pp;
-    private final GroupElement g1;
     private final Zn zn;
     private final Group groupG1;
     private final ProviderPublicKey providerPublicKey;
@@ -34,7 +33,6 @@ public class SpendDeductZkp extends DelegateProtocol {
     public SpendDeductZkp(IncentivePublicParameters incentivePublicParameters, ProviderPublicKey providerPublicKey) {
         this.providerPublicKey = providerPublicKey;
         this.pp = incentivePublicParameters;
-        this.g1 = incentivePublicParameters.getG1();
         this.zn = incentivePublicParameters.getBg().getZn();
         this.groupG1 = incentivePublicParameters.getBg().getG1();
     }
@@ -143,16 +141,16 @@ public class SpendDeductZkp extends DelegateProtocol {
         builder.putWitnessValue("uStar", secretInput.uStar);
         builder.putWitnessValue("uStarInverse", secretInput.uStar.inv());
 
-        assert pp.getNumEskDigits() == secretInput.eskStarUserDec.length();
+        // assert pp.getNumEskDigits() == secretInput.eskStarUserDec.length();
         for (int i = 0; i < pp.getNumEskDigits(); i++) {
             builder.putWitnessValue("eskStarUserDec_" + i, secretInput.eskStarUserDec.get(i));
             builder.putWitnessValue("r_" + i, secretInput.rVector.get(i));
         }
 
         // Ensure that decomposition works, TODO: remove this, only for debugging
-        assert secretInput.eskStarUser.equals(secretInput.eskStarUserDec.map((integer, znElement) -> znElement.mul(pp.getEskDecBase().pow(BigInteger.valueOf(integer)))).reduce(Zn.ZnElement::add));
-        assert commonInput.ctrace0.equals(pp.getW().pow(secretInput.rVector));
-        assert commonInput.ctrace1.equals(commonInput.ctrace0.pow(secretInput.esk).op(pp.getW().pow(secretInput.eskStarUserDec)));
+        // assert secretInput.eskStarUser.equals(secretInput.eskStarUserDec.map((integer, znElement) -> znElement.mul(pp.getEskDecBase().pow(BigInteger.valueOf(integer)))).reduce(Zn.ZnElement::add));
+        // assert commonInput.ctrace0.equals(pp.getW().pow(secretInput.rVector));
+        // assert commonInput.ctrace1.equals(commonInput.ctrace0.pow(secretInput.esk).op(pp.getW().pow(secretInput.eskStarUserDec)));
 
         return builder.build();
     }

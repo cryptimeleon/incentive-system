@@ -2,7 +2,7 @@ package org.cryptimeleon.incentivesystem.cryptoprotocol;
 
 
 import org.cryptimeleon.craco.prf.PrfKey;
-import org.cryptimeleon.craco.prf.aes.AesPseudorandomFunction;
+import org.cryptimeleon.craco.prf.zn.HashThenPrfToZn;
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.setmembership.SetMembershipPublicParameters;
 import org.cryptimeleon.craco.sig.SignatureKeyPair;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQPublicParameters;
@@ -16,6 +16,7 @@ import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.Provi
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserSecretKey;
+import org.cryptimeleon.math.hash.impl.SHA256HashFunction;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.groups.cartesian.GroupElementVector;
 import org.cryptimeleon.math.structures.groups.elliptic.BilinearGroup;
@@ -52,8 +53,8 @@ public class Setup {
         // compute seventh base for user token (h7 in 2020 incsys paper)
         GroupElement h7 = bg.getG1().getUniformlyRandomElement().compute();
 
-        // instantiate prf used in this instance of the incentive system with a proper key length
-        AesPseudorandomFunction prf = new AesPseudorandomFunction(PRF_KEY_LENGTH);
+        // PrfToZn instantiation
+        HashThenPrfToZn prfToZn = new HashThenPrfToZn(256, bg.getZn(), new SHA256HashFunction(), 128);
 
         // instantiate SPS-EQ scheme used in this instance of the incentive system
         SPSEQSignatureScheme spsEq = new SPSEQSignatureScheme(new SPSEQPublicParameters(bg));
@@ -62,21 +63,21 @@ public class Setup {
         GroupElement g1 = bg.getG1().getGenerator().compute();
         GroupElement g2 = bg.getG2().getGenerator().compute();
 
-        BigInteger eskBase = BigInteger.valueOf(47);
-
+        // prepare encryptionSecretKey decomposition for ZKP
+        BigInteger eskBase = BigInteger.valueOf(256);
         var eskBaseSet = Stream.iterate(BigInteger.ZERO, i -> i.compareTo(eskBase) < 0, i -> i.add(BigInteger.ONE)).collect(Collectors.toSet());
         var eskBaseSetMembershipPublicParameters = SetMembershipPublicParameters.generate(bg, eskBaseSet);
         var maxPointBasePower = 6;
 
         // wrap up all values
-        return new IncentivePublicParameters(bg, w, h7, g1, g2, prf, spsEq, bg.getZn().valueOf(eskBase), maxPointBasePower, eskBaseSetMembershipPublicParameters);
+        return new IncentivePublicParameters(bg, w, h7, g1, g2, prfToZn, spsEq, bg.getZn().valueOf(eskBase), maxPointBasePower, eskBaseSetMembershipPublicParameters);
     }
 
     /**
-     * generates a user key pair from public parameters
+     * Generates a user key pair from public parameters
      *
      * @param pp object representation of public parameters
-     * @return object representation of a user key pair (see 2020 inc sys paper)
+     * @return UserKeyPair
      */
     public static UserKeyPair userKeyGen(IncentivePublicParameters pp) {
         // draw random exponent for the user secret key
@@ -84,7 +85,7 @@ public class Setup {
         ZnElement usk = usedZn.getUniformlyRandomElement(); // secret exponent
 
         // generate the user key for the PRF used to generate pseudorandomness in the system
-        PrfKey betaUsr = pp.getPrf().generateKey(); // key the user uses to generate pseudorandomness
+        PrfKey betaUsr = pp.getPrfToZn().generateKey(); // key the user uses to generate pseudorandomness
 
         // compute user public key from secret exponent
         GroupElement upkElem = pp.getW().pow(usk).compute();
@@ -96,6 +97,12 @@ public class Setup {
     }
 
 
+    /**
+     * Generates a provider key pair from public parameters
+     *
+     * @param pp object representation of public parameters
+     * @return ProviderKeyPair
+     */
     public static ProviderKeyPair providerKeyGen(IncentivePublicParameters pp) {
         // draw the dlogs of the first 6 bases used in the Pedersen commitment in the token
         RingElementVector q = pp.getBg().getZn().getUniformlyRandomElements(6);
@@ -104,7 +111,7 @@ public class Setup {
         GroupElementVector h = pp.getG1().pow(q).compute();
 
         // generate PRF key for provider
-        PrfKey betaProv = pp.getPrf().generateKey();
+        PrfKey betaProv = pp.getPrfToZn().generateKey();
 
         // generate SPS-EQ key pair
         SignatureKeyPair<SPSEQVerificationKey, SPSEQSigningKey> spsEqKeyPair = pp.getSpsEq().generateKeyPair(2);

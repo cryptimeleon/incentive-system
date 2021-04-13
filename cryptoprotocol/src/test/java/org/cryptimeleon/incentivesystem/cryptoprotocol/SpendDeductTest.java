@@ -1,10 +1,8 @@
-package org.cryptimeleon.incetivesystem.cryptoprotocol;
+package org.cryptimeleon.incentivesystem.cryptoprotocol;
 
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
-import org.cryptimeleon.incentivesystem.cryptoprotocol.IncentiveSystem;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.SpendRequest;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.proof.SpendDeductZkp;
-import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.junit.jupiter.api.Test;
 
@@ -26,18 +24,6 @@ public class SpendDeductTest {
         BigInteger k = BigInteger.valueOf(4);
         var token = Helper.generateToken(pp, userKeyPair, providerKeyPair, budget);
 
-        // TODO retrieve these using PRF?
-        Zn.ZnElement eskUsrS = zp.getUniformlyRandomElement();
-        Zn.ZnElement dsrnd0S = zp.getUniformlyRandomElement();
-        Zn.ZnElement dsrnd1S = zp.getUniformlyRandomElement();
-        Zn.ZnElement zS = zp.getUniformlyRandomElement();
-        Zn.ZnElement tS = zp.getUniformlyRandomElement();
-        Zn.ZnElement uS = zp.getUniformlyRandomElement();
-        Vector<Zn.ZnElement> vectorR = Vector.generatePlain(
-                zp::getUniformlyRandomElement,
-                pp.getNumEskDigits()
-        );
-
         // length numDigits
         Zn.ZnElement tid = zp.getUniformlyRandomElement();
         // TODO how is this retrieved in practise?
@@ -47,13 +33,6 @@ public class SpendDeductTest {
                 providerKeyPair.getPk(),
                 k,
                 userKeyPair,
-                eskUsrS,
-                dsrnd0S,
-                dsrnd1S,
-                zS,
-                tS,
-                uS,
-                vectorR,
                 tid
         );
 
@@ -67,6 +46,6 @@ public class SpendDeductTest {
         var spendResponse = proverOutput.getSpendResponse();
         var doubleSpendingTag = proverOutput.getDstag();
 
-        var newToken = incentiveSystem.handleSpendRequestResponse(spendResponse, spendRequest, token, providerKeyPair.getPk(), k, userKeyPair, eskUsrS, dsrnd0S, dsrnd1S, zS, tS, uS, vectorR, tid);
+        var newToken = incentiveSystem.handleSpendRequestResponse(spendResponse, spendRequest, token, providerKeyPair.getPk(), k, userKeyPair);
     }
 }
