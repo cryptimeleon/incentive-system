@@ -8,6 +8,7 @@ import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProof;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.IncentivePublicParameters;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.proofs.CommitmentWellformednessCommonInput;
+import org.cryptimeleon.math.serialization.ListRepresentation;
 import org.cryptimeleon.math.serialization.ObjectRepresentation;
 import org.cryptimeleon.math.serialization.Representable;
 import org.cryptimeleon.math.serialization.Representation;
@@ -22,33 +23,33 @@ import org.cryptimeleon.math.structures.groups.GroupElement;
 @AllArgsConstructor
 public class JoinRequest implements Representable {
     @NonFinal
-    @Represented(restorer = "G1")
     private GroupElement preCommitment0;
 
     @NonFinal
-    @Represented(restorer = "G1")
     private GroupElement preCommitment1;
 
     @NonFinal
-    @Represented
     private FiatShamirProof cwfProof; // proof for well-formedness of token and knowledge of usk corresp. to upk
 
     public JoinRequest(Representation repr, IncentivePublicParameters pp, FiatShamirProofSystem fsps, CommitmentWellformednessCommonInput cwfProofCommonInput) {
-        // automatic deserialization of the fields where it is possible
-        new ReprUtil(this)
-                .register(pp.getBg().getZn(), "Zn")
-                .register(pp.getBg().getG1(), "G1")
-                .deserialize(repr);
+        // force passed representation into a list representation (does not throw class cast exception in intended use cases)
+        var list = (ListRepresentation) repr;
 
-        // obtain a representation of the commitment well-formedness proof and the common input
-        Representation proofRepr = repr.obj().get("cwfProof");
+        // retrieve restorers
+        var usedG1 = pp.getBg().getG1();
 
-        // restore proof using common input and passed proof system
-        this.cwfProof = fsps.restoreProof(cwfProofCommonInput, proofRepr);
+        // restore fields
+        this.preCommitment0 = usedG1.restoreElement(list.get(0));
+        this.preCommitment1 = usedG1.restoreElement(list.get(1));
+        this.cwfProof = fsps.restoreProof(cwfProofCommonInput, list.get(2));
     }
 
     public Representation getRepresentation()
     {
-        return ReprUtil.serialize(this);
+        return new ListRepresentation(
+                preCommitment0.getRepresentation(),
+                preCommitment1.getRepresentation(),
+                cwfProof.getRepresentation()
+        );
     }
 }

@@ -67,99 +67,29 @@ public class IssueJoinCryptoTest
             u
         );
 
+        // serialize and deserialize join request
+        var serializedRequest = testRequest.getRepresentation();
+        FiatShamirProofSystem cwfProofSystem = new FiatShamirProofSystem(new CommitmentWellformednessProtocol(incSys.getPp(), pkp.getPk()));
+        CommitmentWellformednessCommonInput cwfCommon = new CommitmentWellformednessCommonInput(
+                ukp.getPk().getUpk(),
+                testRequest.getPreCommitment0(),
+                testRequest.getPreCommitment1()
+        );
+        var deserializedRequest = new JoinRequest(serializedRequest, incSys.getPp(), cwfProofSystem, cwfCommon);
+
         // pass join request to issue logic, generate join response
-        var testResponse = incSys.generateJoinRequestResponse(incSys.getPp(), pkp, ukp.getPk().getUpk(), testRequest);
+        var testResponse = incSys.generateJoinRequestResponse(incSys.getPp(), pkp, ukp.getPk().getUpk(), deserializedRequest);
+
+        // serialize and deserialize join response
+        var serializedResponse = testResponse.getRepresentation();
+        var deserializedResponse = new JoinResponse(serializedResponse, incSys.getPp());
 
         // pass join response to second part of join logic, generate join output
-        var testOutput = incSys.handleJoinRequestResponse(incSys.getPp(), pkp.getPk(), ukp, testRequest, testResponse, eskUsr, dsrnd0, dsrnd1, z, t, u);
+        var testOutput = incSys.handleJoinRequestResponse(incSys.getPp(), pkp.getPk(), ukp, testRequest, deserializedResponse, eskUsr, dsrnd0, dsrnd1, z, t, u);
 
         // check output token for sanity (certficate valid, zero points)
         SPSEQSignatureScheme usedSpsEq = incSys.getPp().getSpsEq();
         Assertions.assertTrue(usedSpsEq.verify(pkp.getPk().getPkSpsEq(), testOutput.getSignature(), testOutput.getCommitment0(), testOutput.getCommitment1()));
         Assertions.assertTrue(testOutput.getPoints().asInteger().compareTo(BigInteger.ZERO) == 0);
-    }
-
-    /**
-     * generates a dummy join request, then serializes and deserializes it,
-     * testing whether the result of the deserialization is equal to the original request object.
-     */
-    @Test
-    void joinRequestRepresentationTest()
-    {
-        // generate public parameters to ensure that correctly generated groups are used for testing
-        IncentivePublicParameters pp = Setup.trustedSetup(Setup.PRF_KEY_LENGTH);
-
-        // extract group from which commitments are drawn
-        Group group1 = pp.getBg().getG1();
-
-        // generate dummy commitments (i.e. random group elements)
-        GroupElement c0Pre = group1.getUniformlyRandomElement();
-        GroupElement c1Pre = group1.getUniformlyRandomElement();
-
-        // create dummy values for creation of dummy cwf proof (upk, randomness) TODO: use PRFtoZn to generate exponents
-        GroupElement upk = group1.getUniformlyRandomElement(); // create dummy user public key
-        ZnElement usk = pp.getBg().getZn().getUniformlyRandomElement();
-        ZnElement eskUsr = pp.getBg().getZn().getUniformlyRandomElement();
-        ZnElement dsrnd0 = pp.getBg().getZn().getUniformlyRandomElement();
-        ZnElement dsrnd1 = pp.getBg().getZn().getUniformlyRandomElement();
-        ZnElement z = pp.getBg().getZn().getUniformlyRandomElement();
-        ZnElement t = pp.getBg().getZn().getUniformlyRandomElement();
-        ZnElement uInverse = pp.getBg().getZn().getUniformlyRandomElement();
-
-        // create a dummy cwf proof + common input
-        ProviderKeyPair pkp = Setup.providerKeyGen(pp);
-        CommitmentWellformednessCommonInput cwfProofCommonInput = new CommitmentWellformednessCommonInput(upk, c0Pre, c1Pre);
-        CommitmentWellformednessWitness cwfProofWitness = new CommitmentWellformednessWitness(usk, eskUsr, dsrnd0, dsrnd1, z, t, uInverse);
-        FiatShamirProofSystem fsps = new FiatShamirProofSystem(new CommitmentWellformednessProtocol(pp, pkp.getPk()));
-        FiatShamirProof cwfProof = fsps.createProof(cwfProofCommonInput, cwfProofWitness);
-
-        // generate dummy join request
-        JoinRequest jReq = new JoinRequest(c0Pre, c1Pre, cwfProof);
-
-        // serialize + deserialize join request
-        Representation jReqRepr = jReq.getRepresentation();
-        JoinRequest deserializedJReq = new JoinRequest(jReqRepr, pp, fsps, cwfProofCommonInput);
-
-        // check original and deserialized join request for equality (commitment parts + proofs)
-        Assertions.assertTrue(jReq.getPreCommitment0().equals(deserializedJReq.getPreCommitment0()));
-        Assertions.assertTrue(jReq.getPreCommitment1().equals(deserializedJReq.getPreCommitment1()));
-        Assertions.assertTrue(jReq.getCwfProof().equals(deserializedJReq.getCwfProof()));
-    }
-
-    /**
-     * generates a dummy join response, then serializes and deserializes it,
-     * testing whether the result of the deserialization is equal to the original response object.
-     */
-    @Test
-    void joinResponseRepresentationTest()
-    {
-        // generate public parameters to ensure that correctly generated remainder class rings are used for testing
-        IncentivePublicParameters pp = Setup.trustedSetup(Setup.PRF_KEY_LENGTH);
-
-        // extract used remainder class ring from public parameters
-        Zn usedZn = pp.getBg().getZn();
-
-        // extract group from which elements of the SPSEQ signature are drawn
-        Group group1 = pp.getBg().getG1();
-
-        // draw random group elements and form a valid SPS-EQ signature
-        GroupElement a1 = group1.getUniformlyRandomElement();
-        GroupElement a2 = group1.getUniformlyRandomElement();
-        GroupElement a3 = group1.getUniformlyRandomElement();
-        SPSEQSignature preCertificate = new SPSEQSignature(a1, a2, a3);
-
-        // draw random provider share for the encryption secret key for the join response
-        ZnElement eskProv = usedZn.getUniformlyRandomElement();
-
-        // generate dummy join response
-        JoinResponse jRes = new JoinResponse(preCertificate, eskProv);
-
-        // serialize + deserialize join response
-        Representation jResRepr = jRes.getRepresentation();
-        JoinResponse deserializedJRes = new JoinResponse(jResRepr, pp);
-
-        // check original and deserialized join response for equality
-        Assertions.assertTrue(jRes.getPreCertificate().equals(deserializedJRes.getPreCertificate()));
-        Assertions.assertTrue(jRes.getEskProv().equals(deserializedJRes.getEskProv()));
     }
 }

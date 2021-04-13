@@ -7,6 +7,7 @@ import org.cryptimeleon.craco.sig.ps18.PS18ROMSignature;
 import org.cryptimeleon.craco.sig.ps18.PS18ROMSignatureScheme;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.IncentivePublicParameters;
+import org.cryptimeleon.math.serialization.ListRepresentation;
 import org.cryptimeleon.math.serialization.Representable;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.annotations.ReprUtil;
@@ -21,21 +22,31 @@ import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
 public class JoinResponse implements Representable
 {
     @NonFinal
-    @Represented(restorer = "SPS-EQ")
     private SPSEQSignature preCertificate; // preliminary certificate for the user token
 
     @NonFinal
-    @Represented(restorer = "Zn")
     private ZnElement eskProv; // the share of the provider for the ElGamal encryption key for the initial token of the user
 
     public JoinResponse(Representation repr, IncentivePublicParameters pp)
     {
-        new ReprUtil(this)
-                .register(pp.getBg().getZn(), "Zn")
-                .register(pp.getSpsEq(), "SPS-EQ")
-                .deserialize(repr);
+        // force passed representation into a list representation (does not throw class cast exception in intended use cases)
+        var list = (ListRepresentation) repr;
+
+        // retrieve restorers
+        var usedZn = pp.getBg().getZn();
+        var usedG1 = pp.getBg().getG1();
+        var usedG2 = pp.getBg().getG2();
+
+        // restore fields
+        this.preCertificate = new SPSEQSignature(list.get(0), usedG1, usedG2);
+        this.eskProv = usedZn.restoreElement(list.get(1));
     }
 
     @Override
-    public Representation getRepresentation() { return ReprUtil.serialize(this); }
+    public Representation getRepresentation() {
+        return new ListRepresentation(
+                this.preCertificate.getRepresentation(),
+                this.eskProv.getRepresentation()
+        );
+    }
 }
