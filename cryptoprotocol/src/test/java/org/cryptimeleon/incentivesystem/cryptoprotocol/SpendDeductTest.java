@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class SpendDeductTest {
 
     @Test
-    void testSuccessFulCreditEarn() {
+    void testSuccessFullSpendDeduct() {
         var pp = IncentiveSystem.setup();
         var incentiveSystem = new IncentiveSystem(pp);
         var providerKeyPair = incentiveSystem.generateProviderKeys();

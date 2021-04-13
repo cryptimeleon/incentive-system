@@ -79,7 +79,7 @@ public class SpendRequest implements Representable {
         var groupG1 = pp.getBg().getG1();
         var groupG2 = pp.getBg().getG2();
 
-        this.dsid = pp.getBg().getG1().restoreElement(listRepr.get(0));
+        this.dsid = groupG1.restoreElement(listRepr.get(0));
         this.c0 = zn.restoreElement(listRepr.get(1));
         this.c1 = zn.restoreElement(listRepr.get(2));
         this.cPre0 = groupG1.restoreElement(listRepr.get(3));
