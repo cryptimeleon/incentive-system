@@ -19,6 +19,7 @@ import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserSecre
 import org.cryptimeleon.math.hash.impl.SHA256HashFunction;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.groups.cartesian.GroupElementVector;
+import org.cryptimeleon.math.structures.groups.counting.CountingBilinearGroup;
 import org.cryptimeleon.math.structures.groups.elliptic.BilinearGroup;
 import org.cryptimeleon.math.structures.groups.elliptic.type3.bn.BarretoNaehrigBilinearGroup;
 import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
@@ -44,7 +45,7 @@ public class Setup {
      */
     public static IncentivePublicParameters trustedSetup(int securityParameter) {
         // generate a bilinear group from the security parameter (type 3, Barreto-Naehrig)
-        BilinearGroup bg = new BarretoNaehrigBilinearGroup(securityParameter);
+        BilinearGroup bg = new CountingBilinearGroup(securityParameter, BilinearGroup.Type.TYPE_3);
 
         // TODO: rewrite computation of w and h7 once proper hashing of bilinear groups is possible
         // compute w (base used in double spending protection, see 2020 incsys paper)

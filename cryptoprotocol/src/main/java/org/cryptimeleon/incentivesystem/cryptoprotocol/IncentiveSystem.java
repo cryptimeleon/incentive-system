@@ -178,12 +178,12 @@ public class IncentiveSystem {
 
         // Compute pseudorandom values
         var prfZnElements = pp.getPrfToZn().hashThenPrfToZnVector(userKeyPair.getSk().getPrfKey(), token, 6, "SpendDeduct");
-        Zn.ZnElement eskUsrS = prfZnElements.get(0);
-        Zn.ZnElement dsrnd0S = prfZnElements.get(1);
-        Zn.ZnElement dsrnd1S = prfZnElements.get(2);
-        Zn.ZnElement zS = prfZnElements.get(3);
-        Zn.ZnElement tS = prfZnElements.get(4);
-        Zn.ZnElement uS = prfZnElements.get(5);
+        Zn.ZnElement eskUsrS = (Zn.ZnElement) prfZnElements.get(0);
+        Zn.ZnElement dsrnd0S = (Zn.ZnElement) prfZnElements.get(1);
+        Zn.ZnElement dsrnd1S = (Zn.ZnElement) prfZnElements.get(2);
+        Zn.ZnElement zS = (Zn.ZnElement) prfZnElements.get(3);
+        Zn.ZnElement tS = (Zn.ZnElement) prfZnElements.get(4);
+        Zn.ZnElement uS = (Zn.ZnElement) prfZnElements.get(5);
 
         assert vectorR.length() == pp.getNumEskDigits();
 
@@ -289,12 +289,12 @@ public class IncentiveSystem {
                                             UserKeyPair userKeyPair) {
         // Re-compute pseudorandom values
         var prfZnElements = pp.getPrfToZn().hashThenPrfToZnVector(userKeyPair.getSk().getPrfKey(), token, 6, "SpendDeduct");
-        Zn.ZnElement eskUsrS = prfZnElements.get(0);
-        Zn.ZnElement dsrnd0S = prfZnElements.get(1);
-        Zn.ZnElement dsrnd1S = prfZnElements.get(2);
-        Zn.ZnElement zS = prfZnElements.get(3);
-        Zn.ZnElement tS = prfZnElements.get(4);
-        Zn.ZnElement uS = prfZnElements.get(5);
+        Zn.ZnElement eskUsrS = (Zn.ZnElement) prfZnElements.get(0);
+        Zn.ZnElement dsrnd0S = (Zn.ZnElement) prfZnElements.get(1);
+        Zn.ZnElement dsrnd1S = (Zn.ZnElement) prfZnElements.get(2);
+        Zn.ZnElement zS = (Zn.ZnElement) prfZnElements.get(3);
+        Zn.ZnElement tS = (Zn.ZnElement) prfZnElements.get(4);
+        Zn.ZnElement uS = (Zn.ZnElement) prfZnElements.get(5);
 
         // SPSEQ.verify and chgRep
         var cStar0 = spendRequest.getCPre0().op(providerPublicKey.getH().get(1).pow(spendResponse.getEskProvStar().mul(uS)));
