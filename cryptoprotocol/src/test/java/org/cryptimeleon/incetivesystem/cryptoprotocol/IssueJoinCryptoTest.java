@@ -1,24 +1,13 @@
 package org.cryptimeleon.incetivesystem.cryptoprotocol;
 
-import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProof;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
-import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignatureScheme;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.IncentiveSystem;
-import org.cryptimeleon.incentivesystem.cryptoprotocol.Setup;
-import org.cryptimeleon.incentivesystem.cryptoprotocol.model.IncentivePublicParameters;
-import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderKeyPair;
-import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.messages.JoinRequest;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.messages.JoinResponse;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.proofs.CommitmentWellformednessCommonInput;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.proofs.CommitmentWellformednessProtocol;
-import org.cryptimeleon.incentivesystem.cryptoprotocol.model.proofs.CommitmentWellformednessWitness;
-import org.cryptimeleon.math.serialization.Representation;
-import org.cryptimeleon.math.structures.groups.Group;
-import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
-import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
