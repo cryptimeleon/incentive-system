@@ -64,6 +64,7 @@ public class Token implements Representable, UniqueByteRepresentable {
     ZnElement points; // number of points that the token currently stores (initially 0)
 
     @NonFinal
+    @UniqueByteRepresented
     @Represented(restorer = "SPSEQ")
     SPSEQSignature signature; // the SPS-EQ certifying the commitment as well-formed and valid
 
@@ -82,7 +83,6 @@ public class Token implements Representable, UniqueByteRepresentable {
 
     @Override
     public ByteAccumulator updateAccumulator(ByteAccumulator accumulator) {
-        // TODO cannot accumulate signature
         return AnnotatedUbrUtil.autoAccumulate(accumulator, this);
     }
 }
