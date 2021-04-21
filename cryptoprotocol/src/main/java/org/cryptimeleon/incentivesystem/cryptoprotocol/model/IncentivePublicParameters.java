@@ -1,6 +1,7 @@
 package org.cryptimeleon.incentivesystem.cryptoprotocol.model;
 
-import lombok.EqualsAndHashCode;
+import lombok.Value;
+import lombok.experimental.NonFinal;
 import org.cryptimeleon.craco.common.PublicParameters;
 import org.cryptimeleon.craco.prf.zn.HashThenPrfToZn;
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.setmembership.SetMembershipPublicParameters;
@@ -16,40 +17,51 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 
 /**
- * A class representing the public parameters of the 2020 incentive system
+ * A class representing the public parameters of the 2020 incentive system.
  */
-@EqualsAndHashCode
+@Value
 public class IncentivePublicParameters implements PublicParameters {
+    @NonFinal
     @Represented
-    private BilinearGroup bg;
+    BilinearGroup bg;
 
+    @NonFinal
     @Represented(restorer = "bg::getG1")
-    private GroupElement w;
+    GroupElement w;
 
+    @NonFinal
     @Represented(restorer = "bg::getG1")
-    private GroupElement h7;
+    GroupElement h7;
 
+    @NonFinal
     @Represented(restorer = "bg::getG1")
-    private GroupElement g1;
+    GroupElement g1;
 
+    @NonFinal
     @Represented(restorer = "bg::getG2")
-    private GroupElement g2;
+    GroupElement g2;
 
+    @NonFinal
     @Represented
-    private HashThenPrfToZn prfToZn; // not in paper, but we need to store PRF that is used in incentive system instance somewhere
+    HashThenPrfToZn prfToZn; // not in paper, but we need to store PRF that is used in incentive system instance somewhere
 
+    @NonFinal
     @Represented
-    private SPSEQSignatureScheme spsEq; // same here for SPS-EQ scheme
+    SPSEQSignatureScheme spsEq; // same here for SPS-EQ scheme
 
+    @NonFinal
     @Represented(restorer = "bg::getZn")
-    private Zn.ZnElement eskDecBase; // TODO which value to choose? Check BA?
+    Zn.ZnElement eskDecBase;
 
+    @NonFinal
     @Represented
-    private Integer maxPointBasePower; // eskDecBase^this determines the maximum point count that is considered valid
+    Integer maxPointBasePower; // eskDecBase^this determines the maximum point count that is considered valid
 
-    private SetMembershipPublicParameters eskBaseSetMembershipPublicParameters;
+    @NonFinal
+    SetMembershipPublicParameters eskBaseSetMembershipPublicParameters;
 
-    private int numEskDigits;
+    @NonFinal
+    int numEskDigits; // This is computed in the init method since it contains redundant data
 
     public IncentivePublicParameters(Representation repr) {
         new ReprUtil(this)
@@ -85,53 +97,5 @@ public class IncentivePublicParameters implements PublicParameters {
      */
     private void init() {
         numEskDigits = IntegerRing.decomposeIntoDigits(bg.getZn().getCharacteristic(), eskDecBase.getInteger()).length;
-    }
-
-    public BilinearGroup getBg() {
-        return bg;
-    }
-
-    public GroupElement getW() {
-        return w;
-    }
-
-    public GroupElement getH7() {
-        return h7;
-    }
-
-    public GroupElement getG1() {
-        return g1;
-    }
-
-    public GroupElement getG2() {
-        return g2;
-    }
-
-    public HashThenPrfToZn getPrfToZn() {
-        return prfToZn;
-    }
-
-    public void setPrfToZn(HashThenPrfToZn prfToZn) {
-        this.prfToZn = prfToZn;
-    }
-
-    public SPSEQSignatureScheme getSpsEq() {
-        return spsEq;
-    }
-
-    public Zn.ZnElement getEskDecBase() {
-        return eskDecBase;
-    }
-
-    public int getNumEskDigits() {
-        return numEskDigits;
-    }
-
-    public int getMaxPointBasePower() {
-        return maxPointBasePower;
-    }
-
-    public SetMembershipPublicParameters getEskBaseSetMembershipPublicParameters() {
-        return eskBaseSetMembershipPublicParameters;
     }
 }
