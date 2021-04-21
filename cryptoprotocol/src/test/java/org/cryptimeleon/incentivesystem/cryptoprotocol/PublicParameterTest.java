@@ -18,11 +18,11 @@ public class PublicParameterTest {
     @Test
     void testSetup() {
         logger.info("Testing representation of Public Parameters");
-        var pp = IncentiveSystem.setup();
+        var pp = IncentiveSystem.setup(128, Setup.BilinearGroupChoice.Debug);
         var deserializedPP = new IncentivePublicParameters(pp.getRepresentation());
 
-        System.out.println(pp.toString());
-        System.out.println(deserializedPP.toString());
+        System.out.println(pp);
+        System.out.println(deserializedPP);
         assertEquals(deserializedPP, pp);
     }
 }

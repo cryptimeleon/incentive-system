@@ -35,8 +35,15 @@ public class IncentiveSystem {
         this.pp = pp;
     }
 
-    public static IncentivePublicParameters setup() {
-        return Setup.trustedSetup(Setup.PRF_KEY_LENGTH);
+    /**
+     * Generate public parameters for the incentive system.
+     *
+     * @param securityParameter the security parameter used in the setup algorithm
+     * @param bilinearGroupChoice the bilinear group to use. Especially useful for testing
+     * @return public parameters for the incentive system
+     */
+    public static IncentivePublicParameters setup(int securityParameter, Setup.BilinearGroupChoice bilinearGroupChoice) {
+        return Setup.trustedSetup(securityParameter, bilinearGroupChoice);
     }
 
     public ProviderKeyPair generateProviderKeys() {
@@ -118,7 +125,7 @@ public class IncentiveSystem {
      * @param k                 the increase for the users token value
      * @param token             the old token
      * @param providerPublicKey public key of the provider
-     * @param  userKeyPair keypair of the user
+     * @param userKeyPair       keypair of the user
      * @return new token with value of the old token + k
      */
     public Token handleEarnRequestResponse(EarnRequest earnRequest, SPSEQSignature changedSignature, long k, Token token, ProviderPublicKey providerPublicKey, UserKeyPair userKeyPair) {
@@ -151,7 +158,6 @@ public class IncentiveSystem {
 
     /**
      * Generates a request to add value k to token.
-     * Random ZnElements are passed until HasThenPrfToZn is on develop.
      *
      * @param token             the token
      * @param providerPublicKey public key of the provider
@@ -298,12 +304,13 @@ public class IncentiveSystem {
 
         // SPSEQ.verify and chgRep
         var cStar0 = spendRequest.getCPre0().op(providerPublicKey.getH().get(1).pow(spendResponse.getEskProvStar().mul(uS)));
-        var cStar1 = spendRequest.getCPre1(); // same as g_1
+        var cStar1 = spendRequest.getCPre1();
         var sigmaStar = (SPSEQSignature) pp.getSpsEq().chgRepWithVerify(
                 new MessageBlock(new GroupElementPlainText(cStar0), new GroupElementPlainText(cStar1)),
                 spendResponse.getSigma(),
                 uS.inv(),
                 providerPublicKey.getPkSpsEq());
+
         // Change representation of commitments
         cStar0 = cStar0.pow(uS.inv());
         cStar1 = pp.getG1(); // is the same as cStar1.pow(uS.inv())

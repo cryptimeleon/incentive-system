@@ -22,7 +22,7 @@ public class CreditEarnTest {
     @Test
     void testSuccessFullCreditEarn() {
         logger.info("Setup test");
-        var pp = IncentiveSystem.setup();
+        var pp = IncentiveSystem.setup(128, Setup.BilinearGroupChoice.Debug);
         var incentiveSystem = new IncentiveSystem(pp);
         var providerKeyPair = incentiveSystem.generateProviderKeys();
         var userKeyPair = incentiveSystem.generateUserKeys();

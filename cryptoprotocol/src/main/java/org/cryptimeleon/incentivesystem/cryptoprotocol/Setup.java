@@ -19,8 +19,9 @@ import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserSecre
 import org.cryptimeleon.math.hash.impl.SHA256HashFunction;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.groups.cartesian.GroupElementVector;
-import org.cryptimeleon.math.structures.groups.counting.CountingBilinearGroup;
+import org.cryptimeleon.math.structures.groups.debug.DebugBilinearGroup;
 import org.cryptimeleon.math.structures.groups.elliptic.BilinearGroup;
+import org.cryptimeleon.math.structures.groups.elliptic.type3.bn.BarretoNaehrigBilinearGroup;
 import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
@@ -34,17 +35,42 @@ import java.util.stream.Stream;
  * (namely Setup, P.KeyGen, U.KeyGen)
  */
 public class Setup {
-    public static final int PRF_KEY_LENGTH = 128;
+    // Which AES version to use for the PRF-to-ZN
+    public static final int HASH_THEN_PRF_AES_KEY_LENGTH = 256;
+
+    // (1/2)^OVERSUBSCRIPTION is a lower bound for probability of the PRF failing
+    private static final int HASH_THEN_PRF_OVERSUBSCRIPTION = 128;
+
+    // Base for esk decomposition. Requires as many signed digits in the provider's public key, but reduces digits and
+    // hence verifications required in the Spend-Deduct protocol for the encryption secret key
+    private static final long ESK_DEC_BASE = 256;
+
+    // ESK_DEC_BASE^MAX_POINTS_BASE_POWER determines the maximum number of points a user can have.
+    // This is due to the CCS range proof used for v>=k in Spend-Deduct
+    private static final int MAX_POINTS_BASE_POWER = 6;
+
+    // Enum for choosing the bilinear group
+    public enum BilinearGroupChoice {
+        Debug,
+        BarretoNaehrig,
+    }
 
     /**
-     * generates public parameters from security parameter
+     * Generates public parameters from security parameter
      *
      * @param securityParameter integer representation of security parameter
+     * @param bilinearGroupChoice determines which group to use. Use Debug for testing only since it is not secure!
      * @return public parameters as object representation
      */
-    public static IncentivePublicParameters trustedSetup(int securityParameter) {
-        // generate a bilinear group from the security parameter (type 3, Barreto-Naehrig)
-        BilinearGroup bg = new CountingBilinearGroup(securityParameter, BilinearGroup.Type.TYPE_3);
+    public static IncentivePublicParameters trustedSetup(int securityParameter, BilinearGroupChoice bilinearGroupChoice) {
+        // generate a bilinear group from the security parameter depending on the group choice
+        BilinearGroup bg;
+        switch (bilinearGroupChoice) {
+            case Debug -> bg = new DebugBilinearGroup(securityParameter, BilinearGroup.Type.TYPE_3);
+            case BarretoNaehrig -> bg = new BarretoNaehrigBilinearGroup(securityParameter);
+            default -> throw new IllegalStateException("Unexpected value: " + bilinearGroupChoice);
+        }
+
 
         // TODO: rewrite computation of w and h7 once proper hashing of bilinear groups is possible
         // compute w (base used in double spending protection, see 2020 incsys paper)
@@ -54,7 +80,7 @@ public class Setup {
         GroupElement h7 = bg.getG1().getUniformlyRandomElement().compute();
 
         // PrfToZn instantiation
-        HashThenPrfToZn prfToZn = new HashThenPrfToZn(256, bg.getZn(), new SHA256HashFunction(), 128);
+        HashThenPrfToZn prfToZn = new HashThenPrfToZn(HASH_THEN_PRF_AES_KEY_LENGTH, bg.getZn(), new SHA256HashFunction(), HASH_THEN_PRF_OVERSUBSCRIPTION);
 
         // instantiate SPS-EQ scheme used in this instance of the incentive system
         SPSEQSignatureScheme spsEq = new SPSEQSignatureScheme(new SPSEQPublicParameters(bg));
@@ -64,13 +90,12 @@ public class Setup {
         GroupElement g2 = bg.getG2().getGenerator().compute();
 
         // prepare encryptionSecretKey decomposition for ZKP
-        BigInteger eskBase = BigInteger.valueOf(256);
+        BigInteger eskBase = BigInteger.valueOf(ESK_DEC_BASE);
         var eskBaseSet = Stream.iterate(BigInteger.ZERO, i -> i.compareTo(eskBase) < 0, i -> i.add(BigInteger.ONE)).collect(Collectors.toSet());
         var eskBaseSetMembershipPublicParameters = SetMembershipPublicParameters.generate(bg, eskBaseSet);
-        var maxPointBasePower = 6;
 
         // wrap up all values
-        return new IncentivePublicParameters(bg, w, h7, g1, g2, prfToZn, spsEq, bg.getZn().valueOf(eskBase), maxPointBasePower, eskBaseSetMembershipPublicParameters);
+        return new IncentivePublicParameters(bg, w, h7, g1, g2, prfToZn, spsEq, bg.getZn().valueOf(eskBase), MAX_POINTS_BASE_POWER, eskBaseSetMembershipPublicParameters);
     }
 
     /**
