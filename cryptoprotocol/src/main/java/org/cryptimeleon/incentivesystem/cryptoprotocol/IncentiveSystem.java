@@ -13,8 +13,7 @@ import org.cryptimeleon.incentivesystem.cryptoprotocol.proof.SpendDeductZkpCommo
 import org.cryptimeleon.incentivesystem.cryptoprotocol.proof.SpendDeductZkpWitnessInput;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.proof.SpendDeductZkp;
 import org.cryptimeleon.math.hash.impl.ByteArrayAccumulator;
-import org.cryptimeleon.math.structures.cartesian.Vector;
-import org.cryptimeleon.math.structures.groups.GroupElement;
+import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
 import org.cryptimeleon.math.structures.rings.integers.IntegerRing;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
@@ -38,7 +37,7 @@ public class IncentiveSystem {
     /**
      * Generate public parameters for the incentive system.
      *
-     * @param securityParameter the security parameter used in the setup algorithm
+     * @param securityParameter   the security parameter used in the setup algorithm
      * @param bilinearGroupChoice the bilinear group to use. Especially useful for testing
      * @return public parameters for the incentive system
      */
@@ -176,11 +175,9 @@ public class IncentiveSystem {
         var usk = userKeyPair.getSk().getUsk();
         var esk = token.getEncryptionSecretKey();
         var dsid = pp.getW().pow(esk);
-        var vectorH = providerPublicKey.getH().pad(pp.getH7(), 7);
-        Vector<Zn.ZnElement> vectorR = Vector.generatePlain(
-                zp::getUniformlyRandomElement,
-                pp.getNumEskDigits()
-        );
+        var vectorH = providerPublicKey.getH().append(pp.getH7());
+        var vectorR = zp.getUniformlyRandomElements(pp.getNumEskDigits());
+
 
         // Compute pseudorandom values
         var prfZnElements = pp.getPrfToZn().hashThenPrfToZnVector(userKeyPair.getSk().getPrfKey(), token, 6, "SpendDeduct");
@@ -191,9 +188,7 @@ public class IncentiveSystem {
         Zn.ZnElement tS = (Zn.ZnElement) prfZnElements.get(4);
         Zn.ZnElement uS = (Zn.ZnElement) prfZnElements.get(5);
 
-        assert vectorR.length() == pp.getNumEskDigits();
-
-        var exponents = new Vector<>(
+        var exponents = new RingElementVector(
                 usk,
                 eskUsrS,
                 dsrnd0S,
@@ -201,7 +196,7 @@ public class IncentiveSystem {
                 token.getPoints().sub(zp.valueOf(k)),
                 zS,
                 tS);
-        var cPre0 = vectorH.pow(exponents).reduce(GroupElement::op).pow(uS).compute();
+        var cPre0 = vectorH.innerProduct(exponents).pow(uS).compute();
         var cPre1 = pp.getG1().pow(uS).compute();
 
         var gamma = Util.hashGamma(zp, k, dsid, tid, cPre0, cPre1);
@@ -209,7 +204,7 @@ public class IncentiveSystem {
         var c0 = usk.mul(gamma).add(token.getDoubleSpendRandomness0());
         var c1 = esk.mul(gamma).add(token.getDoubleSpendRandomness1());
 
-        var eskDecomp = new Vector<>(Arrays.stream(
+        var eskDecomp = new RingElementVector(Arrays.stream(
                 IntegerRing.decomposeIntoDigits(eskUsrS.asInteger(), pp.getEskDecBase().asInteger(), pp.getNumEskDigits()))
                 .map(zp::valueOf)
                 .collect(Collectors.toList()));
@@ -245,13 +240,20 @@ public class IncentiveSystem {
                 spendRequest.getCommitmentC0(),
                 spendRequest.getCommitmentC1()
         );
-        assert signatureValid;
+
+        if (!signatureValid) {
+            throw new IllegalArgumentException("Signature of the request is not valid!");
+        }
 
         // Validate ZKP
         var fiatShamirProofSystem = new FiatShamirProofSystem(new SpendDeductZkp(pp, providerKeyPair.getPk()));
         var gamma = Util.hashGamma(pp.getBg().getZn(), k, spendRequest.getDsid(), tid, spendRequest.getCPre0(), spendRequest.getCPre1());
         var commonInput = new SpendDeductZkpCommonInput(spendRequest, k, gamma);
-        assert fiatShamirProofSystem.checkProof(commonInput, spendRequest.getSpendDeductZkp());
+        var proofValid = fiatShamirProofSystem.checkProof(commonInput, spendRequest.getSpendDeductZkp());
+
+        if (!proofValid) {
+            throw new IllegalArgumentException("ZPK of the request is not valid!");
+        }
 
         // Retrieve esk via PRF
         var preimage = new ByteArrayAccumulator();

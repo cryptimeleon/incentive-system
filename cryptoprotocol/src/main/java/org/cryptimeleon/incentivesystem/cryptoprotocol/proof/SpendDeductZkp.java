@@ -144,8 +144,8 @@ public class SpendDeductZkp extends DelegateProtocol {
         builder.putWitnessValue("uStarInverse", secretInput.uStar.inv());
 
         for (int i = 0; i < pp.getNumEskDigits(); i++) {
-            builder.putWitnessValue("eskStarUserDec_" + i, secretInput.eskStarUserDec.get(i));
-            builder.putWitnessValue("r_" + i, secretInput.rVector.get(i));
+            builder.putWitnessValue("eskStarUserDec_" + i, (Zn.ZnElement) secretInput.eskStarUserDec.get(i));
+            builder.putWitnessValue("r_" + i, (Zn.ZnElement) secretInput.rVector.get(i));
         }
 
         // Some asserts that might be useful for debugging:

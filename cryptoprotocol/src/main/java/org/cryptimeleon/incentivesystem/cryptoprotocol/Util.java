@@ -25,11 +25,11 @@ public class Util {
     public static Zn.ZnElement hashGamma(Zn zn, BigInteger k, GroupElement dsid, Zn.ZnElement tid, GroupElement cPre0, GroupElement cPre1) {
         var hashfunction = new HashIntoZn(zn);
         var accumulator = new ByteArrayAccumulator();
-        accumulator.append(k.toByteArray());
-        accumulator.append(dsid);
-        accumulator.append(tid);
-        accumulator.append(cPre0);
-        accumulator.append(cPre1);
+        accumulator.appendAndSeparate(k.toByteArray());
+        accumulator.appendAndSeparate(dsid.getUniqueByteRepresentation());
+        accumulator.appendAndSeparate(tid.getUniqueByteRepresentation());
+        accumulator.appendAndSeparate(cPre0.getUniqueByteRepresentation());
+        accumulator.appendAndSeparate(cPre1.getUniqueByteRepresentation());
         return hashfunction.hash(accumulator.extractBytes());
     }
 }

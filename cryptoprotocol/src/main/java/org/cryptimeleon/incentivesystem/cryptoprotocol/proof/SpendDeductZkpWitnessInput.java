@@ -2,7 +2,7 @@ package org.cryptimeleon.incentivesystem.cryptoprotocol.proof;
 
 import lombok.AllArgsConstructor;
 import org.cryptimeleon.craco.protocols.SecretInput;
-import org.cryptimeleon.math.structures.cartesian.Vector;
+import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 /**
@@ -23,6 +23,6 @@ public class SpendDeductZkpWitnessInput implements SecretInput {
     public final Zn.ZnElement dsrndStar0;
     public final Zn.ZnElement dsrnd1;
     public final Zn.ZnElement dsrndStar1;
-    public final Vector<Zn.ZnElement> eskStarUserDec;
-    public final Vector<Zn.ZnElement> rVector;
+    public final RingElementVector eskStarUserDec;
+    public final RingElementVector rVector;
 }
