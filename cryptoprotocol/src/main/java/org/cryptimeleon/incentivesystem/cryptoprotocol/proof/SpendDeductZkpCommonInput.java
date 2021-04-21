@@ -22,7 +22,6 @@ public class SpendDeductZkpCommonInput implements CommonInput {
     public final GroupElement c0Pre;
     public final GroupElement c1Pre;
     public final GroupElement commitmentC0;
-    public final GroupElement commitmentC1;
     public final GroupElementVector ctrace0;
     public final GroupElementVector ctrace1;
 
@@ -38,7 +37,6 @@ public class SpendDeductZkpCommonInput implements CommonInput {
         this.c0Pre = spendRequest.getCPre0();
         this.c1Pre = spendRequest.getCPre1();
         this.commitmentC0 = spendRequest.getCommitmentC0();
-        this.commitmentC1 = spendRequest.getCommitmentC1();
         this.ctrace0 = spendRequest.getCtrace0();
         this.ctrace1 = spendRequest.getCtrace1();
     }

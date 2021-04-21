@@ -22,6 +22,7 @@ import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
 @Value
 @AllArgsConstructor
 public class Token implements Representable, UniqueByteRepresentable {
+    // TODO rename (c1,c2) to (c0,c1)
     @NonFinal
     @Represented(restorer = "G1")
     @UniqueByteRepresented

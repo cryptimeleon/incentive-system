@@ -12,8 +12,6 @@ import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.variables.Schnor
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.IncentivePublicParameters;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.math.expressions.exponent.ExponentConstantExpr;
-import org.cryptimeleon.math.expressions.exponent.ExponentMulExpr;
-import org.cryptimeleon.math.expressions.exponent.ExponentSumExpr;
 import org.cryptimeleon.math.expressions.group.GroupElementExpression;
 import org.cryptimeleon.math.structures.cartesian.GroupElementExpressionVector;
 import org.cryptimeleon.math.structures.cartesian.Vector;
@@ -69,19 +67,23 @@ public class SpendDeductZkp extends DelegateProtocol {
         }
 
         // c0=usk*gamma+dsrnd0
-        var c0statement = new ExponentSumExpr(new ExponentMulExpr(uskVar, new ExponentConstantExpr(commonInput.gamma)), dsrnd0Var);
-        builder.addSubprotocol("c0=usk*gamma+dsrnd0", new LinearExponentStatementFragment(c0statement.isEqualTo(commonInput.c0), zn));
+        builder.addSubprotocol(
+                "c0=usk*gamma+dsrnd0",
+                new LinearExponentStatementFragment(uskVar.mul(commonInput.gamma).add(dsrnd0Var).isEqualTo(commonInput.c0), zn)
+        );
 
         // c1=esk*gamma+dsrnd1
-        var c1statement = new ExponentSumExpr(new ExponentMulExpr(eskVar, new ExponentConstantExpr(commonInput.gamma)), dsrnd1Var);
-        builder.addSubprotocol("c1=esk*gamma+dsrnd1", new LinearExponentStatementFragment(c1statement.isEqualTo(commonInput.c1), zn));
+        builder.addSubprotocol(
+                "c1=esk*gamma+dsrnd1",
+                new LinearExponentStatementFragment(eskVar.mul(commonInput.gamma).add(dsrnd1Var).isEqualTo(commonInput.c1), zn)
+        );
 
         // dsid=w^esk
         var dsidEskStatement = w.pow(eskVar).isEqualTo(commonInput.dsid);
         builder.addSubprotocol("dsid=w^esk", new LinearStatementFragment(dsidEskStatement));
 
         // C=(H.pow(usk, esk, dsrnd_0, dsrnd_1, v, z, t),g_1) split into two subprotocols
-        var commitmentC0Statement = H.pow(new Vector<>(
+        var commitmentC0Statement = H.innerProduct(new Vector<>(
                 uskVar,
                 eskVar,
                 dsrnd0Var,
@@ -89,9 +91,9 @@ public class SpendDeductZkp extends DelegateProtocol {
                 vVar,
                 zVar,
                 tVar
-        )).reduce(GroupElementExpression::op).isEqualTo(commonInput.commitmentC0);
+        )).isEqualTo(commonInput.commitmentC0);
         builder.addSubprotocol("C0", new LinearStatementFragment(commitmentC0Statement));
-        builder.addSubprotocol("C1", new LinearStatementFragment(commonInput.commitmentC1.expr().isEqualTo(pp.getG1())));
+        // C1=g is not sent and verified since no witness is involved.
 
         // C=(H.pow(usk, \sum_i=0^k[esk^*_(usr,i) * base^i], dsrnd^*_0, dsrnd^*_1, v-k, z^*, t^*), g_1^(u^*)) split into two subprotocols
         // We use the sum to combine the esk^*_usr = \sum proof with the C=.. proof

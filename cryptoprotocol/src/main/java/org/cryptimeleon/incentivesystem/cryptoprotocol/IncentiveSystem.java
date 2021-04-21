@@ -216,10 +216,10 @@ public class IncentiveSystem {
         var fiatShamirProofSystem = new FiatShamirProofSystem(new SpendDeductZkp(pp, providerPublicKey));
 
         var witness = new SpendDeductZkpWitnessInput(usk, token.getPoints(), token.getZ(), zS, token.getT(), tS, uS, esk, eskUsrS, token.getDoubleSpendRandomness0(), dsrnd0S, token.getDoubleSpendRandomness1(), dsrnd1S, eskDecomp, vectorR);
-        var commonInput = new SpendDeductZkpCommonInput(k, gamma, c0, c1, dsid, cPre0, cPre1, token.getC1(), token.getC2(), ctrace0, ctrace1);
+        var commonInput = new SpendDeductZkpCommonInput(k, gamma, c0, c1, dsid, cPre0, cPre1, token.getC1(), ctrace0, ctrace1);
         var proof = fiatShamirProofSystem.createProof(commonInput, witness);
 
-        return new SpendRequest(dsid, proof, c0, c1, cPre0, cPre1, ctrace0, ctrace1, token.getC1(), token.getC2(), token.getSignature());
+        return new SpendRequest(dsid, proof, c0, c1, cPre0, cPre1, ctrace0, ctrace1, token.getC1(), token.getSignature());
     }
 
     /**
@@ -238,7 +238,7 @@ public class IncentiveSystem {
                 providerKeyPair.getPk().getPkSpsEq(),
                 spendRequest.getSigma(),
                 spendRequest.getCommitmentC0(),
-                spendRequest.getCommitmentC1()
+                pp.getG1() // C1 must be g1 according to ZKP in T2 paper. We omit the ZKP and use g1 instead of C1
         );
 
         if (!signatureValid) {
@@ -257,8 +257,8 @@ public class IncentiveSystem {
 
         // Retrieve esk via PRF
         var preimage = new ByteArrayAccumulator();
-        preimage.append(commonInput.c0Pre);
-        preimage.append(commonInput.c1Pre);
+        preimage.escapeAndSeparate(commonInput.c0Pre);
+        preimage.escapeAndSeparate(commonInput.c1Pre);
         var eskStarProv = pp.getPrfToZn().hashThenPrfToZn(providerKeyPair.getSk().getBetaProv(), new ByteArrayImplementation(preimage.extractBytes()), "eskStarProv");
 
         // Compute new Signature
