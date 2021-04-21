@@ -28,7 +28,7 @@ import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
 
 import java.math.BigInteger;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.stream.LongStream;
 
 /**
  * a class implementing the incentive system algorithms (of the incentive system from the 2020 paper) that are not part of any protocol
@@ -90,12 +90,11 @@ public class Setup {
         GroupElement g2 = bg.getG2().getGenerator().compute();
 
         // prepare encryptionSecretKey decomposition for ZKP
-        BigInteger eskBase = BigInteger.valueOf(ESK_DEC_BASE);
-        var eskBaseSet = Stream.iterate(BigInteger.ZERO, i -> i.compareTo(eskBase) < 0, i -> i.add(BigInteger.ONE)).collect(Collectors.toSet());
+        var eskBaseSet = LongStream.range(0, ESK_DEC_BASE).mapToObj(BigInteger::valueOf).collect(Collectors.toSet());
         var eskBaseSetMembershipPublicParameters = SetMembershipPublicParameters.generate(bg, eskBaseSet);
 
         // wrap up all values
-        return new IncentivePublicParameters(bg, w, h7, g1, g2, prfToZn, spsEq, bg.getZn().valueOf(eskBase), MAX_POINTS_BASE_POWER, eskBaseSetMembershipPublicParameters);
+        return new IncentivePublicParameters(bg, w, h7, g1, g2, prfToZn, spsEq, bg.getZn().valueOf(ESK_DEC_BASE), MAX_POINTS_BASE_POWER, eskBaseSetMembershipPublicParameters);
     }
 
     /**

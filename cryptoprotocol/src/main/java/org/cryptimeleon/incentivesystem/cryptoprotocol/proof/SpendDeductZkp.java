@@ -8,11 +8,10 @@ import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.LinearStatementF
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.SendThenDelegateFragment;
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.setmembership.SetMembershipFragment;
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.setmembership.SmallerThanPowerFragment;
-import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.variables.SchnorrZnVariable;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.IncentivePublicParameters;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.math.expressions.exponent.ExponentConstantExpr;
-import org.cryptimeleon.math.expressions.group.GroupElementExpression;
+import org.cryptimeleon.math.structures.cartesian.ExponentExpressionVector;
 import org.cryptimeleon.math.structures.cartesian.GroupElementExpressionVector;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.groups.Group;
@@ -20,6 +19,8 @@ import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 import java.math.BigInteger;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * The ZKP used in the spend-deduct protocol
@@ -57,13 +58,12 @@ public class SpendDeductZkp extends DelegateProtocol {
         var tVar = builder.addZnVariable("t", zn);
         var zStarVar = builder.addZnVariable("zStar", zn);
         var tStarVar = builder.addZnVariable("tStar", zn);
-        var uStarVar = builder.addZnVariable("uStar", zn);
         var uStarInverseVar = builder.addZnVariable("uStarInverse", zn);
-        var eskDecVarVector = new SchnorrZnVariable[pp.getNumEskDigits()];
-        var rVector = new SchnorrZnVariable[pp.getNumEskDigits()];
+        var eskDecVarVector = new ExponentExpressionVector();
+        var rVector = new ExponentExpressionVector();
         for (int i = 0; i < pp.getNumEskDigits(); i++) {
-            eskDecVarVector[i] = builder.addZnVariable("eskStarUserDec_" + i, zn);
-            rVector[i] = builder.addZnVariable("r_" + i, zn);
+            eskDecVarVector = eskDecVarVector.append(builder.addZnVariable("eskStarUserDec_" + i, zn));
+            rVector = rVector.append(builder.addZnVariable("r_" + i, zn));
         }
 
         // c0=usk*gamma+dsrnd0
@@ -97,20 +97,20 @@ public class SpendDeductZkp extends DelegateProtocol {
 
         // C=(H.pow(usk, \sum_i=0^k[esk^*_(usr,i) * base^i], dsrnd^*_0, dsrnd^*_1, v-k, z^*, t^*), g_1^(u^*)) split into two subprotocols
         // We use the sum to combine the esk^*_usr = \sum proof with the C=.. proof
-        var exponents = new Vector<>(uskVar, BigInteger.ZERO, dsrndStar0Var, dsrndStar1Var, vVar.sub(zn.valueOf(commonInput.k)), zStarVar, tStarVar); // 0 because h_2^(esk^*_usr) is handled separately
-        GroupElementExpression eskPart = groupG1.getNeutralElement().expr();
-        for (int i = 0; i < pp.getNumEskDigits(); i++) {
-            eskPart = eskPart.op(H.get(1).pow(eskDecVarVector[i].mul(pp.getEskDecBase().pow(BigInteger.valueOf(i)))));
-        }
-
-        var cPre0Statement = H.pow(exponents).reduce(GroupElementExpression::op).op(eskPart).isEqualTo(commonInput.c0Pre.pow(uStarInverseVar));
+        var powersOfEskDecBase = new ExponentExpressionVector(
+                IntStream.range(0, pp.getNumEskDigits())
+                .mapToObj(i -> pp.getEskDecBase().pow(BigInteger.valueOf(i)).asExponentExpression())
+                .collect(Collectors.toList())
+        ); // construct vector (eskBase^0, eskBase^1, ...)
+        var exponents = new Vector<>(uskVar, eskDecVarVector.innerProduct(powersOfEskDecBase), dsrndStar0Var, dsrndStar1Var, vVar.sub(zn.valueOf(commonInput.k)), zStarVar, tStarVar); // 0 because h_2^(esk^*_usr) is handled separately
+        var cPre0Statement = H.innerProduct(exponents).isEqualTo(commonInput.c0Pre.pow(uStarInverseVar));
         builder.addSubprotocol("C0Pre", new LinearStatementFragment(cPre0Statement));
-        builder.addSubprotocol("C1Pre", new LinearStatementFragment(commonInput.c1Pre.expr().isEqualTo(pp.getG1().pow(uStarVar))));
-        builder.addSubprotocol("u^*-inverse", new LinearStatementFragment(commonInput.c1Pre.pow(uStarInverseVar).isEqualTo(pp.getG1()))); // Prove that the inverse is actually the inverse
+
+        builder.addSubprotocol("C1Pre", new LinearStatementFragment(commonInput.c1Pre.pow(uStarInverseVar).isEqualTo(pp.getG1()))); // Use the inverse of uStar to linearize this expression
 
         // esk^*_(usr,i)\in[base]
         for (int i = 0; i < pp.getNumEskDigits(); i++) {
-            builder.addSubprotocol("eskDigitSetMembership_" + i, new SetMembershipFragment(pp.getEskBaseSetMembershipPublicParameters(), eskDecVarVector[i]));
+            builder.addSubprotocol("eskDigitSetMembership_" + i, new SetMembershipFragment(pp.getEskBaseSetMembershipPublicParameters(), eskDecVarVector.get(i)));
         }
 
         // v >= k (I have more points than required)
@@ -119,8 +119,8 @@ public class SpendDeductZkp extends DelegateProtocol {
 
         // ctrace=(w^{r_i} ,{w^{r_i}}^{esk}*w^{esk^*_{usr,i}}) for all i\in[p]
         for (int i = 0; i < pp.getNumEskDigits(); i++) {
-            builder.addSubprotocol("ctrace0" + i, new LinearStatementFragment(w.pow(rVector[i]).isEqualTo(commonInput.ctrace0.get(i))));
-            builder.addSubprotocol("ctrace1" + i, new LinearStatementFragment(w.pow(eskDecVarVector[i]).op(commonInput.ctrace0.get(i).pow(eskVar)).isEqualTo(commonInput.ctrace1.get(i))));
+            builder.addSubprotocol("ctrace0" + i, new LinearStatementFragment(w.pow(rVector.get(i)).isEqualTo(commonInput.ctrace0.get(i))));
+            builder.addSubprotocol("ctrace1" + i, new LinearStatementFragment(w.pow(eskDecVarVector.get(i)).op(commonInput.ctrace0.get(i).pow(eskVar)).isEqualTo(commonInput.ctrace1.get(i))));
         }
 
         return builder.build();
@@ -142,7 +142,6 @@ public class SpendDeductZkp extends DelegateProtocol {
         builder.putWitnessValue("t", secretInput.t);
         builder.putWitnessValue("zStar", secretInput.zStar);
         builder.putWitnessValue("tStar", secretInput.tStar);
-        builder.putWitnessValue("uStar", secretInput.uStar);
         builder.putWitnessValue("uStarInverse", secretInput.uStar.inv());
 
         for (int i = 0; i < pp.getNumEskDigits(); i++) {
