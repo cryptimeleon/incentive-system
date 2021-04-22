@@ -115,7 +115,7 @@ public class SpendDeductZkp extends DelegateProtocol {
 
         // v >= k (I have more points than required)
         // We prove that v-k\in[0,eskDecBase^{maxPointBasePower+1}-1]
-        builder.addSubprotocol("v>=k", new SmallerThanPowerFragment(vVar.sub(new ExponentConstantExpr(commonInput.k)), pp.getEskDecBase().getInteger().intValue(), pp.getMaxPointBasePower(), pp.getEskBaseSetMembershipPublicParameters()));
+        builder.addSubprotocol("v>=k", new SmallerThanPowerFragment(vVar.sub(commonInput.k), pp.getEskDecBase().getInteger().intValue(), pp.getMaxPointBasePower(), pp.getEskBaseSetMembershipPublicParameters()));
 
         // ctrace=(w^{r_i} ,{w^{r_i}}^{esk}*w^{esk^*_{usr,i}}) for all i\in[p]
         for (int i = 0; i < pp.getNumEskDigits(); i++) {
