@@ -25,12 +25,12 @@ public class SpendResponse implements Representable {
     @Represented(restorer = "Zn")
     Zn.ZnElement eskProvStar;
 
+    public SpendResponse(Representation repr, Zn zn, SPSEQSignatureScheme spseqSignatureScheme) {
+        new ReprUtil(this).register(zn, "Zn").register(spseqSignatureScheme, "SPSEQ").deserialize(repr);
+    }
+
     @Override
     public Representation getRepresentation() {
         return ReprUtil.serialize(this);
-    }
-
-    public SpendResponse(Representation repr, Zn zn, SPSEQSignatureScheme spseqSignatureScheme) {
-        new ReprUtil(this).register(zn, "Zn").register(spseqSignatureScheme, "SPSEQ").deserialize(repr);
     }
 }

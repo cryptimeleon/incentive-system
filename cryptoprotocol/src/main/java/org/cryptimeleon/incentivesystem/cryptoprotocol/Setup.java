@@ -49,16 +49,10 @@ public class Setup {
     // This is due to the CCS range proof used for v>=k in Spend-Deduct
     private static final int MAX_POINTS_BASE_POWER = 6;
 
-    // Enum for choosing the bilinear group
-    public enum BilinearGroupChoice {
-        Debug,
-        BarretoNaehrig,
-    }
-
     /**
      * Generates public parameters from security parameter
      *
-     * @param securityParameter integer representation of security parameter
+     * @param securityParameter   integer representation of security parameter
      * @param bilinearGroupChoice determines which group to use. Use Debug for testing only since it is not secure!
      * @return public parameters as object representation
      */
@@ -120,7 +114,6 @@ public class Setup {
         return new UserKeyPair(uPk, uSk);
     }
 
-
     /**
      * Generates a provider key pair from public parameters
      *
@@ -146,5 +139,12 @@ public class Setup {
         ProviderPublicKey pk = new ProviderPublicKey(spseqVerificationKey, h);
         ProviderSecretKey sk = new ProviderSecretKey(spseqSigningKey, q, betaProv);
         return new ProviderKeyPair(sk, pk);
+    }
+
+
+    // Enum for choosing the bilinear group
+    public enum BilinearGroupChoice {
+        Debug,
+        BarretoNaehrig,
     }
 }

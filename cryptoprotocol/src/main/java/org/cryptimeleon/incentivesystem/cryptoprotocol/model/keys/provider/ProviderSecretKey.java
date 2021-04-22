@@ -20,7 +20,7 @@ public class ProviderSecretKey implements Representable {
     SPSEQSigningKey skSpsEq;
 
     @NonFinal
-    @Represented( restorer = "Zn")
+    @Represented(restorer = "Zn")
     RingElementVector q; // dlogs of the first six bases used in the Pedersen commitment in the token
 
     @NonFinal

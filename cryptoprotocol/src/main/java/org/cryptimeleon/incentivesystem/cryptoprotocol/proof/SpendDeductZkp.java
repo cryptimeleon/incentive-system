@@ -10,7 +10,6 @@ import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.setmembership.Se
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.setmembership.SmallerThanPowerFragment;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.IncentivePublicParameters;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderPublicKey;
-import org.cryptimeleon.math.expressions.exponent.ExponentConstantExpr;
 import org.cryptimeleon.math.structures.cartesian.ExponentExpressionVector;
 import org.cryptimeleon.math.structures.cartesian.GroupElementExpressionVector;
 import org.cryptimeleon.math.structures.cartesian.Vector;
@@ -99,8 +98,8 @@ public class SpendDeductZkp extends DelegateProtocol {
         // We use the sum to combine the esk^*_usr = \sum proof with the C=.. proof
         var powersOfEskDecBase = new ExponentExpressionVector(
                 IntStream.range(0, pp.getNumEskDigits())
-                .mapToObj(i -> pp.getEskDecBase().pow(BigInteger.valueOf(i)).asExponentExpression())
-                .collect(Collectors.toList())
+                        .mapToObj(i -> pp.getEskDecBase().pow(BigInteger.valueOf(i)).asExponentExpression())
+                        .collect(Collectors.toList())
         ); // construct vector (eskBase^0, eskBase^1, ...)
         var exponents = new Vector<>(uskVar, eskDecVarVector.innerProduct(powersOfEskDecBase), dsrndStar0Var, dsrndStar1Var, vVar.sub(zn.valueOf(commonInput.k)), zStarVar, tStarVar); // 0 because h_2^(esk^*_usr) is handled separately
         var cPre0Statement = H.innerProduct(exponents).isEqualTo(commonInput.c0Pre.pow(uStarInverseVar));

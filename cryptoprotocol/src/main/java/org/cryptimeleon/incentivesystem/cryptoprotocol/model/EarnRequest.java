@@ -28,15 +28,15 @@ public class EarnRequest implements Representable {
     @Represented(restorer = "G1")
     GroupElement c2; // second element of the tuple C
 
-    @Override
-    public Representation getRepresentation() {
-        return ReprUtil.serialize(this);
-    }
-
     public EarnRequest(Representation repr, IncentivePublicParameters pp) {
         new ReprUtil(this)
                 .register(pp.getBg().getG1(), "G1")
                 .register(pp.getSpsEq(), "SPSEQ")
                 .deserialize(repr);
+    }
+
+    @Override
+    public Representation getRepresentation() {
+        return ReprUtil.serialize(this);
     }
 }

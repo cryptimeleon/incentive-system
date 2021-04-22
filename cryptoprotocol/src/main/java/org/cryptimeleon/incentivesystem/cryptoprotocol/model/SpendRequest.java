@@ -53,22 +53,6 @@ public class SpendRequest implements Representable {
     @NonFinal
     SPSEQSignature sigma;
 
-    @Override
-    public Representation getRepresentation() {
-        return new ListRepresentation(
-                dsid.getRepresentation(),
-                c0.getRepresentation(),
-                c1.getRepresentation(),
-                cPre0.getRepresentation(),
-                cPre1.getRepresentation(),
-                commitmentC0.getRepresentation(),
-                ctrace0.getRepresentation(),
-                ctrace1.getRepresentation(),
-                spendDeductZkp.getRepresentation(),
-                sigma.getRepresentation()
-        );
-    }
-
     public SpendRequest(Representation repr, IncentivePublicParameters pp, FiatShamirProofSystem fiatShamirProofSystem, BigInteger k, Zn.ZnElement tid) {
         var listRepr = repr.list();
         var zn = pp.getBg().getZn();
@@ -88,5 +72,21 @@ public class SpendRequest implements Representable {
         var spendDeductCommonInput = new SpendDeductZkpCommonInput(k, gamma, c0, c1, dsid, cPre0, cPre1, commitmentC0, ctrace0, ctrace1);
         this.spendDeductZkp = fiatShamirProofSystem.restoreProof(spendDeductCommonInput, listRepr.get(8));
         this.sigma = new SPSEQSignature(listRepr.get(9), groupG1, groupG2);
+    }
+
+    @Override
+    public Representation getRepresentation() {
+        return new ListRepresentation(
+                dsid.getRepresentation(),
+                c0.getRepresentation(),
+                c1.getRepresentation(),
+                cPre0.getRepresentation(),
+                cPre1.getRepresentation(),
+                commitmentC0.getRepresentation(),
+                ctrace0.getRepresentation(),
+                ctrace1.getRepresentation(),
+                spendDeductZkp.getRepresentation(),
+                sigma.getRepresentation()
+        );
     }
 }

@@ -70,14 +70,6 @@ public class IncentivePublicParameters implements PublicParameters {
         init();
     }
 
-    @Override
-    public Representation getRepresentation() {
-        var repr = new ListRepresentation();
-        repr.add(ReprUtil.serialize(this));
-        repr.add(eskBaseSetMembershipPublicParameters.getRepresentation());
-        return repr;
-    }
-
     public IncentivePublicParameters(BilinearGroup bg, GroupElement w, GroupElement h7, GroupElement g1, GroupElement g2, HashThenPrfToZn prfToZn, SPSEQSignatureScheme spsEq, Zn.ZnElement eskDecBase, int maxPointBasePower, SetMembershipPublicParameters eskBaseSetMembershipPublicParameters) {
         this.bg = bg;
         this.w = w;
@@ -90,6 +82,14 @@ public class IncentivePublicParameters implements PublicParameters {
         this.maxPointBasePower = maxPointBasePower;
         this.eskBaseSetMembershipPublicParameters = eskBaseSetMembershipPublicParameters;
         init();
+    }
+
+    @Override
+    public Representation getRepresentation() {
+        var repr = new ListRepresentation();
+        repr.add(ReprUtil.serialize(this));
+        repr.add(eskBaseSetMembershipPublicParameters.getRepresentation());
+        return repr;
     }
 
     /**
