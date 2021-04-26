@@ -18,8 +18,6 @@ import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 import java.math.BigInteger;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 /**
  * The ZKP used in the spend-deduct protocol
@@ -58,12 +56,8 @@ public class SpendDeductZkp extends DelegateProtocol {
         var zStarVar = builder.addZnVariable("zStar", zn);
         var tStarVar = builder.addZnVariable("tStar", zn);
         var uStarInverseVar = builder.addZnVariable("uStarInverse", zn);
-        var eskDecVarVector = new ExponentExpressionVector();
-        var rVector = new ExponentExpressionVector();
-        for (int i = 0; i < pp.getNumEskDigits(); i++) {
-            eskDecVarVector = eskDecVarVector.append(builder.addZnVariable("eskStarUserDec_" + i, zn));
-            rVector = rVector.append(builder.addZnVariable("r_" + i, zn));
-        }
+        var eskDecVarVector = ExponentExpressionVector.generate(i -> builder.addZnVariable("eskStarUserDec_" + i, zn), pp.getNumEskDigits());
+        var rVector = ExponentExpressionVector.generate(i -> builder.addZnVariable("r_" + i, zn), pp.getNumEskDigits());
 
         // c0=usk*gamma+dsrnd0
         builder.addSubprotocol(
@@ -96,15 +90,10 @@ public class SpendDeductZkp extends DelegateProtocol {
 
         // C=(H.pow(usk, \sum_i=0^k[esk^*_(usr,i) * base^i], dsrnd^*_0, dsrnd^*_1, v-k, z^*, t^*), g_1^(u^*)) split into two subprotocols
         // We use the sum to combine the esk^*_usr = \sum proof with the C=.. proof
-        var powersOfEskDecBase = new ExponentExpressionVector(
-                IntStream.range(0, pp.getNumEskDigits())
-                        .mapToObj(i -> pp.getEskDecBase().pow(BigInteger.valueOf(i)).asExponentExpression())
-                        .collect(Collectors.toList())
-        ); // construct vector (eskBase^0, eskBase^1, ...)
-        var exponents = new Vector<>(uskVar, eskDecVarVector.innerProduct(powersOfEskDecBase), dsrndStar0Var, dsrndStar1Var, vVar.sub(zn.valueOf(commonInput.k)), zStarVar, tStarVar); // 0 because h_2^(esk^*_usr) is handled separately
+        var powersOfEskDecBase = ExponentExpressionVector.generate(i -> pp.getEskDecBase().pow(BigInteger.valueOf(i)).asExponentExpression(), pp.getNumEskDigits()); // construct vector (eskBase^0, eskBase^1, ...)
+        var exponents = new Vector<>(uskVar, eskDecVarVector.innerProduct(powersOfEskDecBase), dsrndStar0Var, dsrndStar1Var, vVar.sub(zn.valueOf(commonInput.k)), zStarVar, tStarVar);
         var cPre0Statement = H.innerProduct(exponents).isEqualTo(commonInput.c0Pre.pow(uStarInverseVar));
         builder.addSubprotocol("C0Pre", new LinearStatementFragment(cPre0Statement));
-
         builder.addSubprotocol("C1Pre", new LinearStatementFragment(commonInput.c1Pre.pow(uStarInverseVar).isEqualTo(pp.getG1()))); // Use the inverse of uStar to linearize this expression
 
         // esk^*_(usr,i)\in[base]
