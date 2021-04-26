@@ -96,13 +96,13 @@ public class SpendDeductZkp extends DelegateProtocol {
         builder.addSubprotocol("C0Pre", new LinearStatementFragment(cPre0Statement));
         builder.addSubprotocol("C1Pre", new LinearStatementFragment(commonInput.c1Pre.pow(uStarInverseVar).isEqualTo(pp.getG1()))); // Use the inverse of uStar to linearize this expression
 
-        // esk^*_(usr,i)\in[base]
+        // esk^*_(usr,i)\in[0,eskDecBase-1]
         for (int i = 0; i < pp.getNumEskDigits(); i++) {
             builder.addSubprotocol("eskDigitSetMembership_" + i, new SetMembershipFragment(pp.getEskBaseSetMembershipPublicParameters(), eskDecVarVector.get(i)));
         }
 
         // v >= k (I have more points than required)
-        // We prove that v-k\in[0,eskDecBase^{maxPointBasePower+1}-1]
+        // We prove that v-k\in[0,eskDecBase^{maxPointBasePower+1}-1] and reuse the SetMembershipParameters from the esk digit proof.
         builder.addSubprotocol("v>=k", new SmallerThanPowerFragment(vVar.sub(commonInput.k), pp.getEskDecBase().getInteger().intValue(), pp.getMaxPointBasePower(), pp.getEskBaseSetMembershipPublicParameters()));
 
         // ctrace=(w^{r_i} ,{w^{r_i}}^{esk}*w^{esk^*_{usr,i}}) for all i\in[p]
