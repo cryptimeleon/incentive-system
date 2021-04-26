@@ -4,6 +4,7 @@ import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.EarnRequest;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigInteger;
 import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -26,7 +27,7 @@ public class CreditEarnTest {
         var incentiveSystem = new IncentiveSystem(pp);
         var providerKeyPair = incentiveSystem.generateProviderKeys();
         var userKeyPair = incentiveSystem.generateUserKeys();
-        var earnAmount = 7;
+        var earnAmount = BigInteger.valueOf(7);
 
         // Create a dummy token.
         // This should be replaced by the actual methods that handle tokens when they are implemented.
@@ -35,8 +36,8 @@ public class CreditEarnTest {
         assertTrue(pp.getSpsEq().verify(
                 providerKeyPair.getPk().getPkSpsEq(),
                 token.getSignature(),
-                token.getC1(),
-                token.getC2()
+                token.getC0(),
+                token.getC1()
         ));
 
         logger.info("compute earn request");
@@ -66,15 +67,15 @@ public class CreditEarnTest {
         assertEquals(signature, restoredSignature);
 
         assertEquals(
-                newToken.getPoints().getInteger().longValue(),
-                token.getPoints().getInteger().longValue() + earnAmount
+                newToken.getPoints().getInteger(),
+                token.getPoints().getInteger().add(earnAmount)
         );
 
         assertTrue(pp.getSpsEq().verify(
                 providerKeyPair.getPk().getPkSpsEq(),
                 newToken.getSignature(),
-                newToken.getC1(),
-                newToken.getC2()
+                newToken.getC0(),
+                newToken.getC1()
         ));
     }
 }

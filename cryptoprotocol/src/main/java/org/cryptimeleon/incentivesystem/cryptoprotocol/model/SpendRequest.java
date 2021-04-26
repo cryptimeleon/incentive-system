@@ -42,10 +42,10 @@ public class SpendRequest implements Representable {
     GroupElement cPre1;
 
     @NonFinal
-    GroupElementVector ctrace0;
+    GroupElementVector cTrace0;
 
     @NonFinal
-    GroupElementVector ctrace1;
+    GroupElementVector cTrace1;
 
     @NonFinal
     GroupElement commitmentC0; // Dont sent C_1 since it should be equal to g_1 anyways
@@ -65,11 +65,11 @@ public class SpendRequest implements Representable {
         this.cPre0 = groupG1.restoreElement(listRepr.get(3));
         this.cPre1 = groupG1.restoreElement(listRepr.get(4));
         this.commitmentC0 = groupG1.restoreElement(listRepr.get(5));
-        this.ctrace0 = groupG1.restoreVector(listRepr.get(6));
-        this.ctrace1 = groupG1.restoreVector(listRepr.get(7));
+        this.cTrace0 = groupG1.restoreVector(listRepr.get(6));
+        this.cTrace1 = groupG1.restoreVector(listRepr.get(7));
 
         var gamma = Util.hashGamma(zn, k, dsid, tid, cPre0, cPre1);
-        var spendDeductCommonInput = new SpendDeductZkpCommonInput(k, gamma, c0, c1, dsid, cPre0, cPre1, commitmentC0, ctrace0, ctrace1);
+        var spendDeductCommonInput = new SpendDeductZkpCommonInput(k, gamma, c0, c1, dsid, cPre0, cPre1, commitmentC0, cTrace0, cTrace1);
         this.spendDeductZkp = fiatShamirProofSystem.restoreProof(spendDeductCommonInput, listRepr.get(8));
         this.sigma = new SPSEQSignature(listRepr.get(9), groupG1, groupG2);
     }
@@ -83,8 +83,8 @@ public class SpendRequest implements Representable {
                 cPre0.getRepresentation(),
                 cPre1.getRepresentation(),
                 commitmentC0.getRepresentation(),
-                ctrace0.getRepresentation(),
-                ctrace1.getRepresentation(),
+                cTrace0.getRepresentation(),
+                cTrace1.getRepresentation(),
                 spendDeductZkp.getRepresentation(),
                 sigma.getRepresentation()
         );

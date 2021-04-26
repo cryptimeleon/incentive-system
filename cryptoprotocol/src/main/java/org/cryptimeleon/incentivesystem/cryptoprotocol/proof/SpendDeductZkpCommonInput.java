@@ -37,7 +37,7 @@ public class SpendDeductZkpCommonInput implements CommonInput {
         this.c0Pre = spendRequest.getCPre0();
         this.c1Pre = spendRequest.getCPre1();
         this.commitmentC0 = spendRequest.getCommitmentC0();
-        this.ctrace0 = spendRequest.getCtrace0();
-        this.ctrace1 = spendRequest.getCtrace1();
+        this.ctrace0 = spendRequest.getCTrace0();
+        this.ctrace1 = spendRequest.getCTrace1();
     }
 }

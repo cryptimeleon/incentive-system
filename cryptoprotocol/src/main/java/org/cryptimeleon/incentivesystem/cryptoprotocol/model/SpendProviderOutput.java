@@ -8,7 +8,7 @@ import lombok.Value;
  */
 @Value
 @AllArgsConstructor
-public class SpendProverOutput {
+public class SpendProviderOutput {
     SpendResponse spendResponse;
     DoubleSpendingTag dstag;
 }

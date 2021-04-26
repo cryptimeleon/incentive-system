@@ -1,8 +1,6 @@
 package org.cryptimeleon.incentivesystem.cryptoprotocol;
 
 import org.cryptimeleon.craco.common.ByteArrayImplementation;
-import org.cryptimeleon.craco.common.plaintexts.GroupElementPlainText;
-import org.cryptimeleon.craco.common.plaintexts.MessageBlock;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.*;
@@ -18,8 +16,6 @@ import org.cryptimeleon.math.structures.rings.integers.IntegerRing;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.stream.Collectors;
 
 
 /*
@@ -64,29 +60,34 @@ public class IncentiveSystem {
     }
 
     /**
-     * Generate an earn request for adding to the value of users' tokens.
+     * Generate an earn request that blinds the token and signature such that the provider can compute a signature on
+     * a matching token with added value.
      *
      * @param token             the token to update
      * @param providerPublicKey the public key of the provider
      * @return request to give to a provider
      */
     public EarnRequest generateEarnRequest(Token token, ProviderPublicKey providerPublicKey, UserKeyPair userKeyPair) {
-        // Pseudorandom s
+        // Compute pseudorandom value from the token that is used to blind the commitment
+        // This makes this algorithm deterministic
         var s = pp.getPrfToZn().hashThenPrfToZn(userKeyPair.getSk().getPrfKey(), token, "CreditEarn-s");
 
+        // Blind commitments and change representation of signature such that it is valid for blinded commitments
+        // The blinded commitments and signature are sent to the provider
         return new EarnRequest(
                 (SPSEQSignature) pp.getSpsEq().chgRep(
                         token.getSignature(),
                         s,
                         providerPublicKey.getPkSpsEq()
                 ),
-                token.getC1().pow(s).compute(),  // Compute for concurrent computation
-                token.getC2().pow(s).compute()
+                token.getC0().pow(s).compute(),  // Compute for concurrent computation
+                token.getC1().pow(s).compute()
         );
     }
 
     /**
      * Generate the response for users' earn requests to update the blinded token.
+     * Computes a valid signature on a blinded token matching the received token, but with k more points.
      *
      * @param earnRequest     the earn request to process. It can be assumed, that all group elements of earnRequest
      *                        are already computed since they are usually directly parsed from a representation
@@ -94,26 +95,23 @@ public class IncentiveSystem {
      * @param providerKeyPair the provider key pair
      * @return a signature on a blinded, updated token
      */
-    public SPSEQSignature generateEarnRequestResponse(EarnRequest earnRequest, long k, ProviderKeyPair providerKeyPair) {
-        var isSignatureValid = pp.getSpsEq().verify(
-                providerKeyPair.getPk().getPkSpsEq(),
-                earnRequest.getBlindedSignature(),
-                earnRequest.getC1(),
-                earnRequest.getC2()
-        );
+    public SPSEQSignature generateEarnRequestResponse(EarnRequest earnRequest, BigInteger k, ProviderKeyPair providerKeyPair) {
 
+        // Verify the blinded signature for the blinded commitment is valid
+        var isSignatureValid = pp.getSpsEq().verify(providerKeyPair.getPk().getPkSpsEq(), earnRequest.getBlindedSignature(), earnRequest.getC0(), earnRequest.getC1());
         if (!isSignatureValid) {
             throw new IllegalArgumentException("Signature is not valid");
         }
 
+        // Sign a blinded commitment with k more points
+        var C0 = earnRequest.getC0();
         var C1 = earnRequest.getC1();
-        var C2 = earnRequest.getC2();
         var q4 = providerKeyPair.getSk().getQ().get(4);
 
         return (SPSEQSignature) pp.getSpsEq().sign(
                 providerKeyPair.getSk().getSkSpsEq(),
-                C1.op(C2.pow(q4.mul(k))).compute(),
-                C2
+                C0.op(C1.pow(q4.mul(k))).compute(), // Add k blinded point to the commitment
+                C1
         );
     }
 
@@ -127,24 +125,28 @@ public class IncentiveSystem {
      * @param userKeyPair       keypair of the user
      * @return new token with value of the old token + k
      */
-    public Token handleEarnRequestResponse(EarnRequest earnRequest, SPSEQSignature changedSignature, long k, Token token, ProviderPublicKey providerPublicKey, UserKeyPair userKeyPair) {
+    public Token handleEarnRequestResponse(EarnRequest earnRequest, SPSEQSignature changedSignature, BigInteger k, Token token, ProviderPublicKey providerPublicKey, UserKeyPair userKeyPair) {
 
-        // Pseudorandom s
+        // Pseudorandom randomness s used for blinding in the request
         var s = pp.getPrfToZn().hashThenPrfToZn(userKeyPair.getSk().getPrfKey(), token, "CreditEarn-s");
 
-        var c1 = earnRequest.getC1().op((providerPublicKey.getH().get(4).pow(s)).pow(k)).compute();
-        var c2 = earnRequest.getC2();
+        // Recover blinded commitments (to match the commitments signed by the prover) with updated value
+        var blindedNewC0 = earnRequest.getC0().op((providerPublicKey.getH().get(4).pow(s)).pow(k)).compute();
+        var blindedNewC1 = earnRequest.getC1();
 
-        var signatureValid = pp.getSpsEq().verify(providerPublicKey.getPkSpsEq(), changedSignature, c1, c2);
+        // Verify signature on recovered commitments
+        var signatureValid = pp.getSpsEq().verify(providerPublicKey.getPkSpsEq(), changedSignature, blindedNewC0, blindedNewC1);
         if (!signatureValid) {
             throw new IllegalArgumentException("Signature is not valid");
         }
 
+        // Change representation of signature such that it is valid for un-blinded commitment
         var newSignature = pp.getSpsEq().chgRep(changedSignature, s.inv(), providerPublicKey.getPkSpsEq());
 
+        // Assemble new token
         return new Token(
-                c1.pow(s.inv()).compute(),
-                c2.pow(s.inv()).compute(),
+                blindedNewC0.pow(s.inv()).compute(), // Un-blind commitment
+                blindedNewC1.pow(s.inv()).compute(), // see above
                 token.getEncryptionSecretKey(),
                 token.getDoubleSpendRandomness0(),
                 token.getDoubleSpendRandomness1(),
@@ -171,6 +173,7 @@ public class IncentiveSystem {
                                              UserKeyPair userKeyPair,
                                              Zn.ZnElement tid
     ) {
+        // Some local variables and pre-computations to make the code more readable
         var zp = pp.getBg().getZn();
         var usk = userKeyPair.getSk().getUsk();
         var esk = token.getEncryptionSecretKey();
@@ -179,7 +182,8 @@ public class IncentiveSystem {
         var vectorR = zp.getUniformlyRandomElements(pp.getNumEskDigits());
 
 
-        // Compute pseudorandom values
+        /* Compute pseudorandom values */
+        // As in credit-earn, we use the PRF to make the algorithm deterministic
         var prfZnElements = pp.getPrfToZn().hashThenPrfToZnVector(userKeyPair.getSk().getPrfKey(), token, 6, "SpendDeduct");
         Zn.ZnElement eskUsrS = (Zn.ZnElement) prfZnElements.get(0);
         Zn.ZnElement dsrnd0S = (Zn.ZnElement) prfZnElements.get(1);
@@ -188,38 +192,38 @@ public class IncentiveSystem {
         Zn.ZnElement tS = (Zn.ZnElement) prfZnElements.get(4);
         Zn.ZnElement uS = (Zn.ZnElement) prfZnElements.get(5);
 
-        var exponents = new RingElementVector(
-                usk,
-                eskUsrS,
-                dsrnd0S,
-                dsrnd1S,
-                token.getPoints().sub(zp.valueOf(k)),
-                zS,
-                tS);
+        // Prepare a new commitment (cPre0, cPre1) based on the pseudorandom values
+        var exponents = new RingElementVector(usk, eskUsrS, dsrnd0S, dsrnd1S, token.getPoints().sub(zp.valueOf(k)), zS, tS);
         var cPre0 = vectorH.innerProduct(exponents).pow(uS).compute();
         var cPre1 = pp.getG1().pow(uS).compute();
 
+        /* Enable double-spending-protection by forcing usk and esk becoming public in that case
+           If token is used twice in two different transactions, the provider observes (c0,c1), (c0',c1') with gamma!=gamma'
+           Hence, the provider can easily retrieve usk and esk. */
         var gamma = Util.hashGamma(zp, k, dsid, tid, cPre0, cPre1);
-
         var c0 = usk.mul(gamma).add(token.getDoubleSpendRandomness0());
         var c1 = esk.mul(gamma).add(token.getDoubleSpendRandomness1());
 
-        var eskDecomp = new RingElementVector(Arrays.stream(
-                IntegerRing.decomposeIntoDigits(eskUsrS.asInteger(), pp.getEskDecBase().asInteger(), pp.getNumEskDigits()))
-                .map(zp::valueOf)
-                .collect(Collectors.toList()));
-        var ctrace0 = pp.getW().pow(vectorR).compute();
-        var ctrace1 = ctrace0.pow(esk).op(pp.getW().pow(eskDecomp)).compute();
+        /* Compute El-Gamal encryption of esk^*_usr using under secret key esk
+           This allows the provider to decrypt usk^*_usr in case of double spending with the leaked esk.
+           By additionally storing esk^*_prov, the provider can retrieve esk^* and thus iteratively decrypt the new esks. */
 
-        // Send c0, c1, sigma, C, Cpre, ctrace
-        // + ZKP
+        // Decompose the encryption-secret-key to base eskDecBase and map the digits to Zn
+        var eskUsrSDecBigInt = IntegerRing.decomposeIntoDigits(eskUsrS.asInteger(), pp.getEskDecBase().asInteger(), pp.getNumEskDigits());
+        var eskUsrSDec = RingElementVector.generate(i -> zp.valueOf(eskUsrSDecBigInt[i]), eskUsrSDecBigInt.length);
+
+        // Encrypt digits using El-Gamal and the randomness r
+        var cTrace0 = pp.getW().pow(vectorR).compute();
+        var cTrace1 = cTrace0.pow(esk).op(pp.getW().pow(eskUsrSDec)).compute();
+
+        /* Build noninteractive (Fiat-Shamir transformed) ZKP to ensure that the user follows the rules of the protocol */
         var fiatShamirProofSystem = new FiatShamirProofSystem(new SpendDeductZkp(pp, providerPublicKey));
-
-        var witness = new SpendDeductZkpWitnessInput(usk, token.getPoints(), token.getZ(), zS, token.getT(), tS, uS, esk, eskUsrS, token.getDoubleSpendRandomness0(), dsrnd0S, token.getDoubleSpendRandomness1(), dsrnd1S, eskDecomp, vectorR);
-        var commonInput = new SpendDeductZkpCommonInput(k, gamma, c0, c1, dsid, cPre0, cPre1, token.getC1(), ctrace0, ctrace1);
+        var witness = new SpendDeductZkpWitnessInput(usk, token.getPoints(), token.getZ(), zS, token.getT(), tS, uS, esk, eskUsrS, token.getDoubleSpendRandomness0(), dsrnd0S, token.getDoubleSpendRandomness1(), dsrnd1S, eskUsrSDec, vectorR);
+        var commonInput = new SpendDeductZkpCommonInput(k, gamma, c0, c1, dsid, cPre0, cPre1, token.getC0(), cTrace0, cTrace1);
         var proof = fiatShamirProofSystem.createProof(commonInput, witness);
 
-        return new SpendRequest(dsid, proof, c0, c1, cPre0, cPre1, ctrace0, ctrace1, token.getC1(), token.getSignature());
+        // Assemble request
+        return new SpendRequest(dsid, proof, c0, c1, cPre0, cPre1, cTrace0, cTrace1, token.getC0(), token.getSignature());
     }
 
     /**
@@ -232,15 +236,11 @@ public class IncentiveSystem {
      * @param tid             transaction id, should be verified by the provider
      * @return tuple of response to send to the user and information required for double-spending protection
      */
-    public SpendProverOutput generateSpendRequestResponse(SpendRequest spendRequest, ProviderKeyPair providerKeyPair, BigInteger k, Zn.ZnElement tid) {
-        // SPSEQ.verify
-        var signatureValid = pp.getSpsEq().verify(
-                providerKeyPair.getPk().getPkSpsEq(),
-                spendRequest.getSigma(),
-                spendRequest.getCommitmentC0(),
-                pp.getG1() // C1 must be g1 according to ZKP in T2 paper. We omit the ZKP and use g1 instead of C1
-        );
+    public SpendProviderOutput generateSpendRequestResponse(SpendRequest spendRequest, ProviderKeyPair providerKeyPair, BigInteger k, Zn.ZnElement tid) {
+        /* Verify that the request is valid and well-formed */
 
+        // Verify signature of the old token (C1 must be g1 according to ZKP in T2 paper. We omit the ZKP and use g1 instead of C1)
+        var signatureValid = pp.getSpsEq().verify(providerKeyPair.getPk().getPkSpsEq(), spendRequest.getSigma(), spendRequest.getCommitmentC0(), pp.getG1());
         if (!signatureValid) {
             throw new IllegalArgumentException("Signature of the request is not valid!");
         }
@@ -250,18 +250,18 @@ public class IncentiveSystem {
         var gamma = Util.hashGamma(pp.getBg().getZn(), k, spendRequest.getDsid(), tid, spendRequest.getCPre0(), spendRequest.getCPre1());
         var commonInput = new SpendDeductZkpCommonInput(spendRequest, k, gamma);
         var proofValid = fiatShamirProofSystem.checkProof(commonInput, spendRequest.getSpendDeductZkp());
-
         if (!proofValid) {
             throw new IllegalArgumentException("ZPK of the request is not valid!");
         }
 
-        // Retrieve esk via PRF
+        /* Request is valid. Compute new blinded token and signature */
+        // Retrieve esk^*_prov via PRF
         var preimage = new ByteArrayAccumulator();
         preimage.escapeAndSeparate(commonInput.c0Pre);
         preimage.escapeAndSeparate(commonInput.c1Pre);
         var eskStarProv = pp.getPrfToZn().hashThenPrfToZn(providerKeyPair.getSk().getBetaProv(), new ByteArrayImplementation(preimage.extractBytes()), "eskStarProv");
 
-        // Compute new Signature
+        // Compute blind signature on new, still blinded commitment
         var cPre0 = spendRequest.getCPre0();
         var cPre1 = spendRequest.getCPre1();
         var sigmaPrime = (SPSEQSignature) pp.getSpsEq().sign(
@@ -270,7 +270,8 @@ public class IncentiveSystem {
                 cPre1
         );
 
-        return new SpendProverOutput(
+        // Assemble providers and users output and return as a tuple
+        return new SpendProviderOutput(
                 new SpendResponse(sigmaPrime, eskStarProv),
                 new DoubleSpendingTag(commonInput.c0, commonInput.c1, gamma, eskStarProv, commonInput.ctrace0, commonInput.ctrace1)
         );
@@ -304,24 +305,27 @@ public class IncentiveSystem {
         Zn.ZnElement tS = (Zn.ZnElement) prfZnElements.get(4);
         Zn.ZnElement uS = (Zn.ZnElement) prfZnElements.get(5);
 
-        // SPSEQ.verify and chgRep
-        var cStar0 = spendRequest.getCPre0().op(providerPublicKey.getH().get(1).pow(spendResponse.getEskProvStar().mul(uS)));
-        var cStar1 = spendRequest.getCPre1();
-        var sigmaStar = (SPSEQSignature) pp.getSpsEq().chgRepWithVerify(
-                new MessageBlock(new GroupElementPlainText(cStar0), new GroupElementPlainText(cStar1)),
-                spendResponse.getSigma(),
-                uS.inv(),
-                providerPublicKey.getPkSpsEq());
+        // Verify the signature on the new, blinded commitment
+        var blindedCStar0 = spendRequest.getCPre0().op(providerPublicKey.getH().get(1).pow(spendResponse.getEskProvStar().mul(uS)));
+        var blindedCStar1 = pp.getG1().pow(uS); // Recompute, just to make sure
+        var valid = pp.getSpsEq().verify(providerPublicKey.getPkSpsEq(), spendResponse.getSigma(), blindedCStar0, blindedCStar1);
+        if (!valid) {
+            throw new IllegalArgumentException("Signature is not valid");
+        }
 
-        // Change representation of commitments
-        cStar0 = cStar0.pow(uS.inv());
-        cStar1 = pp.getG1(); // is the same as cStar1.pow(uS.inv())
-
-        // Compute new esk
-        var eskStar = eskUsrS.add(spendResponse.getEskProvStar());
-
-        // Assemble new token
-        return new Token(cStar0, cStar1, eskStar, dsrnd0S, dsrnd1S, zS, tS, token.getPoints().sub(pp.getBg().getZn().valueOf(k)), sigmaStar);
+        // Build new token
+        return new Token(
+                blindedCStar0.pow(uS.inv()), // Unblind commitment
+                pp.getG1(), // Same as unblinded CStar1
+                eskUsrS.add(spendResponse.getEskProvStar()), // esk^* is sum of user's and providers new esk
+                dsrnd0S,
+                dsrnd1S,
+                zS,
+                tS,
+                token.getPoints().sub(pp.getBg().getZn().valueOf(k)),
+                // Change representation of signature to match the un-blinded commitments
+                (SPSEQSignature) pp.getSpsEq().chgRep(spendResponse.getSigma(), uS.inv(), providerPublicKey.getPkSpsEq())
+        );
     }
 
     void link() {

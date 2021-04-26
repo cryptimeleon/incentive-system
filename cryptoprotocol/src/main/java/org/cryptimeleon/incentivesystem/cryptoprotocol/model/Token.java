@@ -22,16 +22,16 @@ import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
 @Value
 @AllArgsConstructor
 public class Token implements Representable, UniqueByteRepresentable {
-    // TODO rename (c1,c2) to (c0,c1)
-    @NonFinal
-    @Represented(restorer = "G1")
-    @UniqueByteRepresented
-    GroupElement c1; // the vector containing Pedersen commitment
 
     @NonFinal
     @Represented(restorer = "G1")
     @UniqueByteRepresented
-    GroupElement c2; // the vector containing usually g1
+    GroupElement c0; // the vector containing Pedersen commitment
+
+    @NonFinal
+    @Represented(restorer = "G1")
+    @UniqueByteRepresented
+    GroupElement c1; // the vector containing usually g1
 
     @NonFinal
     @Represented(restorer = "Zn")

@@ -22,11 +22,11 @@ public class EarnRequest implements Representable {
 
     @NonFinal
     @Represented(restorer = "G1")
-    GroupElement c1; // first element of the tuple C
+    GroupElement c0; // first element of the tuple C
 
     @NonFinal
     @Represented(restorer = "G1")
-    GroupElement c2; // second element of the tuple C
+    GroupElement c1; // second element of the tuple C
 
     public EarnRequest(Representation repr, IncentivePublicParameters pp) {
         new ReprUtil(this)
