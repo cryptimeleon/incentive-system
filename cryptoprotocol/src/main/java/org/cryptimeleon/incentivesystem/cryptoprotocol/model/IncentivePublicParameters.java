@@ -39,6 +39,14 @@ public class IncentivePublicParameters implements PublicParameters {
     GroupElement h7;
 
     @NonFinal
+    @Represented(restorer = "bg::getG1")
+    GroupElement g1;
+
+    @NonFinal
+    @Represented(restorer = "bg::getG2")
+    GroupElement g2;
+
+    @NonFinal
     @Represented
     AesPseudorandomFunction prf; // not in paper, but we need to store PRF that is used in incentive system instance somewhere
 
