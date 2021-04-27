@@ -7,6 +7,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Next Release
 
+- Add spend-deduct protocol and include PRF to credit-earn [#28](https://github.com/cryptimeleon/incentive-system/pull/28)
 - Add credit-earn protocol [#27](https://github.com/upbcuk/incentive-services/pull/27)
 - Rename organization to cryptimeleon  [#18](https://github.com/upbcuk/incentive-services/pull/18)
 - Update gradle setup, basketserver authentication (shared secrets) and test structure, automatically generated swagger
