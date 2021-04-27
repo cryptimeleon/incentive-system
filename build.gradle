@@ -1,11 +1,11 @@
 plugins {
     id "java"
-    id "io.freefair.lombok" version "5.3.3.3"
+    id "io.freefair.lombok" version "6.0.0-m2"
     id 'org.springframework.boot' version '2.4.5' apply false
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 }
 
-group = 'org.cryptimeleon'
+group = 'org.cryptimeleon.incentivesystem'
 
 repositories {
     mavenCentral()
@@ -21,4 +21,5 @@ subprojects {
 
     group = 'org.cryptimeleon.incentivesystem'
     sourceCompatibility = '16'
+    targetCompatibility = '16'
 }
