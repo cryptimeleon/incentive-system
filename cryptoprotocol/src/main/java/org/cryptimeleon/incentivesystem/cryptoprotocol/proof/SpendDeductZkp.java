@@ -2,6 +2,7 @@ package org.cryptimeleon.incentivesystem.cryptoprotocol.proof;
 
 import org.cryptimeleon.craco.protocols.CommonInput;
 import org.cryptimeleon.craco.protocols.SecretInput;
+import org.cryptimeleon.craco.protocols.arguments.sigma.ZnChallengeSpace;
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.DelegateProtocol;
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.LinearExponentStatementFragment;
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.LinearStatementFragment;
@@ -147,7 +148,7 @@ public class SpendDeductZkp extends DelegateProtocol {
     }
 
     @Override
-    public BigInteger getChallengeSpaceSize() {
-        return groupG1.size();
+    public ZnChallengeSpace getChallengeSpace(CommonInput commonInput) {
+        return new ZnChallengeSpace(pp.getBg().getZn());
     }
 }
