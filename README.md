@@ -1,16 +1,16 @@
 # T2 Incentive Services
 
-![Develop](https://github.com/upbcuk/incentive-services/workflows/Default%20workflow/badge.svg?branch=develop) [![Docker](https://img.shields.io/docker/cloud/build/eaudeweb/scratch?label=docker&style=flat)](https://hub.docker.com/repository/docker/upbcuk/incentive-service-issue/tags)
+![Develop](https://github.com/cryptimeleon/incentive-system/workflows/Default%20workflow/badge.svg?branch=develop) [![Docker](https://img.shields.io/docker/cloud/build/eaudeweb/scratch?label=dockerhub&style=flat)](https://hub.docker.com/repository/docker/cryptimeleon/incentive-service-issue/tags)
 
 ----
 
 ## Getting Started
 
-1. Make sure you are using Java 15
+1. Make sure you are using Java 16.
 2. To build all modules, use `./gradlew build`.
 3. To run the boot services, use `./gradlew bootRun`.
 4. To create a docker image for the issue service,
-   use `./gradlew :issue:bootBuildImage --imageName=upbcuk/incentive-service-issue`
+   use `./gradlew :issue:bootBuildImage --imageName=cryptimeleon/incentive-service-issue`
 
 ---
 
