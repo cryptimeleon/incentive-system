@@ -1,4 +1,4 @@
-rootProject.name = 'incentive'
+rootProject.name = 'incentivesystem'
 
 include 'issue'
 include 'credit'
