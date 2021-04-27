@@ -14,7 +14,6 @@ import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.Provi
 import org.cryptimeleon.math.structures.cartesian.ExponentExpressionVector;
 import org.cryptimeleon.math.structures.cartesian.GroupElementExpressionVector;
 import org.cryptimeleon.math.structures.cartesian.Vector;
-import org.cryptimeleon.math.structures.groups.Group;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
@@ -27,14 +26,12 @@ public class SpendDeductZkp extends DelegateProtocol {
 
     private final IncentivePublicParameters pp;
     private final Zn zn;
-    private final Group groupG1;
     private final ProviderPublicKey providerPublicKey;
 
     public SpendDeductZkp(IncentivePublicParameters incentivePublicParameters, ProviderPublicKey providerPublicKey) {
         this.providerPublicKey = providerPublicKey;
         this.pp = incentivePublicParameters;
         this.zn = incentivePublicParameters.getBg().getZn();
-        this.groupG1 = incentivePublicParameters.getBg().getG1();
     }
 
 
