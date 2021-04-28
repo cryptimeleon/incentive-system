@@ -1,7 +1,6 @@
-package org.cryptimeleon.incetivesystem.cryptoprotocol;
+package org.cryptimeleon.incentivesystem.cryptoprotocol;
 
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
-import org.cryptimeleon.incentivesystem.cryptoprotocol.IncentiveSystem;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.Token;
 import org.junit.jupiter.api.Test;
 
@@ -19,7 +18,7 @@ public class TokenTest {
 
     @Test
     void testTokenSerialization() {
-        var pp = IncentiveSystem.setup();
+        var pp = IncentiveSystem.setup(128, Setup.BilinearGroupChoice.Debug);
         var incentiveSystem = new IncentiveSystem(pp);
         var providerKeyPair = incentiveSystem.generateProviderKeys();
 
