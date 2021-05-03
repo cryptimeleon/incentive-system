@@ -47,13 +47,7 @@ public class IssueJoinCryptoTest
         var testRequest = incSys.generateJoinRequest(
             incSys.getPp(),
             pkp.getPk(),
-            ukp,
-            eskUsr,
-            dsrnd0,
-            dsrnd1,
-            z,
-            t,
-            u
+            ukp
         );
 
         // serialize and deserialize join request to test serialization
@@ -69,7 +63,7 @@ public class IssueJoinCryptoTest
         var deserializedResponse = new JoinResponse(serializedResponse, incSys.getPp());
 
         // pass join response to second part of join logic, generate join output
-        var testOutput = incSys.handleJoinRequestResponse(incSys.getPp(), pkp.getPk(), ukp, testRequest, deserializedResponse, eskUsr, dsrnd0, dsrnd1, z, t, u);
+        var testOutput = incSys.handleJoinRequestResponse(incSys.getPp(), pkp.getPk(), ukp, testRequest, deserializedResponse);
 
         // check output token for sanity (certficate valid, zero points)
         SPSEQSignatureScheme usedSpsEq = incSys.getPp().getSpsEq();

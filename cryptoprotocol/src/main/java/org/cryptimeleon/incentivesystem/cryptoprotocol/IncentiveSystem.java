@@ -70,7 +70,6 @@ public class IncentiveSystem {
      */
 
 
-    // TODO: update docstring once Issue Join functionality has been rewritten with PRFToZn stuff
     /**
      * functionality of the first part of the Issue algorithm of the Cryptimeleon incentive system
      * @param pp public parameters of the respective incentive system instance
@@ -78,13 +77,19 @@ public class IncentiveSystem {
      * @param ukp user key pair
      * @return join request, i.e. object representing the first two messages in the Issue-Join protocol of the Cryptimeleon incentive system
      */
-    public JoinRequest generateJoinRequest(IncentivePublicParameters pp, ProviderPublicKey pk, UserKeyPair ukp, ZnElement eskUsr, ZnElement dsrnd0, ZnElement dsrnd1, ZnElement z, ZnElement t, ZnElement u) {
+    public JoinRequest generateJoinRequest(IncentivePublicParameters pp, ProviderPublicKey pk, UserKeyPair ukp) {
         UserPublicKey upk = ukp.getPk();
         UserSecretKey usk = ukp.getSk();
 
-        // TODO: generate random values needed for generation of fresh user token using PRF
-        //  (currently, they are passed as method parameters until PRF stuff has been figured out),
-        //  use PRFToZn (see notes)
+        // generate random values needed for generation of fresh user token using PRF hashThenPRFtoZn, user secret key is hash input
+        var pseudoRandVector = pp.getPrfToZn().hashThenPrfToZnVector(ukp.getSk().getPrfKey(), ukp.getSk(), 6, "IssueJoin");
+        ZnElement eskUsr = (ZnElement) pseudoRandVector.get(0);
+        ZnElement dsrnd0 = (ZnElement) pseudoRandVector.get(1);
+        ZnElement dsrnd1 = (ZnElement) pseudoRandVector.get(2);
+        ZnElement z = (ZnElement) pseudoRandVector.get(3);
+        ZnElement t = (ZnElement) pseudoRandVector.get(4);
+        ZnElement u = (ZnElement) pseudoRandVector.get(5);
+
 
         // compute Pedersen commitment for user token
         RingElementVector exponents = new RingElementVector(usk.getUsk(), eskUsr, dsrnd0, dsrnd1, pp.getBg().getZn().getZeroElement(), z); // need to retrieve exponent from usk object; point count of 0 is reresented by zero in used Z_n
@@ -141,7 +146,6 @@ public class IncentiveSystem {
         return new JoinResponse(cert, eskProv);
     }
 
-    // TODO: update docstring once the PRFToZn stuff has been integrated
     /**
      * Implements the second part of the functionality of the Issue algorithm from the Cryptimeleon incentive system, i.e. computes the final user data
      * (token and corresponding certificate) from the signed preliminary token from the passed join request and response.
@@ -152,9 +156,15 @@ public class IncentiveSystem {
      * @param jRes join response to be handled
      * @return token containing 0 points
      */
-    public Token handleJoinRequestResponse(IncentivePublicParameters pp, ProviderPublicKey pk, UserKeyPair ukp, JoinRequest jReq, JoinResponse jRes, ZnElement eskUsr, ZnElement dsrnd0, ZnElement dsrnd1, ZnElement z, ZnElement t, ZnElement u) {
-        // TODO: re-generate eskUsr and all values after it using a PRFToZn once the changes in Setup
-        //  (needed to access PRFToZn from pp) are merged from SpendDeduct crypto to develop
+    public Token handleJoinRequestResponse(IncentivePublicParameters pp, ProviderPublicKey pk, UserKeyPair ukp, JoinRequest jReq, JoinResponse jRes) {
+        // re-generate random values from join request generation of fresh user token using PRF hashThenPRFtoZn, user secret key is hash input
+        var pseudoRandVector = pp.getPrfToZn().hashThenPrfToZnVector(ukp.getSk().getPrfKey(), ukp.getSk(), 6, "IssueJoin");
+        ZnElement eskUsr = (ZnElement) pseudoRandVector.get(0);
+        ZnElement dsrnd0 = (ZnElement) pseudoRandVector.get(1);
+        ZnElement dsrnd1 = (ZnElement) pseudoRandVector.get(2);
+        ZnElement z = (ZnElement) pseudoRandVector.get(3);
+        ZnElement t = (ZnElement) pseudoRandVector.get(4);
+        ZnElement u = (ZnElement) pseudoRandVector.get(5);
 
         // extract relevant variables from join request, join response and public parameters
         GroupElement c0Pre = jReq.getPreCommitment0();
