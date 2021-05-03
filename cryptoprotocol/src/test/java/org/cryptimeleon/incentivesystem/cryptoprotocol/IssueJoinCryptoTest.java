@@ -1,4 +1,4 @@
-package org.cryptimeleon.incetivesystem.cryptoprotocol;
+package org.cryptimeleon.incentivesystem.cryptoprotocol;
 
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignatureScheme;
@@ -26,7 +26,7 @@ public class IssueJoinCryptoTest
     void fullCorrectTestRun()
     {
         // create incentive system instance with fresh pp
-        var incSys = new IncentiveSystem(IncentiveSystem.setup());
+        var incSys = new IncentiveSystem(IncentiveSystem.setup(128, Setup.BilinearGroupChoice.Debug));
 
         // generate a provider key pair
         var pkp = incSys.generateProviderKeys();

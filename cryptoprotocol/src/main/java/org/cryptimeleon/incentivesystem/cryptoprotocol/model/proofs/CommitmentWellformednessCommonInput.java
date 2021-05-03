@@ -4,11 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Value;
 import lombok.experimental.NonFinal;
 import org.cryptimeleon.craco.protocols.CommonInput;
-import org.cryptimeleon.incentivesystem.cryptoprotocol.model.IncentivePublicParameters;
-import org.cryptimeleon.math.serialization.Representable;
-import org.cryptimeleon.math.serialization.Representation;
-import org.cryptimeleon.math.serialization.annotations.ReprUtil;
-import org.cryptimeleon.math.serialization.annotations.Represented;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 
 @Value

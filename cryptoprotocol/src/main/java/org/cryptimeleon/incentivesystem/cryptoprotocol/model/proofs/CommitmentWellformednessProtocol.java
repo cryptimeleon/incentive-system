@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Value;
 import org.cryptimeleon.craco.protocols.CommonInput;
 import org.cryptimeleon.craco.protocols.SecretInput;
+import org.cryptimeleon.craco.protocols.arguments.sigma.ZnChallengeSpace;
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.DelegateProtocol;
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.LinearStatementFragment;
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.SendThenDelegateFragment;
@@ -138,8 +139,8 @@ public class CommitmentWellformednessProtocol extends DelegateProtocol {
     }
 
     @Override
-    public BigInteger getChallengeSpaceSize()
+    public ZnChallengeSpace getChallengeSpace(CommonInput commonInput)
     {
-        return this.pp.getBg().getZn().size();
+        return new ZnChallengeSpace(this.pp.getBg().getZn());
     }
 }
