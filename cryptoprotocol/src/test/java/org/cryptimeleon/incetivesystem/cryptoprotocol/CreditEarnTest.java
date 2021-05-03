@@ -53,7 +53,7 @@ public class CreditEarnTest {
                 .op(vectorH.get(4).pow(pointsZp))
                 .op(vectorH.get(5).pow(z))
                 .op(pp.getH7().pow(t)).compute();
-        var c2 = pp.getG1();
+        var c2 = pp.getG1Generator();
 
         var token = new Token(
                 c1,
@@ -74,8 +74,8 @@ public class CreditEarnTest {
         assertTrue(pp.getSpsEq().verify(
                 providerKeyPair.getPk().getPkSpsEq(),
                 token.getSignature(),
-                token.getC1(),
-                token.getC2()
+                token.getCommitment0(),
+                token.getCommitment1()
         ));
 
         logger.info("compute earn request");
@@ -112,8 +112,8 @@ public class CreditEarnTest {
         assertTrue(pp.getSpsEq().verify(
                 providerKeyPair.getPk().getPkSpsEq(),
                 newToken.getSignature(),
-                newToken.getC1(),
-                newToken.getC2()
+                newToken.getCommitment0(),
+                newToken.getCommitment1()
         ));
     }
 }

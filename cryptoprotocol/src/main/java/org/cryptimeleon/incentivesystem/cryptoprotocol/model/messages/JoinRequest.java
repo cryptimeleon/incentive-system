@@ -6,6 +6,7 @@ import lombok.experimental.NonFinal;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProof;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.IncentivePublicParameters;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.proofs.CommitmentWellformednessCommonInput;
 import org.cryptimeleon.math.serialization.ListRepresentation;
 import org.cryptimeleon.math.serialization.Representable;
@@ -27,7 +28,7 @@ public class JoinRequest implements Representable {
     @NonFinal
     private FiatShamirProof cwfProof; // proof for well-formedness of token and knowledge of usk corresp. to upk
 
-    public JoinRequest(Representation repr, IncentivePublicParameters pp, FiatShamirProofSystem fsps, CommitmentWellformednessCommonInput cwfProofCommonInput) {
+    public JoinRequest(Representation repr, IncentivePublicParameters pp, UserPublicKey upk, FiatShamirProofSystem fsps) {
         // force passed representation into a list representation (does not throw class cast exception in intended use cases)
         var list = (ListRepresentation) repr;
 
@@ -37,6 +38,7 @@ public class JoinRequest implements Representable {
         // restore fields
         this.preCommitment0 = usedG1.restoreElement(list.get(0));
         this.preCommitment1 = usedG1.restoreElement(list.get(1));
+        var cwfProofCommonInput = new CommitmentWellformednessCommonInput(upk.getUpk(), preCommitment0, preCommitment1); // recompute cwf proof common input
         this.cwfProof = fsps.restoreProof(cwfProofCommonInput, list.get(2));
     }
 
@@ -44,8 +46,7 @@ public class JoinRequest implements Representable {
     {
         return new ListRepresentation(
                 preCommitment0.getRepresentation(),
-                preCommitment1.getRepresentation(),
-                cwfProof.getRepresentation()
+                preCommitment1.getRepresentation()
         );
     }
 }

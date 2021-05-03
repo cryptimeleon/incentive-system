@@ -5,6 +5,7 @@ import lombok.Value;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProof;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
+import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignatureScheme;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.EarnRequest;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.IncentivePublicParameters;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.Token;
@@ -54,6 +55,7 @@ public class IncentiveSystem {
      */
 
 
+    // TODO: update docstring once Issue Join functionality has been rewritten with PRFToZn stuff
     /**
      * functionality of the first part of the Issue algorithm of the Cryptimeleon incentive system
      * @param pp public parameters of the respective incentive system instance
@@ -67,7 +69,7 @@ public class IncentiveSystem {
 
         // TODO: generate random values needed for generation of fresh user token using PRF
         //  (currently, they are passed as method parameters until PRF stuff has been figured out),
-        //  use Paul's stuff (see notes)
+        //  use PRFToZn (see notes)
 
         // compute Pedersen commitment for user token
         RingElementVector exponents = new RingElementVector(usk.getUsk(), eskUsr, dsrnd0, dsrnd1, pp.getBg().getZn().getZeroElement(), z); // need to retrieve exponent from usk object; point count of 0 is reresented by zero in used Z_n
@@ -124,6 +126,7 @@ public class IncentiveSystem {
         return new JoinResponse(cert, eskProv);
     }
 
+    // TODO: update docstring once the PRFToZn stuff has been integrated
     /**
      * Implements the second part of the functionality of the Issue algorithm from the Cryptimeleon incentive system, i.e. computes the final user data
      * (token and corresponding certificate) from the signed preliminary token from the passed join request and response.
@@ -135,20 +138,29 @@ public class IncentiveSystem {
      * @return token containing 0 points
      */
     public Token handleJoinRequestResponse(IncentivePublicParameters pp, ProviderPublicKey pk, UserKeyPair ukp, JoinRequest jReq, JoinResponse jRes, ZnElement eskUsr, ZnElement dsrnd0, ZnElement dsrnd1, ZnElement z, ZnElement t, ZnElement u) {
-        // extract relevant variables from join request and join response
+        // TODO: re-generate eskUsr and all values after it using a PRFToZn once the changes in Setup
+        //  (needed to access PRFToZn from pp) are merged from SpendDeduct crypto to develop
+
+        // extract relevant variables from join request, join response and public parameters
         GroupElement c0Pre = jReq.getPreCommitment0();
-        GroupElement c1Pre = jReq.getPreCommitment1();
         SPSEQSignature preCert = jRes.getPreCertificate();
         ZnElement eskProv = jRes.getEskProv();
+        SPSEQSignatureScheme usedSpsEq = pp.getSpsEq();
 
         // re-compute modified pre-commitment for token
         GroupElement h2 = pk.getH().get(1);
         GroupElement modifiedC0Pre = c0Pre.op(h2.pow(u.mul(eskProv)));
 
+        // verify the signature on the modified pre-commitment
+        if(!usedSpsEq.verify(pk.getPkSpsEq(), preCert, modifiedC0Pre))
+        {
+            throw new RuntimeException("signature on pre-commitment's left part is not valid!");
+        }
+
         // change representation of token-certificate pair
-        SPSEQSignature finalCert = (SPSEQSignature) pp.getSpsEq().chgRep(preCert, u.inv(), pk.getPkSpsEq()); // adapt signature
+        SPSEQSignature finalCert = (SPSEQSignature) usedSpsEq.chgRep(preCert, u.inv(), pk.getPkSpsEq()); // adapt signature
         GroupElement finalCommitment0 = modifiedC0Pre.pow(u.inv()); // need to adapt message manually (entry by entry), used equivalence relation is R_exp
-        GroupElement finalCommitment1 = c1Pre.pow(u.inv());
+        GroupElement finalCommitment1 = pp.getG1Generator();
 
         // assemble and return token
         ZnElement esk = eskUsr.add(eskProv);

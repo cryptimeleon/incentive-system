@@ -9,6 +9,8 @@ import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.LinearStatementF
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.SendThenDelegateFragment;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.IncentivePublicParameters;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderPublicKey;
+import org.cryptimeleon.math.structures.cartesian.GroupElementExpressionVector;
+import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 import java.math.BigInteger;
@@ -45,7 +47,7 @@ public class CommitmentWellformednessProtocol extends DelegateProtocol {
      */
     @Override
     protected SendThenDelegateFragment.SubprotocolSpec provideSubprotocolSpec(CommonInput commonInput, SendThenDelegateFragment.SubprotocolSpecBuilder builder) {
-        // read out all values from provider public key that are used in the statements to prove
+        // read out all values from provider public key and public parameters that are used in the statements to prove
         var w = this.pp.getW();
         var h1 = this.pk.getH().get(0); // note: h's have 1-based index in paper, 0-based in GroupElementVector
         var h2 = this.pk.getH().get(1);
@@ -71,12 +73,14 @@ public class CommitmentWellformednessProtocol extends DelegateProtocol {
 
         // create statement objects for all three statements that shall be proven
 
+        CommitmentWellformednessCommonInput castedCommonInput = (CommitmentWellformednessCommonInput) commonInput;
+
         // upk
-        var upk = ((CommitmentWellformednessCommonInput) commonInput).getUpk();
+        var upk = castedCommonInput.getUpk();
         var keyDLogStatement = w.pow(uskVar).isEqualTo( upk );
 
         // first group element in the commitment
-        var c0Pre = ((CommitmentWellformednessCommonInput) commonInput).getC0Pre();
+        var c0Pre = castedCommonInput.getC0Pre();
         var firstGeStatement = h1.pow(uskVar).op(
                 h2.pow(eskUsrVar).op(
                         h3.pow(dsrnd0Var).op(
@@ -90,7 +94,7 @@ public class CommitmentWellformednessProtocol extends DelegateProtocol {
         ).isEqualTo(c0Pre.pow(uInverseVar));
 
         // second group element in the commitment
-        var c1Pre = ((CommitmentWellformednessCommonInput) commonInput).getC1Pre();
+        var c1Pre = castedCommonInput.getC1Pre();
         var secondGeStatement = c1Pre.pow(uInverseVar).isEqualTo(g1);
 
         // done creating statement objects
@@ -118,14 +122,16 @@ public class CommitmentWellformednessProtocol extends DelegateProtocol {
      */
     @Override
     protected SendThenDelegateFragment.ProverSpec provideProverSpecWithNoSendFirst(CommonInput commonInput, SecretInput secretInput, SendThenDelegateFragment.ProverSpecBuilder builder) {
+        CommitmentWellformednessWitness castedSecretInput = (CommitmentWellformednessWitness) secretInput;
+
         // set up witnesses prover shall use
-        builder.putWitnessValue("usk", ((CommitmentWellformednessWitness) secretInput).getUsk());
-        builder.putWitnessValue("t", ((CommitmentWellformednessWitness) secretInput).getT());
-        builder.putWitnessValue("z", ((CommitmentWellformednessWitness) secretInput).getZ());
-        builder.putWitnessValue("uInverse", ((CommitmentWellformednessWitness) secretInput).getUInverse());
-        builder.putWitnessValue("eskUsr", ((CommitmentWellformednessWitness) secretInput).getEskUsr());
-        builder.putWitnessValue("dsrnd0", ((CommitmentWellformednessWitness) secretInput).getDsrnd0());
-        builder.putWitnessValue("dsrnd1", ((CommitmentWellformednessWitness) secretInput).getDsrnd1());
+        builder.putWitnessValue("usk", castedSecretInput.getUsk());
+        builder.putWitnessValue("t", castedSecretInput.getT());
+        builder.putWitnessValue("z", castedSecretInput.getZ());
+        builder.putWitnessValue("uInverse", castedSecretInput.getUInverse());
+        builder.putWitnessValue("eskUsr", castedSecretInput.getEskUsr());
+        builder.putWitnessValue("dsrnd0", castedSecretInput.getDsrnd0());
+        builder.putWitnessValue("dsrnd1", castedSecretInput.getDsrnd1());
 
         // build the prover side of subprotocol using the passed builder
         return builder.build();

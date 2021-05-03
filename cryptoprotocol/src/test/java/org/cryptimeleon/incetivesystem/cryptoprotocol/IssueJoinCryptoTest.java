@@ -5,7 +5,6 @@ import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignatureScheme;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.IncentiveSystem;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.messages.JoinRequest;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.messages.JoinResponse;
-import org.cryptimeleon.incentivesystem.cryptoprotocol.model.proofs.CommitmentWellformednessCommonInput;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.proofs.CommitmentWellformednessProtocol;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.junit.jupiter.api.Assertions;
@@ -21,6 +20,7 @@ public class IssueJoinCryptoTest
     /**
      * generates a join request, responds to it and handles the response (i.e. a full run of the Issue-Join protocol).
      * Test case simulating a correct use of the protocol.
+     * Also tests representations of used requests and responses on the fly.
      */
     @Test
     void fullCorrectTestRun()
@@ -56,15 +56,10 @@ public class IssueJoinCryptoTest
             u
         );
 
-        // serialize and deserialize join request
+        // serialize and deserialize join request to test serialization
         var serializedRequest = testRequest.getRepresentation();
         FiatShamirProofSystem cwfProofSystem = new FiatShamirProofSystem(new CommitmentWellformednessProtocol(incSys.getPp(), pkp.getPk()));
-        CommitmentWellformednessCommonInput cwfCommon = new CommitmentWellformednessCommonInput(
-                ukp.getPk().getUpk(),
-                testRequest.getPreCommitment0(),
-                testRequest.getPreCommitment1()
-        );
-        var deserializedRequest = new JoinRequest(serializedRequest, incSys.getPp(), cwfProofSystem, cwfCommon);
+        var deserializedRequest = new JoinRequest(serializedRequest, incSys.getPp(), ukp.getPk(), cwfProofSystem);
 
         // pass join request to issue logic, generate join response
         var testResponse = incSys.generateJoinRequestResponse(incSys.getPp(), pkp, ukp.getPk().getUpk(), deserializedRequest);
