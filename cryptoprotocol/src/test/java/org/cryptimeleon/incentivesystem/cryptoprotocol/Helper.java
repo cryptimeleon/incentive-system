@@ -30,7 +30,7 @@ public class Helper {
                 .op(vectorH.get(4).pow(pointsZp))
                 .op(vectorH.get(5).pow(z))
                 .op(pp.getH7().pow(t)).compute();
-        var c2 = pp.getG1();
+        var c2 = pp.getG1Generator();
 
         return new Token(
                 c1,

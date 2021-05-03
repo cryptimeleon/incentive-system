@@ -130,7 +130,7 @@ public class IncentiveSystem {
             throw new IllegalArgumentException("The proof of the commitment being well-formed was rejected.");
         }
 
-        // modify precommitment 0 using homorphism trick and randomly chosen exponent
+        // modify precommitment 0 using homomorphism trick and randomly chosen exponent
         ZnElement eskProv = pp.getBg().getZn().getUniformlyRandomElement();
         GroupElement modifiedC0Pre = c0Pre.op(c1Pre.pow(sk.getQ().get(1).mul(eskProv)));
 
@@ -167,7 +167,7 @@ public class IncentiveSystem {
         GroupElement modifiedC0Pre = c0Pre.op(h2.pow(u.mul(eskProv)));
 
         // verify the signature on the modified pre-commitment
-        if(!usedSpsEq.verify(pk.getPkSpsEq(), preCert, modifiedC0Pre))
+        if(!usedSpsEq.verify(pk.getPkSpsEq(), preCert, modifiedC0Pre, jReq.getPreCommitment1()))
         {
             throw new RuntimeException("signature on pre-commitment's left part is not valid!");
         }

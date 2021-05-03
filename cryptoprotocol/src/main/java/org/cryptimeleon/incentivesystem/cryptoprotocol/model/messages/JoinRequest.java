@@ -45,8 +45,9 @@ public class JoinRequest implements Representable {
     public Representation getRepresentation()
     {
         return new ListRepresentation(
-                preCommitment0.getRepresentation(),
-                preCommitment1.getRepresentation()
+                this.preCommitment0.getRepresentation(),
+                this.preCommitment1.getRepresentation(),
+                this.cwfProof.getRepresentation()
         );
     }
 }
