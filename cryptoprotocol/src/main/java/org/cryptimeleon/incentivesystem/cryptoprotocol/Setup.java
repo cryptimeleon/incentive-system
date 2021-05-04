@@ -66,6 +66,10 @@ public class Setup {
         }
 
 
+        // generate generators for the groups that make up the domain
+        GroupElement g1Generator = bg.getG1().getGenerator();
+        GroupElement g2Generator = bg.getG2().getGenerator();
+
         // TODO: rewrite computation of w and h7 once proper hashing of bilinear groups is possible
         // compute w (base used in double spending protection, see 2020 incsys paper)
         GroupElement w = bg.getG1().getUniformlyRandomElement().compute(); // w=e not a problem, see discord #questions 2.2.21
@@ -125,7 +129,7 @@ public class Setup {
         RingElementVector q = pp.getBg().getZn().getUniformlyRandomElements(6);
 
         // compute above first 6 bases
-        GroupElementVector h = pp.getG1().pow(q).compute();
+        GroupElementVector h = pp.getG1Generator().pow(q).compute();
 
         // generate PRF key for provider
         PrfKey betaProv = pp.getPrfToZn().generateKey();

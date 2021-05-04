@@ -17,7 +17,6 @@ import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
 
 /**
  * Data holding class representing a token from a mathematical point of view (meaning: as a bunch of group elements and exponents).
- * serialized representation of token does not contain secret exponents and token plain text (latter can be computed trivially).
  */
 @Value
 @AllArgsConstructor
@@ -26,12 +25,12 @@ public class Token implements Representable, UniqueByteRepresentable {
     @NonFinal
     @Represented(restorer = "G1")
     @UniqueByteRepresented
-    GroupElement c0; // the vector containing Pedersen commitment
+    GroupElement commitment0; // the first part of the Pedersen commitment computed from the bases and the exponents, representing the actual token
 
     @NonFinal
     @Represented(restorer = "G1")
     @UniqueByteRepresented
-    GroupElement c1; // the vector containing usually g1
+    GroupElement commitment1; // the second part of the Pedersen commitment computed from the bases and the exponents, representing the actual token
 
     @NonFinal
     @Represented(restorer = "Zn")
@@ -48,21 +47,20 @@ public class Token implements Representable, UniqueByteRepresentable {
     @UniqueByteRepresented
     ZnElement doubleSpendRandomness1; // randomness used for the second challenge generation in double spending protection
 
-    // values for blinding the token group element
     @NonFinal
     @Represented(restorer = "Zn")
     @UniqueByteRepresented
-    ZnElement z;
+    ZnElement z; // first value for blinding the token group element
 
     @NonFinal
     @Represented(restorer = "Zn")
     @UniqueByteRepresented
-    ZnElement t; // values for blinding the token group element
+    ZnElement t; // second value for blinding the token group element (needed for sophisticated proof reasons)
 
     @NonFinal
     @Represented(restorer = "Zn")
     @UniqueByteRepresented
-    ZnElement points; // number of points that the token currently stores (initially 0)
+    ZnElement points; // number of points that the token currently stores (initially 0), v in the 2020 paper
 
     @NonFinal
     @UniqueByteRepresented

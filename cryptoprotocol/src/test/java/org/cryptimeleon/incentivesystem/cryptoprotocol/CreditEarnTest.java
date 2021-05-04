@@ -36,8 +36,8 @@ public class CreditEarnTest {
         assertTrue(pp.getSpsEq().verify(
                 providerKeyPair.getPk().getPkSpsEq(),
                 token.getSignature(),
-                token.getC0(),
-                token.getC1()
+                token.getCommitment0(),
+                token.getCommitment1()
         ));
 
         logger.info("compute earn request");
@@ -74,8 +74,8 @@ public class CreditEarnTest {
         assertTrue(pp.getSpsEq().verify(
                 providerKeyPair.getPk().getPkSpsEq(),
                 newToken.getSignature(),
-                newToken.getC0(),
-                newToken.getC1()
+                newToken.getCommitment0(),
+                newToken.getCommitment1()
         ));
     }
 }

@@ -92,7 +92,7 @@ public class SpendDeductZkp extends DelegateProtocol {
         var exponents = new Vector<>(uskVar, eskDecVarVector.innerProduct(powersOfEskDecBase), dsrndStar0Var, dsrndStar1Var, vVar.sub(zn.valueOf(commonInput.k)), zStarVar, tStarVar);
         var cPre0Statement = H.innerProduct(exponents).isEqualTo(commonInput.c0Pre.pow(uStarInverseVar));
         builder.addSubprotocol("C0Pre", new LinearStatementFragment(cPre0Statement));
-        builder.addSubprotocol("C1Pre", new LinearStatementFragment(commonInput.c1Pre.pow(uStarInverseVar).isEqualTo(pp.getG1()))); // Use the inverse of uStar to linearize this expression
+        builder.addSubprotocol("C1Pre", new LinearStatementFragment(commonInput.c1Pre.pow(uStarInverseVar).isEqualTo(pp.getG1Generator()))); // Use the inverse of uStar to linearize this expression
 
         // esk^*_(usr,i)\in[0,eskDecBase-1]
         for (int i = 0; i < pp.getNumEskDigits(); i++) {

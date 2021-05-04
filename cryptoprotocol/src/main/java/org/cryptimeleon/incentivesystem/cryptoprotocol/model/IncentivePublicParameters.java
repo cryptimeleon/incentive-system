@@ -27,19 +27,19 @@ public class IncentivePublicParameters implements PublicParameters {
 
     @NonFinal
     @Represented(restorer = "bg::getG1")
+    GroupElement g1Generator;
+
+    @NonFinal
+    @Represented(restorer = "bg::getG2")
+    GroupElement g2Generator;
+
+    @NonFinal
+    @Represented(restorer = "bg::getG1")
     GroupElement w;
 
     @NonFinal
     @Represented(restorer = "bg::getG1")
     GroupElement h7;
-
-    @NonFinal
-    @Represented(restorer = "bg::getG1")
-    GroupElement g1;
-
-    @NonFinal
-    @Represented(restorer = "bg::getG2")
-    GroupElement g2;
 
     @NonFinal
     @Represented
@@ -74,8 +74,8 @@ public class IncentivePublicParameters implements PublicParameters {
         this.bg = bg;
         this.w = w;
         this.h7 = h7;
-        this.g1 = g1;
-        this.g2 = g2;
+        this.g1Generator = g1;
+        this.g2Generator = g2;
         this.prfToZn = prfToZn;
         this.spsEq = spsEq;
         this.eskDecBase = eskDecBase;
