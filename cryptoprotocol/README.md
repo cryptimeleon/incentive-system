@@ -11,25 +11,25 @@ For each variable, we list its name(s) in the code and add a short and comprehen
 * BG
   * bilinear group used by algorithms of the incentive system
   * names in code: bg
-* $\mathcal{H}$
+* H
   * hash function used to generate group elements $w$ and $h_7$
   * names in code: not yet implemented
 * PRF
   * PRF used to (re-)generate pseudorandomness in cryptoprotocols
   * names in code: prfToZn
-* $\mathcal{w}$
+* w
   * base of the user public keys (user public keys are powers of the type $w^{usk}$)
   * names in code: w
-* $h_7$
+* h<sub>7</sub>
   * group element that is randomized and multiplied with the token's Pedersen commitment for sophisticated proof reasons
   * names in code: h7
 * SPS-EQ
   * SPS-EQ scheme used to certify user tokens upon creation and update
   * names in code: spsEq
-* $g_1$
+* g<sub>1</sub>
   * generator of $G_1$, the first group of the used BG 
   * names in code: g1, g1Generator
-* $g_2$
+* g<sub>2</sub>
   * generator of $G_2$, the second group of the used BG 
   * names in code: g2, g2Generator
 * base
@@ -45,7 +45,7 @@ For each variable, we list its name(s) in the code and add a short and comprehen
 * usk
   * user's secret exponent
   * names in code: usk
-* $\beta_{usr}$
+* &#946;<sub>usr</sub>
   * PRF key that the user uses to generate pseudorandomness
   * names in code: betaUsr
 * USK
@@ -58,7 +58,7 @@ For each variable, we list its name(s) in the code and add a short and comprehen
   
 ### P.KeyGen
   
-* $(pk_{SPS-EQ}, sk_{SPS-EQ})$
+* (pk<sub>SPS-EQ</sub>, sk<sub>SPS-EQ<>/sub)
   * SPS-EQ key pair the provider uses to certify tokens
   * names in code: (pkSpsEq, skSpsEq)
 * h<sub>1</sub>, ..., h<sub>6</sub>
@@ -69,7 +69,7 @@ For each variable, we list its name(s) in the code and add a short and comprehen
   * DLOGs of the bases used in the token's Pedersen commitment
   * are represented in the code as a single vector
   * names in code: q
-* &#03B2<sub>prov</sub>
+* &#946;<sub>prov</sub>
   * PRF key that the provider uses to generate pseudorandomness
   * names in code: betaProv
 * sk
@@ -81,7 +81,7 @@ For each variable, we list its name(s) in the code and add a short and comprehen
   
 ### Issue-Join
 
-* esk^*_{usr}
+* esk<sup>*</sup><sub>usr</sub>
   * fresh Zp exponent used for updating/initializing a token
   * represents the user share of the ElGamal encryption secret key used 
   * names in code: eskUsr
