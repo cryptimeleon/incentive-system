@@ -58,7 +58,7 @@ For each variable, we list its name(s) in the code and add a short and comprehen
   
 ### P.KeyGen
   
-* (pk<sub>SPS-EQ</sub>, sk<sub>SPS-EQ<>/sub)
+* (pk<sub>SPS-EQ</sub>, sk<sub>SPS-EQ</sub>)
   * SPS-EQ key pair the provider uses to certify tokens
   * names in code: (pkSpsEq, skSpsEq)
 * h<sub>1</sub>, ..., h<sub>6</sub>
@@ -85,7 +85,37 @@ For each variable, we list its name(s) in the code and add a short and comprehen
   * fresh Zp exponent used for updating/initializing a token
   * represents the user share of the ElGamal encryption secret key used 
   * names in code: eskUsr
-* dsrnd_0
+* dsrnd<sup>*</sup><sub>0</sub>
   * fresh Zp exponent used for updating/initializing a token
-  * represents the user share of the ElGamal encryption secret key used 
-  * names in code: eskUsr
+  * randomness used for generating the challenge 0 associated with a spend operation
+  * used in double-spending protection
+  * names in code: dsrnd0
+* dsrnd<sub>1</sub>
+  * fresh Zp exponent used for updating/initializing a token
+  * randomness used for generating the challenge 1 associated with a spend operation
+  * used in double-spending protection
+  * names in code: dsrnd1
+* z<sup>*</sup>
+  * fresh Zp exponent used for updating/initializing a token 
+  * first value used to blind the token Pedersen commitment
+  * names in code: z
+* t<sup>*</sup>
+  * fresh Zp exponent used for updating/initializing a token 
+  * second value used to blind the token Pedersen commitment
+  * needed for sophisticated proof reasons
+  * names in code: t
+* u<sup>*</sup>
+  * fresh Zp exponent used for updating/initializing a token 
+  * used to blind entire group element vector in token by computing different representative
+  * names in code: u
+* C<sup>(pre)</sup>
+  * "pre-commitment"
+  * (uncertified) group element vector that is sent to the provider for certification upon token creation and update
+  * consists of two components: a triple-blinded Pedersen commitment C<sub>0</sub><sup>(pre)</sup> and a randomization C<sub>1</sub><sup>(pre)</sup> of the generator of group G<sub>1</sub> from the pp (randomized)
+  * names in code: cPre
+* C<sub>0</sub><sup>(pre)</sup>
+  * first component of the pre-commitment C<sup>(pre)</sup>
+  * names in code: c0Pre, preCommitment0
+* C<sub>1</sub><sup>(pre)</sup>
+  * second component of the pre-commitment C<sup>(pre)</sup>
+  * names in code: c1Pre, preCommitment1
