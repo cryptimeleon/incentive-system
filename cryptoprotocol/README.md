@@ -147,6 +147,9 @@ For each variable, we list its name(s) in the code and add a short and comprehen
 
 ### Credit-Earn
 
+* k
+  * amount of points earned in a specific Credit-Earn execution
+  * names in code: k
 * s
   * blinding randomness used to blind existing token commitment + its certificate when submitting them to provider in earn request
   * names in code: s
@@ -159,3 +162,30 @@ For each variable, we list its name(s) in the code and add a short and comprehen
 * &#963;''
   * updated blinded token's certificate
   * names in code: not stored in a variable but computed on the fly, thus not named
+* C<sup>*</sup>
+  * final un-blinded updated token commitment
+  * names in code: not stored in a variable but computed on the fly, thus not named
+* &#963;<sup>*</sup>
+  * final un-blinded updated token certificate
+  * names in code: not stored in a variable but computed on the fly, thus not named
+
+Note: all secret exponents contained in the updated token are computed on the fly as well and thus not named in code
+
+### Spend-Deduct
+
+* &#947;
+  * used in generation of challenges c<sub>0</sub>, c<sub>1</sub> needed in double-spending detection
+  * derived from preliminary updated token commitment, spend amount and transaction metadata (transaction ID, used token's double spending ID)
+  * names in code: gamma
+* c<sub>0</sub>
+  * first challenge needed in the Schnorr-trick for double-spending protection
+  * generated using double-spending randomness dsrnd<sub>0</sub>, user secret key usk and exponent
+  * together with another challenge using the same usk, a double-spending user's usk can be revealed
+  * names in code: c0
+* c<sub>1</sub>
+  * second challenge needed in the Schnorr-trick for double-spending protection
+  * generated using double-spending randomness dsrnd<sub>1</sub>, ElGamal encryption secret key esk and exponent
+  * together with another challenge using the same esk, the encryption secret key esk for tracing a double-spending user's further transactions can be revealed
+  * names in code: c1
+* r<sub>1</sub>, ..., r<sub>&#961;</sub>
+  * encrypting 
