@@ -144,3 +144,18 @@ For each variable, we list its name(s) in the code and add a short and comprehen
   * used to identify the token in double-spending protection
   * redundant information: can be computed from a token (contains esk) and the public parameters (contain w, note dsid<sup>*</sup> = w<sup>esk</sup>) 
   * names in code: none (not implemented because of above reason)
+
+### Credit-Earn
+
+* s
+  * blinding randomness used to blind existing token commitment + its certificate when submitting them to provider in earn request
+  * names in code: s
+* C'
+  * blinded token commitment
+  * names in code: not stored in a variable but computed on the fly, thus not named
+* &#963;'
+  * blinded token's certificate
+  * names in code: not stored in a variable but computed on the fly, thus not named
+* &#963;''
+  * updated blinded token's certificate
+  * names in code: not stored in a variable but computed on the fly, thus not named
