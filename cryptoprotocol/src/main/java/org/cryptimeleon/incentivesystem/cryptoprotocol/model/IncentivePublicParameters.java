@@ -61,7 +61,7 @@ public class IncentivePublicParameters implements PublicParameters {
     SetMembershipPublicParameters eskBaseSetMembershipPublicParameters;
 
     @NonFinal
-    int numEskDigits; // This is computed in the init method since it contains redundant data
+    int numEskDigits; // rho from the 2020 inc sys paper, this is computed in the init method since it contains redundant data
 
     public IncentivePublicParameters(Representation repr) {
         new ReprUtil(this)

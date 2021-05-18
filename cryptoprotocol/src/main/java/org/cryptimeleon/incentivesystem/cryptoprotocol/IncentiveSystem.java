@@ -208,6 +208,7 @@ public class IncentiveSystem {
      *
      * @param token             the token to update
      * @param providerPublicKey the public key of the provider
+     * @param userKeyPair the key pair of the user submitting the request, sk is the PRF input used to generate pseudorandomness
      * @return request to give to a provider
      */
     public EarnRequest generateEarnRequest(Token token, ProviderPublicKey providerPublicKey, UserKeyPair userKeyPair) {
@@ -241,7 +242,12 @@ public class IncentiveSystem {
     public SPSEQSignature generateEarnRequestResponse(EarnRequest earnRequest, BigInteger k, ProviderKeyPair providerKeyPair) {
 
         // Verify the blinded signature for the blinded commitment is valid
-        var isSignatureValid = pp.getSpsEq().verify(providerKeyPair.getPk().getPkSpsEq(), earnRequest.getBlindedSignature(), earnRequest.getC0(), earnRequest.getC1());
+        var isSignatureValid = pp.getSpsEq().verify(
+                providerKeyPair.getPk().getPkSpsEq(),
+                earnRequest.getBlindedSignature(),
+                earnRequest.getC0(),
+                earnRequest.getC1()
+        );
         if (!isSignatureValid) {
             throw new IllegalArgumentException("Signature is not valid");
         }
@@ -249,11 +255,11 @@ public class IncentiveSystem {
         // Sign a blinded commitment with k more points
         var C0 = earnRequest.getC0();
         var C1 = earnRequest.getC1();
-        var q4 = providerKeyPair.getSk().getQ().get(4);
+        var q5 = providerKeyPair.getSk().getQ().get(4); // DLOGs have 1-based indexing in paper, 0-based indexing in code
 
         return (SPSEQSignature) pp.getSpsEq().sign(
                 providerKeyPair.getSk().getSkSpsEq(),
-                C0.op(C1.pow(q4.mul(k))).compute(), // Add k blinded point to the commitment
+                C0.op(C1.pow(q5.mul(k))).compute(), // Add k blinded point to the commitment
                 C1
         );
     }
@@ -351,7 +357,7 @@ public class IncentiveSystem {
 
         /* Enable double-spending-protection by forcing usk and esk becoming public in that case
            If token is used twice in two different transactions, the provider observes (c0,c1), (c0',c1') with gamma!=gamma'
-           Hence, the provider can easily retrieve usk and esk. */
+           Hence, the provider can easily retrieve usk and esk (using the Schnorr-trick). */
         var gamma = Util.hashGamma(zp, k, dsid, tid, cPre0, cPre1);
         var c0 = usk.mul(gamma).add(token.getDoubleSpendRandomness0());
         var c1 = esk.mul(gamma).add(token.getDoubleSpendRandomness1());
