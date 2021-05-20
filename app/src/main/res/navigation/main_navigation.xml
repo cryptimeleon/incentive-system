@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_navigation"
+    app:startDestination="@id/setup">
+
+    <fragment
+        android:id="@+id/setup"
+        android:name="org.cryptimeleon.incentivesystem.app.setup.SetupFragment"
+        android:label="setup_fragment"
+        tools:layout="@layout/setup_fragment">
+        <action
+            android:id="@+id/action_setup_to_info"
+            app:destination="@id/info" />
+    </fragment>
+    <fragment
+        android:id="@+id/info"
+        android:name="org.cryptimeleon.incentivesystem.app.info.InfoFragment"
+        android:label="Info" />
+</navigation>
