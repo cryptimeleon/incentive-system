@@ -494,19 +494,62 @@ public class IncentiveSystem {
 
 
     /**
-     * methods for offline double-spending detection
+     * methods for double-spending detection
      */
 
-    void link() {
-    }
+    /**
+     * Given two double-spending tags belonging to a detected double-spending attempt, this algorithm computes the key material of the suspected user
+     * as well as tracing information used to trace further transactions resulting from the detected double-spending attempt.
+     * @param pp public parameters of the respective incentive system instance
+     * @param dsTag tag of the first spend operation
+     * @param dsTagPrime tag of the second spend operation
+     * @return suspected user's key material + tracing information
+     */
+    public LinkOutput link(IncentivePublicParameters pp, DoubleSpendingTag dsTag, DoubleSpendingTag dsTagPrime)
+    {
+        // computing dsblame, DLOG of the usk of the user blamed of double-spending
+        ZnElement c0 = dsTag.getC0();
+        ZnElement c0Prime = dsTagPrime.getC0();
+        ZnElement c0Difference = c0.sub(c0Prime);
 
-    void verifyDS() {
-    }
+        ZnElement gamma = dsTag.getGamma();
+        ZnElement gammaPrime = dsTagPrime.getGamma();
+        ZnElement gammaDifference = gamma.sub(gammaPrime);
 
-    void trace() {
+        ZnElement dsBlame = c0Difference.div(gammaDifference);
+
+        // computing dstrace to trace further transactions resulting from the detected double-spending attempt
+        ZnElement c1 = dsTag.getC1();
+        ZnElement c1Prime = dsTagPrime.getC1();
+        ZnElement c1Difference = c1.sub(c1Prime);
+
+        ZnElement dsTrace = c1Difference.div(gammaDifference);
+
+        // computing public key of the user blamed of double-spending
+        UserPublicKey upk = new UserPublicKey(pp.getW().pow(dsBlame));
+
+        // assemble and return output
+        return new LinkOutput(dsBlame, upk, dsTrace);
     }
 
     /**
-     * end of methods for offline double-spending detection
+     * Determines whether the user with public key upk was really found guilty of double spending or whether he was wrongly accused.
+     * @param pp public parameters of the respective incentive system instance
+     * @param dsBlame used to verify/falsify that accused user indeed double-spended
+     * @param upk public key of user accused of double-spending
+     * @return true if and only if user is found guilty of double-spending
+     */
+    public boolean verifyDs(IncentivePublicParameters pp, ZnElement dsBlame, UserPublicKey upk)
+    {
+        return pp.getW().pow(dsBlame).equals(upk.getUpk());
+    }
+
+    public void trace()
+    {
+
+    }
+
+    /**
+     * end of methods for double-spending detection
      */
 }
