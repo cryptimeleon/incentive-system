@@ -5,16 +5,17 @@ import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.EarnRequest;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.SpendRequest;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.SpendResponse;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.model.Token;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.messages.JoinRequest;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.messages.JoinResponse;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.proofs.CommitmentWellformednessProtocol;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.proof.SpendDeductZkp;
-import org.cryptimeleon.math.structures.rings.zn.Zn;
-import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.function.Executable;
 
 import java.math.BigInteger;
+import java.util.logging.Logger;
 
 /**
  * Performs a full example run of all three protocols as in a real-world setting.
@@ -25,16 +26,18 @@ import java.math.BigInteger;
  */
 public class ProtocolIntegrationTest
 {
+    Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
+
     @Test
     public void fullProtocolTestRun()
     {
-        System.out.println("Starting integration test of all three cryptographic protocols.");
+        logger.info("Starting integration test of all three cryptographic protocols.");
 
         /**
          * incentive system setup and user+provider key generation
          */
 
-        System.out.println("Setting up the incentive system and generating keys.");
+        logger.info("Setting up the incentive system and generating keys.");
 
         // generate incentive system pp and extracts used Zn for shorter references
         var incSys = new IncentiveSystem(IncentiveSystem.setup(128, Setup.BilinearGroupChoice.Debug));
@@ -50,7 +53,7 @@ public class ProtocolIntegrationTest
          * user joins system using issue-join protocol
          */
 
-        System.out.println("A new user joins the system.");
+        logger.info("A new user joins the system.");
 
         // user generates join request
         var joinRequest = incSys.generateJoinRequest(
@@ -78,31 +81,26 @@ public class ProtocolIntegrationTest
          * transaction 1: user tries to spend points with an empty token
          */
 
-        System.out.println("Testing spend transaction with empty token.");
+        logger.info("Testing spend transaction with empty token.");
 
         // generate a fresh ID for the spend transaction
         var tid1 = usedZn.getUniformlyRandomElement();
 
         var spendAmount1 = BigInteger.ONE;
 
-        // user tries to generate spend request
-        try
-        {
-            var spendRequest1 = incSys.generateSpendRequest(initialToken, pkp.getPk(), spendAmount1, ukp, tid1);
-        }
-        catch(IllegalArgumentException e)
-        {
-            System.out.println("Expected exception when trying to spend " + spendAmount1.toString() +" point using token with " + initialToken.getPoints().toString() + " points: " + e.getMessage());
-        }
-
-        // ensure user token still contains 0 points
-        Assertions.assertEquals(initialToken.getPoints(), usedZn.getZeroElement());
+        // ensure exception is thrown when user tries to generate spend request
+        Assertions.assertThrows(IllegalArgumentException.class, new Executable() {
+            @Override
+            public void execute() throws Throwable {
+                incSys.generateSpendRequest(initialToken, pkp.getPk(), spendAmount1, ukp, tid1);
+            }
+        });
 
         /**
          * transaction 2: user earns 20 points
          */
 
-        System.out.println("Initialize Credit-Earn execution which grants user 20 points.");
+        logger.info("Initialize Credit-Earn execution which grants user 20 points.");
 
         // user generates earn request
         var earnRequest1 = incSys.generateEarnRequest(initialToken, pkp.getPk(), ukp);
@@ -128,7 +126,7 @@ public class ProtocolIntegrationTest
          * transaction 3: user tries to spend 23 points
          */
 
-        System.out.println("Testing failing spend transaction with non-empty token.");
+        logger.info("Testing failing spend transaction with non-empty token.");
 
         // generate a fresh ID for the spend transaction
         var tid2 = usedZn.getUniformlyRandomElement();
@@ -136,24 +134,21 @@ public class ProtocolIntegrationTest
         // define spend amount
         var spendAmount2 = new BigInteger("23");
 
-        // user tries to generate spend request
-        try
-        {
-            var spendRequest2 = incSys.generateSpendRequest(updatedToken, pkp.getPk(), spendAmount2, ukp, tid2);
-        }
-        catch(IllegalArgumentException e)
-        {
-            System.out.println("Expected exception when trying to spend " + spendAmount2.toString() +" point using token with " + updatedToken.getPoints().toString() + " points: " + e.getMessage());
-        }
+        final Token spendTransaction2Token = updatedToken;
 
-        // ensure user token still contains 20 points
-        Assertions.assertEquals(updatedToken.getPoints().getInteger(), new BigInteger(("20")));
+        // ensure exception is thrown when user tries to generate spend request
+        Assertions.assertThrows(IllegalArgumentException.class, new Executable() {
+            @Override
+            public void execute() throws Throwable {
+                incSys.generateSpendRequest(spendTransaction2Token, pkp.getPk(), spendAmount2, ukp, tid2); // this call does not change updatedToken
+            }
+        });
 
         /**
          * transaction 4: user spends 18 points
          */
 
-        System.out.println("Testing successful spend transaction.");
+        logger.info("Testing successful spend transaction.");
 
         // generate a fresh ID for the spend transaction
         var tid3 = usedZn.getUniformlyRandomElement();
@@ -162,15 +157,7 @@ public class ProtocolIntegrationTest
         var spendAmount3 = new BigInteger("18");
 
         // user generates spend request
-        SpendRequest spendRequest3 = null;
-        try
-        {
-            spendRequest3 = incSys.generateSpendRequest(updatedToken, pkp.getPk(), spendAmount3, ukp, tid3);
-        }
-        catch(IllegalArgumentException e)
-        {
-            System.out.println("Unexpected exception when trying to spend " + spendAmount3.toString() +" point using token with " + updatedToken.getPoints().toString() + " points: " + e.getMessage());
-        }
+        SpendRequest spendRequest3 = incSys.generateSpendRequest(updatedToken, pkp.getPk(), spendAmount3, ukp, tid3);
 
         // serialize and deserialize spend request to ensure that serialization does not break anything
         var serializedSpendRequest3 = spendRequest3.getRepresentation();
@@ -190,6 +177,32 @@ public class ProtocolIntegrationTest
         // ensure that point count of token is 2 = 20-18
         Assertions.assertEquals(updatedToken.getPoints().getInteger(), new BigInteger(("2")));
 
-        System.out.println("Done testing protocols.");
+        /**
+         * transaction 5: user earns 334231 points
+         */
+
+        logger.info("Initialize Credit-Earn execution which grants user 334231 points.");
+
+        // user generates earn request
+        var earnRequest2 = incSys.generateEarnRequest(updatedToken, pkp.getPk(), ukp);
+
+        // serialize and deserialize earn request to ensure serialization does not break anything
+        var serializedEarnRequest2 = earnRequest2.getRepresentation();
+        var deserializedEarnRequest2 = new EarnRequest(serializedEarnRequest2, incSys.getPp());
+
+        // provider handles earn request and generates earn response
+        var earnResponse2 = incSys.generateEarnRequestResponse(deserializedEarnRequest2, new BigInteger("334231"), pkp);
+
+        // serialize and deserialize earn response to ensure serialization does not break anything
+        var serializedEarnResponse2 = earnResponse2.getRepresentation();
+        var deserializedEarnResponse2 = new SPSEQSignature(serializedEarnResponse2, incSys.getPp().getBg().getG1(), incSys.getPp().getBg().getG2());
+
+        // user handles earn response
+        updatedToken = incSys.handleEarnRequestResponse(deserializedEarnRequest2, deserializedEarnResponse2, new BigInteger("334231"), updatedToken, pkp.getPk(), ukp);
+
+        // ensure user token contains 20 points
+        Assertions.assertEquals(updatedToken.getPoints().getInteger(), new BigInteger(("334233")));
+
+        logger.info("Done testing protocols.");
     }
 }

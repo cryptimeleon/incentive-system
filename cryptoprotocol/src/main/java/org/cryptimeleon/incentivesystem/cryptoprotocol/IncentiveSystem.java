@@ -255,7 +255,7 @@ public class IncentiveSystem {
         // Sign a blinded commitment with k more points
         var C0 = earnRequest.getC0();
         var C1 = earnRequest.getC1();
-        var q5 = providerKeyPair.getSk().getQ().get(4); // DLOGs have 1-based indexing in paper, 0-based indexing in code
+        var q5 = providerKeyPair.getSk().getQ().get(4); // get(4) is used for q5 since DLOGs have 1-based indexing in paper, 0-based indexing in code
 
         return (SPSEQSignature) pp.getSpsEq().sign(
                 providerKeyPair.getSk().getSkSpsEq(),
@@ -357,7 +357,7 @@ public class IncentiveSystem {
 
         /* Enable double-spending-protection by forcing usk and esk becoming public in that case
            If token is used twice in two different transactions, the provider observes (c0,c1), (c0',c1') with gamma!=gamma'
-           Hence, the provider can easily retrieve usk and esk (using the Schnorr-trick). */
+           Hence, the provider can easily retrieve usk and esk (using the Schnorr-trick, computing (c0-c0')/(gamma-gamma') for usk, analogously for esk). */
         var gamma = Util.hashGamma(zp, k, dsid, tid, cPre0, cPre1);
         var c0 = usk.mul(gamma).add(token.getDoubleSpendRandomness0());
         var c1 = esk.mul(gamma).add(token.getDoubleSpendRandomness1());

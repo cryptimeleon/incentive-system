@@ -86,7 +86,7 @@ public class Setup {
         // instantiate SPS-EQ scheme used in this instance of the incentive system
         SPSEQSignatureScheme spsEq = new SPSEQSignatureScheme(new SPSEQPublicParameters(bg));
 
-        // draw generators for groups in used BG at random
+        // draw generators for groups in used bilinear group at random
         GroupElement g1 = bg.getG1().getGenerator().compute();
         GroupElement g2 = bg.getG2().getGenerator().compute();
 
