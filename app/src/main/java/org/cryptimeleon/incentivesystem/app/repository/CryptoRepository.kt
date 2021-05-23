@@ -1,9 +1,6 @@
-package org.cryptimeleon.incentivesystem.app.crypto
+package org.cryptimeleon.incentivesystem.app.repository
 
 import android.content.Context
-import android.content.SharedPreferences
-import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserPublicKey
-import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserSecretKey
 
 const val PREFERENCE_NAME = "CRYPT_PREFERENCES"
 const val PUBLIC_PARAMETERS = "PUBLIC_PARAMETERS"
@@ -14,13 +11,11 @@ const val SETUP_FINISHED = "SETUP_FINISHED"
 const val PROVIDER_SECRET_KEY = "PROVIDER_SECRET_KEY"
 const val TOKEN = "TOKEN"
 
+
 /*
  * A simple key-value store for cryptographic data that does not need to be stored in a database.
  */
-class CryptoRepository(context: Context) {
-    private val pref: SharedPreferences =
-        context.getSharedPreferences(PREFERENCE_NAME, Context.MODE_PRIVATE)
-    private val editor = pref.edit()
+class CryptoRepository(context: Context) : SharedPrefRepository(context, PREFERENCE_NAME) {
 
     fun setPublicParameters(publicParameters: String) {
         PUBLIC_PARAMETERS.put(publicParameters)
@@ -77,22 +72,4 @@ class CryptoRepository(context: Context) {
     fun getToken(): String {
         return TOKEN.getString()
     }
-
-
-    // Some functions that extend string to make the api a little nices
-    // See: https://arkapp.medium.com/how-to-use-shared-preferences-the-easy-and-fastest-way-98ce2013bf51
-
-    private fun String.put(string: String) {
-        editor.putString(this, string)
-        editor.commit()
-    }
-
-    private fun String.put(boolean: Boolean) {
-        editor.putBoolean(this, boolean)
-        editor.commit()
-    }
-
-    private fun String.getString() = pref.getString(this, "")!!
-
-    private fun String.getBoolean() = pref.getBoolean(this, false)
 }

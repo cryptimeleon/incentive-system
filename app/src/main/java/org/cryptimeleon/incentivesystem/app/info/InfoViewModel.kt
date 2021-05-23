@@ -1,13 +1,12 @@
 package org.cryptimeleon.incentivesystem.app.info
 
 import android.app.Application
-import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import kotlinx.coroutines.*
-import org.cryptimeleon.incentivesystem.app.crypto.CryptoRepository
+import org.cryptimeleon.incentivesystem.app.repository.CryptoRepository
 import org.cryptimeleon.incentivesystem.cryptoprotocol.IncentiveSystem
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.IncentivePublicParameters
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.Token

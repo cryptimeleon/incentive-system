@@ -3,7 +3,7 @@ package org.cryptimeleon.incentivesystem.app.setup
 import android.app.Application
 import androidx.lifecycle.*
 import kotlinx.coroutines.*
-import org.cryptimeleon.incentivesystem.app.crypto.CryptoRepository
+import org.cryptimeleon.incentivesystem.app.repository.CryptoRepository
 import org.cryptimeleon.incentivesystem.cryptoprotocol.IncentiveSystem
 import org.cryptimeleon.incentivesystem.cryptoprotocol.Setup
 import org.cryptimeleon.math.serialization.converter.JSONConverter
