@@ -88,4 +88,10 @@ class SetupViewModel(application: Application) : AndroidViewModel(application) {
     fun navigateToInfoFinished() {
         _navigateToInfo.value = false
     }
+
+    override fun onCleared() {
+        viewModelJob.cancel()
+        Timber.i("Coroutine canceled")
+        super.onCleared()
+    }
 }

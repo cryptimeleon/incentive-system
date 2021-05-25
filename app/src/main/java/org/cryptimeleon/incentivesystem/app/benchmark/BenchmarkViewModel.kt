@@ -270,4 +270,10 @@ class BenchmarkViewModel(application: Application) : AndroidViewModel(applicatio
     fun navigationFinished() {
         _navigateToResults.value = false
     }
+
+    override fun onCleared() {
+        viewModelJob.cancel()
+        Timber.i("Benchmark canceled")
+        super.onCleared()
+    }
 }
