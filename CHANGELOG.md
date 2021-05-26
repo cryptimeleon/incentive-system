@@ -19,7 +19,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Add basic crypto-entities (public parameters, user/provider keys, token,
   ...) [#11](https://github.com/upbcuk/incentive-services/pull/11)
 - Add data classes for token, keys and public parameters and change structure of crypto package [#16](https://github.com/upbcuk/incentive-services/pull/18)
-- Write integration test for all three cryptographic protocols (Issue-Join, Credit-Earn, Spend-Deduct)
+- Write integration test for all three cryptographic protocols (Issue-Join, Credit-Earn, Spend-Deduct) [#35](https://github.com/cryptimeleon/incentive-system/pull/35)
 
 ## [0.4.0] - 2021-02-03
 
