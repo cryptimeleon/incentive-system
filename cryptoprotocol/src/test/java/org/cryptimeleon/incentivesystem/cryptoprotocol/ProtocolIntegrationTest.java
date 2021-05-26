@@ -24,13 +24,11 @@ import java.util.logging.Logger;
  * and performs some (valid as well as invalid) Spend operations.
  * Note: since no state is stored on either side at cryptoprotocol level, it makes no sense to test with multiple users here.
  */
-public class ProtocolIntegrationTest
-{
+public class ProtocolIntegrationTest {
     Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
     @Test
-    public void fullProtocolTestRun()
-    {
+    public void fullProtocolTestRun() {
         logger.info("Starting integration test of all three cryptographic protocols.");
 
         /**
@@ -40,7 +38,7 @@ public class ProtocolIntegrationTest
         logger.info("Setting up the incentive system and generating keys.");
 
         // generate incentive system pp and extracts used Zn for shorter references
-        var incSys = new IncentiveSystem(IncentiveSystem.setup(128, Setup.BilinearGroupChoice.Debug));
+        var incSys = new IncentiveSystem(IncentiveSystem.setup(128, Setup.BilinearGroupChoice.BarretoNaehrig));
         var usedZn = incSys.getPp().getBg().getZn();
 
         // generate provider keys
