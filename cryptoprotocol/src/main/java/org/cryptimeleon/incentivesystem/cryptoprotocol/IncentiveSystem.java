@@ -613,6 +613,7 @@ public class IncentiveSystem {
 
     public void dbSync()
     {
+        // TODO: implement this using mock interface in doublespending package
         // check whether node for passed transaction is already contained in database
 
         // if not: add new transaction node
@@ -623,6 +624,8 @@ public class IncentiveSystem {
 
         // ...
     }
+
+
 
     /**
      * end of double-spending database interface to be used by provider
