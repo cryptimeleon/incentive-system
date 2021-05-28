@@ -22,6 +22,7 @@ import org.cryptimeleon.math.structures.groups.cartesian.GroupElementVector;
 import org.cryptimeleon.math.structures.groups.debug.DebugBilinearGroup;
 import org.cryptimeleon.math.structures.groups.elliptic.BilinearGroup;
 import org.cryptimeleon.math.structures.groups.elliptic.type3.bn.BarretoNaehrigBilinearGroup;
+import org.cryptimeleon.math.structures.groups.elliptic.type3.mcl.MclBilinearGroup;
 import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
@@ -62,6 +63,7 @@ public class Setup {
         switch (bilinearGroupChoice) {
             case Debug -> bg = new DebugBilinearGroup(securityParameter, BilinearGroup.Type.TYPE_3);
             case BarretoNaehrig -> bg = new BarretoNaehrigBilinearGroup(securityParameter);
+            case Herumi_MCL-> bg = new MclBilinearGroup();
             default -> throw new IllegalStateException("Unexpected value: " + bilinearGroupChoice);
         }
 
@@ -70,7 +72,7 @@ public class Setup {
         GroupElement g1Generator = bg.getG1().getGenerator();
         GroupElement g2Generator = bg.getG2().getGenerator();
 
-        /**
+        /*
          * note: in trusted setup (as in this implementation), it does not matter how w and h7 are generated
          */
 
@@ -153,5 +155,6 @@ public class Setup {
     public enum BilinearGroupChoice {
         Debug,
         BarretoNaehrig,
+        Herumi_MCL
     }
 }
