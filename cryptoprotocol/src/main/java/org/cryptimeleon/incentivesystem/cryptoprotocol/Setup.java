@@ -70,8 +70,11 @@ public class Setup {
         GroupElement g1Generator = bg.getG1().getGenerator();
         GroupElement g2Generator = bg.getG2().getGenerator();
 
-        // TODO: rewrite computation of w and h7 once proper hashing of bilinear groups is possible
-        // compute w (base used in double spending protection, see 2020 incsys paper)
+        /**
+         * note: in trusted setup (as in this implementation), it does not matter how w and h7 are generated
+         */
+
+        // compute w (base of user public keys)
         GroupElement w = bg.getG1().getUniformlyRandomElement().compute(); // w=e not a problem, see discord #questions 2.2.21
 
         // compute seventh base for user token (h7 in 2020 incsys paper)
@@ -83,11 +86,11 @@ public class Setup {
         // instantiate SPS-EQ scheme used in this instance of the incentive system
         SPSEQSignatureScheme spsEq = new SPSEQSignatureScheme(new SPSEQPublicParameters(bg));
 
-        // Random generators
+        // draw generators for groups in used bilinear group at random
         GroupElement g1 = bg.getG1().getGenerator().compute();
         GroupElement g2 = bg.getG2().getGenerator().compute();
 
-        // prepare encryptionSecretKey decomposition for ZKP
+        // prepare encryptionSecretKey decomposition for ZKP in SpendDeduct
         var eskBaseSet = LongStream.range(0, ESK_DEC_BASE).mapToObj(BigInteger::valueOf).collect(Collectors.toSet());
         var eskBaseSetMembershipPublicParameters = SetMembershipPublicParameters.generate(bg, eskBaseSet);
 

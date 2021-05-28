@@ -34,15 +34,6 @@ public class IssueJoinCryptoTest
         // generate a user key pair
         var ukp = incSys.generateUserKeys();
 
-        // generate randomness for join request TODO: the 6 ZnElements shall be local variables of generateJoinRequest, the code below is just a workaround until PRF-based randomness generation has been figured out
-        Zn usedZn = incSys.getPp().getBg().getZn();
-        Zn.ZnElement eskUsr  = usedZn.getUniformlyRandomElement(); // user's share of the encryption secret key for the tracing information's encryption
-        Zn.ZnElement dsrnd0  = usedZn.getUniformlyRandomElement(); // randomness for the first challenge generation in double-spending protection
-        Zn.ZnElement dsrnd1  = usedZn.getUniformlyRandomElement(); // randomness for the second challenge generation in double-spending protection
-        Zn.ZnElement z  = usedZn.getUniformlyRandomElement(); // blinding randomness needed to make (C^u, g^u) uniformly random
-        Zn.ZnElement t  = usedZn.getUniformlyRandomElement(); // blinding randomness needed for special DDH trick in a proof
-        Zn.ZnElement u  = usedZn.getUniformlyRandomNonzeroElement(); // != 0 needed for trick in the commitment well-formedness proof
-
         // create join request
         var testRequest = incSys.generateJoinRequest(
             incSys.getPp(),

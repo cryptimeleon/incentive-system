@@ -1,14 +1,11 @@
 package org.cryptimeleon.incentivesystem.cryptoprotocol;
 
 import lombok.Value;
+import org.cryptimeleon.craco.common.ByteArrayImplementation;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProof;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignatureScheme;
-import org.cryptimeleon.incentivesystem.cryptoprotocol.model.EarnRequest;
-import org.cryptimeleon.incentivesystem.cryptoprotocol.model.IncentivePublicParameters;
-import org.cryptimeleon.incentivesystem.cryptoprotocol.model.Token;
-import org.cryptimeleon.craco.common.ByteArrayImplementation;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.*;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderPublicKey;
@@ -21,15 +18,16 @@ import org.cryptimeleon.incentivesystem.cryptoprotocol.model.messages.JoinRespon
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.proofs.CommitmentWellformednessCommonInput;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.proofs.CommitmentWellformednessProtocol;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.proofs.CommitmentWellformednessWitness;
-import org.cryptimeleon.math.structures.groups.GroupElement;
-import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.proof.SpendDeductZkp;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.proof.SpendDeductZkpCommonInput;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.proof.SpendDeductZkpWitnessInput;
 import org.cryptimeleon.math.hash.impl.ByteArrayAccumulator;
+import org.cryptimeleon.math.structures.groups.GroupElement;
+import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
 import org.cryptimeleon.math.structures.rings.integers.IntegerRing;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
+
 import java.math.BigInteger;
 
 
@@ -72,8 +70,9 @@ public class IncentiveSystem {
 
     /**
      * functionality of the first part of the Issue algorithm of the Cryptimeleon incentive system
-     * @param pp public parameters of the respective incentive system instance
-     * @param pk provider public key of the provider the user interacts with
+     *
+     * @param pp  public parameters of the respective incentive system instance
+     * @param pk  provider public key of the provider the user interacts with
      * @param ukp user key pair
      * @return join request, i.e. object representing the first two messages in the Issue-Join protocol of the Cryptimeleon incentive system
      */
@@ -109,10 +108,11 @@ public class IncentiveSystem {
     /**
      * Implements the functionality of the Issue algorithm of the Cryptimeleon incentive system, i.e. handles a join request by signing the
      * included preliminary commitment after adding the provider's share for the tracking key esk.
-     * @param pp public parameters of the respective incentive system instance
+     *
+     * @param pp  public parameters of the respective incentive system instance
      * @param pkp key pair of the provider
      * @param upk public key of user (needed to restore upk needed to check validity of the commitment well-formedness proof)
-     * @param jr join request to be handled
+     * @param jr  join request to be handled
      * @return join response, i.e. object representing the third message in the Issue-Join protocol
      * @throws IllegalArgumentException indicating that the proof for commitment well-formedness was rejected
      */
@@ -130,8 +130,7 @@ public class IncentiveSystem {
 
         // check commitment well-formedness proof for validity
         FiatShamirProofSystem cwfProofSystem = new FiatShamirProofSystem(new CommitmentWellformednessProtocol(pp, pk));
-        if(!cwfProofSystem.checkProof(cwfProofCommonInput, cwfProof))
-        {
+        if (!cwfProofSystem.checkProof(cwfProofCommonInput, cwfProof)) {
             throw new IllegalArgumentException("The proof of the commitment being well-formed was rejected.");
         }
 
@@ -149,9 +148,10 @@ public class IncentiveSystem {
     /**
      * Implements the second part of the functionality of the Issue algorithm from the Cryptimeleon incentive system, i.e. computes the final user data
      * (token and corresponding certificate) from the signed preliminary token from the passed join request and response.
-     * @param pp public parameters of the respective incentive system instance
-     * @param pk public key of the provider the user interacted with
-     * @param ukp key pair of the user handling the response
+     *
+     * @param pp   public parameters of the respective incentive system instance
+     * @param pk   public key of the provider the user interacted with
+     * @param ukp  key pair of the user handling the response
      * @param jReq the initial join request of the user handling the response to it
      * @param jRes join response to be handled
      * @return token containing 0 points
@@ -177,8 +177,7 @@ public class IncentiveSystem {
         GroupElement modifiedC0Pre = c0Pre.op(h2.pow(u.mul(eskProv)));
 
         // verify the signature on the modified pre-commitment
-        if(!usedSpsEq.verify(pk.getPkSpsEq(), preCert, modifiedC0Pre, jReq.getPreCommitment1()))
-        {
+        if (!usedSpsEq.verify(pk.getPkSpsEq(), preCert, modifiedC0Pre, jReq.getPreCommitment1())) {
             throw new RuntimeException("signature on pre-commitment's left part is not valid!");
         }
 
@@ -199,15 +198,15 @@ public class IncentiveSystem {
      */
 
 
-
     /**
      * implementation of the Credit<->Earn protocol
-     *
+     * <p>
      * Generate an earn request that blinds the token and signature such that the provider can compute a signature on
      * a matching token with added value.
      *
      * @param token             the token to update
      * @param providerPublicKey the public key of the provider
+     * @param userKeyPair       the key pair of the user submitting the request
      * @return request to give to a provider
      */
     public EarnRequest generateEarnRequest(Token token, ProviderPublicKey providerPublicKey, UserKeyPair userKeyPair) {
@@ -241,7 +240,12 @@ public class IncentiveSystem {
     public SPSEQSignature generateEarnRequestResponse(EarnRequest earnRequest, BigInteger k, ProviderKeyPair providerKeyPair) {
 
         // Verify the blinded signature for the blinded commitment is valid
-        var isSignatureValid = pp.getSpsEq().verify(providerKeyPair.getPk().getPkSpsEq(), earnRequest.getBlindedSignature(), earnRequest.getC0(), earnRequest.getC1());
+        var isSignatureValid = pp.getSpsEq().verify(
+                providerKeyPair.getPk().getPkSpsEq(),
+                earnRequest.getBlindedSignature(),
+                earnRequest.getC0(),
+                earnRequest.getC1()
+        );
         if (!isSignatureValid) {
             throw new IllegalArgumentException("Signature is not valid");
         }
@@ -249,11 +253,11 @@ public class IncentiveSystem {
         // Sign a blinded commitment with k more points
         var C0 = earnRequest.getC0();
         var C1 = earnRequest.getC1();
-        var q4 = providerKeyPair.getSk().getQ().get(4);
+        var q5 = providerKeyPair.getSk().getQ().get(4); // get(4) is used for q5 since DLOGs have 1-based indexing in paper, 0-based indexing in code
 
         return (SPSEQSignature) pp.getSpsEq().sign(
                 providerKeyPair.getSk().getSkSpsEq(),
-                C0.op(C1.pow(q4.mul(k))).compute(), // Add k blinded point to the commitment
+                C0.op(C1.pow(q5.mul(k))).compute(), // Add k blinded point to the commitment
                 C1
         );
     }
@@ -305,11 +309,9 @@ public class IncentiveSystem {
      */
 
 
-
-
     /**
      * implementation of the Deduct<->Spend protocol
-     *
+     * <p>
      * Generates a request to add value k to token.
      *
      * @param token             the token
@@ -351,7 +353,7 @@ public class IncentiveSystem {
 
         /* Enable double-spending-protection by forcing usk and esk becoming public in that case
            If token is used twice in two different transactions, the provider observes (c0,c1), (c0',c1') with gamma!=gamma'
-           Hence, the provider can easily retrieve usk and esk. */
+           Hence, the provider can easily retrieve usk and esk (using the Schnorr-trick, computing (c0-c0')/(gamma-gamma') for usk, analogously for esk). */
         var gamma = Util.hashGamma(zp, k, dsid, tid, cPre0, cPre1);
         var c0 = usk.mul(gamma).add(token.getDoubleSpendRandomness0());
         var c1 = esk.mul(gamma).add(token.getDoubleSpendRandomness1());
@@ -483,8 +485,6 @@ public class IncentiveSystem {
     /**
      * end of the implementation of the Deduct<->Spend protocol
      */
-
-
 
 
     /**
