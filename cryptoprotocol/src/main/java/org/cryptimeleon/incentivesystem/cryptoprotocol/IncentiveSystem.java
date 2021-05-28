@@ -22,6 +22,7 @@ import org.cryptimeleon.incentivesystem.cryptoprotocol.model.proofs.CommitmentWe
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.proofs.CommitmentWellformednessProtocol;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.proofs.CommitmentWellformednessWitness;
 import org.cryptimeleon.math.structures.groups.GroupElement;
+import org.cryptimeleon.math.structures.groups.cartesian.GroupElementVector;
 import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.proof.SpendDeductZkp;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.proof.SpendDeductZkpCommonInput;
@@ -47,7 +48,7 @@ public class IncentiveSystem {
     }
 
     /**
-     * Generate public parameters for the incentive system.
+     * Generate public parameters for the incentive system. Wrapper for the trustedSetup method of the Setup class.
      *
      * @param securityParameter   the security parameter used in the setup algorithm
      * @param bilinearGroupChoice the bilinear group to use. Especially useful for testing
@@ -57,13 +58,23 @@ public class IncentiveSystem {
         return Setup.trustedSetup(securityParameter, bilinearGroupChoice);
     }
 
+    /**
+     * wrapper for the provider key generation method in Setup
+     * @return fresh provider key pair
+     */
     public ProviderKeyPair generateProviderKeys() {
         return Setup.providerKeyGen(this.pp);
     }
 
+    /**
+     * wrapper for the user key generation method from Setup
+     * @return fresh user key pair
+     */
     public UserKeyPair generateUserKeys() {
         return Setup.userKeyGen(this.pp);
     }
+
+
 
     /**
      * implementation of the Issue<->Join protocol
@@ -202,7 +213,10 @@ public class IncentiveSystem {
 
     /**
      * implementation of the Credit<->Earn protocol
-     *
+     */
+
+
+    /**
      * Generate an earn request that blinds the token and signature such that the provider can compute a signature on
      * a matching token with added value.
      *
@@ -315,7 +329,11 @@ public class IncentiveSystem {
 
     /**
      * implementation of the Deduct<->Spend protocol
-     *
+     */
+
+
+
+    /**
      * Generates a request to add value k to token.
      *
      * @param token             the token
@@ -539,17 +557,74 @@ public class IncentiveSystem {
      * @param upk public key of user accused of double-spending
      * @return true if and only if user is found guilty of double-spending
      */
-    public boolean verifyDs(IncentivePublicParameters pp, ZnElement dsBlame, UserPublicKey upk)
-    {
+    public boolean verifyDs(IncentivePublicParameters pp, ZnElement dsBlame, UserPublicKey upk) {
         return pp.getW().pow(dsBlame).equals(upk.getUpk());
     }
 
-    public void trace()
-    {
+    /**
+     *
+     * @param pp
+     * @param dsTrace
+     * @param dsTag
+     * @return
+     */
+    public TraceOutput trace(IncentivePublicParameters pp, ZnElement dsTrace, DoubleSpendingTag dsTag) {
+        // extract values from passed objects to save references in the below for-loops
+        Zn usedZn = pp.getBg().getZn();
+        GroupElement w = pp.getW();
+        GroupElementVector ctrace1 = dsTag.getCtrace0(); // this is no off-by-one error but due to naming inconsistency between our Spend-Deduct code and the ds protection algos. in the paper
+        GroupElementVector ctrace2 = dsTag.getCtrace1();
 
+        // compute user share of ElGamal encryption secret key esk
+        ZnElement[] userEskShareDigits = new ZnElement[pp.getNumEskDigits()];
+        for(int i = 0; i < pp.getNumEskDigits(); i++) {
+            for(int b = 0; b < Setup.ESK_DEC_BASE; b++) {
+                // search for DLOG (i-th digit of the user share of esk), beta from paper is b in code
+                if(w.pow(b) == ctrace1.get(i).pow(dsTrace.inv()).op(ctrace2.get(i)))
+                {
+                    userEskShareDigits[i] = usedZn.valueOf(b);
+                    break;
+                }
+                throw new RuntimeException("Could not find a fitting " +  String.valueOf(i) + "-th digit for the user's share of esk.");
+            }
+        }
+
+        // compute next dstrace
+        ZnElement dsTracePrime = usedZn.getZeroElement();
+        for(int i = 0; i < pp.getNumEskDigits(); i++){
+            dsTracePrime.add(userEskShareDigits[i].mul(usedZn.valueOf(Setup.ESK_DEC_BASE).pow(i)));
+        }
+        dsTracePrime.add(dsTag.getEskStarProv());
+
+        // assemble and return output (new dsid and dstrace)
+        return new TraceOutput(pp.getW().pow(dsTracePrime), dsTracePrime);
     }
 
     /**
      * end of methods for double-spending detection
+     */
+
+
+
+
+    /**
+     * double-spending database interface to be used by provider
+     */
+
+    public void dbSync()
+    {
+        // check whether node for passed transaction is already contained in database
+
+        // if not: add new transaction node
+
+        // associate new node with spend amount and double-spending tag
+
+        // if passed token ID not in database: add node for it and link it with passed transaction
+
+        // ...
+    }
+
+    /**
+     * end of double-spending database interface to be used by provider
      */
 }
