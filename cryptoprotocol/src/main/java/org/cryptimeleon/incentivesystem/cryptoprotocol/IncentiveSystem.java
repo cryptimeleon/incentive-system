@@ -206,7 +206,7 @@ public class IncentiveSystem {
      *
      * @param token             the token to update
      * @param providerPublicKey the public key of the provider
-     * @param userKeyPair       the key pair of the user submitting the request, sk is the PRF input used to generate pseudorandomness
+     * @param userKeyPair       the key pair of the user submitting the request
      * @return request to give to a provider
      */
     public EarnRequest generateEarnRequest(Token token, ProviderPublicKey providerPublicKey, UserKeyPair userKeyPair) {
