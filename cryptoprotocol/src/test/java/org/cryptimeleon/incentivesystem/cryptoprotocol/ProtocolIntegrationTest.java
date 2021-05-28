@@ -38,7 +38,7 @@ public class ProtocolIntegrationTest {
         logger.info("Setting up the incentive system and generating keys.");
 
         // generate incentive system pp and extracts used Zn for shorter references
-        var incSys = new IncentiveSystem(IncentiveSystem.setup(128, Setup.BilinearGroupChoice.BarretoNaehrig));
+        var incSys = new IncentiveSystem(IncentiveSystem.setup(128, Setup.BilinearGroupChoice.Debug));
         var usedZn = incSys.getPp().getBg().getZn();
 
         // generate provider keys
