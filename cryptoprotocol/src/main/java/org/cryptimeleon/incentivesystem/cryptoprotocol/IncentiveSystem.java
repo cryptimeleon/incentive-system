@@ -5,6 +5,7 @@ import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProof;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignatureScheme;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.dsprotection.DatabaseHandler;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.EarnRequest;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.IncentivePublicParameters;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.Token;
@@ -41,7 +42,10 @@ import java.math.BigInteger;
 public class IncentiveSystem {
 
     // public parameters
-    public final IncentivePublicParameters pp;
+    private final IncentivePublicParameters pp;
+
+    // interface to database administration for double-spending protection
+    private DatabaseHandler dbHandler = null;
 
     public IncentiveSystem(IncentivePublicParameters pp) {
         this.pp = pp;
@@ -611,18 +615,39 @@ public class IncentiveSystem {
      * double-spending database interface to be used by provider
      */
 
-    public void dbSync()
+    /**
+     * Adds a transaction's data (i.e. ID, challenge generator gamma, used token's dsid, ...) to the double-spending database.
+     * Triggers further DB-side actions for tracing tokens and transactions resulting from a double-spending attempt if necessary.
+     * @param tid transaction ID
+     * @param gamma challenge generator
+     * @param dsid double-spending ID of used token
+     * @param dsTag double-spending tag of used token
+     * @param spendAmount point amount spent
+     * @param dbHandler reference to the object providing the interface to the double-spending database
+     */
+    public void dbSync(ZnElement tid, ZnElement gamma, GroupElement dsid, DoubleSpendingTag dsTag, BigInteger spendAmount, DatabaseHandler dbHandler)
     {
-        // TODO: implement this using mock interface in doublespending package
         // check whether node for passed transaction is already contained in database
+        if(!dbHandler.containsTransactionNode(tid, gamma))
+        {
+            // if not: add new transaction node
+            dbHandler.addTransactionNode(tid, gamma, spendAmount, dsTag);
+        }
 
-        // if not: add new transaction node
+        if(!dbHandler.containsTokenNode(dsid)) // everything is fine
+        {
+            // if passed token ID not in database: add node for it and link it with passed transaction
+            dbHandler.addTokenNode(dsid);
+            dbHandler.addTokenTransactionEdge(dsid, tid, gamma);
+        }
+        else // double-spending attempt detected
+        {
+            // link existing token with new transaction
+            dbHandler.addTokenTransactionEdge(dsid, tid, gamma);
 
-        // associate new node with spend amount and double-spending tag
-
-        // if passed token ID not in database: add node for it and link it with passed transaction
-
-        // ...
+            // trigger tracing of transactions resulted from double-spending attempt
+            dbHandler.traceDoubleSpending();
+        }
     }
 
 
