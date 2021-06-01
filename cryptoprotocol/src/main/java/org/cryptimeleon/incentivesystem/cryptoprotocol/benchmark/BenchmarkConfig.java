@@ -11,7 +11,7 @@ import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserSecre
 
 @AllArgsConstructor
 public class BenchmarkConfig {
-    private static final Setup.BilinearGroupChoice DEFAULT_GROUP = Setup.BilinearGroupChoice.BarretoNaehrig;
+    private static final Setup.BilinearGroupChoice DEFAULT_GROUP = Setup.BilinearGroupChoice.Herumi_MCL;
     private static final int DEFAULT_SECURITY_PARAMETER = 128;
 
     int iterations;

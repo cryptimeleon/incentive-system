@@ -12,9 +12,9 @@ public class BenchmarkTest {
 
     @Test
     void runBenchmark() {
-        BenchmarkConfig benchmarkConfig = new BenchmarkConfig(10, 128, Setup.BilinearGroupChoice.Herumi_MCL);
+        BenchmarkConfig benchmarkConfig = new BenchmarkConfig(10, 128, Setup.BilinearGroupChoice.Debug);
         BenchmarkResult benchmarkResult = Benchmark.runBenchmark(benchmarkConfig, (benchmarkState, integer) -> {
-            if (integer % 100 == 0) {
+            if (integer % 10 == 0) {
                 logger.info(String.format("%s, round %d", benchmarkState.name(), integer));
             }
         });
