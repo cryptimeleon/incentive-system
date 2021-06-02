@@ -14,7 +14,7 @@ import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 
 /**
- * A class representing the first two messages of the Issue <-> Join protocol.
+ * A class representing the first two messages of the Issue  {@literal <}-{@literal >} Join protocol.
  */
 @Value
 @AllArgsConstructor

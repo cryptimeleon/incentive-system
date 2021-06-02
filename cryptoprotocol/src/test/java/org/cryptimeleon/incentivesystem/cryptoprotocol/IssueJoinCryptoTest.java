@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigInteger;
 
 /**
- * contains tests of the crypto behind the issue <-> join protocol
+ * contains tests of the crypto behind the issue  {@literal <}-{@literal >} join protocol
  */
 public class IssueJoinCryptoTest
 {

@@ -64,7 +64,7 @@ public class IncentiveSystem {
     }
 
     /**
-     * implementation of the Issue<->Join protocol
+     * implementation of the Issue {@literal <}-{@literal >}Join protocol
      */
 
 
@@ -194,12 +194,12 @@ public class IncentiveSystem {
     }
 
     /**
-     * end of the implementation of the Issue<->Join protocol
+     * end of the implementation of the Issue {@literal <}-{@literal >}Join protocol
      */
 
 
     /**
-     * implementation of the Credit<->Earn protocol
+     * implementation of the Credit {@literal <}-{@literal >}Earn protocol
      * <p>
      * Generate an earn request that blinds the token and signature such that the provider can compute a signature on
      * a matching token with added value.
@@ -305,12 +305,12 @@ public class IncentiveSystem {
     }
 
     /**
-     * end of the implementation of the Credit<->Earn protocol
+     * end of the implementation of the Credit {@literal <}-{@literal >}Earn protocol
      */
 
 
     /**
-     * implementation of the Deduct<->Spend protocol
+     * implementation of the Deduct {@literal <}-{@literal >}Spend protocol
      * <p>
      * Generates a request to add value k to token.
      *
@@ -483,7 +483,7 @@ public class IncentiveSystem {
     }
 
     /**
-     * end of the implementation of the Deduct<->Spend protocol
+     * end of the implementation of the Deduct {@literal <}-{@literal >}Spend protocol
      */
 
 
