@@ -46,36 +46,30 @@ publishing {
             }
             pom {
                 name = 'Incentivesystem Cryptoprotocol'
-                description = 'A concise description of my library'
-                url = 'http://www.example.com/library'
-                properties = [
-                        myProp: "value",
-                        "prop.with.dots": "anotherValue"
-                ]
+                description = 'The cryptimeleon incentivesystem\'s cryptographic protocols.'
+                url = 'https://cryptimelon.org'
                 licenses {
                     license {
                         name = 'The Apache License, Version 2.0'
                         url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
                     }
                 }
-                developers {
+                developers{
                     developer {
                         id = 'thiskramer'
                         name = 'Paul Kramer'
                         email = 'pkramer1503@gmail.com'
                     }
-                }
-                scm {
-                    connection = 'scm:git:git://example.com/my-library.git'
-                    developerConnection = 'scm:git:ssh://example.com/my-library.git'
-                    url = 'http://example.com/my-library/'
+                    developer {
+                        id = 'pschuermann97'
+                        name = 'Patrick Schürmann'
+                    }
                 }
             }
         }
     }
     repositories {
         maven {
-            // change URLs to point to your repos, e.g. http://my.org/repo
             def releasesRepoUrl = layout.buildDirectory.dir('repos/releases')
             def snapshotsRepoUrl = layout.buildDirectory.dir('repos/snapshots')
             url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
