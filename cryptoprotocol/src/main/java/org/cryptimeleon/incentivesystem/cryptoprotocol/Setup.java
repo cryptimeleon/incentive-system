@@ -61,10 +61,17 @@ public class Setup {
         // generate a bilinear group from the security parameter depending on the group choice
         BilinearGroup bg;
         switch (bilinearGroupChoice) {
-            case Debug -> bg = new DebugBilinearGroup(securityParameter, BilinearGroup.Type.TYPE_3);
-            case BarretoNaehrig -> bg = new BarretoNaehrigBilinearGroup(securityParameter);
-            case Herumi_MCL-> bg = new MclBilinearGroup();
-            default -> throw new IllegalStateException("Unexpected value: " + bilinearGroupChoice);
+            case Debug:
+                bg = new DebugBilinearGroup(securityParameter, BilinearGroup.Type.TYPE_3);
+                break;
+            case BarretoNaehrig:
+                bg = new BarretoNaehrigBilinearGroup(securityParameter);
+                break;
+            case Herumi_MCL:
+                bg = new MclBilinearGroup();
+                break;
+            default:
+                throw new IllegalStateException("Unexpected value: " + bilinearGroupChoice);
         }
 
 
