@@ -23,7 +23,7 @@ import timber.log.Timber
 import java.math.BigInteger
 import kotlin.system.measureNanoTime
 
-private const val BENCHMARK_ITERATIONS = 10
+private const val BENCHMARK_ITERATIONS = 100
 private val BENCHMARK_GROUP = Setup.BilinearGroupChoice.Debug
 private val EARN_SPEND_AMOUNT = BigInteger.valueOf(1000)
 

@@ -268,4 +268,10 @@ class InfoViewModel(application: Application) : AndroidViewModel(application) {
     fun toastShown() {
         _exceptionToast.value = ""
     }
+
+    override fun onCleared() {
+        viewModelJob.cancel()
+        Timber.i("Coroutine canceled")
+        super.onCleared()
+    }
 }

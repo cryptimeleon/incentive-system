@@ -25,9 +25,9 @@ class BenchmarkResultViewModel(
     private val tSpend = add(tSpendRequest, tSpendResponse, tSpendHandleResponse)
     private val tTotal = add(tJoin, tEarn, tSpend)
 
-    val joinText = protocolText(tJoin, tJoinRequest, tJoinRequest, tJoinHandleResponse)
-    val earnText = protocolText(tEarn, tEarnRequest, tEarnRequest, tEarnHandleResponse)
-    val spendText = protocolText(tSpend, tSpendRequest, tSpendRequest, tSpendHandleResponse)
+    val joinText = protocolText(tJoin, tJoinRequest, tJoinResponse, tJoinHandleResponse)
+    val earnText = protocolText(tEarn, tEarnRequest, tEarnResponse, tEarnHandleResponse)
+    val spendText = protocolText(tSpend, tSpendRequest, tSpendResponse, tSpendHandleResponse)
     val totalText = analyzeData(tTotal)
 
     private val _shareEvent = MutableLiveData(false)
@@ -58,7 +58,7 @@ class BenchmarkResultViewModel(
 
         for (x in data) {
             stats.addValue(
-                x / 10000000.0
+                x / 1000000.0
             )
         }
 
@@ -108,7 +108,7 @@ class BenchmarkResultViewModel(
         val earnTime: LongArray,
         val earnRequestTime: LongArray,
         val earnResponseTime: LongArray,
-        val earnHandleResponeTime: LongArray,
+        val earnHandleResponseTime: LongArray,
         val spendTime: LongArray,
         val spendRequestTime: LongArray,
         val spendResponseTime: LongArray,
