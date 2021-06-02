@@ -17,7 +17,7 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
 import java.math.BigInteger;
 
 /**
- * A protocol for proof of the well-formedness of the preliminary commitment in the initial user token as defined in the Issue\<-\>Join protocol of
+ * A protocol for proof of the well-formedness of the preliminary commitment in the initial user token as defined in the Issue {@literal <}-{@literal >}Join protocol of
  * the Cryptimeleon incentive system.
  *
  * In particular, it proves knowledge of (usk, t, z, 1/u, eskUsr, dsrnd0, dsrnd1) in Z_p^7 s.t.
