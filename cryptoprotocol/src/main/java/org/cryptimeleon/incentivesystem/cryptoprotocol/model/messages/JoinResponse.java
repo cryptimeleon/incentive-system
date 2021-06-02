@@ -11,7 +11,7 @@ import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
 
 /**
- * A class representing the third message of the Issue <-> Join protocol.
+ * A class representing the third message of the Issue \<-\> Join protocol.
  */
 @Value
 @AllArgsConstructor
