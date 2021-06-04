@@ -1,7 +1,6 @@
 package org.cryptimeleon.incentivesystem.app.benchmark
 
 import android.app.Application
-import android.widget.Toast
 import androidx.lifecycle.*
 import kotlinx.coroutines.*
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature
@@ -11,20 +10,15 @@ import org.cryptimeleon.incentivesystem.cryptoprotocol.IncentiveSystem
 import org.cryptimeleon.incentivesystem.cryptoprotocol.Setup
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.*
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderKeyPair
-import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderPublicKey
-import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.ProviderSecretKey
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserKeyPair
-import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserPublicKey
-import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserSecretKey
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.messages.JoinRequest
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.messages.JoinResponse
-import org.cryptimeleon.math.serialization.converter.JSONConverter
 import timber.log.Timber
 import java.math.BigInteger
 import kotlin.system.measureNanoTime
 
 private const val BENCHMARK_ITERATIONS = 100
-private val BENCHMARK_GROUP = Setup.BilinearGroupChoice.Debug
+private val BENCHMARK_GROUP = Setup.BilinearGroupChoice.Herumi_MCL
 private val EARN_SPEND_AMOUNT = BigInteger.valueOf(1000)
 
 enum class BenchmarkState {
@@ -51,8 +45,6 @@ class BenchmarkViewModel(application: Application) : AndroidViewModel(applicatio
     private val viewModelJob = Job()
     private val uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
 
-    private val benchmarkRepository = BenchmarkRepository(application.applicationContext)
-
     private val _benchmarkRunning = MutableLiveData(false)
     val benchmarkRunning: LiveData<Boolean>
         get() = _benchmarkRunning
@@ -67,6 +59,10 @@ class BenchmarkViewModel(application: Application) : AndroidViewModel(applicatio
     private val _navigateToResults = MutableLiveData(false)
     val navigateToResults = _navigateToResults
 
+    private val _usedGroupName = MutableLiveData<String>()
+    val usedGroupName: LiveData<String>
+        get() = _usedGroupName
+
     init {
         _progressText.addSource(_currentState) {
             _progressText.value = computeProgressText(it, _iteration.value!!)
@@ -74,6 +70,7 @@ class BenchmarkViewModel(application: Application) : AndroidViewModel(applicatio
         _progressText.addSource(_iteration) {
             _progressText.value = computeProgressText(_currentState.value!!, it)
         }
+        _usedGroupName.value = BENCHMARK_GROUP.name
     }
 
     private fun computeProgressText(state: BenchmarkState, iteration: Int): String {
@@ -89,42 +86,30 @@ class BenchmarkViewModel(application: Application) : AndroidViewModel(applicatio
 
 
     fun startBenchmark() {
-        if (_benchmarkRunning.value == true) {
-            return
-        }
         _benchmarkRunning.value = true
 
         uiScope.launch {
-            withContext(Dispatchers.IO) {
+            withContext(Dispatchers.Default) {
+                Timber.i("Generating public parameters")
                 _currentState.postValue(BenchmarkState.SETUP)
-                if (!benchmarkRepository.getSetupFinished()) {
-                    setupBenchmark()
-                }
 
-                val jsonConverter = JSONConverter()
                 val pp =
-                    IncentivePublicParameters(jsonConverter.deserialize(benchmarkRepository.getPublicParameters()))
-                val ppk = ProviderPublicKey(
-                    jsonConverter.deserialize(benchmarkRepository.getProviderPublicKey()),
-                    pp.spsEq,
-                    pp.bg.g1
-                )
-                val psk = ProviderSecretKey(
-                    jsonConverter.deserialize(benchmarkRepository.getProviderSecretKey()),
-                    pp.spsEq,
-                    pp.bg.zn,
-                    pp.prfToZn
-                )
-                val upk = UserPublicKey(
-                    jsonConverter.deserialize(benchmarkRepository.getUserPublicKey()),
-                    pp.bg.g1
-                )
-                val usk = UserSecretKey(
-                    jsonConverter.deserialize(benchmarkRepository.getUserSecretKey()),
-                    pp.bg.zn,
-                    pp.prfToZn
-                )
+                    Setup.trustedSetup(SECURITY_PARAMETER, BENCHMARK_GROUP)
+
                 val incentiveSystem = IncentiveSystem(pp)
+
+                Timber.i("Provider Provider keys")
+                val providerKeyPair = incentiveSystem.generateProviderKeys()
+
+                Timber.i("Generating User keys")
+                val userKeyPair = incentiveSystem.generateUserKeys()
+
+                Timber.i("Generation finished")
+
+                val ppk = providerKeyPair.pk
+                val psk = providerKeyPair.sk
+                val upk = userKeyPair.pk
+                val usk = userKeyPair.sk
                 lateinit var token: Token
 
                 var joinRequest: JoinRequest
@@ -237,34 +222,6 @@ class BenchmarkViewModel(application: Application) : AndroidViewModel(applicatio
                 _navigateToResults.postValue(true)
             }
         }
-    }
-
-
-    private fun setupBenchmark() {
-        Timber.i("Generating public parameters")
-        val jsonConverter = JSONConverter()
-
-        val incentivePublicParameters =
-            Setup.trustedSetup(SECURITY_PARAMETER, BENCHMARK_GROUP)
-        benchmarkRepository.setPublicParameters(
-            jsonConverter.serialize(
-                incentivePublicParameters.representation
-            )
-        )
-
-        val incentiveSystem = IncentiveSystem(incentivePublicParameters)
-
-        Timber.i("Provider Provider keys")
-        val providerKeyPair = incentiveSystem.generateProviderKeys()
-        benchmarkRepository.setProviderPublicKey(jsonConverter.serialize(providerKeyPair.pk.representation))
-        benchmarkRepository.setProviderSecretKey(jsonConverter.serialize(providerKeyPair.sk.representation))
-
-        Timber.i("Generating User keys")
-        val userKeyPair = incentiveSystem.generateUserKeys()
-        benchmarkRepository.setUserPublicKey(jsonConverter.serialize(userKeyPair.pk.representation))
-        benchmarkRepository.setUserSecretKey(jsonConverter.serialize(userKeyPair.sk.representation))
-
-        benchmarkRepository.setSetupFinished(true)
     }
 
     fun navigationFinished() {

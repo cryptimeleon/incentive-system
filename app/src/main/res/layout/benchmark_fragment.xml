@@ -53,5 +53,15 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/progress_text" />
 
+        <TextView
+            android:id="@+id/usedGroup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="21dp"
+            app:layout_constraintBottom_toTopOf="@+id/run_benchmark"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:text="@{benchmarkViewModel.usedGroupName}"
+            app:layout_constraintStart_toStartOf="parent" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>
