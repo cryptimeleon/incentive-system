@@ -1,40 +1,71 @@
 package org.cryptimeleon.incentivesystem.cryptoprotocol.benchmark;
 
-import lombok.Value;
-
-import java.util.logging.Logger;
+import java.io.Serializable;
 import java.util.stream.LongStream;
 
-@Value
-public class BenchmarkResult {
-    long[] joinRequestTime;
-    long[] joinResponseTime;
-    long[] joinHandleResponseTime;
-    long[] earnRequestTime;
-    long[] earnResponseTime;
-    long[] earnHandleResponseTime;
-    long[] spendRequestTime;
-    long[] spendResponseTime;
-    long[] spendHandleResponseTime;
+public class BenchmarkResult implements Serializable {
+    public long[] joinRequestTime;
+    public long[] joinResponseTime;
+    public long[] joinHandleResponseTime;
+    public long[] earnRequestTime;
+    public long[] earnResponseTime;
+    public long[] earnHandleResponseTime;
+    public long[] spendRequestTime;
+    public long[] spendResponseTime;
+    public long[] spendHandleResponseTime;
 
-    public void printReport(Logger logger) {
-        var joinRequestAvg = computeAverage(joinRequestTime);
-        var joinResponseAvg = computeAverage(joinResponseTime);
-        var joinHandleResponseAvg = computeAverage(joinHandleResponseTime);
+    public double joinRequestAvg;
+    public double joinResponseAvg;
+    public double joinHandleResponseAvg ;
 
-        var earnRequestAvg = computeAverage(earnRequestTime);
-        var earnResponseAvg = computeAverage(earnResponseTime);
-        var earnHandleResponseAvg = computeAverage(earnHandleResponseTime);
+    public double earnRequestAvg ;
+    public double earnResponseAvg;
+    public double earnHandleResponseAvg ;
 
-        var spendRequestAvg = computeAverage(spendRequestTime);
-        var spendResponseAvg = computeAverage(spendResponseTime);
-        var spendHandleResponseAvg = computeAverage(spendHandleResponseTime);
+    public double spendRequestAvg ;
+    public double spendResponseAvg ;
+    public double spendHandleResponseAvg ;
 
-        var joinTotalAvg = joinRequestAvg + joinResponseAvg + joinHandleResponseAvg;
-        var earnTotalAvg = earnRequestAvg + earnResponseAvg + earnHandleResponseAvg;
-        var spendTotalAvg = spendRequestAvg + spendResponseAvg + spendHandleResponseAvg;
-        var totalAvg = joinTotalAvg + earnTotalAvg + spendTotalAvg;
+    public double joinTotalAvg ;
+    public double earnTotalAvg;
+    public double spendTotalAvg;
+    public double totalAvg ;
 
+    public BenchmarkResult(long[] joinRequestTime, long[] joinResponseTime, long[] joinHandleResponseTime, long[] earnRequestTime, long[] earnResponseTime, long[] earnHandleResponseTime, long[] spendRequestTime, long[] spendResponseTime, long[] spendHandleResponseTime) {
+        this.joinRequestTime = joinRequestTime;
+        this.joinResponseTime = joinResponseTime;
+        this.joinHandleResponseTime = joinHandleResponseTime;
+        this.earnRequestTime = earnRequestTime;
+        this.earnResponseTime = earnResponseTime;
+        this.earnHandleResponseTime = earnHandleResponseTime;
+        this.spendRequestTime = spendRequestTime;
+        this.spendResponseTime = spendResponseTime;
+        this.spendHandleResponseTime = spendHandleResponseTime;
+
+        analyzeData();
+    }
+
+    // Precomputed average times in ms
+    private void analyzeData() {
+        joinRequestAvg = computeAverage(joinRequestTime);
+        joinResponseAvg = computeAverage(joinResponseTime);
+        joinHandleResponseAvg = computeAverage(joinHandleResponseTime);
+
+        earnRequestAvg = computeAverage(earnRequestTime);
+        earnResponseAvg = computeAverage(earnResponseTime);
+        earnHandleResponseAvg = computeAverage(earnHandleResponseTime);
+
+        spendRequestAvg = computeAverage(spendRequestTime);
+        spendResponseAvg = computeAverage(spendResponseTime);
+        spendHandleResponseAvg = computeAverage(spendHandleResponseTime);
+
+        joinTotalAvg = joinRequestAvg + joinResponseAvg + joinHandleResponseAvg;
+        earnTotalAvg = earnRequestAvg + earnResponseAvg + earnHandleResponseAvg;
+        spendTotalAvg = spendRequestAvg + spendResponseAvg + spendHandleResponseAvg;
+        totalAvg = joinTotalAvg + earnTotalAvg + spendTotalAvg;
+    }
+
+    public void printReport() {
         System.out.println("****************************************************************************************************");
         System.out.printf("** Total ** %fms%n", totalAvg);
         System.out.printf("** Join  ** Total: %fms, Req: %fms, Res: %fms, Han: %fms%n", joinTotalAvg, joinRequestAvg, joinResponseAvg, joinHandleResponseAvg);
