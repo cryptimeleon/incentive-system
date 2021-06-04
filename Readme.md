@@ -1,4 +1,4 @@
-# Cryptimemeleon Rewards App
+# Cryptimeleon Rewards App
 
 This repository contains the android application for the cryptimeleon rewards system.
 
