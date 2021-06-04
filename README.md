@@ -11,6 +11,12 @@
 3. To run the boot services, use `./gradlew bootRun`.
 4. To create a docker image for the issue service,
    use `./gradlew :issue:bootBuildImage --imageName=cryptimeleon/incentive-service-issue`
+   
+--- 
+
+## Benchmark of the Incentive System
+
+To run a benchmark, install mcl following these [instructions](https://github.com/cryptimeleon/mclwrap) and run `./gradlew cryptoprotocol:benchmark`.
 
 ---
 
