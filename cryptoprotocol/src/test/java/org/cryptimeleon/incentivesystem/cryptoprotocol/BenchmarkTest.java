@@ -18,6 +18,6 @@ public class BenchmarkTest {
                 logger.info(String.format("%s, round %d", benchmarkState.name(), integer));
             }
         });
-        benchmarkResult.printReport(logger);
+        benchmarkResult.printReport();
     }
 }

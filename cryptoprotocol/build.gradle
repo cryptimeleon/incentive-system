@@ -31,6 +31,19 @@ java {
     withJavadocJar()
     withSourcesJar()
 }
+test {
+    useJUnitPlatform()
+    exclude '**/benchmark/**'
+}
+
+task benchmark(type: Test) {
+    useJUnitPlatform()
+    testLogging {
+        outputs.upToDateWhen {false}
+        showStandardStreams = true
+    }
+    include '**/benchmark/**'
+}
 
 publishing {
     publications {
