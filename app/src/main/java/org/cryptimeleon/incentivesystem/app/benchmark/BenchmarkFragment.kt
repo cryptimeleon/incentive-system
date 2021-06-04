@@ -32,15 +32,7 @@ class BenchmarkFragment : Fragment() {
             if (it == true) {
                 val action =
                     BenchmarkFragmentDirections.actionBenchmarkFragmentToBenchmarkResultFragment(
-                        viewModel.tJoinRequest,
-                        viewModel.tJoinResponse,
-                        viewModel.tJoinHandleResponse,
-                        viewModel.tEarnRequest,
-                        viewModel.tEarnResponse,
-                        viewModel.tEarnHandleResponse,
-                        viewModel.tSpendRequest,
-                        viewModel.tSpendResponse,
-                        viewModel.tSpendHandleResponse
+                        viewModel.benchmarkResult
                     )
                 findNavController(this).navigate(action)
                 viewModel.navigationFinished()

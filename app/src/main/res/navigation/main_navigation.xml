@@ -33,31 +33,7 @@
         android:name="org.cryptimeleon.incentivesystem.app.benchmark.BenchmarkResultFragment"
         android:label="BenchmarkResultFragment" >
         <argument
-            android:name="joinRequest"
-            app:argType="long[]" />
-        <argument
-            android:name="joinResponse"
-            app:argType="long[]" />
-        <argument
-            android:name="joinHandleResponse"
-            app:argType="long[]" />
-        <argument
-            android:name="earnRequest"
-            app:argType="long[]" />
-        <argument
-            android:name="earnResponse"
-            app:argType="long[]" />
-        <argument
-            android:name="earnHandleReponse"
-            app:argType="long[]" />
-        <argument
-            android:name="spendRequest"
-            app:argType="long[]" />
-        <argument
-            android:name="spendResponse"
-            app:argType="long[]" />
-        <argument
-            android:name="spendHandleResponse"
-            app:argType="long[]" />
+            android:name="result"
+            app:argType="org.cryptimeleon.incentivesystem.cryptoprotocol.benchmark.BenchmarkResult" />
     </fragment>
 </navigation>

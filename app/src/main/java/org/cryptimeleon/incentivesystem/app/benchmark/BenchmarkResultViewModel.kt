@@ -4,66 +4,46 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.google.gson.Gson
-import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics
+import org.cryptimeleon.incentivesystem.cryptoprotocol.benchmark.BenchmarkResult
 
 class BenchmarkResultViewModel(
     application: Application,
-    private val tJoinRequest: LongArray,
-    private val tJoinResponse: LongArray,
-    private val tJoinHandleResponse: LongArray,
-    private val tEarnRequest: LongArray,
-    private val tEarnResponse: LongArray,
-    private val tEarnHandleResponse: LongArray,
-    private val tSpendRequest: LongArray,
-    private val tSpendResponse: LongArray,
-    private val tSpendHandleResponse: LongArray
+    benchmarkResult: BenchmarkResult
 ) : AndroidViewModel(application) {
 
-    private val tJoin = add(tJoinRequest, tJoinResponse, tJoinHandleResponse)
-    private val tEarn = add(tEarnRequest, tEarnResponse, tEarnHandleResponse)
-    private val tSpend = add(tSpendRequest, tSpendResponse, tSpendHandleResponse)
-    private val tTotal = add(tJoin, tEarn, tSpend)
-
-    val joinText = protocolText(tJoin, tJoinRequest, tJoinResponse, tJoinHandleResponse)
-    val earnText = protocolText(tEarn, tEarnRequest, tEarnResponse, tEarnHandleResponse)
-    val spendText = protocolText(tSpend, tSpendRequest, tSpendResponse, tSpendHandleResponse)
-    val totalText = analyzeData(tTotal)
+    val joinText = protocolText(
+        benchmarkResult.joinTotalAvg,
+        benchmarkResult.joinRequestAvg,
+        benchmarkResult.joinResponseAvg,
+        benchmarkResult.joinHandleResponseAvg
+    )
+    val earnText = protocolText(
+        benchmarkResult.earnTotalAvg,
+        benchmarkResult.earnRequestAvg,
+        benchmarkResult.earnResponseAvg,
+        benchmarkResult.earnHandleResponseAvg
+    )
+    val spendText = protocolText(
+        benchmarkResult.spendTotalAvg,
+        benchmarkResult.spendRequestAvg,
+        benchmarkResult.spendResponseAvg,
+        benchmarkResult.spendHandleResponseAvg
+    )
+    val totalText = benchmarkResult.totalAvg.toString()
 
     private val _shareEvent = MutableLiveData(false)
     val shareEvent: LiveData<Boolean>
         get() = _shareEvent
 
     private fun protocolText(
-        total: LongArray,
-        request: LongArray,
-        response: LongArray,
-        handleResponse: LongArray
+        total: Double,
+        request: Double,
+        response: Double,
+        handleResponse: Double
     ): String {
-        return "Total: ${analyzeData(total)}\nRequest: ${analyzeData(request)}\nResponse: ${
-            analyzeData(response)
-        }\nHandle Response: ${analyzeData(handleResponse)}"
-    }
-
-    private fun add(vararg arrays: LongArray): LongArray {
-        val result = LongArray(arrays[0].size)
-        for (i in result.indices) {
-            result[i] = arrays.map { longs: LongArray -> longs[i] }.reduce { a, b -> a + b }
-        }
-        return result
-    }
-
-    private fun analyzeData(data: LongArray): String {
-        val stats = DescriptiveStatistics()
-
-        for (x in data) {
-            stats.addValue(
-                x / 1000000.0
-            )
-        }
-
-        val mean = stats.mean
-        return "${mean.format(2)}ms"
+        return "Total: ${total.format(2)}\nRequest: ${request.format(2)}\nResponse: ${
+            response.format(2)
+        }\nHandle Response: ${handleResponse.format(2)}"
     }
 
     private fun Double.format(decimals: Int) = "%.${decimals}f".format(this)
@@ -77,41 +57,6 @@ class BenchmarkResultViewModel(
     }
 
     fun computeShareData(): String {
-        val gson = Gson()
-        val resultJson = ResultJson(
-            tTotal,
-            tJoin,
-            tJoinRequest,
-            tJoinResponse,
-            tJoinHandleResponse,
-            tEarn,
-            tEarnRequest,
-            tEarnResponse,
-            tEarnHandleResponse,
-            tSpend,
-            tSpendRequest,
-            tSpendResponse,
-            tSpendHandleResponse
-        )
-        return gson.toJson(resultJson)
+        return "Total:\n$totalText\nIssueJoin:\n$joinText\nCreditEarn\n$earnText\nSpendDeduct\n$spendText"
     }
-
-    /*
-     * Simple data class for JSON serialization of the raw data
-     */
-    data class ResultJson(
-        val totalTime: LongArray,
-        val joinTime: LongArray,
-        val joinRequestTime: LongArray,
-        val joinResponseTime: LongArray,
-        val joinHandleResponseTime: LongArray,
-        val earnTime: LongArray,
-        val earnRequestTime: LongArray,
-        val earnResponseTime: LongArray,
-        val earnHandleResponseTime: LongArray,
-        val spendTime: LongArray,
-        val spendRequestTime: LongArray,
-        val spendResponseTime: LongArray,
-        val spendHandleResponseTime: LongArray
-    )
 }

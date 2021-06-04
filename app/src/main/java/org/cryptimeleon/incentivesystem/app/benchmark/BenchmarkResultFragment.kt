@@ -34,15 +34,7 @@ class BenchmarkResultFragment : Fragment() {
         viewModel = ViewModelProvider(
             this, BenchmarkResultViewModelFactory(
                 requireActivity().application,
-                args.joinRequest,
-                args.joinResponse,
-                args.joinHandleResponse,
-                args.earnRequest,
-                args.earnResponse,
-                args.earnHandleReponse,
-                args.spendRequest,
-                args.spendResponse,
-                args.spendHandleResponse
+                args.result
             )
         ).get(BenchmarkResultViewModel::class.java)
         binding.resultViewModel = viewModel
