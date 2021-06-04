@@ -5,7 +5,7 @@ include 'credit'
 include 'basketserver'
 include 'cryptoprotocol'
 include 'client'
-include 'doublespendingdb'
+include 'dsprotectionservice'
 
 includeBuild "../math"
 includeBuild "../craco"
