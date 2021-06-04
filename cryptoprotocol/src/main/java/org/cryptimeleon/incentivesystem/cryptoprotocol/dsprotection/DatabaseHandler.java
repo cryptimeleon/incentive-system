@@ -5,8 +5,15 @@ import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
 import java.math.BigInteger;
 
+/**
+ * Provides an interface to the double-spending DB for the DBSync algorithm from the formal cryptographic definition of incentive system.
+ */
 public interface DatabaseHandler
 {
+    /**
+     * methods for administration of nodes and edges
+     */
+
     // TODO: this is only a mock interface, signatures are wip
     public void addTransactionNode(ZnElement tid, ZnElement gamma, BigInteger spendAmount, DoubleSpendingTag dsTag);
 
@@ -23,6 +30,10 @@ public interface DatabaseHandler
     public boolean containsTokenNode(GroupElement dsid);
 
     public boolean containsEdge();
+
+    /**
+     * end of methods for administration of nodes and edges
+     */
 
     /**
      * Called upon detection of a double-spending attempt.
