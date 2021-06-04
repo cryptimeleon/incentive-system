@@ -152,6 +152,7 @@ public class Benchmark {
             );
             finish = Instant.now();
             tSpendResponse[i] = Duration.between(start, finish).toNanos();
+            start = Instant.now();
             token = incentiveSystem.handleSpendRequestResponse(
                     spendResponseTuple.getSpendResponse(),
                     spendRequest,
