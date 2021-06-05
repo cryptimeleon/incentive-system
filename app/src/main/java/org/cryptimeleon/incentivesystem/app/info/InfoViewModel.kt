@@ -18,7 +18,6 @@ import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserPubli
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserSecretKey
 import org.cryptimeleon.math.serialization.converter.JSONConverter
 import timber.log.Timber
-import java.lang.IllegalArgumentException
 import java.math.BigInteger
 
 class InfoViewModel(application: Application) : AndroidViewModel(application) {
@@ -37,37 +36,27 @@ class InfoViewModel(application: Application) : AndroidViewModel(application) {
 
     val incentivePublicParametersText: LiveData<String> =
         Transformations.map(_incentivePublicParameters) {
-            it?.let {
-                it.toString()
-            }
+            it?.toString()
         }
 
     val providerPublicKey: LiveData<String> =
         Transformations.map(_providerPublicKey) {
-            it?.let {
-                it.toString()
-            }
+            it?.toString()
         }
 
     val providerSecretKey: LiveData<String> =
         Transformations.map(_providerSecretKey) {
-            it?.let {
-                it.toString()
-            }
+            it?.toString()
         }
 
     val userSecretKey: LiveData<String> =
         Transformations.map(_userSecretKey) {
-            it?.let {
-                it.toString()
-            }
+            it?.toString()
         }
 
     val userPublicKey: LiveData<String> =
         Transformations.map(_userPublicKey) {
-            it?.let {
-                it.toString()
-            }
+            it?.toString()
         }
 
     val token: LiveData<String> = Transformations.map(_token) {

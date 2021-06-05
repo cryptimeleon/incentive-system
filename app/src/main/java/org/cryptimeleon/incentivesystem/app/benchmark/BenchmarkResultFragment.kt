@@ -2,17 +2,15 @@ package org.cryptimeleon.incentivesystem.app.benchmark
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.databinding.DataBindingUtil
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.navArgs
 import org.cryptimeleon.incentivesystem.app.R
 import org.cryptimeleon.incentivesystem.app.databinding.BenchmarkResultFragmentBinding
-import timber.log.Timber
 
 class BenchmarkResultFragment : Fragment() {
     private lateinit var binding: BenchmarkResultFragmentBinding

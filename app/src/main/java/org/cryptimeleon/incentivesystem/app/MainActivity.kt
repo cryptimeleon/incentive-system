@@ -1,12 +1,10 @@
 package org.cryptimeleon.incentivesystem.app
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.MenuItem
+import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.Navigation
-import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.onNavDestinationSelected
-import org.cryptimeleon.incentivesystem.app.benchmark.BenchmarkFragmentDirections
 import org.cryptimeleon.incentivesystem.app.repository.CryptoRepository
 import timber.log.Timber
 
@@ -24,7 +22,7 @@ class MainActivity : AppCompatActivity() {
         System.loadLibrary("mcljava")
 
         // For logging
-        Timber.plant(Timber.DebugTree());
+        Timber.plant(Timber.DebugTree())
     }
 
 }

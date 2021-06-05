@@ -4,7 +4,6 @@ import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import org.cryptimeleon.incentivesystem.cryptoprotocol.benchmark.BenchmarkResult
-import java.lang.IllegalArgumentException
 
 class BenchmarkResultViewModelFactory(
     private val application: Application,

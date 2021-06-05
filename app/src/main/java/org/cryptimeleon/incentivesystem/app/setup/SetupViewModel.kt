@@ -1,7 +1,10 @@
 package org.cryptimeleon.incentivesystem.app.setup
 
 import android.app.Application
-import androidx.lifecycle.*
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Transformations
 import kotlinx.coroutines.*
 import org.cryptimeleon.incentivesystem.app.repository.CryptoRepository
 import org.cryptimeleon.incentivesystem.cryptoprotocol.IncentiveSystem

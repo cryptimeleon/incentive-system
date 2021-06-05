@@ -1,7 +1,10 @@
 package org.cryptimeleon.incentivesystem.app.benchmark
 
 import android.app.Application
-import androidx.lifecycle.*
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
+import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.*
 import org.cryptimeleon.incentivesystem.app.setup.SECURITY_PARAMETER
 import org.cryptimeleon.incentivesystem.cryptoprotocol.IncentiveSystem
@@ -11,9 +14,6 @@ import org.cryptimeleon.incentivesystem.cryptoprotocol.benchmark.BenchmarkConfig
 import org.cryptimeleon.incentivesystem.cryptoprotocol.benchmark.BenchmarkResult
 import org.cryptimeleon.incentivesystem.cryptoprotocol.benchmark.BenchmarkState
 import timber.log.Timber
-import java.math.BigInteger
-import java.util.*
-import java.util.function.BiConsumer
 
 private const val BENCHMARK_ITERATIONS = 100
 private val BENCHMARK_GROUP = Setup.BilinearGroupChoice.Herumi_MCL
@@ -50,7 +50,7 @@ class BenchmarkViewModel(application: Application) : AndroidViewModel(applicatio
     val usedGroupName: LiveData<String>
         get() = _usedGroupName
 
-    lateinit var benchmarkResult : BenchmarkResult
+    lateinit var benchmarkResult: BenchmarkResult
 
     init {
         _progressText.addSource(_currentState) {
