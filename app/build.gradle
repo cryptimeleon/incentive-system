@@ -57,7 +57,7 @@ dependencies {
 
     // Cryptimeleon
     implementation 'org.cryptimeleon.incentivesystem:cryptoprotocol:1.0.0-SNAPSHOT'
-    implementation 'org.cryptimeleon:craco:1.1.0-SNAPSHOT'
+    implementation 'org.cryptimeleon:craco:2.0.0-SNAPSHOT'
     implementation 'org.cryptimeleon:math:2.0.0-SNAPSHOT'
 
     // Logging
