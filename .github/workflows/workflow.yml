@@ -31,7 +31,7 @@ jobs:
           git clone https://github.com/cryptimeleon/math.git
           pushd math
           git checkout develop
-          ./gradlew build
+          ./gradlew :build
           ./gradlew publishToMavenLocal
       - name: Checkout craco
         run: |
@@ -39,7 +39,7 @@ jobs:
           git clone https://github.com/cryptimeleon/craco.git
           pushd craco
           git checkout develop
-          ./gradlew build
+          ./gradlew :build
           ./gradlew publishToMavenLocal
       - uses: actions/setup-java@v1
         with:
