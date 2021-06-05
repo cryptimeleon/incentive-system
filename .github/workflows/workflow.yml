@@ -51,7 +51,7 @@ jobs:
           pushd ..
           git clone https://github.com/cryptimeleon/incentive-system.git
           pushd incentive-system
-          git checkout develop
+          git checkout feature/benchmark
           ./gradlew cryptoprotocol:build
           ./gradlew cryptoprotocol:publishToMavenLocal
       - uses: actions/setup-java@v1
