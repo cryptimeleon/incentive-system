@@ -12,6 +12,9 @@ import androidx.navigation.fragment.navArgs
 import org.cryptimeleon.incentivesystem.app.R
 import org.cryptimeleon.incentivesystem.app.databinding.BenchmarkResultFragmentBinding
 
+/**
+ * Fragment for the Benchmark Result
+ */
 class BenchmarkResultFragment : Fragment() {
     private lateinit var binding: BenchmarkResultFragmentBinding
     private lateinit var viewModel: BenchmarkResultViewModel

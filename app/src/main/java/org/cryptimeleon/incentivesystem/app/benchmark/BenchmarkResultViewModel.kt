@@ -6,6 +6,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import org.cryptimeleon.incentivesystem.cryptoprotocol.benchmark.BenchmarkResult
 
+/**
+ * View Model of the Benchmark Result
+ */
 class BenchmarkResultViewModel(
     application: Application,
     benchmarkResult: BenchmarkResult
@@ -35,6 +38,9 @@ class BenchmarkResultViewModel(
     val shareEvent: LiveData<Boolean>
         get() = _shareEvent
 
+    /**
+     * Function for assembling the result string for each protocol
+     */
     private fun protocolText(
         total: Double,
         request: Double,
@@ -46,7 +52,17 @@ class BenchmarkResultViewModel(
         }\nHandle Response: ${handleResponse.format(2)}"
     }
 
+    /**
+     * Extension function for double to allow n decimal formatting
+     */
     private fun Double.format(decimals: Int) = "%.${decimals}f".format(this)
+
+    /**
+     * Assemble String that is sent via the share button.
+     */
+    fun computeShareData(): String {
+        return "Total:\n$totalText\nIssueJoin:\n$joinText\nCreditEarn\n$earnText\nSpendDeduct\n$spendText"
+    }
 
     fun shareFinished() {
         _shareEvent.value = false
@@ -54,9 +70,5 @@ class BenchmarkResultViewModel(
 
     fun startShare() {
         _shareEvent.value = true
-    }
-
-    fun computeShareData(): String {
-        return "Total:\n$totalText\nIssueJoin:\n$joinText\nCreditEarn\n$earnText\nSpendDeduct\n$spendText"
     }
 }

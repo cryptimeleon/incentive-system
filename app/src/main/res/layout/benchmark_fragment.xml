@@ -35,7 +35,7 @@
             android:layout_marginEnd="@dimen/padding"
             android:layout_marginBottom="@dimen/padding"
             android:enabled="@{!benchmarkViewModel.benchmarkRunning}"
-            android:onClick="@{() -> benchmarkViewModel.startBenchmark()}"
+            android:onClick="@{() -> benchmarkViewModel.runBenchmark()}"
             android:text="Run Benchmark"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

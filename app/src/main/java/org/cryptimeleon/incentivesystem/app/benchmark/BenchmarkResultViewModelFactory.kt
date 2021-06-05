@@ -5,6 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import org.cryptimeleon.incentivesystem.cryptoprotocol.benchmark.BenchmarkResult
 
+/**
+ * Factory required to create BenchmarkResultViewModel with parameters
+ */
 class BenchmarkResultViewModelFactory(
     private val application: Application,
     private val result: BenchmarkResult,

@@ -11,6 +11,9 @@ import androidx.navigation.fragment.NavHostFragment.findNavController
 import org.cryptimeleon.incentivesystem.app.R
 import org.cryptimeleon.incentivesystem.app.databinding.BenchmarkFragmentBinding
 
+/**
+ * UI Fragment of the Benchmark
+ */
 class BenchmarkFragment : Fragment() {
     private lateinit var viewModel: BenchmarkViewModel
     private lateinit var binding: BenchmarkFragmentBinding

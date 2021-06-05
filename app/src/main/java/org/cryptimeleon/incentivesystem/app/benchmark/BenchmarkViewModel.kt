@@ -27,6 +27,9 @@ enum class BenchmarkViewState {
     FINISHED
 }
 
+/**
+ * ViewModel for Benchmark, runs Benchmark in a Coroutine and triggers navigation to BenchmarkResultFragment when finished
+ */
 class BenchmarkViewModel(application: Application) : AndroidViewModel(application) {
 
     private val viewModelJob = Job()
@@ -53,6 +56,7 @@ class BenchmarkViewModel(application: Application) : AndroidViewModel(applicatio
     lateinit var benchmarkResult: BenchmarkResult
 
     init {
+        // progressText is updated by two LiveData objects
         _progressText.addSource(_currentState) {
             _progressText.value = computeProgressText(it, _iteration.value!!)
         }
@@ -62,6 +66,9 @@ class BenchmarkViewModel(application: Application) : AndroidViewModel(applicatio
         _usedGroupName.value = BENCHMARK_GROUP.name
     }
 
+    /**
+     * Maps a benchmarkState to a text that is shown to the user
+     */
     private fun computeProgressText(state: BenchmarkViewState, iteration: Int): String {
         return when (state) {
             BenchmarkViewState.FINISHED -> "Done"
@@ -74,7 +81,10 @@ class BenchmarkViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
 
-    fun startBenchmark() {
+    /**
+     * Runs the benchmark in a Coroutine
+     */
+    fun runBenchmark() {
         _benchmarkRunning.value = true
 
         uiScope.launch {
@@ -121,6 +131,7 @@ class BenchmarkViewModel(application: Application) : AndroidViewModel(applicatio
                     _iteration.postValue(iteration)
                 }
 
+                // Log the result arrays for debugging
                 Timber.i(benchmarkResult.joinRequestTime.toString())
                 Timber.i(benchmarkResult.joinResponseTime.toString())
                 Timber.i(benchmarkResult.joinHandleResponseTime.toString())
@@ -133,7 +144,9 @@ class BenchmarkViewModel(application: Application) : AndroidViewModel(applicatio
                 Timber.i(benchmarkResult.spendResponseTime.toString())
                 Timber.i(benchmarkResult.spendHandleResponseTime.toString())
 
+                // Log the results
                 benchmarkResult.printReport()
+
                 // This triggers the navigation
                 _currentState.postValue(BenchmarkViewState.FINISHED)
                 _benchmarkRunning.postValue(false)
