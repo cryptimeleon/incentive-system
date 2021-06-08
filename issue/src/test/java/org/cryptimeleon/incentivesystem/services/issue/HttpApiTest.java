@@ -1,7 +1,5 @@
 package org.cryptimeleon.incentivesystem.services.issue;
 
-import org.cryptimeleon.incentivesystem.services.issue.model.IssueResponse;
-import org.cryptimeleon.incentivesystem.services.issue.model.JoinRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,23 +12,13 @@ import java.util.UUID;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class HttpApiTest {
 
-    private java.net.URI buildRequestUri(UriBuilder uriBuilder, JoinRequest joinRequest) {
+    private java.net.URI buildRequestUri(UriBuilder uriBuilder, String serializedJoinRequest, String serializedUserPublicKey) {
         return uriBuilder
                 .path("/issue")
-                .queryParam("id", joinRequest.getId())
-                .queryParam("serializedJoinRequest", joinRequest.getSerializedJoinRequest())
+                .queryParam("serializedUserPublicKey", serializedUserPublicKey)
+                .queryParam("serializedJoinRequest", serializedJoinRequest)
                 .build();
     }
 
-    @Test
-    void validRequestTest(@Autowired WebTestClient webClient) {
-        UUID id = UUID.randomUUID();
-        webClient.get()
-                .uri(uriBuilder -> buildRequestUri(uriBuilder, new JoinRequest(id, "Some join request")))
-                .exchange()
-                .expectStatus()
-                .isOk()
-                .expectBody(IssueResponse.class)
-                .isEqualTo(new IssueResponse(id, "Some serialized response"));
-    }
+    // TODO write test, how to inject incentive-system?
 }

@@ -3,8 +3,8 @@ package org.cryptimeleon.incentivesystem.services.issue;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import org.cryptimeleon.incentivesystem.services.issue.model.IssueResponse;
-import org.cryptimeleon.incentivesystem.services.issue.model.JoinRequest;
+import lombok.AllArgsConstructor;
+import org.cryptimeleon.incentivesystem.services.issue.model.JoinRequestDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -14,7 +14,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@AllArgsConstructor
 public class IssueController {
+
+    private IssueService issueService;
 
     /*
      * Endpoint for alive testing etc.
@@ -25,13 +28,13 @@ public class IssueController {
     }
 
     @GetMapping("/issue")
-    @ApiOperation(value = "Issuing protocol", notes = "Issue a new incentive token.", response = IssueResponse.class)
+    @ApiOperation(value = "Issuing protocol", notes = "Issue a new incentive token.", response = String.class)
     @ApiResponses({
-            @ApiResponse(code = 200, message = "Success", response = IssueResponse.class),
+            @ApiResponse(code = 200, message = "Success", response = String.class),
             @ApiResponse(code = 403, message = "Invalid Issuing Request", response = String.class)
     })
-    public ResponseEntity<IssueResponse> greeting(@Validated JoinRequest request) {
-        return new ResponseEntity<>(new IssueResponse(request.getId(), "Some serialized response"), HttpStatus.OK);
+    public ResponseEntity<String> performIssueJoin(@Validated JoinRequestDTO joinRequestDTO) {
+        return new ResponseEntity<>(issueService.runIssueJoinProtocol(joinRequestDTO), HttpStatus.OK);
     }
 
     @ResponseStatus(HttpStatus.FORBIDDEN)
