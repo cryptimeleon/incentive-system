@@ -9,6 +9,9 @@ import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.provider.Provi
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.keys.user.UserSecretKey;
 
+/**
+ * A simple data class for a benchmark configuration with different constructors.
+ */
 @AllArgsConstructor
 public class BenchmarkConfig {
     private static final Setup.BilinearGroupChoice DEFAULT_GROUP = Setup.BilinearGroupChoice.Herumi_MCL;
@@ -22,16 +25,36 @@ public class BenchmarkConfig {
     UserPublicKey upk;
     UserSecretKey usk;
 
+    /**
+     * Create benchmark config with default configuration (see constant fields) with defined number of iterations.
+     * Generates fresh incentive system parameters and keys.
+     *
+     * @param iterations number of iterations for each protocol.
+     */
     public BenchmarkConfig(int iterations) {
         this.iterations = iterations;
         manualSetup(DEFAULT_SECURITY_PARAMETER, DEFAULT_GROUP);
     }
 
+    /**
+     * Create benchmark config with with defined number of iterations, security parameters and group.
+     * Generates fresh incentive system parameters and keys.
+     *
+     * @param iterations          number of iterations for each protocol.
+     * @param securityParameter   security parameter to use
+     * @param bilinearGroupChoice the bilinear group that should be used
+     */
     public BenchmarkConfig(int iterations, int securityParameter, Setup.BilinearGroupChoice bilinearGroupChoice) {
         this.iterations = iterations;
         manualSetup(securityParameter, bilinearGroupChoice);
     }
 
+    /**
+     * Utility function to generate incentive system parameters and keys according to other parameters.
+     *
+     * @param securityParameter   security parameter to use
+     * @param bilinearGroupChoice bilinear group to use
+     */
     private void manualSetup(int securityParameter, Setup.BilinearGroupChoice bilinearGroupChoice) {
         this.pp = Setup.trustedSetup(securityParameter, bilinearGroupChoice);
         var providerKeys = Setup.providerKeyGen(pp);
@@ -41,9 +64,5 @@ public class BenchmarkConfig {
         this.ppk = providerKeys.getPk();
         this.psk = providerKeys.getSk();
         this.incentiveSystem = new IncentiveSystem(pp);
-    }
-
-    public int getIterations() {
-        return iterations;
     }
 }

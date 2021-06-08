@@ -3,6 +3,9 @@ package org.cryptimeleon.incentivesystem.cryptoprotocol.benchmark;
 import java.io.Serializable;
 import java.util.stream.LongStream;
 
+/**
+ * Class holding results of a benchmark and precomputed analyzed results.
+ */
 public class BenchmarkResult implements Serializable {
     public long[] joinRequestTime;
     public long[] joinResponseTime;
@@ -16,21 +19,25 @@ public class BenchmarkResult implements Serializable {
 
     public double joinRequestAvg;
     public double joinResponseAvg;
-    public double joinHandleResponseAvg ;
+    public double joinHandleResponseAvg;
 
-    public double earnRequestAvg ;
+    public double earnRequestAvg;
     public double earnResponseAvg;
-    public double earnHandleResponseAvg ;
+    public double earnHandleResponseAvg;
 
-    public double spendRequestAvg ;
-    public double spendResponseAvg ;
-    public double spendHandleResponseAvg ;
+    public double spendRequestAvg;
+    public double spendResponseAvg;
+    public double spendHandleResponseAvg;
 
-    public double joinTotalAvg ;
+    public double joinTotalAvg;
     public double earnTotalAvg;
     public double spendTotalAvg;
-    public double totalAvg ;
+    public double totalAvg;
 
+    /**
+     * Constructor that takes benchmark timing data as arrays containing the time for a step in nanoseconds.
+     * Analyzes the data to offer results.
+     */
     public BenchmarkResult(long[] joinRequestTime, long[] joinResponseTime, long[] joinHandleResponseTime, long[] earnRequestTime, long[] earnResponseTime, long[] earnHandleResponseTime, long[] spendRequestTime, long[] spendResponseTime, long[] spendHandleResponseTime) {
         this.joinRequestTime = joinRequestTime;
         this.joinResponseTime = joinResponseTime;
@@ -45,7 +52,11 @@ public class BenchmarkResult implements Serializable {
         analyzeData();
     }
 
-    // Precomputed average times in ms
+
+    /**
+     * Precomputed average times in ms and aggregate results.
+     * Should be called from the constructor to ensure the results are present.
+     */
     private void analyzeData() {
         joinRequestAvg = computeAverage(joinRequestTime);
         joinResponseAvg = computeAverage(joinResponseTime);
@@ -65,6 +76,9 @@ public class BenchmarkResult implements Serializable {
         totalAvg = joinTotalAvg + earnTotalAvg + spendTotalAvg;
     }
 
+    /**
+     * Print the aggregated results to stdout.
+     */
     public void printReport() {
         System.out.println("****************************************************************************************************");
         System.out.printf("** Total ** %fms%n", totalAvg);
@@ -74,7 +88,13 @@ public class BenchmarkResult implements Serializable {
         System.out.println("****************************************************************************************************");
     }
 
-    private double computeAverage(long[] joinHandleResponseTime) {
-        return LongStream.of(joinHandleResponseTime).average().getAsDouble() / 1000000;
+    /**
+     * Utility function for computing the average time of an array of times and converts it from nanoseconds to milliseconds.
+     *
+     * @param times array containing the times to compute the avg of
+     * @return average time in ms
+     */
+    private double computeAverage(long[] times) {
+        return LongStream.of(times).average().getAsDouble() / 1000000;
     }
 }

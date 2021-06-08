@@ -39,7 +39,7 @@ test {
 task benchmark(type: Test) {
     useJUnitPlatform()
     testLogging {
-        outputs.upToDateWhen {false}
+        outputs.upToDateWhen { false }
         showStandardStreams = true
     }
     include '**/benchmark/**'
@@ -68,7 +68,7 @@ publishing {
                         url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
                     }
                 }
-                developers{
+                developers {
                     developer {
                         id = 'thiskramer'
                         name = 'Paul Kramer'

@@ -18,10 +18,22 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.function.BiConsumer;
 
+/**
+ * Contains benchmark code.
+ */
 public class Benchmark {
 
+    /**
+     * Increase/decrease used for earn/spend in benchmark
+     */
     private static final BigInteger EARN_SPEND_AMOUNT = BigInteger.TEN;
 
+    /**
+     * Run a benchmark with the given benchmarkConfig
+     *
+     * @param benchmarkConfig a configuration object that defines parameters of the benchmark
+     * @return a BenchmarkResult object that contains all data collected throught the benchmark
+     */
     public static BenchmarkResult runBenchmark(
             BenchmarkConfig benchmarkConfig
     ) {
@@ -32,19 +44,27 @@ public class Benchmark {
         );
     }
 
+    /**
+     * Run a benchmark with the given benchmarkConfig and side effects for logging progress, updating an UI.
+     *
+     * @param benchmarkConfig  a configuration object that defines parameters of the benchmark
+     * @param feedbackFunction a consumer function that takes the state of the benchmark and the iteration as an
+     *                         argument and has some side effects, e.g. logging or updating an UI
+     * @return a BenchmarkResult object that contains all data collected throught the benchmark
+     */
     public static BenchmarkResult runBenchmark(
             BenchmarkConfig benchmarkConfig,
             BiConsumer<BenchmarkState, Integer> feedbackFunction
     ) {
-        long[] tJoinRequest = new long[benchmarkConfig.getIterations()];
-        long[] tJoinResponse = new long[benchmarkConfig.getIterations()];
-        long[] tJoinHandleResponse = new long[benchmarkConfig.getIterations()];
-        long[] tEarnRequest = new long[benchmarkConfig.getIterations()];
-        long[] tEarnResponse = new long[benchmarkConfig.getIterations()];
-        long[] tEarnHandleResponse = new long[benchmarkConfig.getIterations()];
-        long[] tSpendRequest = new long[benchmarkConfig.getIterations()];
-        long[] tSpendResponse = new long[benchmarkConfig.getIterations()];
-        long[] tSpendHandleResponse = new long[benchmarkConfig.getIterations()];
+        long[] tJoinRequest = new long[benchmarkConfig.iterations];
+        long[] tJoinResponse = new long[benchmarkConfig.iterations];
+        long[] tJoinHandleResponse = new long[benchmarkConfig.iterations];
+        long[] tEarnRequest = new long[benchmarkConfig.iterations];
+        long[] tEarnResponse = new long[benchmarkConfig.iterations];
+        long[] tEarnHandleResponse = new long[benchmarkConfig.iterations];
+        long[] tSpendRequest = new long[benchmarkConfig.iterations];
+        long[] tSpendResponse = new long[benchmarkConfig.iterations];
+        long[] tSpendHandleResponse = new long[benchmarkConfig.iterations];
 
         JoinRequest joinRequest;
         JoinResponse joinResponse;
@@ -65,7 +85,7 @@ public class Benchmark {
         var providerKeyPair = new ProviderKeyPair(psk, ppk);
         Instant start, finish;
 
-        for (int i = 0; i < benchmarkConfig.getIterations(); i++) {
+        for (int i = 0; i < benchmarkConfig.iterations; i++) {
             feedbackFunction.accept(BenchmarkState.ISSUE_JOIN, i);
             start = Instant.now();
             joinRequest = incentiveSystem.generateJoinRequest(
@@ -97,7 +117,7 @@ public class Benchmark {
             tJoinHandleResponse[i] = Duration.between(start, finish).toNanos();
         }
 
-        for (int i = 0; i < benchmarkConfig.getIterations(); i++) {
+        for (int i = 0; i < benchmarkConfig.iterations; i++) {
             feedbackFunction.accept(BenchmarkState.CREDIT_EARN, i);
             start = Instant.now();
             earnRequest = incentiveSystem.generateEarnRequest(
@@ -128,7 +148,7 @@ public class Benchmark {
             tEarnHandleResponse[i] = Duration.between(start, finish).toNanos();
         }
 
-        for (int i = 0; i < benchmarkConfig.getIterations(); i++) {
+        for (int i = 0; i < benchmarkConfig.iterations; i++) {
             feedbackFunction.accept(BenchmarkState.SPEND_DEDUCT, i);
             var tid = incentiveSystem.pp.getBg().getZn().getUniformlyRandomElement();
             start = Instant.now();
