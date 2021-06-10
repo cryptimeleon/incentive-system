@@ -24,6 +24,7 @@ public class IssueController {
      */
     @GetMapping("/")
     public ResponseEntity<String> test() {
+        issueService.init();
         return new ResponseEntity<>("Issue Service", HttpStatus.OK);
     }
 

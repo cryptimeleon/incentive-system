@@ -35,7 +35,7 @@ public class IssueService {
 
     Logger logger = LoggerFactory.getLogger(IssueService.class);
 
-    @PostConstruct
+
     public void init() {
         logger.info("Querying configuration from info service");
         logger.info(sharedSecret);
