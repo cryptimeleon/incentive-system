@@ -5,7 +5,7 @@ import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProof;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignatureScheme;
-import org.cryptimeleon.incentivesystem.cryptoprotocol.dsprotection.DatabaseHandler;
+import org.cryptimeleon.incentivesystem.cryptoprotocol.dsprotectionlogic.DatabaseHandler;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.EarnRequest;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.IncentivePublicParameters;
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.Token;
@@ -516,7 +516,7 @@ public class IncentiveSystem {
 
 
     /**
-     * methods for double-spending detection
+     * crypto methods for double-spending detection
      */
 
     /**
@@ -605,7 +605,7 @@ public class IncentiveSystem {
     }
 
     /**
-     * end of methods for double-spending detection
+     * end of crypto methods for double-spending detection
      */
 
 
@@ -645,12 +645,10 @@ public class IncentiveSystem {
             // link existing token with new transaction
             dbHandler.addTokenTransactionEdge(dsid, tid, gamma);
 
-            // trigger tracing of transactions resulted from double-spending attempt
-            dbHandler.traceDoubleSpending();
+            // trace of transactions resulted from double-spending attempt
+            // TODO: this contains crypto logic (link, trace, verifyds) and thus should not be outsourced to db admin module
         }
     }
-
-
 
     /**
      * end of double-spending database interface to be used by provider

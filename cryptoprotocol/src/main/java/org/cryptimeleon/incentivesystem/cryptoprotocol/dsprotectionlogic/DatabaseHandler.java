@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentivesystem.cryptoprotocol.dsprotection;
+package org.cryptimeleon.incentivesystem.cryptoprotocol.dsprotectionlogic;
 
 import org.cryptimeleon.incentivesystem.cryptoprotocol.model.DoubleSpendingTag;
 import org.cryptimeleon.math.structures.groups.GroupElement;
@@ -34,11 +34,4 @@ public interface DatabaseHandler
     /**
      * end of methods for administration of nodes and edges
      */
-
-    /**
-     * Called upon detection of a double-spending attempt.
-     * Marks respective transaction (tid, gamma) invalid and traces transactions resulting from (tid, gamma) using remainder tokens.
-     * Implements most of the double-spending protection mechanism from the paper.
-     */
-    public void traceDoubleSpending();
 }

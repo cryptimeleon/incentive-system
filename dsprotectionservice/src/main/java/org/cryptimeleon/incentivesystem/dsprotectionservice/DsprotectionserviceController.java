@@ -5,6 +5,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.naming.Context;
+import javax.naming.InitialContext;
 import java.sql.Connection;
 import java.sql.ResultSet;
 
@@ -28,6 +30,8 @@ public class DsprotectionserviceController {
     @RequestMapping("/select")
     public String select()
     {
+        // TODO: how to execute query and obtain result as ResultSet or anything else than can be casted into a String?
+
         ResultSet results = null;
         return results.toString();
     }

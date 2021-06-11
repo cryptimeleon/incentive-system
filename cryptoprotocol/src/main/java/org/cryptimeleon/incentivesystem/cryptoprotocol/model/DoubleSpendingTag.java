@@ -6,8 +6,8 @@ import org.cryptimeleon.math.structures.groups.cartesian.GroupElementVector;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 /**
- * Data required for a provider to trace double-spending.
- * Called `dstag` in the T2 paper.
+ * Data associated to a spend operation which the provider requires to trace double-spending.
+ * Called `dstag` in the cryptimeleon incentive system paper.
  */
 @Value
 @AllArgsConstructor
