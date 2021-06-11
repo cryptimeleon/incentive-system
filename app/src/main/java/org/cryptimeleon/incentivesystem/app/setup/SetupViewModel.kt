@@ -1,9 +1,12 @@
 package org.cryptimeleon.incentivesystem.app.setup
 
 import android.app.Application
-import androidx.lifecycle.*
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Transformations
 import kotlinx.coroutines.*
-import org.cryptimeleon.incentivesystem.app.crypto.CryptoRepository
+import org.cryptimeleon.incentivesystem.app.repository.CryptoRepository
 import org.cryptimeleon.incentivesystem.cryptoprotocol.IncentiveSystem
 import org.cryptimeleon.incentivesystem.cryptoprotocol.Setup
 import org.cryptimeleon.math.serialization.converter.JSONConverter
@@ -17,6 +20,7 @@ enum class SetupState {
 }
 
 const val SECURITY_PARAMETER = 128
+val BILINEAR_GROUP = Setup.BilinearGroupChoice.Debug
 
 class SetupViewModel(application: Application) : AndroidViewModel(application) {
     private val viewModelJob = Job()
@@ -38,10 +42,6 @@ class SetupViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    val setupFinished: LiveData<Boolean> = Transformations.map(_setupState) { state ->
-        state == SetupState.FINISHED
-    }
-
     init {
         if (!cryptoRepository.getSetupFinished()) {
             setup()
@@ -59,7 +59,7 @@ class SetupViewModel(application: Application) : AndroidViewModel(application) {
                 val jsonConverter = JSONConverter()
 
                 val incentivePublicParameters =
-                    Setup.trustedSetup(SECURITY_PARAMETER, Setup.BilinearGroupChoice.Debug)
+                    Setup.trustedSetup(SECURITY_PARAMETER, BILINEAR_GROUP)
                 cryptoRepository.setPublicParameters(
                     jsonConverter.serialize(
                         incentivePublicParameters.representation
@@ -90,5 +90,11 @@ class SetupViewModel(application: Application) : AndroidViewModel(application) {
 
     fun navigateToInfoFinished() {
         _navigateToInfo.value = false
+    }
+
+    override fun onCleared() {
+        viewModelJob.cancel()
+        Timber.i("Coroutine canceled")
+        super.onCleared()
     }
 }

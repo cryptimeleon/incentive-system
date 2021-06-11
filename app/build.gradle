@@ -1,9 +1,12 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
+    id 'androidx.navigation.safeargs.kotlin'
 }
 
-apply plugin: "androidx.navigation.safeargs.kotlin"
+apply plugin: "androidx.navigation.safeargs.kotlin" // Is this redundant?
+apply plugin: 'kotlin-kapt' // Without this databinding does not work correctly
+
 
 android {
     compileSdkVersion 30
@@ -54,9 +57,16 @@ dependencies {
 
     // Cryptimeleon
     implementation 'org.cryptimeleon.incentivesystem:cryptoprotocol:1.0.0-SNAPSHOT'
-    implementation 'org.cryptimeleon:craco:1.1.0-SNAPSHOT'
+    implementation 'org.cryptimeleon:craco:2.0.0-SNAPSHOT'
     implementation 'org.cryptimeleon:math:2.0.0-SNAPSHOT'
 
     // Logging
     implementation 'com.jakewharton.timber:timber:4.7.1'
+
+    // Math / Statistics
+    implementation 'org.apache.commons:commons-math3:3.6.1'
+
+    // JSON
+    implementation 'com.google.code.gson:gson:2.8.6'
+
 }
