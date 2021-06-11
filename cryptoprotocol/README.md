@@ -31,7 +31,7 @@ For each variable, we list its name(s) in the code and add a short and comprehen
   * generator of G<sub>1</sub>, the first group of the used BG 
   * names in code: g1, g1Generator
 * g<sub>2</sub>
-  * generator of $G_2$, the second group of the used BG 
+  * generator of G<sub>2</sub>, the second group of the used BG 
   * names in code: g2, g2Generator
 * base
   * base used for ElGamal encryption secret key decomposition
