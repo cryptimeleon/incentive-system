@@ -202,8 +202,8 @@ Note: all secret exponents contained in the updated token are computed on the fl
   * data which the provider requires to trace double-spending
   * associated to a spend operation
   * consists of
-   * challenges c<sub>0</sub>, c<sub>1</sub> the user generated
-   * challenge generation exponent &#947;
-   * digit-wise ElGamal encrypted user share of next encryption secret key
-   * plaintext provider share of next encryption secret key
+    * challenges c<sub>0</sub>, c<sub>1</sub> the user generated
+    * challenge generation exponent &#947;
+    * digit-wise ElGamal encrypted user share of next encryption secret key
+    * plaintext provider share of next encryption secret key
   * names in code: dsTag
