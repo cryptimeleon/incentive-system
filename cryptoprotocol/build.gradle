@@ -15,8 +15,8 @@ repositories {
 }
 
 dependencies {
-    api 'org.cryptimeleon:math:2.0.0' + (Boolean.valueOf(System.getProperty("disablesnapshot")) ? "" : "-SNAPSHOT")
-    api 'org.cryptimeleon:craco:1.1.0' + (Boolean.valueOf(System.getProperty("disablesnapshot")) ? "" : "-SNAPSHOT")
+    api 'org.cryptimeleon:math:2.0.0'
+    api 'org.cryptimeleon:craco:1.1.0'
     implementation group: 'org.cryptimeleon', name: 'mclwrap', version: '1.0.0'
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.0")
