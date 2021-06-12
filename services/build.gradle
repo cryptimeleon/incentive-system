@@ -20,6 +20,4 @@ subprojects {
     apply plugin: "io.freefair.lombok"
 
     group = 'org.cryptimeleon.incentivesystem'
-    sourceCompatibility = '16'
-    targetCompatibility = '16'
 }
