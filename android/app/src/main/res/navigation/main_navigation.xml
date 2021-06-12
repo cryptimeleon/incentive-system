@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_navigation"
+    app:startDestination="@id/setup">
+
+    <fragment
+        android:id="@+id/setup"
+        android:name="org.cryptimeleon.incentivesystem.app.setup.SetupFragment"
+        android:label="setup_fragment"
+        tools:layout="@layout/setup_fragment">
+        <action
+            android:id="@+id/action_setup_to_info"
+            app:destination="@id/info"
+            app:popUpTo="@id/setup"
+            app:popUpToInclusive="true" />
+    </fragment>
+    <fragment
+        android:id="@+id/info"
+        android:name="org.cryptimeleon.incentivesystem.app.info.InfoFragment"
+        android:label="Info" />
+    <fragment
+        android:id="@+id/benchmark_fragment"
+        android:name="org.cryptimeleon.incentivesystem.app.benchmark.BenchmarkFragment"
+        android:label="BenchmarkFragment" >
+        <action
+            android:id="@+id/action_benchmark_fragment_to_benchmarkResultFragment"
+            app:destination="@id/benchmarkResultFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/benchmarkResultFragment"
+        android:name="org.cryptimeleon.incentivesystem.app.benchmark.BenchmarkResultFragment"
+        android:label="BenchmarkResultFragment" >
+        <argument
+            android:name="result"
+            app:argType="org.cryptimeleon.incentivesystem.cryptoprotocol.benchmark.BenchmarkResult" />
+    </fragment>
+</navigation>
