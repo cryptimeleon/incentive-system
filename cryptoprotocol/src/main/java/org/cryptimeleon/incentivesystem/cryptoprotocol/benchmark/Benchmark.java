@@ -50,7 +50,7 @@ public class Benchmark {
      * @param benchmarkConfig  a configuration object that defines parameters of the benchmark
      * @param feedbackFunction a consumer function that takes the state of the benchmark and the iteration as an
      *                         argument and has some side effects, e.g. logging or updating an UI
-     * @return a BenchmarkResult object that contains all data collected throught the benchmark
+     * @return a BenchmarkResult object that contains all data collected through the benchmark
      */
     public static BenchmarkResult runBenchmark(
             BenchmarkConfig benchmarkConfig,
