@@ -46,7 +46,7 @@ public class BenchmarkConfig {
      */
     public BenchmarkConfig(int iterations, int securityParameter, Setup.BilinearGroupChoice bilinearGroupChoice) {
         this.iterations = iterations;
-        manualSetup(securityParameter, bilinearGroupChoice);
+        this.manualSetup(securityParameter, bilinearGroupChoice);
     }
 
     /**
