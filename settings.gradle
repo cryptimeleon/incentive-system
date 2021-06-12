@@ -3,8 +3,9 @@ includeBuild "../craco"
 
 rootProject.name = 'incentivesystem'
 
-include 'services:issue'
-include 'services:credit'
-include 'services:basketserver'
-include 'services:client'
-include 'cryptoprotocol'
+include ':services:issue'
+include ':services:credit'
+include ':services:basketserver'
+include ':services:client'
+include ':cryptoprotocol'
+include ':app'
