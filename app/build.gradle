@@ -2,10 +2,9 @@ plugins {
     id 'com.android.application'
     id 'kotlin-android'
     id 'androidx.navigation.safeargs.kotlin'
+    id 'kotlin-kapt' // Without this databinding does not work correctly
 }
 
-apply plugin: "androidx.navigation.safeargs.kotlin" // Is this redundant?
-apply plugin: 'kotlin-kapt' // Without this databinding does not work correctly
 
 
 android {

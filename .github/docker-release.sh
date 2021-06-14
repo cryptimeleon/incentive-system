@@ -11,7 +11,7 @@ for SERVICE in "${SERVICES[@]}"; do
 
   echo "Building docker images for ${SERVICE}-service."
 
-  ./gradlew ":${SERVICE}:bootBuildImage"
+  ./gradlew ":services:${SERVICE}:bootBuildImage"
 
   echo "Uploading docker images for ${SERVICE}-service."
   # Login to dockerhubwith credentials
