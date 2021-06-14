@@ -5,7 +5,7 @@ rootProject.name = 'incentivesystem'
 
 include ':services:issue'
 include ':services:credit'
-include ':services:basketserver'
+include ':services:basket'
 include ':services:client'
 include ':crypto'
 include ':app'

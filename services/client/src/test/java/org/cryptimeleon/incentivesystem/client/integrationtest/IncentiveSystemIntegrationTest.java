@@ -17,13 +17,13 @@ public abstract class IncentiveSystemIntegrationTest {
     @Value("${credit.url}")
     String creditUrl;
 
-    @Value("${basketserver.url}")
-    String basketserverUrl;
+    @Value("${basket-service.url}")
+    String basketUrl;
 
-    @Value("${basketserver.redeem-secret}")
+    @Value("${basket-service.redeem-secret}")
     String redeemSecret;
 
-    @Value("${basketserver.pay-secret}")
+    @Value("${basket-service.pay-secret}")
     String paySecret;
 
 }

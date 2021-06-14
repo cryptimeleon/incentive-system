@@ -1,6 +1,6 @@
 package org.cryptimeleon.incentivesystem.client.integrationtest;
 
-import org.cryptimeleon.incentivesystem.client.BasketserverClient;
+import org.cryptimeleon.incentivesystem.client.BasketClient;
 import org.cryptimeleon.incentivesystem.client.CreditClient;
 import org.cryptimeleon.incentivesystem.client.IncentiveClientException;
 import org.junit.jupiter.api.Test;
@@ -14,13 +14,13 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class CreditEarnTest extends IncentiveSystemIntegrationTest {
 
-    Logger logger = LoggerFactory.getLogger(BasketServerTest.class);
+    Logger logger = LoggerFactory.getLogger(BasketTest.class);
 
     @Test
-    void testBasketServerConnection() {
+    void testBasketConnection() {
         var creditClient = new CreditClient(creditUrl);
 
-        var basketserverClient = new BasketserverClient(basketserverUrl);
+        var basketClient = new BasketClient(basketUrl);
 
         logger.info("Test earn without valid basket should fail");
         assertThatExceptionOfType(RuntimeException.class).isThrownBy(() ->
@@ -28,14 +28,14 @@ public class CreditEarnTest extends IncentiveSystemIntegrationTest {
                 .withCauseInstanceOf(IncentiveClientException.class);
 
         logger.info("Test earn with unpaid basket should fail");
-        var basket = TestHelper.createBasketWithItems(basketserverUrl);
+        var basket = TestHelper.createBasketWithItems(basketUrl);
         assertThatExceptionOfType(RuntimeException.class).isThrownBy(() ->
                 creditClient.sendEarnRequest(UUID.randomUUID(), "Some request", basket.getBasketID()).block())
                 .withCauseInstanceOf(IncentiveClientException.class);
 
         logger.info("Test earn with paid basket should succeed");
-        basketserverClient.payBasket(basket.getBasketID(), basket.getValue(), paySecret).block();
-        var mybasket = basketserverClient.getBasket(basket.getBasketID()).block();
+        basketClient.payBasket(basket.getBasketID(), basket.getValue(), paySecret).block();
+        var mybasket = basketClient.getBasket(basket.getBasketID()).block();
         var earnWithPaidBasket = creditClient.sendEarnRequest(UUID.randomUUID(), "Some request", basket.getBasketID()).block();
 
         logger.info("Second earn with paid basket and same request should succeed");

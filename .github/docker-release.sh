@@ -2,7 +2,7 @@
 
 set -e
 
-SERVICES=(issue credit basketserver)
+SERVICES=(issue credit basket)
 VERSION=$(echo "$SOURCE_TAG" | cut -c 2-) # Remove v from version
 echo "Building and deploying docker images with version: $VERSION"
 

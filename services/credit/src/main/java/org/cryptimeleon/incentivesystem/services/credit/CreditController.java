@@ -46,8 +46,8 @@ public class CreditController {
         return new ResponseEntity<>(incentiveClientException.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(BasketServerException.class)
-    public ResponseEntity<String> handleBasketServerException(BasketServerException basketServerException) {
-        return new ResponseEntity<>(basketServerException.getMessage(), basketServerException.getHttpStatus());
+    @ExceptionHandler(BasketException.class)
+    public ResponseEntity<String> handleBasketException(BasketException basketException) {
+        return new ResponseEntity<>(basketException.getMessage(), basketException.getHttpStatus());
     }
 }

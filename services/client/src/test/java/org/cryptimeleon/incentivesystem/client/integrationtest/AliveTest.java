@@ -1,6 +1,6 @@
 package org.cryptimeleon.incentivesystem.client.integrationtest;
 
-import org.cryptimeleon.incentivesystem.client.BasketserverClient;
+import org.cryptimeleon.incentivesystem.client.BasketClient;
 import org.cryptimeleon.incentivesystem.client.CreditClient;
 import org.cryptimeleon.incentivesystem.client.IssueClient;
 import org.junit.jupiter.api.Test;
@@ -26,11 +26,10 @@ public class AliveTest extends IncentiveSystemIntegrationTest {
      * Integration test that queries the hello world endpoint
      */
     @Test
-    void testBasketserverAlive() {
-        var basketserverWebClient = WebClient.builder().baseUrl(basketserverUrl).build();
-        var basketserverClient = new BasketserverClient(basketserverUrl);
-        var result = basketserverClient.sendAliveRequest().block();
-        assertThat(result).containsIgnoringCase("Basketserver");
+    void testBasketAlive() {
+        var basketClient = new BasketClient(basketUrl);
+        var result = basketClient.sendAliveRequest().block();
+        assertThat(result).containsIgnoringCase("basket");
         System.out.println("Result: " + result);
     }
 

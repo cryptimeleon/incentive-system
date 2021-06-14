@@ -3,11 +3,11 @@ package org.cryptimeleon.incentivesystem.services.credit;
 import lombok.Data;
 import org.cryptimeleon.incentivesystem.client.dto.BasketDto;
 import org.cryptimeleon.incentivesystem.services.credit.interfaces.CreditInterface;
-import org.cryptimeleon.incentivesystem.services.credit.mock.TestBasketServerClientMock;
+import org.cryptimeleon.incentivesystem.services.credit.mock.TestBasketClientMock;
 import org.cryptimeleon.incentivesystem.services.credit.mock.TestCryptoCreditMock;
 import org.cryptimeleon.incentivesystem.services.credit.model.CreditResponse;
 import org.cryptimeleon.incentivesystem.services.credit.model.EarnRequest;
-import org.cryptimeleon.incentivesystem.services.credit.model.interfaces.BasketServerClientInterface;
+import org.cryptimeleon.incentivesystem.services.credit.model.interfaces.BasketClientInterface;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,7 +24,7 @@ import java.util.UUID;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @Data
 @Import(TestConfiguration.class)
-// Use test configuration that injects TestBasketServerClient and TestCryptoCredit for unit tests
+// Use test configuration that injects TestBasketClient and TestCryptoCredit for unit tests
 public class HttpApiTest {
 
     final String validRequest = "validRequest";
@@ -34,10 +34,10 @@ public class HttpApiTest {
     @Autowired
     private CreditInterface creditInterfaceBean;
     @Autowired
-    private BasketServerClientInterface basketServerClientInterfaceBean;
+    private BasketClientInterface basketClientInterfaceBean;
 
     private TestCryptoCreditMock testCryptoCreditMock = null;
-    private TestBasketServerClientMock testBasketServerClientMock = null;
+    private TestBasketClientMock testBasketClientMock = null;
 
     private java.net.URI buildRequestUri(UriBuilder uriBuilder, EarnRequest earnRequest) {
         return uriBuilder
@@ -49,13 +49,13 @@ public class HttpApiTest {
     }
 
     private void prepareTests() {
-        testBasketServerClientMock = (TestBasketServerClientMock) basketServerClientInterfaceBean;
+        testBasketClientMock = (TestBasketClientMock) basketClientInterfaceBean;
         testCryptoCreditMock = (TestCryptoCreditMock) creditInterfaceBean;
 
         testCryptoCreditMock.setValidRequest(validRequest);
         testCryptoCreditMock.setValidResponse(validResponse);
         testCryptoCreditMock.setInvalidResponse(invalidResponse);
-        testBasketServerClientMock.setBaskets(new ArrayList<>());
+        testBasketClientMock.setBaskets(new ArrayList<>());
     }
 
     @Test
@@ -68,7 +68,7 @@ public class HttpApiTest {
         testBasket.setPaid(true);
         testBasket.setItems(items);
 
-        testBasketServerClientMock.getBaskets().add(testBasket);
+        testBasketClientMock.getBaskets().add(testBasket);
 
 
         UUID id = UUID.randomUUID();
@@ -92,7 +92,7 @@ public class HttpApiTest {
         testBasket.setItems(items);
         UUID id = UUID.randomUUID();
 
-        testBasketServerClientMock.getBaskets().add(testBasket);
+        testBasketClientMock.getBaskets().add(testBasket);
 
         webClient.get()
                 .uri(uriBuilder -> buildRequestUri(uriBuilder, new EarnRequest(id, validRequest, testBasket.getBasketID())))

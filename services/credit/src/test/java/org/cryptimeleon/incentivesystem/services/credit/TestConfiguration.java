@@ -1,16 +1,16 @@
 package org.cryptimeleon.incentivesystem.services.credit;
 
 import org.cryptimeleon.incentivesystem.services.credit.interfaces.CreditInterface;
-import org.cryptimeleon.incentivesystem.services.credit.mock.TestBasketServerClientMock;
+import org.cryptimeleon.incentivesystem.services.credit.mock.TestBasketClientMock;
 import org.cryptimeleon.incentivesystem.services.credit.mock.TestCryptoCreditMock;
-import org.cryptimeleon.incentivesystem.services.credit.model.interfaces.BasketServerClientInterface;
+import org.cryptimeleon.incentivesystem.services.credit.model.interfaces.BasketClientInterface;
 import org.springframework.context.annotation.Bean;
 
 public class TestConfiguration {
 
     @Bean
-    BasketServerClientInterface basketServerClientInterface() {
-        return new TestBasketServerClientMock();
+    BasketClientInterface basketClientInterface() {
+        return new TestBasketClientMock();
     }
 
     @Bean

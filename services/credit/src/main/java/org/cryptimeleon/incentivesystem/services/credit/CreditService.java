@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.cryptimeleon.incentivesystem.services.credit.interfaces.CreditInterface;
 import org.cryptimeleon.incentivesystem.services.credit.model.CreditResponse;
 import org.cryptimeleon.incentivesystem.services.credit.model.EarnRequest;
-import org.cryptimeleon.incentivesystem.services.credit.model.interfaces.BasketServerClientInterface;
+import org.cryptimeleon.incentivesystem.services.credit.model.interfaces.BasketClientInterface;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -18,7 +18,7 @@ public class CreditService {
     @NonNull
     private CreditInterface cryptoCreditHandler;
     @NonNull
-    private BasketServerClientInterface basketServerClient;
+    private BasketClientInterface basketClient;
 
     public CreditResponse handleEarnRequest(EarnRequest request) throws IncentiveException {
         // verify earnAmount
@@ -28,7 +28,7 @@ public class CreditService {
 
         logger.info("EarnRequest:" + earnRequest);
         // Validations
-        var basket = basketServerClient.getBasket(basketId);
+        var basket = basketClient.getBasket(basketId);
         logger.info("Queried basket:" + basket);
         if (!basket.isPaid()) {
             throw new IncentiveException("Basket not paid");
@@ -38,7 +38,7 @@ public class CreditService {
         }
 
         if (!basket.isRedeemed()) {
-            basketServerClient.redeem(basketId, earnRequest, basket.getValue());
+            basketClient.redeem(basketId, earnRequest, basket.getValue());
             // TODO think about when to redeem
             // Maybe add some kind of lock mechanism that only sends the basket to redeemed after the response was generated
         }

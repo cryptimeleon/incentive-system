@@ -5,4 +5,4 @@ set -e
 ./gradlew clean build
 ./gradlew ":services:credit:bootBuildImage"
 ./gradlew ":services:issue:bootBuildImage"
-./gradlew ":services:basketserver:bootBuildImage"
+./gradlew ":services:basket:bootBuildImage"
