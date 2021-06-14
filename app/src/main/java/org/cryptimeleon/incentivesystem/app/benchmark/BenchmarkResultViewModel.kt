@@ -4,7 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import org.cryptimeleon.incentivesystem.cryptoprotocol.benchmark.BenchmarkResult
+import org.cryptimeleon.incentivesystem.crypto.benchmark.BenchmarkResult
 
 /**
  * View Model of the Benchmark Result

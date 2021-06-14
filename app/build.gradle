@@ -55,7 +55,7 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 
     // Cryptimeleon
-    implementation project(":cryptoprotocol")
+    implementation project(":crypto")
 
     // Logging
     implementation 'com.jakewharton.timber:timber:4.7.1'

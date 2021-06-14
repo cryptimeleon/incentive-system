@@ -7,8 +7,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import kotlinx.coroutines.*
 import org.cryptimeleon.incentivesystem.app.repository.CryptoRepository
-import org.cryptimeleon.incentivesystem.cryptoprotocol.IncentiveSystem
-import org.cryptimeleon.incentivesystem.cryptoprotocol.Setup
+import org.cryptimeleon.incentivesystem.crypto.IncentiveSystem
+import org.cryptimeleon.incentivesystem.crypto.Setup
 import org.cryptimeleon.math.serialization.converter.JSONConverter
 import timber.log.Timber
 

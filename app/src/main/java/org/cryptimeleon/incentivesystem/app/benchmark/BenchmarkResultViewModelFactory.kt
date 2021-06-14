@@ -3,7 +3,7 @@ package org.cryptimeleon.incentivesystem.app.benchmark
 import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import org.cryptimeleon.incentivesystem.cryptoprotocol.benchmark.BenchmarkResult
+import org.cryptimeleon.incentivesystem.crypto.benchmark.BenchmarkResult
 
 /**
  * Factory required to create BenchmarkResultViewModel with parameters

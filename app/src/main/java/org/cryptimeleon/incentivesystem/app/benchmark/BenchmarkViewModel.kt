@@ -7,12 +7,12 @@ import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.*
 import org.cryptimeleon.incentivesystem.app.setup.SECURITY_PARAMETER
-import org.cryptimeleon.incentivesystem.cryptoprotocol.IncentiveSystem
-import org.cryptimeleon.incentivesystem.cryptoprotocol.Setup
-import org.cryptimeleon.incentivesystem.cryptoprotocol.benchmark.Benchmark
-import org.cryptimeleon.incentivesystem.cryptoprotocol.benchmark.BenchmarkConfig
-import org.cryptimeleon.incentivesystem.cryptoprotocol.benchmark.BenchmarkResult
-import org.cryptimeleon.incentivesystem.cryptoprotocol.benchmark.BenchmarkState
+import org.cryptimeleon.incentivesystem.crypto.IncentiveSystem
+import org.cryptimeleon.incentivesystem.crypto.Setup
+import org.cryptimeleon.incentivesystem.crypto.benchmark.Benchmark
+import org.cryptimeleon.incentivesystem.crypto.benchmark.BenchmarkConfig
+import org.cryptimeleon.incentivesystem.crypto.benchmark.BenchmarkResult
+import org.cryptimeleon.incentivesystem.crypto.benchmark.BenchmarkState
 import timber.log.Timber
 
 private const val BENCHMARK_ITERATIONS = 100

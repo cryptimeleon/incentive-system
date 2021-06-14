@@ -34,6 +34,6 @@
         android:label="BenchmarkResultFragment" >
         <argument
             android:name="result"
-            app:argType="org.cryptimeleon.incentivesystem.cryptoprotocol.benchmark.BenchmarkResult" />
+            app:argType="org.cryptimeleon.incentivesystem.crypto.benchmark.BenchmarkResult" />
     </fragment>
 </navigation>
