@@ -17,10 +17,10 @@ public class BasketTest extends IncentiveSystemIntegrationTest {
 
     Logger logger = LoggerFactory.getLogger(BasketTest.class);
 
-    @Value("${basket.pay-secret}")
+    @Value("${basket-service.pay-secret}")
     private String paymentSecret;
 
-    @Value("${basket.redeem-secret}")
+    @Value("${basket-service.redeem-secret}")
     private String redeemSecret;
 
     @Test
