@@ -6,10 +6,14 @@ on:
       - main
     tags:
       - v*
+    paths-ignore:
+      - '**.md'
   pull_request:
     branches:
       - develop
       - main
+    paths-ignore:
+      - '**.md'
   # Nightly builds to ensure dependencies don't break anything
   schedule:
     - cron: '00 00 * * *'
