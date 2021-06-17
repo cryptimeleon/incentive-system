@@ -1,0 +1,47 @@
+plugins {
+    id "java-library"
+    id "io.freefair.lombok" version "6.0.0-m2"
+}
+
+sourceCompatibility = JavaVersion.VERSION_11
+targetCompatibility = JavaVersion.VERSION_11
+
+group 'org.cryptimeleon.incentive'
+version '1.0.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    api 'org.cryptimeleon:math:2.0.0'
+    api 'org.cryptimeleon:craco:1.1.0'
+    implementation group: 'org.cryptimeleon', name: 'mclwrap', version: '1.0.0'
+
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.0")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.0")
+}
+
+test {
+    useJUnitPlatform()
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+test {
+    useJUnitPlatform()
+    exclude '**/benchmark/**'
+}
+
+task benchmark(type: Test) {
+    useJUnitPlatform()
+    testLogging {
+        outputs.upToDateWhen { false }
+        showStandardStreams = true
+    }
+    include '**/benchmark/**'
+}
