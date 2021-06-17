@@ -1,7 +1,7 @@
 includeBuild "../math"
 includeBuild "../craco"
 
-rootProject.name = 'incentivesystem'
+rootProject.name = 'incentive'
 
 include ':services:issue'
 include ':services:credit'

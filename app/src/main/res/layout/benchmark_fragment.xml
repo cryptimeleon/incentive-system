@@ -9,7 +9,7 @@
 
         <variable
             name="benchmarkViewModel"
-            type="org.cryptimeleon.incentivesystem.app.benchmark.BenchmarkViewModel" />
+            type="org.cryptimeleon.incentive.app.benchmark.BenchmarkViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

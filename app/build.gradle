@@ -12,7 +12,7 @@ android {
     buildToolsVersion "30.0.3"
 
     defaultConfig {
-        applicationId "org.cryptimeleon.incentivesystem.app"
+        applicationId "org.cryptimeleon.incentive.app"
         minSdkVersion 24
         targetSdkVersion 30
         versionCode 1

@@ -7,7 +7,7 @@
 
         <variable
             name="infoViewModel"
-            type="org.cryptimeleon.incentivesystem.app.info.InfoViewModel" />
+            type="org.cryptimeleon.incentive.app.info.InfoViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

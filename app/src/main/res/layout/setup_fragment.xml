@@ -7,7 +7,7 @@
 
         <variable
             name="setupViewModel"
-            type="org.cryptimeleon.incentivesystem.app.setup.SetupViewModel" />
+            type="org.cryptimeleon.incentive.app.setup.SetupViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout

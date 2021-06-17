@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/setup"
-        android:name="org.cryptimeleon.incentivesystem.app.setup.SetupFragment"
+        android:name="org.cryptimeleon.incentive.app.setup.SetupFragment"
         android:label="setup_fragment"
         tools:layout="@layout/setup_fragment">
         <action
@@ -18,11 +18,11 @@
     </fragment>
     <fragment
         android:id="@+id/info"
-        android:name="org.cryptimeleon.incentivesystem.app.info.InfoFragment"
+        android:name="org.cryptimeleon.incentive.app.info.InfoFragment"
         android:label="Info" />
     <fragment
         android:id="@+id/benchmark_fragment"
-        android:name="org.cryptimeleon.incentivesystem.app.benchmark.BenchmarkFragment"
+        android:name="org.cryptimeleon.incentive.app.benchmark.BenchmarkFragment"
         android:label="BenchmarkFragment" >
         <action
             android:id="@+id/action_benchmark_fragment_to_benchmarkResultFragment"
@@ -30,10 +30,10 @@
     </fragment>
     <fragment
         android:id="@+id/benchmarkResultFragment"
-        android:name="org.cryptimeleon.incentivesystem.app.benchmark.BenchmarkResultFragment"
+        android:name="org.cryptimeleon.incentive.app.benchmark.BenchmarkResultFragment"
         android:label="BenchmarkResultFragment" >
         <argument
             android:name="result"
-            app:argType="org.cryptimeleon.incentivesystem.crypto.benchmark.BenchmarkResult" />
+            app:argType="org.cryptimeleon.incentive.crypto.benchmark.BenchmarkResult" />
     </fragment>
 </navigation>
