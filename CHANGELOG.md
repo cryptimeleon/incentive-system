@@ -7,7 +7,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Next Release
 
-- Restructure project and build. Merge (private) app repository into this repo. Rename `cryptoprotocol` to `crypto` and `basketserver` to `basket` [#41](https://github.com/cryptimeleon/incentive-system/pull/41)
+- Restructure project and build. Merge (private) app repository into this repo. Rename `cryptoprotocol` to `crypto`, `basketserver` to `basket`, and package `incentivesystem` to `incentive` [#41](https://github.com/cryptimeleon/incentive-system/pull/41)
 - Add benchmark to cryptoprotocols and mcl support [#37](https://github.com/cryptimeleon/incentive-system/pull/37)
 - Make cryptoprotocols compatible with android [#39](https://github.com/cryptimeleon/incentive-system/pull/39)
 - Add issue-join protocol [#30](https://github.com/cryptimeleon/incentive-system/pull/30)
