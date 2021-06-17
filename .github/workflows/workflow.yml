@@ -4,13 +4,16 @@ on:
     branches:
       - develop
       - main
-      - feature/migrate-pipelines
     tags:
       - v*
+    paths-ignore:
+      - '**.md'
   pull_request:
     branches:
       - develop
       - main
+    paths-ignore:
+      - '**.md'
   # Nightly builds to ensure dependencies don't break anything
   schedule:
     - cron: '00 00 * * *'
@@ -37,14 +40,10 @@ jobs:
           git checkout develop
       - uses: actions/setup-java@v1
         with:
-          java-version: '16' # The JDK version to make available on the path.
+          java-version: '11' # The JDK version to make available on the path.
           java-package: jdk # (jre, jdk, or jdk+fx) - defaults to jdk
           architecture: x64 # (x64 or x86) - defaults to x64
       - run: ./gradlew build
-      - uses: actions/upload-artifact@v2  # Test results
-        with:
-          name: test-results
-          path: ./*/reports/test/test/*
   integration-test:
     runs-on: ubuntu-latest
     needs: build
@@ -65,13 +64,13 @@ jobs:
           git checkout develop
       - uses: actions/setup-java@v1
         with:
-          java-version: '16' # The JDK version to make available on the path.
+          java-version: '11' # The JDK version to make available on the path.
           java-package: jdk # (jre, jdk, or jdk+fx) - defaults to jdk
           architecture: x64 # (x64 or x86) - defaults to x64
       - run: ./deployment/build-docker-images.sh
       - run: docker-compose -f ./deployment/docker-compose.yaml up -d
       - run: sleep 30
-      - run: ./gradlew :client:integrationTest
+      - run: ./gradlew :services:client:integrationTest
       - uses: actions/upload-artifact@v2  # Test results
         with:
           name: test-results
@@ -97,7 +96,7 @@ jobs:
           git checkout develop
       - uses: actions/setup-java@v1
         with:
-          java-version: '16' # The JDK version to make available on the path.
+          java-version: '11' # The JDK version to make available on the path.
           java-package: jdk # (jre, jdk, or jdk+fx) - defaults to jdk
           architecture: x64 # (x64 or x86) - defaults to x64
       - name: Set tag
