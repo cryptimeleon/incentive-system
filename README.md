@@ -12,8 +12,7 @@ to learn more about the basic ideas of this project.
 ## Getting Started
 
 The project consists of three main components: The cryptographic
-protocols in the _cryptoprotocol_
-package, an android application in the _app_ package, and several spring boot webservices in the _services_ package.
+protocols in the _crypto_ package, an android application in the _app_ package, and several spring boot webservices in the _services_ package.
 
 To build the project, you need Java 11 and Android SDK 30 (can be installed with 
 [sdkmanager](https://developer.android.com/studio/command-line/sdkmanager) or via Android Studio).
@@ -23,7 +22,7 @@ To deploy the services, we use docker and docker-compose.
 ## Benchmark of the Incentive System
 
 To run a benchmark, install mcl following these [instructions](https://github.com/cryptimeleon/mclwrap) and
-run `./gradlew :cryptoprotocol:benchmark`.
+run `./gradlew :crypto:benchmark`.
 
 ## Developing
 
