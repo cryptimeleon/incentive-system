@@ -18,17 +18,30 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
+
 @Service
 public class IssueService {
-    @Value("${info-service-url}")
-    private String infoServiceUrl;
-    @Value("${provider.shared-secret}")
-    private String sharedSecret;
     private static final int MAX_TRIES = 10;
     private IncentiveSystem incentiveSystem;
     private IncentivePublicParameters pp;
     private ProviderSecretKey providerSecretKey;
     private ProviderPublicKey providerPublicKey;
+
+    @Value("${info-service-url}")
+    private String infoServiceUrl;
+    @Value("${provider.shared-secret}")
+    private String sharedSecret;
+
+    /**
+     * Make sure that the shared secret is set.
+     */
+    @PostConstruct
+    public void validateValue() {
+        if (sharedSecret.equals("") ) {
+            throw new IllegalArgumentException("Provider shared secret is not set!");
+        }
+    }
 
 
     Logger logger = LoggerFactory.getLogger(IssueService.class);
