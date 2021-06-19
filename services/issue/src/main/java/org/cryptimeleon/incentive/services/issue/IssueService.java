@@ -28,7 +28,7 @@ public class IssueService {
     private ProviderSecretKey providerSecretKey;
     private ProviderPublicKey providerPublicKey;
 
-    @Value("${info-service-url}")
+    @Value("${info-service.url}")
     private String infoServiceUrl;
     @Value("${provider.shared-secret}")
     private String sharedSecret;
