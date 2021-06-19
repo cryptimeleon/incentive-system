@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentivesystem.services.info;
+package org.cryptimeleon.incentive.services.info;
 
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;

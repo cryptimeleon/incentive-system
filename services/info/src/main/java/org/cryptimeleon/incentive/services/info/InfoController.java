@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentivesystem.services.info;
+package org.cryptimeleon.incentive.services.info;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

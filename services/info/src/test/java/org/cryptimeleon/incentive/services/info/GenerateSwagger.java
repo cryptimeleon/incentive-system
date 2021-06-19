@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentivesystem.services.info;
+package org.cryptimeleon.incentive.services.info;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

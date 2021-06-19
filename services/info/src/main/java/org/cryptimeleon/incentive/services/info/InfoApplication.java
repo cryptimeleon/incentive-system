@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentivesystem.services.info;
+package org.cryptimeleon.incentive.services.info;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

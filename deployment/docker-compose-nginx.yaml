@@ -24,12 +24,10 @@ services:
   infoservice:
     image: cryptimeleon/incentive-service-info:0.4.0
     ports:
-      - "8004:8000"
+      - "8004:8004"
     environment:
       - SPRING_PROFILES_ACTIVE=production
-      - SERVER_SERVLET_CONTEXT_PATH=/info
       - PROVIDER_SHARED_SECRET=${SHARED_SECRET}
-      - SERVER_PORT=8000
     networks:
       - provider
     hostname: infoservice

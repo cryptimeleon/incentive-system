@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentivesystem.services.info;
+package org.cryptimeleon.incentive.services.info;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -18,8 +18,6 @@ import javax.annotation.PostConstruct;
 public class InfoService {
     Logger logger = LoggerFactory.getLogger(InfoService.class);
 
-    @Value("${provider.shared-secret}")
-    private String sharedSecret;
     @Getter
     private String serializedPublicParameters;
     @Getter
@@ -30,9 +28,16 @@ public class InfoService {
     private IncentivePublicParameters pp;
     private ProviderKeyPair providerKeyPair;
 
+    @Value("${provider.shared-secret}")
+    private String sharedSecret;
 
     @PostConstruct
     public void init() {
+        // Make sure shared secret is set
+        if (sharedSecret.equals("")) {
+            throw new IllegalArgumentException("Shared secret is not set.");
+        }
+
         logger.info("Setting up a new incentive-system");
         logger.info("Generate pp");
         this.pp = Setup.trustedSetup(128, Setup.BilinearGroupChoice.Debug);
