@@ -1,8 +1,12 @@
+version: '3.5'
+
 services:
   issueservice:
     image: cryptimeleon/incentive-service-issue:0.4.0
     ports:
       - "8001:8001"
+    environment:
+      - INFO_SERVICE_URL=http://infoservice:8004/
     networks:
       - provider
     hostname: issueservice
@@ -10,6 +14,9 @@ services:
     image: cryptimeleon/incentive-service-credit:0.4.0
     ports:
       - "8002:8002"
+    environment:
+      - INFO_SERVICE_URL=http://infoservice:8004/
+      - BASKET_SERVICE_URL=http://basketservice:8003/
     networks:
       - provider
     hostname: creditservice
@@ -27,6 +34,7 @@ services:
     networks:
       - provider
     hostname: infoservice
+
 networks:
   provider:
     driver: bridge

@@ -11,13 +11,16 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest(classes = TestApplicationConfiguration.class)
 public abstract class IncentiveSystemIntegrationTest {
 
+    @Value("${info.url}")
+    String infoUrl;
+
     @Value("${issue.url}")
     String issueUrl;
 
     @Value("${credit.url}")
     String creditUrl;
 
-    @Value("${basket-service.url}")
+    @Value("${basket.url}")
     String basketUrl;
 
     @Value("${basket-service.redeem-secret}")
