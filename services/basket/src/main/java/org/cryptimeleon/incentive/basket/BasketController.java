@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.annotation.PostConstruct;
 import java.util.UUID;
 
 
@@ -28,6 +29,19 @@ public class BasketController {
 
     @Value("${basket-service.redeem-secret}")
     private String redeemSecret;
+
+    /**
+     * Make sure that the shared secrets are set.
+     */
+    @PostConstruct
+    public void validateValue() {
+        if (paymentSecret.equals("") ) {
+            throw new IllegalArgumentException("Payment secret is not set!");
+        }
+        if (redeemSecret.equals("") ) {
+            throw new IllegalArgumentException("Redeem secret is not set!");
+        }
+    }
 
     public BasketController(BasketService basketService, @Value("${basket-service.pay-secret}") String paymentSecret, @Value("${basket-service.redeem-secret}") String redeemSecret) {
         this.basketService = basketService;

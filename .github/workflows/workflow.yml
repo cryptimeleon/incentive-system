@@ -68,7 +68,7 @@ jobs:
           java-package: jdk # (jre, jdk, or jdk+fx) - defaults to jdk
           architecture: x64 # (x64 or x86) - defaults to x64
       - run: ./deployment/build-docker-images.sh
-      - run: docker-compose -f ./deployment/docker-compose.yaml up -d
+      - run: docker-compose -f ./deployment/docker-compose-localhost.yaml up -d
       - run: sleep 30
       - run: ./gradlew :services:client:integrationTest
       - uses: actions/upload-artifact@v2  # Test results

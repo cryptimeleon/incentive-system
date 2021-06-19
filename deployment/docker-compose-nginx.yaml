@@ -2,16 +2,13 @@ services:
   basketservice:
     image: cryptimeleon/incentive-service-basket:0.4.0
     ports:
-      - "8000:8000"
+      - "8003:8003"
     environment:
       - SPRING_PROFILES_ACTIVE=production
-      - SERVER_SERVLET_CONTEXT_PATH=/basket
-      - SERVER_PORT=8000
-      - PROVIDER_SHARED_SECRET=${SHARED_SECRET}
+      - BASKET_SERVICE_REDEEM_SECRET=${BASKET_REDEEM_SECRET}
+      - BASKET_SERVICE_PAY_SECRET=${BASKET_PAY_SECRET}
     networks:
       - provider
-    hostname: basketservice
-      - "8003:8003"
     hostname: basketservice
   issueservice:
     image: cryptimeleon/incentive-service-issue:0.4.0
