@@ -33,7 +33,7 @@ public class CreditService {
      * Communicates with basket server to ensure the request is valid.
      *
      * @param serializedEarnRequest the earn request to process
-     * @param basketId id of the basket that is used for this earn protocol run
+     * @param basketId              id of the basket that is used for this earn protocol run
      * @return serialized signature
      */
     public String handleEarnRequest(String serializedEarnRequest, UUID basketId) {

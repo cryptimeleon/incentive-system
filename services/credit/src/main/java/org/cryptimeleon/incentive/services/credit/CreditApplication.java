@@ -27,6 +27,7 @@ public class CreditApplication {
     InfoClient infoClient() {
         return new InfoClient(infoServiceUrl);
     }
+
     @Bean
     BasketClient basketClient() {
         return new BasketClient(basketUrl);
