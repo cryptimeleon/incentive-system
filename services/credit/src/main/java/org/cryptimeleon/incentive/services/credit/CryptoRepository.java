@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.services.issue;
+package org.cryptimeleon.incentive.services.credit;
 
 import lombok.Getter;
 import org.cryptimeleon.incentive.client.InfoClient;
@@ -45,7 +45,7 @@ public class CryptoRepository {
     @Value("${provider.shared-secret}")
     private String sharedSecret;
 
-    // Will be set via dependency injection
+    // Is set via dependency injection
     private InfoClient infoClient;
 
     @Autowired

@@ -3,39 +3,36 @@ package org.cryptimeleon.incentive.services.credit;
 import org.cryptimeleon.incentive.client.BasketClient;
 import org.cryptimeleon.incentive.client.dto.BasketDto;
 import org.cryptimeleon.incentive.client.dto.PostRedeemBasketDto;
-import org.cryptimeleon.incentive.services.credit.interfaces.BasketClientInterface;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Repository;
 
+import java.time.Duration;
 import java.util.UUID;
 
-/*
- * Mock for use until basket server is merged into develop
+/**
+ * Repository that is a wrapper around the basket client.
+ * Used for communication with the basket service to verify basket of earn request.
  */
-public class BasketClientHelper implements BasketClientInterface {
-
-    Logger logger = LoggerFactory.getLogger(BasketClientHelper.class);
-
-    private String basketUrl;
+@Repository
+public class BasketRepository {
+    @Value("${basket-service.redeem-secret}")
     private String redeemSecret;
     private BasketClient basketClient;
 
-    public BasketClientHelper(String basketUrl, String redeemSecret) {
-        this.redeemSecret = redeemSecret;
-        this.basketUrl = basketUrl;
-        this.basketClient = new BasketClient(basketUrl);
+    @Autowired
+    public BasketRepository(BasketClient basketClient) {
+        this.basketClient = basketClient;
     }
 
-    @Override
     public BasketDto getBasket(UUID basketId) {
         return basketClient.getBasket(basketId)
-                .block();
+                .block(Duration.ofSeconds(1));
     }
 
-    @Override
     public void redeem(UUID basketId, String redeemRequestText, long value) {
         var redeemRequest = new PostRedeemBasketDto(basketId, redeemRequestText, value);
         basketClient.redeemBasket(redeemRequest, redeemSecret)
-                .block();
+                .block(Duration.ofSeconds(1));
     }
 }

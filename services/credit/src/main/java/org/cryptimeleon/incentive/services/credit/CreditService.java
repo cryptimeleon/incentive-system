@@ -1,50 +1,74 @@
 package org.cryptimeleon.incentive.services.credit;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import org.cryptimeleon.incentive.services.credit.interfaces.CreditInterface;
-import org.cryptimeleon.incentive.services.credit.model.CreditResponse;
-import org.cryptimeleon.incentive.services.credit.model.EarnRequest;
-import org.cryptimeleon.incentive.services.credit.interfaces.BasketClientInterface;
+import org.cryptimeleon.incentive.crypto.model.EarnRequest;
+import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
+import org.cryptimeleon.incentive.services.credit.exception.IncentiveException;
+import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-@RequiredArgsConstructor
+import java.math.BigInteger;
+import java.util.UUID;
+
+/**
+ * This service contains the business logic of the credit-earn protocol.
+ */
 @Service
 public class CreditService {
-    Logger logger = LoggerFactory.getLogger(CreditService.class);
 
-    @NonNull
-    private CreditInterface cryptoCreditHandler;
-    @NonNull
-    private BasketClientInterface basketClient;
+    private Logger logger = LoggerFactory.getLogger(CreditService.class);
+    private BasketRepository basketRepository;
+    private CryptoRepository cryptoRepository;
 
-    public CreditResponse handleEarnRequest(EarnRequest request) throws IncentiveException {
-        // verify earnAmount
-        var requestId = request.getId();
-        var basketId = request.getBasketId();
-        var earnRequest = request.getSerializedEarnRequest();
+    @Autowired
+    public CreditService(BasketRepository basketRepository, CryptoRepository cryptoRepository) {
+        this.basketRepository = basketRepository;
+        this.cryptoRepository = cryptoRepository;
+    }
 
-        logger.info("EarnRequest:" + earnRequest);
+    /**
+     * Verify and run credit-earn protocol.
+     * Communicates with basket server to ensure the request is valid.
+     *
+     * @param serializedEarnRequest the earn request to process
+     * @param basketId id of the basket that is used for this earn protocol run
+     * @return serialized signature
+     */
+    public String handleEarnRequest(String serializedEarnRequest, UUID basketId) {
+        logger.info("EarnRequest:" + serializedEarnRequest);
+
         // Validations
-        var basket = basketClient.getBasket(basketId);
+        var basket = basketRepository.getBasket(basketId);
         logger.info("Queried basket:" + basket);
         if (!basket.isPaid()) {
             throw new IncentiveException("Basket not paid");
         }
-        if (basket.isRedeemed() && !basket.getRedeemRequest().equals(earnRequest)) {
+        if (basket.isRedeemed() && !basket.getRedeemRequest().equals(serializedEarnRequest)) {
             throw new IncentiveException("Basket was redeemed with another request!");
         }
 
         if (!basket.isRedeemed()) {
-            basketClient.redeem(basketId, earnRequest, basket.getValue());
-            // TODO think about when to redeem
-            // Maybe add some kind of lock mechanism that only sends the basket to redeemed after the response was generated
+            basketRepository.redeem(basketId, serializedEarnRequest, basket.getValue());
+            /*
+             * TODO think about when to redeem
+             * Maybe add some kind of lock mechanism that only sends the basket to redeemed after the response was generated
+             */
         }
 
-        var creditResponse = cryptoCreditHandler.computeSerializedResponse(earnRequest, basket.getValue());
+        // Prepare incentive system
+        var k = BigInteger.valueOf(basket.getValue());
+        var pp = cryptoRepository.getPublicParameters();
+        var providerPublicKey = cryptoRepository.getProviderPublicKey();
+        var providerSecretKey = cryptoRepository.getProviderSecretKey();
+        var incentiveSystem = cryptoRepository.getIncentiveSystem();
+        var jsonConverter = new JSONConverter();
 
-        return new CreditResponse(requestId, creditResponse);
+        // Run server part of protocol and serialize signature
+        var earnRequest = new EarnRequest(jsonConverter.deserialize(serializedEarnRequest), pp);
+        var providerKeyPair = new ProviderKeyPair(providerSecretKey, providerPublicKey);
+        var signature = incentiveSystem.generateEarnRequestResponse(earnRequest, k, providerKeyPair);
+        return jsonConverter.serialize(signature.getRepresentation());
     }
 }

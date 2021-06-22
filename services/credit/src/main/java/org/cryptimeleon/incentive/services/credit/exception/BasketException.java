@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.services.credit;
+package org.cryptimeleon.incentive.services.credit.exception;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

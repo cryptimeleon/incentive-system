@@ -4,15 +4,13 @@ import io.swagger.annotations.ApiOperation;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.incentive.client.IncentiveClientException;
-import org.cryptimeleon.incentive.services.credit.model.CreditResponse;
-import org.cryptimeleon.incentive.services.credit.model.EarnRequest;
+import org.cryptimeleon.incentive.services.credit.exception.BasketException;
+import org.cryptimeleon.incentive.services.credit.exception.IncentiveException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @AllArgsConstructor
 @RestController
@@ -21,7 +19,7 @@ public class CreditController {
 
     private CreditService creditService;  // Automatically injects an instance of the service
 
-    /*
+    /**
      * Endpoint for alive testing etc.
      */
     @GetMapping("/")
@@ -29,11 +27,20 @@ public class CreditController {
         return new ResponseEntity<>("Credit Service", HttpStatus.OK);
     }
 
+    /**
+     * Run the credit-earn protocol.
+     */
     @GetMapping("/credit")
-    @ApiOperation(value = "Credit protocol", notes = "Earn to a token.", response = CreditResponse.class)
-    public CreditResponse credit(@Validated EarnRequest request) throws IncentiveException {
-        return creditService.handleEarnRequest(request);
+    @ApiOperation(value = "Credit protocol", notes = "Returns a serialized SPSEQ signature.", response = String.class)
+    public String credit(
+            @RequestHeader(value = "earn-request") String serializedEarnRequest,
+            @RequestHeader(value = "basket-id") UUID basketId) throws IncentiveException {
+        return creditService.handleEarnRequest(serializedEarnRequest, basketId);
     }
+
+    /**
+     * Default error handling for simple control flow.
+     */
 
     @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(IncentiveException.class)
