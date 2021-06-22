@@ -20,7 +20,7 @@ public class InfoController {
      */
     @GetMapping("/")
     public ResponseEntity<String> test() {
-        return new ResponseEntity<>("Info Service", HttpStatus.OK);
+        return new ResponseEntity<>("Hello from Info service!", HttpStatus.OK);
     }
 
     @GetMapping("/public-parameters")

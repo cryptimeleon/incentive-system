@@ -54,7 +54,7 @@ public class BasketController {
      */
     @GetMapping("/")
     String getHelloWorld() {
-        return "Basket";
+        return "Hello from Basket service!";
     }
 
 

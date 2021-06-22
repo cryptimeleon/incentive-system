@@ -24,7 +24,7 @@ public class CreditController {
      */
     @GetMapping("/")
     public ResponseEntity<String> test() {
-        return new ResponseEntity<>("Credit Service", HttpStatus.OK);
+        return new ResponseEntity<>("Hello from Credit Service!", HttpStatus.OK);
     }
 
     /**

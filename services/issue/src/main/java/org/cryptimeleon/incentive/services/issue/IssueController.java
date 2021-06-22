@@ -19,7 +19,7 @@ public class IssueController {
      */
     @GetMapping("/")
     public ResponseEntity<String> test() {
-        return new ResponseEntity<>("Hello from Issue Service!", HttpStatus.OK);
+        return new ResponseEntity<>("Hello from Issue service!", HttpStatus.OK);
     }
 
     @GetMapping("/issue")
