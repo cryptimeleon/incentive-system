@@ -29,15 +29,15 @@ public class IssueClient {
 
     /**
      * Creates a join request.
+     *
      * @param joinRequestDto the DTO of the joinRequest to send
      * @return mono of the server's answer
      */
     public Mono<String> sendJoinRequest(JoinRequestDto joinRequestDto) {
         return issueClient.get()
-                .uri(uriBuilder -> uriBuilder.path("/issue")
-                        .queryParam("serializedUserPublicKey", joinRequestDto.getSerializedUserPublicKey())
-                        .queryParam("serializedJoinRequest", joinRequestDto.getSerializedJoinRequest())
-                        .build())
+                .uri(uriBuilder -> uriBuilder.path("/issue").build())
+                .header("public-key", joinRequestDto.getSerializedUserPublicKey())
+                .header("join-request", joinRequestDto.getSerializedJoinRequest())
                 .retrieve()
                 .bodyToMono(String.class);
     }
