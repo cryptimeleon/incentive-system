@@ -1,5 +1,6 @@
 package org.cryptimeleon.incentive.basket;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,13 +28,14 @@ public class BasketTest {
 
     @Test
     void helloWorldTest(@Autowired WebTestClient webClient) {
-        webClient.get()
-                .uri("/")
-                .exchange()
-                .expectStatus()
-                .isOk()
-                .expectBody(String.class)
-                .isEqualTo("Basket");
+        Assertions.assertThat(
+                webClient.get()
+                        .uri("/")
+                        .exchange()
+                        .expectStatus()
+                        .isOk()
+                        .expectBody(String.class)
+                        .returnResult().getResponseBody()).contains("Basket");
     }
 
     @Test
