@@ -3,9 +3,13 @@ package org.cryptimeleon.incentive.client;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+/**
+ * Client calls for info service.
+ * Can be used for testing and prototyping.
+ */
 public class InfoClient {
 
-    /*
+    /**
      * Webclient configured with the url of the info service
      */
     private WebClient infoClient;
@@ -26,6 +30,11 @@ public class InfoClient {
                 .bodyToMono(String.class);
     }
 
+    /**
+     * Query the public parameters.
+     *
+     * @return serialized public parameters
+     */
     public Mono<String> querySerializedPublicParameters() {
         return infoClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/public-parameters")
@@ -34,6 +43,11 @@ public class InfoClient {
                 .bodyToMono(String.class);
     }
 
+    /**
+     * Query provider public key.
+     *
+     * @return serialized provider public key
+     */
     public Mono<String> querySerializedProviderPublicKey() {
         return infoClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/provider-public-key")
@@ -42,6 +56,13 @@ public class InfoClient {
                 .bodyToMono(String.class);
     }
 
+    /**
+     * Query provider secret key.
+     * Authenticated request. Only for distributing secret key between services.
+     *
+     * @param providerSharedSecret shared secret for authentication
+     * @return serialized provider secret key
+     */
     public Mono<String> querySerializedProviderSecretKey(String providerSharedSecret) {
         return infoClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/provider-secret-key")

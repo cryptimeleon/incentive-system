@@ -6,7 +6,16 @@ import org.cryptimeleon.incentive.client.dto.BasketDto;
 import java.util.UUID;
 
 
+/**
+ * Some utility workflows that can be re-used.
+ */
 public class TestHelper {
+    /**
+     * Create a basket and return basket object.
+     *
+     * @param basketUrl url of basket service
+     * @return basket object that was added to basket service
+     */
     static BasketDto createBasketWithItems(String basketUrl) {
         var basketClient = new BasketClient(basketUrl);
 

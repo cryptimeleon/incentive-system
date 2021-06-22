@@ -5,7 +5,6 @@ import org.cryptimeleon.incentive.client.CreditClient;
 import org.cryptimeleon.incentive.client.InfoClient;
 import org.cryptimeleon.incentive.client.IssueClient;
 import org.junit.jupiter.api.Test;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import java.time.Duration;
 

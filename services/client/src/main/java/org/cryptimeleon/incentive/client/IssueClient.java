@@ -1,13 +1,15 @@
 package org.cryptimeleon.incentive.client;
 
-import org.cryptimeleon.incentive.client.dto.JoinRequestDto;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-
+/**
+ * Client calls for info service.
+ * Can be used for testing and prototyping.
+ */
 public class IssueClient {
 
-    /*
+    /**
      * Webclient configured with the url of the issue service
      */
     private WebClient issueClient;
@@ -30,14 +32,15 @@ public class IssueClient {
     /**
      * Creates a join request.
      *
-     * @param joinRequestDto the DTO of the joinRequest to send
+     * @param serializedUserPublicKey the serialized public key of the user
+     * @param serializedJoinRequest   the serialized join request
      * @return mono of the server's answer
      */
-    public Mono<String> sendJoinRequest(JoinRequestDto joinRequestDto) {
+    public Mono<String> sendJoinRequest(String serializedJoinRequest, String serializedUserPublicKey) {
         return issueClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/issue").build())
-                .header("public-key", joinRequestDto.getSerializedUserPublicKey())
-                .header("join-request", joinRequestDto.getSerializedJoinRequest())
+                .header("public-key", serializedUserPublicKey)
+                .header("join-request", serializedJoinRequest)
                 .retrieve()
                 .bodyToMono(String.class);
     }
