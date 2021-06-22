@@ -86,7 +86,9 @@ public class CryptoRepository {
                 this.incentiveSystem = new IncentiveSystem(publicParameters);
                 break;
             } catch (RuntimeException e) {
-                e.printStackTrace();
+                if (i + 1 == MAX_TRIES) {
+                    e.printStackTrace();
+                }
             }
             try {
                 Thread.sleep((long) (1000 * Math.pow(2, i)));
