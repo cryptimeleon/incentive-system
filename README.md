@@ -1,4 +1,4 @@
-# T2 Incentive Services
+# Cryptimeleon Incentive System
 
 ![Develop](https://github.com/cryptimeleon/incentive-system/workflows/Default%20workflow/badge.svg?branch=develop) [![Docker](https://img.shields.io/docker/cloud/build/eaudeweb/scratch?label=dockerhub&style=flat)](https://hub.docker.com/repository/docker/cryptimeleon/incentive-service-issue/tags)
 
