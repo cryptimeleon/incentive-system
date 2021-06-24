@@ -1,8 +1,8 @@
 package org.cryptimeleon.incentive.crypto;
 
 
-import org.cryptimeleon.craco.prf.PrfKey;
-import org.cryptimeleon.craco.prf.zn.HashThenPrfToZn;
+import org.cryptimeleon.math.prf.PrfKey;
+import org.cryptimeleon.math.prf.zn.HashThenPrfToZn;
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.setmembership.SetMembershipPublicParameters;
 import org.cryptimeleon.craco.sig.SignatureKeyPair;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQPublicParameters;
