@@ -2,8 +2,8 @@ package org.cryptimeleon.incentive.crypto.model.keys.provider;
 
 import lombok.Value;
 import lombok.experimental.NonFinal;
-import org.cryptimeleon.craco.prf.PrfKey;
-import org.cryptimeleon.craco.prf.zn.HashThenPrfToZn;
+import org.cryptimeleon.math.prf.PrfKey;
+import org.cryptimeleon.math.prf.zn.HashThenPrfToZn;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignatureScheme;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSigningKey;
 import org.cryptimeleon.math.serialization.Representable;
