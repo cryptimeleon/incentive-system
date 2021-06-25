@@ -16,7 +16,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
  * Integration test that tests correct behavior of this service.
  */
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-public class HttpApiTest {
+public class InfoIntegrationTest {
 
     @Value("${provider.shared-secret}")
     String sharedSecret;
