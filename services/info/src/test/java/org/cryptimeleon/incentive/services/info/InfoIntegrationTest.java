@@ -12,6 +12,9 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 
+/**
+ * Integration test that tests correct behavior of this service.
+ */
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class HttpApiTest {
 
@@ -23,8 +26,8 @@ public class HttpApiTest {
     @Autowired
     private InfoService infoService;
 
-    /*
-     * Assert that public parameters are sent and can be deserialized
+    /**
+     * Test public parameter endpoint.
      */
     @Test
     void requestPublicParameters(@Autowired WebTestClient webClient) {
@@ -42,6 +45,9 @@ public class HttpApiTest {
                 });
     }
 
+    /**
+     * Test provider public key endpoint.
+     */
     @Test
     void requestProviderPublicKey(@Autowired WebTestClient webClient) {
         String serializedPublicParameters = infoService.getSerializedPublicParameters();
@@ -56,10 +62,16 @@ public class HttpApiTest {
                 .isOk()
                 .expectBody(String.class)
                 .consumeWith(response -> {
-                    ProviderPublicKey providerPublicKey = new ProviderPublicKey(jsonConverter.deserialize(response.getResponseBody()), publicParameters.getSpsEq(), publicParameters.getBg().getG1());
+                    ProviderPublicKey providerPublicKey = new ProviderPublicKey(jsonConverter.deserialize(response.getResponseBody()),
+                            publicParameters.getSpsEq(),
+                            publicParameters.getBg().getG1());
                 });
     }
 
+    /**
+     * Test provider secret key endpoint.
+     * An unauthenticated request should result in a 4xx error, and authenticated request should be successful.
+     */
     @Test
     void requestProviderSecretKey(@Autowired WebTestClient webClient) {
         String serializedPublicParameters = infoService.getSerializedPublicParameters();
@@ -83,7 +95,10 @@ public class HttpApiTest {
                 .isOk()
                 .expectBody(String.class)
                 .consumeWith(response -> {
-                    ProviderSecretKey providerSecretKey = new ProviderSecretKey(jsonConverter.deserialize(response.getResponseBody()), publicParameters.getSpsEq(), publicParameters.getBg().getZn(), publicParameters.getPrfToZn());
+                    ProviderSecretKey providerSecretKey = new ProviderSecretKey(jsonConverter.deserialize(response.getResponseBody()),
+                            publicParameters.getSpsEq(),
+                            publicParameters.getBg().getZn(),
+                            publicParameters.getPrfToZn());
                 });
     }
 }
