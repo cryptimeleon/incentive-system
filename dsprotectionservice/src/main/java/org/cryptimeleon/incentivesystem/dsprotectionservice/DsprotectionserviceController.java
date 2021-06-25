@@ -54,6 +54,7 @@ public class DsprotectionserviceController {
         dataSource.setUrl(env.getProperty("spring.datasource.url"));
         dataSource.setUsername(env.getProperty("user"));
         dataSource.setPassword(env.getProperty("password"));
+        var x = env.getProperty("spring.datasource.driverClassName");
         return dataSource;
     }
 }
