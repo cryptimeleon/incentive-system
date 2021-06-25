@@ -32,7 +32,7 @@ public class FullWorkflowTest extends IncentiveSystemIntegrationTest {
         var creditClient = new CreditClient(creditUrl);
         var basketClient = new BasketClient(basketUrl);
 
-        logger.info("Retrieve data from issue service");
+        logger.info("Retrieve data from info service");
         var serializedPublicParameters = infoClient.querySerializedPublicParameters().block(Duration.ofSeconds(1));
         var serializedProviderPublicKey = infoClient.querySerializedProviderPublicKey().block(Duration.ofSeconds(1));
 
