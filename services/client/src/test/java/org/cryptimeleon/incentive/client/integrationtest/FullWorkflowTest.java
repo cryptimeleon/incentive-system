@@ -39,7 +39,9 @@ public class FullWorkflowTest extends IncentiveSystemIntegrationTest {
         logger.info("Deserialize data and setup incentive system");
         var jsonConverter = new JSONConverter();
         var publicParameters = new IncentivePublicParameters(jsonConverter.deserialize(serializedPublicParameters));
-        var providerPublicKey = new ProviderPublicKey(jsonConverter.deserialize(serializedProviderPublicKey), publicParameters.getSpsEq(), publicParameters.getBg().getG1());
+        var providerPublicKey = new ProviderPublicKey(jsonConverter.deserialize(serializedProviderPublicKey),
+                publicParameters.getSpsEq(),
+                publicParameters.getBg().getG1());
         var incentiveSystem = new IncentiveSystem(publicParameters);
         var userKeyPair = incentiveSystem.generateUserKeys();
 
@@ -66,7 +68,12 @@ public class FullWorkflowTest extends IncentiveSystemIntegrationTest {
         var serializedEarnRequest = jsonConverter.serialize(earnRequest.getRepresentation());
         var serializedSignature = creditClient.sendEarnRequest(serializedEarnRequest, basket.getBasketID()).block();
         var signature = new SPSEQSignature(jsonConverter.deserialize(serializedSignature), publicParameters.getBg().getG1(), publicParameters.getBg().getG2());
-        var newToken = incentiveSystem.handleEarnRequestResponse(earnRequest, signature, BigInteger.valueOf(basket.getValue()), token, providerPublicKey, userKeyPair);
+        var newToken = incentiveSystem.handleEarnRequestResponse(earnRequest,
+                signature,
+                BigInteger.valueOf(basket.getValue()),
+                token,
+                providerPublicKey,
+                userKeyPair);
         Assertions.assertEquals(newToken.getPoints().asInteger().longValueExact(), basket.getValue());
 
         logger.info("Second earn with paid basket and same request should succeed");
