@@ -47,7 +47,7 @@ public class IssueIntegrationTest {
         when(cryptoRepository.getProviderSecretKey()).thenReturn(pkp.getSk());
 
         // Create request to send
-        var joinRequest = incentiveSystem.generateJoinRequest(pp, pkp.getPk(), ukp);
+        var joinRequest = incentiveSystem.generateJoinRequest(pkp.getPk(), ukp);
 
         // Send request and process response to assert correct behavior
         var serializedJoinResponse = webClient.get()
@@ -62,6 +62,6 @@ public class IssueIntegrationTest {
                 .returnResult().getResponseBody();
 
         var joinResponse = new JoinResponse(jsonConverter.deserialize(serializedJoinResponse), pp);
-        incentiveSystem.handleJoinRequestResponse(pp, pkp.getPk(), ukp, joinRequest, joinResponse);
+        incentiveSystem.handleJoinRequestResponse(pkp.getPk(), ukp, joinRequest, joinResponse);
     }
 }

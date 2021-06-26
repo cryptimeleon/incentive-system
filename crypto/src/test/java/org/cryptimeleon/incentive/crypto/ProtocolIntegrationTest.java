@@ -55,7 +55,6 @@ public class ProtocolIntegrationTest {
 
         // user generates join request
         var joinRequest = incSys.generateJoinRequest(
-                incSys.getPp(),
                 pkp.getPk(),
                 ukp
         );
@@ -66,14 +65,14 @@ public class ProtocolIntegrationTest {
         var deserializedJoinRequest = new JoinRequest(serializedJoinRequest, incSys.getPp(), ukp.getPk(), cwfProofSystem);
 
         // provider handles join request and generates join response
-        var joinResponse = incSys.generateJoinRequestResponse(incSys.getPp(), pkp, ukp.getPk().getUpk(), deserializedJoinRequest);
+        var joinResponse = incSys.generateJoinRequestResponse(pkp, ukp.getPk().getUpk(), deserializedJoinRequest);
 
         // serialize and deserialize join response
         var serializedJoinResponse = joinResponse.getRepresentation();
         var deserializedJoinResponse = new JoinResponse(serializedJoinResponse, incSys.getPp());
 
         // user handles join response
-        var initialToken = incSys.handleJoinRequestResponse(incSys.getPp(), pkp.getPk(), ukp, joinRequest, deserializedJoinResponse);
+        var initialToken = incSys.handleJoinRequestResponse(pkp.getPk(), ukp, joinRequest, deserializedJoinResponse);
 
         /**
          * transaction 1: user tries to spend points with an empty token
