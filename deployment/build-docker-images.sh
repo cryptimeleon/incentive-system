@@ -2,7 +2,7 @@
 
 set -e
 
-#./gradlew clean build
+./gradlew clean build
 
 # Read current version from version file
 VERSION=$(cat ./services/version)
