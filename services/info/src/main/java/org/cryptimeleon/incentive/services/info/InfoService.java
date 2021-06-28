@@ -1,7 +1,5 @@
 package org.cryptimeleon.incentive.services.info;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.cryptimeleon.incentive.crypto.Setup;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
@@ -12,6 +10,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Service
@@ -31,6 +32,9 @@ public class InfoService {
     @Value("${provider.shared-secret}")
     private String sharedSecret;
 
+    @Value("${info.use-mcl}")
+    private boolean useMcl;
+
     @PostConstruct
     public void init() {
         // Make sure shared secret is set
@@ -39,8 +43,13 @@ public class InfoService {
         }
 
         logger.info("Setting up a new incentive-system");
-        logger.info("Generate pp");
-        this.pp = Setup.trustedSetup(128, Setup.BilinearGroupChoice.Debug);
+        if (useMcl) {
+            logger.info("Generate pp using mcl");
+            this.pp = Setup.trustedSetup(128, Setup.BilinearGroupChoice.Herumi_MCL);
+        } else {
+            logger.info("Generate pp using debug group");
+            this.pp = Setup.trustedSetup(128, Setup.BilinearGroupChoice.Debug);
+        }
         logger.info("Generate provider keypair");
         this.providerKeyPair = Setup.providerKeyGen(pp);
         logger.info("Serializing pp and keypair");
