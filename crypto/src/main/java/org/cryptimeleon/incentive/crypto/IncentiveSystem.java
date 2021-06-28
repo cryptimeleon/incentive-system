@@ -71,12 +71,11 @@ public class IncentiveSystem {
     /**
      * functionality of the first part of the Issue algorithm of the Cryptimeleon incentive system
      *
-     * @param pp  public parameters of the respective incentive system instance
      * @param pk  provider public key of the provider the user interacts with
      * @param ukp user key pair
      * @return join request, i.e. object representing the first two messages in the Issue-Join protocol of the Cryptimeleon incentive system
      */
-    public JoinRequest generateJoinRequest(IncentivePublicParameters pp, ProviderPublicKey pk, UserKeyPair ukp) {
+    public JoinRequest generateJoinRequest(ProviderPublicKey pk, UserKeyPair ukp) {
         UserPublicKey upk = ukp.getPk();
         UserSecretKey usk = ukp.getSk();
 
@@ -109,14 +108,13 @@ public class IncentiveSystem {
      * Implements the functionality of the Issue algorithm of the Cryptimeleon incentive system, i.e. handles a join request by signing the
      * included preliminary commitment after adding the provider's share for the tracking key esk.
      *
-     * @param pp  public parameters of the respective incentive system instance
      * @param pkp key pair of the provider
      * @param upk public key of user (needed to restore upk needed to check validity of the commitment well-formedness proof)
      * @param jr  join request to be handled
      * @return join response, i.e. object representing the third message in the Issue-Join protocol
      * @throws IllegalArgumentException indicating that the proof for commitment well-formedness was rejected
      */
-    public JoinResponse generateJoinRequestResponse(IncentivePublicParameters pp, ProviderKeyPair pkp, GroupElement upk, JoinRequest jr) throws IllegalArgumentException {
+    public JoinResponse generateJoinRequestResponse(ProviderKeyPair pkp, GroupElement upk, JoinRequest jr) throws IllegalArgumentException {
         ProviderPublicKey pk = pkp.getPk();
         ProviderSecretKey sk = pkp.getSk();
 
@@ -149,14 +147,13 @@ public class IncentiveSystem {
      * Implements the second part of the functionality of the Issue algorithm from the Cryptimeleon incentive system, i.e. computes the final user data
      * (token and corresponding certificate) from the signed preliminary token from the passed join request and response.
      *
-     * @param pp   public parameters of the respective incentive system instance
      * @param pk   public key of the provider the user interacted with
      * @param ukp  key pair of the user handling the response
      * @param jReq the initial join request of the user handling the response to it
      * @param jRes join response to be handled
      * @return token containing 0 points
      */
-    public Token handleJoinRequestResponse(IncentivePublicParameters pp, ProviderPublicKey pk, UserKeyPair ukp, JoinRequest jReq, JoinResponse jRes) {
+    public Token handleJoinRequestResponse(ProviderPublicKey pk, UserKeyPair ukp, JoinRequest jReq, JoinResponse jRes) {
         // re-generate random values from join request generation of fresh user token using PRF hashThenPRFtoZn, user secret key is hash input
         var pseudoRandVector = pp.getPrfToZn().hashThenPrfToZnVector(ukp.getSk().getPrfKey(), ukp.getSk(), 6, "IssueJoin");
         ZnElement eskUsr = (ZnElement) pseudoRandVector.get(0);

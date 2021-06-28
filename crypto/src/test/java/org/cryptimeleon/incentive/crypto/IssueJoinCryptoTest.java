@@ -34,8 +34,7 @@ public class IssueJoinCryptoTest
 
         // create join request
         var testRequest = incSys.generateJoinRequest(
-            incSys.getPp(),
-            pkp.getPk(),
+                pkp.getPk(),
             ukp
         );
 
@@ -45,14 +44,14 @@ public class IssueJoinCryptoTest
         var deserializedRequest = new JoinRequest(serializedRequest, incSys.getPp(), ukp.getPk(), cwfProofSystem);
 
         // pass join request to issue logic, generate join response
-        var testResponse = incSys.generateJoinRequestResponse(incSys.getPp(), pkp, ukp.getPk().getUpk(), deserializedRequest);
+        var testResponse = incSys.generateJoinRequestResponse(pkp, ukp.getPk().getUpk(), deserializedRequest);
 
         // serialize and deserialize join response
         var serializedResponse = testResponse.getRepresentation();
         var deserializedResponse = new JoinResponse(serializedResponse, incSys.getPp());
 
         // pass join response to second part of join logic, generate join output
-        var testOutput = incSys.handleJoinRequestResponse(incSys.getPp(), pkp.getPk(), ukp, testRequest, deserializedResponse);
+        var testOutput = incSys.handleJoinRequestResponse(pkp.getPk(), ukp, testRequest, deserializedResponse);
 
         // check output token for sanity (certficate valid, zero points)
         SPSEQSignatureScheme usedSpsEq = incSys.getPp().getSpsEq();

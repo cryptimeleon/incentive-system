@@ -93,19 +93,16 @@ class InfoViewModel(application: Application) : AndroidViewModel(application) {
                 val providerKeyPair =
                     ProviderKeyPair(_providerSecretKey.value, _providerPublicKey.value)
                 val joinRequest = incentiveSystem.generateJoinRequest(
-                    _incentivePublicParameters.value,
                     _providerPublicKey.value,
                     userKeyPair
                 )
                 val joinResponse =
                     incentiveSystem.generateJoinRequestResponse(
-                        _incentivePublicParameters.value,
                         providerKeyPair,
                         _userPublicKey.value!!.upk,
                         joinRequest
                     )
                 val newToken = incentiveSystem.handleJoinRequestResponse(
-                    _incentivePublicParameters.value,
                     _providerPublicKey.value,
                     userKeyPair,
                     joinRequest,

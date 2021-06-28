@@ -43,7 +43,7 @@ public class IssueService {
         FiatShamirProofSystem cwfProofSystem = new FiatShamirProofSystem(new CommitmentWellformednessProtocol(pp, providerPublicKey));
         JoinRequest joinRequest = new JoinRequest(jsonConverter.deserialize(serializedJoinRequest), pp, userPublicKey, cwfProofSystem);
         ProviderKeyPair providerKeyPair = new ProviderKeyPair(providerSecretKey, providerPublicKey);
-        JoinResponse joinResponse = incentiveSystem.generateJoinRequestResponse(pp, providerKeyPair, userPublicKey.getUpk(), joinRequest);
+        JoinResponse joinResponse = incentiveSystem.generateJoinRequestResponse(providerKeyPair, userPublicKey.getUpk(), joinRequest);
         return jsonConverter.serialize(joinResponse.getRepresentation());
     }
 }

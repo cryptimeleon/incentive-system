@@ -62,9 +62,9 @@ public class CreditIntegrationTest {
         when(basketRepository.getBasket(testBasket.getBasketID())).thenReturn(testBasket);
 
         // Generate token
-        var joinRequest = incentiveSystem.generateJoinRequest(pp, pkp.getPk(), ukp);
-        var joinResponse = incentiveSystem.generateJoinRequestResponse(pp, pkp, ukp.getPk().getUpk(), joinRequest);
-        var token = incentiveSystem.handleJoinRequestResponse(pp, pkp.getPk(), ukp, joinRequest, joinResponse);
+        var joinRequest = incentiveSystem.generateJoinRequest(pkp.getPk(), ukp);
+        var joinResponse = incentiveSystem.generateJoinRequestResponse(pkp, ukp.getPk().getUpk(), joinRequest);
+        var token = incentiveSystem.handleJoinRequestResponse(pkp.getPk(), ukp, joinRequest, joinResponse);
 
         // Generate request
         var earnRequest = incentiveSystem.generateEarnRequest(token, pkp.getPk(), ukp);
