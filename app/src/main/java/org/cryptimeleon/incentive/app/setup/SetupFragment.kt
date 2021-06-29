@@ -10,7 +10,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.NavHostFragment
 import org.cryptimeleon.incentive.app.R
 import org.cryptimeleon.incentive.app.databinding.SetupFragmentBinding
-
+import android.widget.Toast
 
 class SetupFragment : Fragment() {
 
@@ -39,6 +39,12 @@ class SetupFragment : Fragment() {
                 viewModel.navigateToInfoFinished()
             }
         })
+        viewModel.exceptionToast.observe(viewLifecycleOwner) {
+            if (it != "") {
+                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+                viewModel.toastShown()
+            }
+        }
         return binding.root
     }
 }
