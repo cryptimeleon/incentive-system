@@ -6,7 +6,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.*
-import org.cryptimeleon.incentive.app.setup.SECURITY_PARAMETER
 import org.cryptimeleon.incentive.crypto.IncentiveSystem
 import org.cryptimeleon.incentive.crypto.Setup
 import org.cryptimeleon.incentive.crypto.benchmark.Benchmark
@@ -17,6 +16,7 @@ import timber.log.Timber
 
 private const val BENCHMARK_ITERATIONS = 100
 private val BENCHMARK_GROUP = Setup.BilinearGroupChoice.Herumi_MCL
+const val SECURITY_PARAMETER = 128
 
 enum class BenchmarkViewState {
     NOT_STARTED,
