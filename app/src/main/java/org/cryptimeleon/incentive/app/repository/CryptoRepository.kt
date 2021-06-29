@@ -8,7 +8,6 @@ const val PROVIDER_PUBLIC_KEY = "PROVIDER_PUBLIC_KEY"
 const val USER_PUBLIC_KEY = "USER_PUBLIC_KEY"
 const val USER_PRIVATE_KEY = "USER_PRIVATE_KEY"
 const val SETUP_FINISHED = "SETUP_FINISHED"
-const val PROVIDER_SECRET_KEY = "PROVIDER_SECRET_KEY"
 const val TOKEN = "TOKEN"
 
 
@@ -33,13 +32,6 @@ class CryptoRepository(context: Context) : SharedPrefRepository(context, PREFERE
         return PROVIDER_PUBLIC_KEY.getString()
     }
 
-    fun setProviderSecretKey(providerSecretKey: String) {
-        PROVIDER_SECRET_KEY.put(providerSecretKey)
-    }
-
-    fun getProviderSecretKey(): String {
-        return PROVIDER_SECRET_KEY.getString()
-    }
 
     fun setUserSecretKey(userSecretKey: String) {
         USER_PRIVATE_KEY.put(userSecretKey)
