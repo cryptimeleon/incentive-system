@@ -212,12 +212,6 @@ class InfoViewModel(application: Application) : AndroidViewModel(application) {
                     pp.spsEq,
                     pp.bg.g1
                 )
-                val psk = ProviderSecretKey(
-                    jsonConverter.deserialize(cryptoRepository.getProviderSecretKey()),
-                    pp.spsEq,
-                    pp.bg.zn,
-                    pp.prfToZn
-                )
                 val upk = UserPublicKey(
                     jsonConverter.deserialize(cryptoRepository.getUserPublicKey()),
                     pp.bg.g1
@@ -230,7 +224,6 @@ class InfoViewModel(application: Application) : AndroidViewModel(application) {
 
                 _incentivePublicParameters.postValue(pp)
                 _providerPublicKey.postValue(ppk)
-                _providerSecretKey.postValue(psk)
                 _userPublicKey.postValue(upk)
                 _userSecretKey.postValue(usk)
 
