@@ -19,8 +19,6 @@ enum class SetupState {
     FINISHED
 }
 
-const val SECURITY_PARAMETER = 128
-val BILINEAR_GROUP = Setup.BilinearGroupChoice.Debug
 
 class SetupViewModel(application: Application) : AndroidViewModel(application) {
     private val viewModelJob = Job()
