@@ -22,6 +22,7 @@ class MainActivity : AppCompatActivity() {
         System.loadLibrary("mcljava")
 
         // For logging
+        Timber.uprootAll() // Ensure there is only one tree to avoid duplicate logs
         Timber.plant(Timber.DebugTree())
     }
 
