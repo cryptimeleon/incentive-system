@@ -29,6 +29,9 @@ public class BasketService {
         basketMap = new HashMap<>();
         items = new ArrayList<>(
                 Arrays.asList(
+                        new Item(UUID.fromString("01876c81-8877-482e-9c3b-feca6f8f4d2e"),
+                                "Sweetened hazelnut cocoa spread",
+                                199),
                         new Item(UUID.fromString("b363b7fa-14b9-402b-98b2-6e7370d62595"),
                                 "Tomato",
                                 30),
