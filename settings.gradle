@@ -1,9 +1,0 @@
-rootProject.name = 'incentive'
-
-include ':services:issue'
-include ':services:credit'
-include ':services:basket'
-include ':services:client'
-include ':services:info'
-include ':crypto'
-include ':app'

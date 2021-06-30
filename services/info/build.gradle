@@ -10,7 +10,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
-    implementation project(':crypto')
+    implementation 'org.cryptimeleon.incentive:crypto'
 }
 
 test {
