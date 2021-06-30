@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.basket.model.requests;
+package org.cryptimeleon.incentive.services.basket.model.requests;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

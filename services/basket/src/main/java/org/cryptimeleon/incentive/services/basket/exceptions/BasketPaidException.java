@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.basket.exceptions;
+package org.cryptimeleon.incentive.services.basket.exceptions;
 
 public class BasketPaidException extends BasketServiceException {
 

@@ -1,11 +1,11 @@
-package org.cryptimeleon.incentive.basket;
+package org.cryptimeleon.incentive.services.basket;
 
-import org.cryptimeleon.incentive.basket.exceptions.*;
-import org.cryptimeleon.incentive.basket.model.Basket;
-import org.cryptimeleon.incentive.basket.model.Item;
-import org.cryptimeleon.incentive.basket.model.requests.PayBasketRequest;
-import org.cryptimeleon.incentive.basket.model.requests.PutItemRequest;
-import org.cryptimeleon.incentive.basket.model.requests.RedeemBasketRequest;
+import org.cryptimeleon.incentive.services.basket.exceptions.*;
+import org.cryptimeleon.incentive.services.basket.model.Basket;
+import org.cryptimeleon.incentive.services.basket.model.Item;
+import org.cryptimeleon.incentive.services.basket.model.requests.PayBasketRequest;
+import org.cryptimeleon.incentive.services.basket.model.requests.PutItemRequest;
+import org.cryptimeleon.incentive.services.basket.model.requests.RedeemBasketRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

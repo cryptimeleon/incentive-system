@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.basket;
+package org.cryptimeleon.incentive.services.basket;
 
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -12,7 +12,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.cryptimeleon.incentive.basket.ClientHelper.*;
+import static org.cryptimeleon.incentive.services.basket.ClientHelper.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class AuthorizationTest {
