@@ -1,0 +1,8 @@
+rootProject.name = 'incentive-services'
+
+includeBuild '../crypto'
+include ':basket'
+include ':client'
+include ':credit'
+include ':info'
+include ':issue'

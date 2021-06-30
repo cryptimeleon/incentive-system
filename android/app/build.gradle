@@ -59,7 +59,7 @@ dependencies {
     implementation 'com.squareup.retrofit2:converter-scalars:2.9.0'
 
     // Cryptimeleon
-    implementation project(":crypto")
+    implementation 'org.cryptimeleon.incentive:crypto'
 
     // Logging
     implementation 'com.jakewharton.timber:timber:4.7.1'
