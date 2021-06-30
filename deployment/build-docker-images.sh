@@ -2,10 +2,14 @@
 
 set -e
 
+pushd services
 ./gradlew clean build
+popd
 
-# Read current version from version file
-VERSION=$(cat ./services/version)
+# Read current version from version file if not present in env
+if [[ -z "${VERSION}" ]]; then
+  VERSION=$(cat ./services/version)
+fi
 
 # Manually build info service with mcl
 
@@ -36,5 +40,11 @@ docker build \
   -t cryptimeleon/incentive-service-credit:$VERSION \
   -f services/Dockerfile .
 
-# basket server does not require mcl
-./gradlew ":services:basket:bootBuildImage"
+# basket service
+DEPENDENCY_PATH=services/basket/build/dependency
+mkdir -p $DEPENDENCY_PATH && (cd $DEPENDENCY_PATH; jar -xf ../libs/*.jar)
+docker build \
+  --build-arg DEPENDENCY=$DEPENDENCY_PATH \
+  --build-arg APPLICATION=org.cryptimeleon.incentive.services.basket.BasketApplication \
+  -t cryptimeleon/incentive-service-basket:$VERSION \
+  -f services/Dockerfile .
