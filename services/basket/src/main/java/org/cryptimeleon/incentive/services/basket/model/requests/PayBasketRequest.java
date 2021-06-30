@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.basket.model.requests;
+package org.cryptimeleon.incentive.services.basket.model.requests;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,13 +7,12 @@ import lombok.NoArgsConstructor;
 import java.util.UUID;
 
 /**
- * Dataclass for redeem request body.
+ * Dataclass for pay basket request body.
  */
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class RedeemBasketRequest {
+public class PayBasketRequest {
     UUID basketId;
-    String redeemRequest;
     long value;
 }

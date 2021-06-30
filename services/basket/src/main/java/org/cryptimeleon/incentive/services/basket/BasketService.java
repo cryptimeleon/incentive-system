@@ -1,9 +1,9 @@
-package org.cryptimeleon.incentive.basket;
+package org.cryptimeleon.incentive.services.basket;
 
-import org.cryptimeleon.incentive.basket.exceptions.*;
-import org.cryptimeleon.incentive.basket.model.Basket;
-import org.cryptimeleon.incentive.basket.model.BasketItem;
-import org.cryptimeleon.incentive.basket.model.Item;
+import org.cryptimeleon.incentive.services.basket.exceptions.*;
+import org.cryptimeleon.incentive.services.basket.model.Basket;
+import org.cryptimeleon.incentive.services.basket.model.BasketItem;
+import org.cryptimeleon.incentive.services.basket.model.Item;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
