@@ -20,13 +20,13 @@ import org.cryptimeleon.math.structures.groups.GroupElement;
 @AllArgsConstructor
 public class JoinRequest implements Representable {
     @NonFinal
-    private GroupElement preCommitment0;
+    GroupElement preCommitment0;
 
     @NonFinal
-    private GroupElement preCommitment1;
+    GroupElement preCommitment1;
 
     @NonFinal
-    private FiatShamirProof cwfProof; // proof for well-formedness of token and knowledge of usk corresp. to upk
+    FiatShamirProof cwfProof; // proof for well-formedness of token and knowledge of usk corresp. to upk
 
     public JoinRequest(Representation repr, IncentivePublicParameters pp, UserPublicKey upk, FiatShamirProofSystem fsps) {
         // force passed representation into a list representation (does not throw class cast exception in intended use cases)
@@ -42,8 +42,7 @@ public class JoinRequest implements Representable {
         this.cwfProof = fsps.restoreProof(cwfProofCommonInput, list.get(2));
     }
 
-    public Representation getRepresentation()
-    {
+    public Representation getRepresentation() {
         return new ListRepresentation(
                 this.preCommitment0.getRepresentation(),
                 this.preCommitment1.getRepresentation(),

@@ -1,5 +1,7 @@
 package org.cryptimeleon.incentive.services.info;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.cryptimeleon.incentive.crypto.Setup;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
@@ -10,9 +12,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Service

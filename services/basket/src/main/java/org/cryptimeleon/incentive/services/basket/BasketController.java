@@ -30,23 +30,23 @@ public class BasketController {
     @Value("${basket-service.redeem-secret}")
     private String redeemSecret;
 
+    public BasketController(BasketService basketService, @Value("${basket-service.pay-secret}") String paymentSecret, @Value("${basket-service.redeem-secret}") String redeemSecret) {
+        this.basketService = basketService;
+        this.paymentSecret = paymentSecret;
+        this.redeemSecret = redeemSecret;
+    }
+
     /**
      * Make sure that the shared secrets are set.
      */
     @PostConstruct
     public void validateValue() {
-        if (paymentSecret.equals("") ) {
+        if (paymentSecret.equals("")) {
             throw new IllegalArgumentException("Payment secret is not set!");
         }
-        if (redeemSecret.equals("") ) {
+        if (redeemSecret.equals("")) {
             throw new IllegalArgumentException("Redeem secret is not set!");
         }
-    }
-
-    public BasketController(BasketService basketService, @Value("${basket-service.pay-secret}") String paymentSecret, @Value("${basket-service.redeem-secret}") String redeemSecret) {
-        this.basketService = basketService;
-        this.paymentSecret = paymentSecret;
-        this.redeemSecret = redeemSecret;
     }
 
     /**

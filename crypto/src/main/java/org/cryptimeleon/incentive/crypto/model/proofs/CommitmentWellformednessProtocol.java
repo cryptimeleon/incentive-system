@@ -15,14 +15,14 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
 /**
  * A protocol for proof of the well-formedness of the preliminary commitment in the initial user token as defined in the Issue {@literal <}-{@literal >}Join protocol of
  * the Cryptimeleon incentive system.
- *
+ * <p>
  * In particular, it proves knowledge of (usk, t, z, 1/u, eskUsr, dsrnd0, dsrnd1) in Z_p^7 s.t.
  * I    upk = w^usk
  * II   ( C^pre_0 ) ^ 1/u = h1^usk * h2^esk_usr * h3^dsrnd0 * h4^dsrnd1 * h6^z * h7^t
  * III  g1 = ( C^pre_1 ) ^ 1/u
- *
+ * <p>
  * Note that instead of u, 1/u is used to avoid implementation of double exponent proofs.
- *
+ * <p>
  * The common input for the interactive protocol for that proof is split into two parts:
  * the static part consists of the variables that are the same for every interaction, namely
  * w, h1, h2, h3, h4, h6, h7, g1 .
@@ -33,13 +33,14 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
 @Value
 @AllArgsConstructor
 public class CommitmentWellformednessProtocol extends DelegateProtocol {
-    private IncentivePublicParameters pp; // public parameters of the respective incentive system
-    private ProviderPublicKey pk; // provider public key used for in an instance of the protocol
+    IncentivePublicParameters pp; // public parameters of the respective incentive system
+    ProviderPublicKey pk; // provider public key used for in an instance of the protocol
 
     /**
      * specifies verifier side of the protocol (i.e. what verifiers with what properties shall a prover interacting with that verifier prove knowledge of).
+     *
      * @param commonInput (non-static part of) common input
-     * @param builder object used to construct the protocol from statement objects
+     * @param builder     object used to construct the protocol from statement objects
      * @return instance holding all information about the verifier side of the protocol
      */
     @Override
@@ -55,7 +56,6 @@ public class CommitmentWellformednessProtocol extends DelegateProtocol {
         var g1 = this.pp.getG1Generator();
 
 
-
         // register all witnesses that should be proven knowledge about to the builder (as variables, this is needed to define expression objects that resemble the statements)
         Zn usedZn = this.pp.getBg().getZn();
         var uskVar = builder.addZnVariable("usk", usedZn);
@@ -67,14 +67,13 @@ public class CommitmentWellformednessProtocol extends DelegateProtocol {
         var dsrnd1Var = builder.addZnVariable("dsrnd1", usedZn);
 
 
-
         // create statement objects for all three statements that shall be proven
 
         CommitmentWellformednessCommonInput castedCommonInput = (CommitmentWellformednessCommonInput) commonInput;
 
         // upk
         var upk = castedCommonInput.getUpk();
-        var keyDLogStatement = w.pow(uskVar).isEqualTo( upk );
+        var keyDLogStatement = w.pow(uskVar).isEqualTo(upk);
 
         // first group element in the commitment
         var c0Pre = castedCommonInput.getC0Pre();
@@ -97,12 +96,10 @@ public class CommitmentWellformednessProtocol extends DelegateProtocol {
         // done creating statement objects
 
 
-
         // add fragments for those statements
         builder.addSubprotocol("userKeyWellFormed", new LinearStatementFragment(keyDLogStatement));
         builder.addSubprotocol("firstElementWellFormed", new LinearStatementFragment(firstGeStatement));
         builder.addSubprotocol("secondElementWellFormed", new LinearStatementFragment(secondGeStatement));
-
 
 
         // build the verifier side of subprotocol using the passed builder
@@ -112,6 +109,7 @@ public class CommitmentWellformednessProtocol extends DelegateProtocol {
     /**
      * specifies prover side of the protocol (i.e. which witnesses it shall use).
      * Specified witnesses must match variables added when defining verifier side of protocol.
+     *
      * @param commonInput (non-static) part of common input
      * @param secretInput
      * @param builder
@@ -135,8 +133,7 @@ public class CommitmentWellformednessProtocol extends DelegateProtocol {
     }
 
     @Override
-    public ZnChallengeSpace getChallengeSpace(CommonInput commonInput)
-    {
+    public ZnChallengeSpace getChallengeSpace(CommonInput commonInput) {
         return new ZnChallengeSpace(this.pp.getBg().getZn());
     }
 }
