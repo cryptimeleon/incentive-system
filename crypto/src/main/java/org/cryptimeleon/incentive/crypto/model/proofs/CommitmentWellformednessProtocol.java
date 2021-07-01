@@ -30,7 +30,6 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
  * On the other hand, there is the non-static part of the common input which comprises
  * upk, c0Pre, c1Pre
  */
-@Value
 @AllArgsConstructor
 public class CommitmentWellformednessProtocol extends DelegateProtocol {
     IncentivePublicParameters pp; // public parameters of the respective incentive system
