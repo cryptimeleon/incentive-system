@@ -44,9 +44,6 @@ public class IncentiveSystem {
     // public parameters
     private final IncentivePublicParameters pp;
 
-    // interface to database administration for double-spending protection
-    private DatabaseHandler dbHandler = null;
-
     public IncentiveSystem(IncentivePublicParameters pp) {
         this.pp = pp;
     }
@@ -623,31 +620,10 @@ public class IncentiveSystem {
      * @param dsid double-spending ID of used token
      * @param dsTag double-spending tag of used token
      * @param spendAmount point amount spent
-     * @param dbHandler reference to the object providing the interface to the double-spending database
      */
-    public void dbSync(ZnElement tid, ZnElement gamma, GroupElement dsid, DoubleSpendingTag dsTag, BigInteger spendAmount, DatabaseHandler dbHandler)
+    public void dbSync(ZnElement tid, ZnElement gamma, GroupElement dsid, DoubleSpendingTag dsTag, BigInteger spendAmount)
     {
-        // check whether node for passed transaction is already contained in database
-        if(!dbHandler.containsTransactionNode(tid, gamma))
-        {
-            // if not: add new transaction node
-            dbHandler.addTransactionNode(tid, gamma, spendAmount, dsTag);
-        }
-
-        if(!dbHandler.containsTokenNode(dsid)) // everything is fine
-        {
-            // if passed token ID not in database: add node for it and link it with passed transaction
-            dbHandler.addTokenNode(dsid);
-            dbHandler.addTokenTransactionEdge(dsid, tid, gamma);
-        }
-        else // double-spending attempt detected
-        {
-            // link existing token with new transaction
-            dbHandler.addTokenTransactionEdge(dsid, tid, gamma);
-
-            // trace of transactions resulted from double-spending attempt
-            // TODO: this contains crypto logic (link, trace, verifyds) and thus should not be outsourced to db admin module
-        }
+        // TODO: add parameter providing the URL of the double-spending protection service endpoint
     }
 
     /**

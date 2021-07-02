@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentivesystem.dsprotectionservice;
+package org.cryptimeleon.incentivesystem.dsprotectionservice.dummy;
 
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;

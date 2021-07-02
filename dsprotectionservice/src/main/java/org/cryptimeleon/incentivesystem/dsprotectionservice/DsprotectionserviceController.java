@@ -1,11 +1,14 @@
 package org.cryptimeleon.incentivesystem.dsprotectionservice;
 
+import org.cryptimeleon.incentivesystem.dsprotectionservice.dummy.Employee;
+import org.cryptimeleon.incentivesystem.dsprotectionservice.dummy.EmployeeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.naming.Context;
@@ -13,48 +16,32 @@ import javax.naming.InitialContext;
 import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.util.List;
 
 @RestController
 public class DsprotectionserviceController {
     @Autowired
-    Environment env;
+    EmployeeRepository employeeRepository;
 
-    /** dummy */
     @RequestMapping("/")
     public String hello()
     {
-        return "It finally works. Great!";
+        return "We are in the process of constructing an awesome double-spending protection service here. Please be patient :)";
     }
 
-    /** dummy */
-    @RequestMapping("/construction")
-    public String construction()
-    {
-        return "We are in the process of constructing an awesome double-spending protection service here. Please be patient :)";
+    @RequestMapping(value = "/save", params = {"id", "name"})
+    public String save(
+            @RequestParam(value = "id") long id,
+            @RequestParam(value = "name") String name
+    ) {
+        employeeRepository.save(new Employee(id, name));
+        return "Successfully inserted new employee!";
     }
 
     @RequestMapping("/select")
     public String select()
     {
-        // TODO: how to execute query and obtain result as ResultSet or anything else than can be casted into a String?
-
-        ResultSet results = null;
-        return results.toString();
-    }
-
-    /**
-     * Returns an object representing the used database.
-     * This object saves the location of the database endpoint as well as all necessary info for accessing the database.
-     * @return object representing the used database
-     */
-    @Bean
-    public DataSource dataSource() {
-        final DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName(env.getProperty("spring.datasource.driverClassName"));
-        dataSource.setUrl(env.getProperty("spring.datasource.url"));
-        dataSource.setUsername(env.getProperty("user"));
-        dataSource.setPassword(env.getProperty("password"));
-        var x = env.getProperty("spring.datasource.driverClassName");
-        return dataSource;
+        List<Employee> employees = (List<Employee>) employeeRepository.findAll();
+        return employees.toString();
     }
 }
