@@ -15,16 +15,14 @@ import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
  */
 @Value
 @AllArgsConstructor
-public class JoinResponse implements Representable
-{
+public class JoinResponse implements Representable {
     @NonFinal
-    private SPSEQSignature preCertificate; // preliminary certificate for the user token
+    SPSEQSignature preCertificate; // preliminary certificate for the user token
 
     @NonFinal
-    private ZnElement eskProv; // the share of the provider for the ElGamal encryption key for the initial token of the user
+    ZnElement eskProv; // the share of the provider for the ElGamal encryption key for the initial token of the user
 
-    public JoinResponse(Representation repr, IncentivePublicParameters pp)
-    {
+    public JoinResponse(Representation repr, IncentivePublicParameters pp) {
         // force passed representation into a list representation (does not throw class cast exception in intended use cases)
         var list = (ListRepresentation) repr;
 

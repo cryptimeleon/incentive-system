@@ -31,6 +31,9 @@ public class InfoService {
     @Value("${provider.shared-secret}")
     private String sharedSecret;
 
+    @Value("${info.use-mcl}")
+    private boolean useMcl;
+
     @PostConstruct
     public void init() {
         // Make sure shared secret is set
@@ -39,8 +42,13 @@ public class InfoService {
         }
 
         logger.info("Setting up a new incentive-system");
-        logger.info("Generate pp");
-        this.pp = Setup.trustedSetup(128, Setup.BilinearGroupChoice.Debug);
+        if (useMcl) {
+            logger.info("Generate pp using mcl");
+            this.pp = Setup.trustedSetup(128, Setup.BilinearGroupChoice.Herumi_MCL);
+        } else {
+            logger.info("Generate pp using debug group");
+            this.pp = Setup.trustedSetup(128, Setup.BilinearGroupChoice.Debug);
+        }
         logger.info("Generate provider keypair");
         this.providerKeyPair = Setup.providerKeyGen(pp);
         logger.info("Serializing pp and keypair");

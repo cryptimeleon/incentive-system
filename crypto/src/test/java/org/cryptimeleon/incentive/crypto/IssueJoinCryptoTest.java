@@ -13,16 +13,14 @@ import java.math.BigInteger;
 /**
  * contains tests of the crypto behind the issue  {@literal <}-{@literal >} join protocol
  */
-public class IssueJoinCryptoTest
-{
+public class IssueJoinCryptoTest {
     /**
      * generates a join request, responds to it and handles the response (i.e. a full run of the Issue-Join protocol).
      * Test case simulating a correct use of the protocol.
      * Also tests representations of used requests and responses on the fly.
      */
     @Test
-    void fullCorrectTestRun()
-    {
+    void fullCorrectTestRun() {
         // create incentive system instance with fresh pp
         var incSys = new IncentiveSystem(IncentiveSystem.setup(128, Setup.BilinearGroupChoice.Debug));
 
@@ -35,7 +33,7 @@ public class IssueJoinCryptoTest
         // create join request
         var testRequest = incSys.generateJoinRequest(
                 pkp.getPk(),
-            ukp
+                ukp
         );
 
         // serialize and deserialize join request to test serialization
@@ -56,6 +54,6 @@ public class IssueJoinCryptoTest
         // check output token for sanity (certficate valid, zero points)
         SPSEQSignatureScheme usedSpsEq = incSys.getPp().getSpsEq();
         Assertions.assertTrue(usedSpsEq.verify(pkp.getPk().getPkSpsEq(), testOutput.getSignature(), testOutput.getCommitment0(), testOutput.getCommitment1()));
-        Assertions.assertTrue(testOutput.getPoints().asInteger().compareTo(BigInteger.ZERO) == 0);
+        Assertions.assertEquals(testOutput.getPoints().asInteger().compareTo(BigInteger.ZERO), 0);
     }
 }
