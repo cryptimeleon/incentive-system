@@ -43,7 +43,7 @@ android {
 dependencies {
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation 'androidx.core:core-ktx:1.5.0'
+    implementation 'androidx.core:core-ktx:1.6.0'
     implementation 'androidx.appcompat:appcompat:1.3.0'
     implementation 'com.google.android.material:material:1.3.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
@@ -59,7 +59,7 @@ dependencies {
     implementation 'com.squareup.retrofit2:converter-scalars:2.9.0'
 
     // Cryptimeleon
-    implementation 'org.cryptimeleon.incentive:crypto'
+    implementation 'org.cryptimeleon.incentive:crypto:1.0.0'
 
     // Logging
     implementation 'com.jakewharton.timber:timber:4.7.1'
