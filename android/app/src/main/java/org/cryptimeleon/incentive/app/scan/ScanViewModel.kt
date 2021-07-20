@@ -1,8 +1,8 @@
 package org.cryptimeleon.incentive.app.scan
 
 import android.icu.text.NumberFormat
-import android.os.Build
-import androidx.annotation.RequiresApi
+import android.util.Base64.DEFAULT
+import android.util.Base64.decode
 import androidx.lifecycle.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -38,7 +38,8 @@ class ScanViewModel : ViewModel() {
     }
 
     private val _amount = MutableLiveData(1)
-    val priceSingle = Transformations.map(_priceSingle) { currencyFormat.format(it / 100.0) }
+    val priceSingle =
+        Transformations.map(_priceSingle) { it?.let { currencyFormat.format(it / 100.0) } }
     val priceTotal: LiveData<String> = MediatorLiveData<String>()
         .apply {
             fun update() {
@@ -52,13 +53,12 @@ class ScanViewModel : ViewModel() {
             update()
         }
 
-    @RequiresApi(Build.VERSION_CODES.O)
     fun setBarcode(barcodeStr: String) {
         Timber.i(barcodeStr)
         val barcode: UUID
         try {
             // Barcode is base64 encoded UUID, parse back to UUID
-            val bytes = Base64.getDecoder().decode(barcodeStr)
+            val bytes = decode(barcodeStr, DEFAULT)
             val hex = String.format("%040x", BigInteger(1, bytes)).takeLast(32)
             val uuid = StringBuilder(hex)
                 .insert(20, '-')
