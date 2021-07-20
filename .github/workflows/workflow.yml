@@ -45,7 +45,7 @@ jobs:
           java-version: '11'
           java-package: jdk
           architecture: x64
-      - name: Build crypto
+      - name: Build services
         run: |
           pushd services
           ./gradlew build
@@ -59,7 +59,7 @@ jobs:
           java-version: '11'
           java-package: jdk
           architecture: x64
-      - name: Build crypto
+      - name: Build android app
         run: |
           pushd android
           ./gradlew build
