@@ -1,12 +1,12 @@
-rootProject.name = 'incentivesystem'
-
-include 'issue'
-include 'credit'
-include 'basketserver'
-include 'cryptoprotocol'
-include 'client'
-include 'dsprotectionservice'
-
 includeBuild "../math"
 includeBuild "../craco"
 
+rootProject.name = 'incentive'
+
+include ':services:issue'
+include ':services:credit'
+include ':services:basket'
+include ':services:client'
+include ':crypto'
+// include ':app'
+include ':services:dsprotectionservice'

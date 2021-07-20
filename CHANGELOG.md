@@ -7,6 +7,9 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Next Release
 
+- Restructure project and build. Merge (private) app repository into this repo. Rename `cryptoprotocol` to `crypto`, `basketserver` to `basket`, and package `incentivesystem` to `incentive` [#41](https://github.com/cryptimeleon/incentive-system/pull/41)
+- Add benchmark to cryptoprotocols and mcl support [#37](https://github.com/cryptimeleon/incentive-system/pull/37)
+- Make cryptoprotocols compatible with android [#39](https://github.com/cryptimeleon/incentive-system/pull/39)
 - Add issue-join protocol [#30](https://github.com/cryptimeleon/incentive-system/pull/30)
 - Add spend-deduct protocol and include PRF to credit-earn [#28](https://github.com/cryptimeleon/incentive-system/pull/28)
 - Upgrade to Java 16 and gradle 7 for compatibility with Spring Boot [#31](https://github.com/cryptimeleon/incentive-system/pull/31)
@@ -19,6 +22,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Add basic crypto-entities (public parameters, user/provider keys, token,
   ...) [#11](https://github.com/upbcuk/incentive-services/pull/11)
 - Add data classes for token, keys and public parameters and change structure of crypto package [#16](https://github.com/upbcuk/incentive-services/pull/18)
+- Write integration test for all three cryptographic protocols (Issue-Join, Credit-Earn, Spend-Deduct) [#35](https://github.com/cryptimeleon/incentive-system/pull/35)
 
 ## [0.4.0] - 2021-02-03
 
