@@ -11,4 +11,8 @@
     <string name="user_secret_key">User Secret Key</string>
     <string name="provider_public_key">Provider Public Key</string>
     <string name="public_parameters">Public Parameters</string>
+    <string name="scan">Scan</string>
+    <string name="add_to_basket">Add to Basket</string>
+    <string name="total">Total:</string>
+    <string name="price">Price:</string>
 </resources>

@@ -11,10 +11,10 @@
         android:icon="@drawable/ic_outline_redeem_24"
         android:title="@string/rewards" />
     <item
-        android:id="@+id/page_shopping"
+        android:id="@+id/scanFragment"
         android:enabled="true"
         android:icon="@drawable/ic_outline_shopping_cart_24"
-        android:title="@string/shopping" />
+        android:title="@string/scan" />
     <item
         android:id="@+id/benchmark_fragment"
         android:enabled="true"

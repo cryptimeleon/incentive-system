@@ -34,4 +34,9 @@
         android:id="@+id/settingsFragment"
         android:name="org.cryptimeleon.incentive.app.settings.SettingsFragment"
         android:label="SettingsFragment" />
+    <fragment
+        android:id="@+id/scanFragment"
+        android:name="org.cryptimeleon.incentive.app.scan.ScanFragment"
+        android:label="fragment_scan"
+        tools:layout="@layout/fragment_scan" />
 </navigation>

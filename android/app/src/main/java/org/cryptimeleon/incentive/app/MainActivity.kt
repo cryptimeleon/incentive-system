@@ -27,7 +27,12 @@ class MainActivity : AppCompatActivity() {
 
         // Setup NavBar with navigation, set these as top level entities (no up button)
         val appBarConfiguration = AppBarConfiguration(
-            setOf(R.id.dashboardFragment, R.id.benchmark_fragment, R.id.settingsFragment)
+            setOf(
+                R.id.dashboardFragment,
+                R.id.benchmark_fragment,
+                R.id.settingsFragment,
+                R.id.scanFragment
+            )
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
 
