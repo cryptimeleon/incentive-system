@@ -2,26 +2,26 @@ package org.cryptimeleon.incentivesystem.dsprotectionservice;
 
 import org.cryptimeleon.incentivesystem.dsprotectionservice.dummy.Employee;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.dummy.EmployeeRepository;
+import org.cryptimeleon.incentivesystem.dsprotectionservice.storage.DsidRepository;
+import org.cryptimeleon.incentivesystem.dsprotectionservice.storage.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.core.env.Environment;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.naming.Context;
-import javax.naming.InitialContext;
-import javax.sql.DataSource;
-import java.sql.Connection;
-import java.sql.ResultSet;
+
 import java.util.List;
 
 @RestController
 public class DsprotectionserviceController {
     @Autowired
-    EmployeeRepository employeeRepository;
+    EmployeeRepository employeeRepository; // only for test
+
+    @Autowired
+    DsidRepository dsidRepository;
+
+    @Autowired
+    TransactionRepository transactionRepository;
 
     @RequestMapping("/")
     public String hello()
@@ -29,19 +29,17 @@ public class DsprotectionserviceController {
         return "We are in the process of constructing an awesome double-spending protection service here. Please be patient :)";
     }
 
-    @RequestMapping(value = "/save", params = {"id", "name"})
-    public String save(
+    @RequestMapping(value = "/adddsid", params = {"encodeddsid"})
+    public String addDsID(
             @RequestParam(value = "id") long id,
-            @RequestParam(value = "name") String name
+            @RequestParam(value = "encodeddsid") String encodedDsID
     ) {
-        employeeRepository.save(new Employee(id, name));
-        return "Successfully inserted new employee!";
+        return "wip";
     }
 
     @RequestMapping("/select")
     public String select()
     {
-        List<Employee> employees = (List<Employee>) employeeRepository.findAll();
-        return employees.toString();
+        return "wip";
     }
 }

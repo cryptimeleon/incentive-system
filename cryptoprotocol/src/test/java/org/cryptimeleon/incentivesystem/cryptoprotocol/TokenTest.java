@@ -19,7 +19,7 @@ public class TokenTest {
     @Test
     void testTokenSerialization() {
         var pp = IncentiveSystem.setup(128, Setup.BilinearGroupChoice.Debug);
-        var incentiveSystem = new IncentiveSystem(pp);
+        var incentiveSystem = new IncentiveSystem(pp, null);
         var providerKeyPair = incentiveSystem.generateProviderKeys();
 
         // Create a dummy token.

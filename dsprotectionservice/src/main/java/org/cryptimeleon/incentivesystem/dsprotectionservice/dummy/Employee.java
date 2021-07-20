@@ -1,7 +1,5 @@
 package org.cryptimeleon.incentivesystem.dsprotectionservice.dummy;
 
-import lombok.Value;
-
 import javax.persistence.*;
 
 @Entity

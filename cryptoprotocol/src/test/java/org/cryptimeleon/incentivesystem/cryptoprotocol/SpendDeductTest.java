@@ -16,7 +16,7 @@ public class SpendDeductTest {
     @Test
     void testSuccessFullSpendDeduct() {
         var pp = IncentiveSystem.setup(128, Setup.BilinearGroupChoice.Debug);
-        var incentiveSystem = new IncentiveSystem(pp);
+        var incentiveSystem = new IncentiveSystem(pp, null);
         var providerKeyPair = incentiveSystem.generateProviderKeys();
         var userKeyPair = incentiveSystem.generateUserKeys();
         var zp = pp.getBg().getZn();

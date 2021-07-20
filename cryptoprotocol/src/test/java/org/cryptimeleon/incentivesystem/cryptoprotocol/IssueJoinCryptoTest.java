@@ -33,7 +33,7 @@ public class IssueJoinCryptoTest
         logger.info("Setting up the incentive system and generating keys.");
 
         // create incentive system instance with fresh pp
-        var incSys = new IncentiveSystem(IncentiveSystem.setup(128, Setup.BilinearGroupChoice.Debug));
+        var incSys = new IncentiveSystem(IncentiveSystem.setup(128, Setup.BilinearGroupChoice.Debug), null);
 
         // generate a provider key pair
         var pkp = incSys.generateProviderKeys();

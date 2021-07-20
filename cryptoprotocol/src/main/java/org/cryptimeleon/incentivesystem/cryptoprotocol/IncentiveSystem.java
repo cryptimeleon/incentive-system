@@ -44,8 +44,12 @@ public class IncentiveSystem {
     // public parameters
     private final IncentivePublicParameters pp;
 
-    public IncentiveSystem(IncentivePublicParameters pp) {
+    // interface for double spending db connectivity
+    private DatabaseHandler dbHandler;
+
+    public IncentiveSystem(IncentivePublicParameters pp, DatabaseHandler dbHandler) {
         this.pp = pp;
+        this.dbHandler = dbHandler;
     }
 
     /**
@@ -623,7 +627,7 @@ public class IncentiveSystem {
      */
     public void dbSync(ZnElement tid, ZnElement gamma, GroupElement dsid, DoubleSpendingTag dsTag, BigInteger spendAmount)
     {
-        // TODO: add parameter providing the URL of the double-spending protection service endpoint
+
     }
 
     /**
