@@ -6,7 +6,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import kotlinx.coroutines.*
+import org.cryptimeleon.incentive.app.network.BasketApi
 import org.cryptimeleon.incentive.app.network.InfoApi
+import org.cryptimeleon.incentive.app.repository.basket.Basket
+import org.cryptimeleon.incentive.app.repository.basket.BasketDatabase
 import org.cryptimeleon.incentive.app.repository.crypto.CryptoRepository
 import timber.log.Timber
 import java.util.*
@@ -27,6 +30,7 @@ class SetupViewModel(
     private val uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
     private val _setupState = MutableLiveData(SetupState.LOADING_PP)
     private val cryptoRepository = CryptoRepository.getInstance(application.applicationContext)
+    private val basketDatabase = BasketDatabase.getInstance(application.applicationContext)
 
     private val _navigateToInfo = MutableLiveData(false)
     val navigateToInfo: LiveData<Boolean>
@@ -79,6 +83,21 @@ class SetupViewModel(
                 Timber.i("PPK: %s", ppkResponse.body()!!)
 
                 cryptoRepository.setup(ppResponse.body()!!, ppkResponse.body()!!)
+
+                var basket: Basket? = basketDatabase.basketDatabaseDao().getBasket()
+                if (basket == null) {
+                    val basketResponse = BasketApi.retrofitService.getNewBasket()
+                    if (basketResponse.isSuccessful) {
+                        basket = Basket(basketResponse.body()!!)
+                        basketDatabase.basketDatabaseDao().setBasket(basket)
+                    }
+                    if (basket == null) {
+                        _setupState.postValue(SetupState.ERROR)
+                        return@withContext
+                    }
+                }
+
+                Timber.i("Using basket $basket")
 
                 _setupState.postValue(SetupState.FINISHED)
                 Thread.sleep(200)
