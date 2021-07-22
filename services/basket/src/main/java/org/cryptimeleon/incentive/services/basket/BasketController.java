@@ -67,10 +67,10 @@ public class BasketController {
     }
 
     /**
-     * Query shopping item by id
+     * Query shopping item by id, e.g. EAN13
      */
     @GetMapping("/items/{id}")
-    ResponseEntity<Item> getBasketItemById(@PathVariable UUID id) {
+    ResponseEntity<Item> getBasketItemById(@PathVariable String id) {
         var item = basketService.getItem(id);
         if (item != null) {
             return new ResponseEntity<>(item, HttpStatus.OK);
@@ -123,7 +123,7 @@ public class BasketController {
      * Removes an item from the basket.
      */
     @DeleteMapping("/basket/items")
-    void deleteItem(@RequestHeader UUID basketId, @RequestParam UUID itemId) throws BasketServiceException {
+    void deleteItem(@RequestHeader UUID basketId, @RequestParam String itemId) throws BasketServiceException {
         basketService.deleteItemFromBasket(basketId, itemId);
     }
 

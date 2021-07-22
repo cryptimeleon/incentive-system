@@ -11,6 +11,6 @@ import java.util.UUID;
 @Data
 public class PutItemDto {
     UUID basketId;
-    UUID itemId;
+    String itemId;
     int count;
 }

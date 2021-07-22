@@ -95,14 +95,14 @@ public class BasketTest {
 
         // Check that correct error handling is used
         webTestClient.get()
-                .uri(uriBuilder -> uriBuilder.path("/items/{id}").build(UUID.randomUUID()))
+                .uri(uriBuilder -> uriBuilder.path("/items/{id}").build("12341234123"))
                 .exchange()
                 .expectStatus()
                 .isEqualTo(HttpStatus.NOT_FOUND);
 
         logger.info("Try adding invalid items");
         putItem(webTestClient, basketId, firstTestItem.getId(), -2, HttpStatus.UNPROCESSABLE_ENTITY);
-        putItem(webTestClient, basketId, UUID.randomUUID(), 2, HttpStatus.NOT_FOUND);
+        putItem(webTestClient, basketId, "1234123412", 2, HttpStatus.NOT_FOUND);
         var basket = queryBasket(webTestClient, basketId).getResponseBody();
         assertThat(basket.getItems()).isEmpty();
 

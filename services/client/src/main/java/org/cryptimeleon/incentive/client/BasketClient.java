@@ -55,7 +55,7 @@ public class BasketClient {
                 .bodyToMono(BasketItemDto[].class);
     }
 
-    public Mono<Void> putItemToBasket(UUID basketId, UUID itemId, int count) {
+    public Mono<Void> putItemToBasket(UUID basketId, String itemId, int count) {
         var putItemDto = new PutItemDto(basketId, itemId, count);
         return putItemToBasket(putItemDto);
     }
