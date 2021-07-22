@@ -1,9 +1,10 @@
 package org.cryptimeleon.incentive.app.scan
 
-import android.icu.text.NumberFormat
 import android.util.Base64.DEFAULT
 import android.util.Base64.decode
-import androidx.lifecycle.*
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -20,40 +21,15 @@ import java.util.*
  * scanned item, e.g. add three of these to get one for free etc.
  */
 class ScanViewModel : ViewModel() {
-    private val locale = Locale.GERMANY
-    private val currencyFormat = NumberFormat.getCurrencyInstance(locale)
     private val _barcode = MutableLiveData<UUID>()
-    private val _item = MutableLiveData<Item>()
-    val barcode = Transformations.map(_barcode) {
-        it.toString()
-    }
-
-    val title = Transformations.map(_item) {
-        _item.value?.title
-    }
-
-    // price in cents for avoiding rounding issues
-    private val _priceSingle = Transformations.map(_item) {
-        _item.value?.price
-    }
-
-    private val _amount = MutableLiveData(1)
-    val priceSingle =
-        Transformations.map(_priceSingle) { it?.let { currencyFormat.format(it / 100.0) } }
-    val priceTotal: LiveData<String> = MediatorLiveData<String>()
-        .apply {
-            fun update() {
-                val amount = _amount.value ?: return
-                val price = _priceSingle.value ?: return
-
-                this.value = currencyFormat.format(amount * price / 100.0)
-            }
-            addSource(_amount) { update() }
-            addSource(_priceSingle) { update() }
-            update()
-        }
+    val item = MutableLiveData<Item>()
+    val showItem = MutableLiveData(false)
 
     fun setBarcode(barcodeStr: String) {
+        if (showItem.value == true) {
+            return
+        }
+
         Timber.i(barcodeStr)
         val barcode: UUID
         try {
@@ -72,8 +48,9 @@ class ScanViewModel : ViewModel() {
             return
         }
 
-        if (barcode == _barcode.value) return
-
+        if (_barcode.value == barcode) {
+            return
+        }
         _barcode.value = barcode
         // query basket item from basket service and check if it exists
         viewModelScope.launch {
@@ -82,7 +59,8 @@ class ScanViewModel : ViewModel() {
                 allItems.body()?.forEach {
                     Timber.i(it.toString())
                     if (it.id == barcode) {
-                        _item.postValue(it)
+                        item.postValue(it)
+                        showItem.postValue(true)
                     }
                 } // todo replace by new basket service api call
             }
@@ -90,8 +68,8 @@ class ScanViewModel : ViewModel() {
         }
     }
 
-    fun onAmountChange(newAmount: Int) {
-        if (newAmount != _amount.value)
-            _amount.value = newAmount
+    fun showItemFinished() {
+        showItem.value = false
+        _barcode.value = null
     }
 }

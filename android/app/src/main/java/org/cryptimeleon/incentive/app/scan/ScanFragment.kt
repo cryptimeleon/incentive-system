@@ -3,19 +3,19 @@ package org.cryptimeleon.incentive.app.scan
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
+import androidx.core.os.bundleOf
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -34,7 +34,7 @@ import java.util.concurrent.Executors
  * https://developer.android.com/codelabs/camerax-getting-started#3
  * https://proandroiddev.com/create-vision-app-using-ml-kit-library-and-camerax-7bf022105604
  */
-class ScanFragment : Fragment() {
+class ScanFragment : Fragment(), ScanResultFragmentCallback {
 
     private lateinit var binding: FragmentScanBinding
     private lateinit var viewModel: ScanViewModel
@@ -54,14 +54,20 @@ class ScanFragment : Fragment() {
         )
 
         viewModel = ViewModelProvider(this).get(ScanViewModel::class.java)
+        viewModel.showItem.observe(viewLifecycleOwner) {
+            if (it == true) {
+                val bundle = bundleOf("item" to viewModel.item.value)
+                val scanResultFragment = ScanResultFragment(this)
+                scanResultFragment.arguments = bundle
+                scanResultFragment.show(
+                    (context as AppCompatActivity).supportFragmentManager,
+                    "scanResultFragment"
+                )
+            }
+        }
+
         binding.scanViewModel = viewModel
         binding.lifecycleOwner = viewLifecycleOwner
-        binding.amountPicker.wrapSelectorWheel = false
-        binding.amountPicker.setOnValueChangedListener { _, _, newVal ->
-            viewModel.onAmountChange(
-                newVal
-            )
-        }
 
         // Request camera permissions
         if (allPermissionsGranted()) {
@@ -167,6 +173,14 @@ class ScanFragment : Fragment() {
                     }
             }
         }
+    }
+
+    override fun scanResultFragmentCanceled() {
+        viewModel.showItemFinished()
+    }
+
+    override fun scanResultFragmentDismissed() {
+        viewModel.showItemFinished()
     }
 }
 

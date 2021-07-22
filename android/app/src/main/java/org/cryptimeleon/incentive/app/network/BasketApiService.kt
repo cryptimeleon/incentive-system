@@ -1,5 +1,7 @@
 package org.cryptimeleon.incentive.app.network
 
+import android.os.Parcelable
+import kotlinx.android.parcel.Parcelize
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -19,7 +21,8 @@ interface BasketApiService {
     suspend fun getAllItems(): Response<List<Item>>
 }
 
-data class Item(val id: UUID, val price: Int, val title: String)
+@Parcelize
+data class Item(val id: UUID, val price: Int, val title: String) : Parcelable
 
 object BasketApi {
     val retrofitService: BasketApiService by lazy {

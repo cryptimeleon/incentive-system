@@ -3,6 +3,7 @@ plugins {
     id 'kotlin-android'
     id 'androidx.navigation.safeargs.kotlin'
     id 'kotlin-kapt' // Without this databinding does not work correctly
+    id 'kotlin-parcelize'
 }
 
 
@@ -23,7 +24,6 @@ android {
     buildFeatures {
         dataBinding true
     }
-
     buildTypes {
         release {
             minifyEnabled false
