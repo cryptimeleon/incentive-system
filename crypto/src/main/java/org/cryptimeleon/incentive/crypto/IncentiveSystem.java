@@ -6,7 +6,6 @@ import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProof;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignatureScheme;
-import org.cryptimeleon.incentive.crypto.dsprotectionlogic.DatabaseHandler;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
@@ -42,12 +41,8 @@ public class IncentiveSystem {
     // public parameters
     private final IncentivePublicParameters pp;
 
-    // interface for double spending db connectivity
-    private DatabaseHandler dbHandler;
-
-    public IncentiveSystem(IncentivePublicParameters pp, DatabaseHandler dbHandler) {
+    public IncentiveSystem(IncentivePublicParameters pp) {
         this.pp = pp;
-        this.dbHandler = dbHandler;
     }
 
     /**
@@ -63,6 +58,7 @@ public class IncentiveSystem {
 
     /**
      * wrapper for the provider key generation method in Setup
+     *
      * @return fresh provider key pair
      */
     public ProviderKeyPair generateProviderKeys() {
@@ -71,12 +67,12 @@ public class IncentiveSystem {
 
     /**
      * wrapper for the user key generation method from Setup
+     *
      * @return fresh user key pair
      */
     public UserKeyPair generateUserKeys() {
         return Setup.userKeyGen(this.pp);
     }
-
 
 
     /**
@@ -330,7 +326,6 @@ public class IncentiveSystem {
      */
 
 
-
     /**
      * Generates a request to add value k to token.
      *
@@ -514,13 +509,13 @@ public class IncentiveSystem {
     /**
      * Given two double-spending tags belonging to a detected double-spending attempt, this algorithm computes the key material of the suspected user
      * as well as tracing information used to trace further transactions resulting from the detected double-spending attempt.
-     * @param pp public parameters of the respective incentive system instance
-     * @param dsTag tag of the first spend operation
+     *
+     * @param pp         public parameters of the respective incentive system instance
+     * @param dsTag      tag of the first spend operation
      * @param dsTagPrime tag of the second spend operation
      * @return suspected user's key material + tracing information
      */
-    public LinkOutput link(IncentivePublicParameters pp, DoubleSpendingTag dsTag, DoubleSpendingTag dsTagPrime)
-    {
+    public LinkOutput link(IncentivePublicParameters pp, DoubleSpendingTag dsTag, DoubleSpendingTag dsTagPrime) {
         // computing dsblame, DLOG of the usk of the user blamed of double-spending
         ZnElement c0 = dsTag.getC0();
         ZnElement c0Prime = dsTagPrime.getC0();
@@ -548,9 +543,10 @@ public class IncentiveSystem {
 
     /**
      * Determines whether the user with public key upk was really found guilty of double spending or whether he was wrongly accused.
-     * @param pp public parameters of the respective incentive system instance
+     *
+     * @param pp      public parameters of the respective incentive system instance
      * @param dsBlame used to verify/falsify that accused user indeed double-spended
-     * @param upk public key of user accused of double-spending
+     * @param upk     public key of user accused of double-spending
      * @return true if and only if user is found guilty of double-spending
      */
     public boolean verifyDs(IncentivePublicParameters pp, ZnElement dsBlame, UserPublicKey upk) {
@@ -558,7 +554,6 @@ public class IncentiveSystem {
     }
 
     /**
-     *
      * @param pp
      * @param dsTrace
      * @param dsTag
@@ -573,21 +568,20 @@ public class IncentiveSystem {
 
         // compute user share of ElGamal encryption secret key esk
         ZnElement[] userEskShareDigits = new ZnElement[pp.getNumEskDigits()];
-        for(int i = 0; i < pp.getNumEskDigits(); i++) {
-            for(int b = 0; b < Setup.ESK_DEC_BASE; b++) {
+        for (int i = 0; i < pp.getNumEskDigits(); i++) {
+            for (int b = 0; b < Setup.ESK_DEC_BASE; b++) {
                 // search for DLOG (i-th digit of the user share of esk), beta from paper is b in code
-                if(w.pow(b) == ctrace1.get(i).pow(dsTrace.inv()).op(ctrace2.get(i)))
-                {
+                if (w.pow(b) == ctrace1.get(i).pow(dsTrace.inv()).op(ctrace2.get(i))) {
                     userEskShareDigits[i] = usedZn.valueOf(b);
                     break;
                 }
-                throw new RuntimeException("Could not find a fitting " +  String.valueOf(i) + "-th digit for the user's share of esk.");
+                throw new RuntimeException("Could not find a fitting " + String.valueOf(i) + "-th digit for the user's share of esk.");
             }
         }
 
         // compute next dstrace
         ZnElement dsTracePrime = usedZn.getZeroElement();
-        for(int i = 0; i < pp.getNumEskDigits(); i++){
+        for (int i = 0; i < pp.getNumEskDigits(); i++) {
             dsTracePrime.add(userEskShareDigits[i].mul(usedZn.valueOf(Setup.ESK_DEC_BASE).pow(i)));
         }
         dsTracePrime.add(dsTag.getEskStarProv());
@@ -601,8 +595,6 @@ public class IncentiveSystem {
      */
 
 
-
-
     /**
      * double-spending database interface to be used by provider
      */
@@ -610,14 +602,14 @@ public class IncentiveSystem {
     /**
      * Adds a transaction's data (i.e. ID, challenge generator gamma, used token's dsid, ...) to the double-spending database.
      * Triggers further DB-side actions for tracing tokens and transactions resulting from a double-spending attempt if necessary.
-     * @param tid transaction ID
-     * @param gamma challenge generator
-     * @param dsid double-spending ID of used token
-     * @param dsTag double-spending tag of used token
+     *
+     * @param tid         transaction ID
+     * @param gamma       challenge generator
+     * @param dsid        double-spending ID of used token
+     * @param dsTag       double-spending tag of used token
      * @param spendAmount point amount spent
      */
-    public void dbSync(ZnElement tid, ZnElement gamma, GroupElement dsid, DoubleSpendingTag dsTag, BigInteger spendAmount)
-    {
+    public void dbSync(ZnElement tid, ZnElement gamma, GroupElement dsid, DoubleSpendingTag dsTag, BigInteger spendAmount) {
 
     }
 

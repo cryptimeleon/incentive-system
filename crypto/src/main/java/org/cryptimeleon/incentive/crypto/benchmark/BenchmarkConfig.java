@@ -63,6 +63,6 @@ public class BenchmarkConfig {
         this.usk = userKeys.getSk();
         this.ppk = providerKeys.getPk();
         this.psk = providerKeys.getSk();
-        this.incentiveSystem = new IncentiveSystem(pp, null);
+        this.incentiveSystem = new IncentiveSystem(pp);
     }
 }
