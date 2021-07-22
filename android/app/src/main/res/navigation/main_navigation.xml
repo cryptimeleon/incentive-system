@@ -8,12 +8,12 @@
     <fragment
         android:id="@+id/setup"
         android:name="org.cryptimeleon.incentive.app.setup.SetupFragment"
-        android:label="setup_fragment"
+        android:label="Setup"
         tools:layout="@layout/setup_fragment" />
     <fragment
         android:id="@+id/benchmark_fragment"
         android:name="org.cryptimeleon.incentive.app.benchmark.BenchmarkFragment"
-        android:label="BenchmarkFragment">
+        android:label="Benchmark">
         <action
             android:id="@+id/action_benchmark_fragment_to_benchmarkResultFragment"
             app:destination="@id/benchmarkResultFragment" />
@@ -21,7 +21,7 @@
     <fragment
         android:id="@+id/benchmarkResultFragment"
         android:name="org.cryptimeleon.incentive.app.benchmark.BenchmarkResultFragment"
-        android:label="BenchmarkResultFragment">
+        android:label="Benchmark">
         <argument
             android:name="result"
             app:argType="org.cryptimeleon.incentive.crypto.benchmark.BenchmarkResult" />
@@ -29,14 +29,14 @@
     <fragment
         android:id="@+id/dashboardFragment"
         android:name="org.cryptimeleon.incentive.app.dashboard.DashboardFragment"
-        android:label="DashboardFragment" />
+        android:label="Dashboard" />
     <fragment
         android:id="@+id/settingsFragment"
         android:name="org.cryptimeleon.incentive.app.settings.SettingsFragment"
-        android:label="SettingsFragment" />
+        android:label="Settings" />
     <fragment
         android:id="@+id/scanFragment"
         android:name="org.cryptimeleon.incentive.app.scan.ScanFragment"
-        android:label="fragment_scan"
+        android:label="Scan"
         tools:layout="@layout/fragment_scan" />
 </navigation>
