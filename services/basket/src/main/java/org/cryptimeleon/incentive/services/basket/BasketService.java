@@ -22,7 +22,7 @@ public class BasketService {
     private final ArrayList<Item> items;
     private final Map<UUID, Item> itemMap;
 
-    /*
+    /**
      * Initialize basket service with some shopping items
      */
     BasketService() {
@@ -35,8 +35,7 @@ public class BasketService {
                         new Item(UUID.fromString("b363b7fa-14b9-402b-98b2-6e7370d62595"),
                                 "Tomato",
                                 30),
-                        new Item(
-                                UUID.fromString("1f360b5f-f458-4f42-af93-50fbe8a68846"),
+                        new Item(UUID.fromString("1f360b5f-f458-4f42-af93-50fbe8a68846"),
                                 "Apple",
                                 50),
                         new Item(UUID.fromString("a785cdb7-eac4-4b28-908b-2ba18944a79e"),
@@ -141,5 +140,8 @@ public class BasketService {
         return itemMap.containsKey(itemId);
     }
 
+    public Item getItem(UUID id) {
+        return itemMap.get(id);
+    }
 }
 

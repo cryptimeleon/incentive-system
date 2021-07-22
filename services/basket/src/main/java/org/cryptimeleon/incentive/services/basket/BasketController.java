@@ -67,6 +67,18 @@ public class BasketController {
     }
 
     /**
+     * Query shopping item by id
+     */
+    @GetMapping("/items/{id}")
+    ResponseEntity<Item> getBasketItemById(@PathVariable UUID id) {
+        var item = basketService.getItem(id);
+        if (item != null) {
+            return new ResponseEntity<>(item, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    /**
      * Create a new basket
      */
     @GetMapping("/basket/new")
@@ -117,13 +129,21 @@ public class BasketController {
 
     /**
      * Sets a basket to paid.
-     * TODO add hashcode for integrity?
+     * TODO add hashcode for integrity? At which state was the basket payed? (Avoid race condition between payment add adding 'free' items to basket.
      */
     @PostMapping("/basket/pay")
     void payBasket(@RequestHeader("pay-secret") String clientPaySecret, @RequestBody PayBasketRequest payBasketRequest) throws BasketServiceException {
         if (!clientPaySecret.equals(paymentSecret)) {
             throw new BasketUnauthorizedException("You are not authorized to access '/basket/pay'!");
         }
+        basketService.payBasket(payBasketRequest.getBasketId(), payBasketRequest.getValue());
+    }
+
+    /**
+     * Sets a basket to paid, TODO for development only.
+     */
+    @PostMapping("/basket/pay-dev")
+    void payBasket(@RequestBody PayBasketRequest payBasketRequest) throws BasketServiceException {
         basketService.payBasket(payBasketRequest.getBasketId(), payBasketRequest.getValue());
     }
 
