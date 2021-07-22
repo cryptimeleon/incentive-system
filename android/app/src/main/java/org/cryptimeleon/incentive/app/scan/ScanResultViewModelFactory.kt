@@ -1,5 +1,6 @@
 package org.cryptimeleon.incentive.app.scan
 
+import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import org.cryptimeleon.incentive.app.network.Item
@@ -9,12 +10,14 @@ import org.cryptimeleon.incentive.app.network.Item
  */
 class ScanResultViewModelFactory(
     private val item: Item,
+    private val application: Application
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel?> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ScanResultViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
             return ScanResultViewModel(
-                item
+                item,
+                application
             ) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")

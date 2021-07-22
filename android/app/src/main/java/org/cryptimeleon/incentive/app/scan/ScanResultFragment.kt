@@ -44,7 +44,7 @@ class ScanResultFragment(private val scanResultFragmentCallback: ScanResultFragm
 
         viewModel = ViewModelProvider(
             this,
-            ScanResultViewModelFactory(item)
+            ScanResultViewModelFactory(item, requireActivity().application)
         ).get(ScanResultViewModel::class.java)
 
 
