@@ -1,8 +1,6 @@
 package org.cryptimeleon.incentive.crypto;
 
 
-import org.cryptimeleon.craco.prf.PrfKey;
-import org.cryptimeleon.craco.prf.zn.HashThenPrfToZn;
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.setmembership.SetMembershipPublicParameters;
 import org.cryptimeleon.craco.sig.SignatureKeyPair;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQPublicParameters;
@@ -17,15 +15,17 @@ import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserSecretKey;
 import org.cryptimeleon.math.hash.impl.SHA256HashFunction;
+import org.cryptimeleon.math.prf.PrfKey;
+import org.cryptimeleon.math.prf.zn.HashThenPrfToZn;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.groups.cartesian.GroupElementVector;
 import org.cryptimeleon.math.structures.groups.debug.DebugBilinearGroup;
 import org.cryptimeleon.math.structures.groups.elliptic.BilinearGroup;
 import org.cryptimeleon.math.structures.groups.elliptic.type3.bn.BarretoNaehrigBilinearGroup;
-import org.cryptimeleon.math.structures.groups.elliptic.type3.mcl.MclBilinearGroup;
 import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
+import org.cryptimeleon.mclwrap.bn254.MclBilinearGroup;
 
 import java.math.BigInteger;
 import java.util.stream.Collectors;
