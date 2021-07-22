@@ -1,14 +1,12 @@
 package org.cryptimeleon.incentive.app.network
 
 import android.os.Parcelable
+import com.google.gson.JsonObject
 import kotlinx.parcelize.Parcelize
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.Body
-import retrofit2.http.GET
-import retrofit2.http.PUT
-import retrofit2.http.Path
+import retrofit2.http.*
 import java.util.*
 
 
@@ -27,10 +25,13 @@ interface BasketApiService {
     suspend fun getItemById(@Path(value = "id", encoded = true) id: String): Response<Item>
 
     @PUT("basket/items")
-    suspend fun putItemToBasket(@Body basketItem: BasketItem) : Response<Unit>
+    suspend fun putItemToBasket(@Body basketItem: BasketItem): Response<Unit>
 
     @GET("basket/new")
     suspend fun getNewBasket(): Response<UUID>
+
+    @GET("basket")
+    suspend fun getBasketContent(@Header("basketId") basketId: UUID): Response<JsonObject>
 }
 
 @Parcelize

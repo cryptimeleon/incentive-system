@@ -15,4 +15,5 @@
     <string name="add_to_basket">Add to Basket</string>
     <string name="total">Total:</string>
     <string name="price">Price:</string>
+    <string name="basket">Basket</string>
 </resources>

@@ -31,7 +31,8 @@ class MainActivity : AppCompatActivity() {
                 R.id.dashboardFragment,
                 R.id.benchmark_fragment,
                 R.id.settingsFragment,
-                R.id.scanFragment
+                R.id.scanFragment,
+                R.id.basketFragment
             )
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
