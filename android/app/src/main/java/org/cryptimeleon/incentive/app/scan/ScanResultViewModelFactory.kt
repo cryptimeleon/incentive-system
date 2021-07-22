@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import org.cryptimeleon.incentive.app.network.Item
 
 /**
- * Factory required to create BenchmarkResultViewModel with parameters
+ * Factory required to create BenchmarkResultViewModel with parameters.
  */
 class ScanResultViewModelFactory(
     private val item: Item,

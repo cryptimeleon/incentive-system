@@ -13,20 +13,25 @@ import org.cryptimeleon.incentive.app.databinding.FragmentScanResultBinding
 import org.cryptimeleon.incentive.app.network.Item
 
 
-class ScanResultFragment(val scanResultFragmentCallback: ScanResultFragmentCallback) : BottomSheetDialogFragment() {
+/**
+ * Fragment holding the result of the scan.
+ * A user can choose a number of items, see the total price and add it to the basket.
+ * Is displayed as a dialog that is opened at the bottom of the screen.
+ */
+class ScanResultFragment(private val scanResultFragmentCallback: ScanResultFragmentCallback) :
+    BottomSheetDialogFragment() {
 
     private lateinit var binding: FragmentScanResultBinding
     private lateinit var viewModel: ScanResultViewModel
     private lateinit var item: Item
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
-
+    /**
+     * Setup data binding and the viewmodel when the view is created.
+     */
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding = DataBindingUtil.inflate(
             inflater,
             R.layout.fragment_scan_result,
@@ -34,6 +39,7 @@ class ScanResultFragment(val scanResultFragmentCallback: ScanResultFragmentCallb
             false
         )
 
+        // Get item that is delivered via a parcel
         item = arguments?.getParcelable("item")!!
 
         viewModel = ViewModelProvider(
@@ -42,6 +48,7 @@ class ScanResultFragment(val scanResultFragmentCallback: ScanResultFragmentCallb
         ).get(ScanResultViewModel::class.java)
 
 
+        // Observe this variable of the view model and close the dialog when it becomes true
         viewModel.closeScanResult.observe(viewLifecycleOwner) {
             if (it == true) {
                 dismiss()
@@ -56,22 +63,26 @@ class ScanResultFragment(val scanResultFragmentCallback: ScanResultFragmentCallb
         binding.amountPicker.wrapSelectorWheel = false
         binding.amountPicker.setOnValueChangedListener { _, _, it ->
             viewModel.onAmountChange(
-               it
+                it
             )
         }
 
         return binding.root
     }
 
+    /**
+     * Override onDismiss to pass information to the listener.
+     */
     override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
         scanResultFragmentCallback.scanResultFragmentDismissed()
     }
 
+    /**
+     * Override onCancel to pass information to the listener.
+     */
     override fun onCancel(dialog: DialogInterface) {
         super.onCancel(dialog)
         scanResultFragmentCallback.scanResultFragmentCanceled()
     }
-
-
 }

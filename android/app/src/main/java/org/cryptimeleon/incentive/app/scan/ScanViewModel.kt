@@ -1,9 +1,9 @@
 package org.cryptimeleon.incentive.app.scan
 
-import android.util.Base64.DEFAULT
-import android.util.Base64.decode
+import android.app.Application
+import android.widget.Toast
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -11,8 +11,6 @@ import kotlinx.coroutines.withContext
 import org.cryptimeleon.incentive.app.network.BasketApi
 import org.cryptimeleon.incentive.app.network.Item
 import timber.log.Timber
-import java.math.BigInteger
-import java.util.*
 
 /**
  * ViewModel for the ScanFragment.
@@ -20,56 +18,62 @@ import java.util.*
  * In the future, it could find related promotions based on the current basket content, tokens and
  * scanned item, e.g. add three of these to get one for free etc.
  */
-class ScanViewModel : ViewModel() {
-    private val _barcode = MutableLiveData<UUID>()
+class ScanViewModel(application: Application) : AndroidViewModel(application) {
+    private val _currentBarcode = MutableLiveData<String>()
     val item = MutableLiveData<Item>()
     val showItem = MutableLiveData(false)
 
-    fun setBarcode(barcodeStr: String) {
-        if (showItem.value == true) {
+    /**
+     * Handle a new barcode being scanned.
+     *  0. Do some checks to ensure items are only analyzed once upon showing item information
+     *  1. Query item
+     *  2. Ensure item result
+     *  3. Show item
+     *
+     *  @param barcode the scanned barcode
+     */
+    fun setBarcode(barcode: String) {
+        // Check if barcode already registered or being displayed
+        if (showItem.value == true || _currentBarcode.value == barcode || barcode == "") {
             return
         }
 
-        Timber.i(barcodeStr)
-        val barcode: UUID
-        try {
-            // Barcode is base64 encoded UUID, parse back to UUID
-            val bytes = decode(barcodeStr, DEFAULT)
-            val hex = String.format("%040x", BigInteger(1, bytes)).takeLast(32)
-            val uuid = StringBuilder(hex)
-                .insert(20, '-')
-                .insert(16, '-')
-                .insert(12, '-')
-                .insert(8, '-')
-                .toString()
-            barcode = UUID.fromString(uuid)
-        } catch (e: IllegalArgumentException) {
-            Timber.i(e)
-            return
-        }
+        _currentBarcode.value = barcode
+        Timber.i(barcode)
 
-        if (_barcode.value == barcode) {
-            return
-        }
-        _barcode.value = barcode
         // query basket item from basket service and check if it exists
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                val allItems = BasketApi.retrofitService.getAllItems()
-                allItems.body()?.forEach {
-                    Timber.i(it.toString())
-                    if (it.id == barcode) {
-                        item.postValue(it)
-                        showItem.postValue(true)
+                // Query item
+                val itemResponse = BasketApi.retrofitService.getItemById(barcode)
+
+                if (itemResponse.isSuccessful) {
+                    Timber.i(itemResponse.body().toString())
+                    item.postValue(itemResponse.body())
+                    showItem.postValue(true)
+                } else {
+                    // Handle error case
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(
+                            getApplication(),
+                            "Scanned item not found\n($barcode)",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
-                } // todo replace by new basket service api call
+                    Timber.i("Item with id $barcode not found")
+                }
             }
             // check if promotions apply or can be applied by adding some more of this item
         }
     }
 
+    /**
+     * Handle the case that the dialog closing the item was closed.
+     */
     fun showItemFinished() {
         showItem.value = false
-        _barcode.value = null
+        item.value = null
+        // Reset barcode to allow rescanning the same item after closing the dialog
+        _currentBarcode.value = ""
     }
 }

@@ -29,6 +29,9 @@ import java.util.concurrent.Executors
 
 /**
  * This fragment hosts the page for scanning items and adding them to the basket.
+ * When an item is scanned, it opens a dialog containing information about the item and allows
+ * choosing an amount and adding it to the basket. For backwards communication, it implements the
+ * ScanResultFragmentCallback.
  *
  * Based on:
  * https://developer.android.com/codelabs/camerax-getting-started#3
@@ -41,10 +44,14 @@ class ScanFragment : Fragment(), ScanResultFragmentCallback {
     private lateinit var cameraExecutor: ExecutorService
 
 
+    /**
+     * Setup view model and data binding on creating of the view.
+     */
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+
         // Inflate the layout for this fragment
         binding = DataBindingUtil.inflate(
             inflater,
@@ -54,8 +61,11 @@ class ScanFragment : Fragment(), ScanResultFragmentCallback {
         )
 
         viewModel = ViewModelProvider(this).get(ScanViewModel::class.java)
+
+        // Observer show item to start the itemResultFragment when an item was successfully scanned
         viewModel.showItem.observe(viewLifecycleOwner) {
             if (it == true) {
+                // Transfer item to the item fragment
                 val bundle = bundleOf("item" to viewModel.item.value)
                 val scanResultFragment = ScanResultFragment(this)
                 scanResultFragment.arguments = bundle
@@ -70,6 +80,7 @@ class ScanFragment : Fragment(), ScanResultFragmentCallback {
         binding.lifecycleOwner = viewLifecycleOwner
 
         // Request camera permissions
+        // TODO handle permission denial
         if (allPermissionsGranted()) {
             startCamera()
         } else {
@@ -80,12 +91,18 @@ class ScanFragment : Fragment(), ScanResultFragmentCallback {
         return binding.root
     }
 
+    /**
+     * Check whether all required permissions were granted.
+     */
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
         ContextCompat.checkSelfPermission(
             requireContext(), it
         ) == PackageManager.PERMISSION_GRANTED
     }
 
+    /**
+     * Start the camera and setup an analyzer that uses the Google ML kit for detecting barcodes.
+     */
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(requireContext())
 
@@ -120,6 +137,9 @@ class ScanFragment : Fragment(), ScanResultFragmentCallback {
         }, ContextCompat.getMainExecutor(requireContext()))
     }
 
+    /**
+     * Callback function for the result from the permission request dialog.
+     */
     override fun onRequestPermissionsResult(
         requestCode: Int, permissions: Array<String>, grantResults:
         IntArray
@@ -137,16 +157,42 @@ class ScanFragment : Fragment(), ScanResultFragmentCallback {
         }
     }
 
+    /**
+     * Turn off the camera when the fragment is destroyed.
+     */
     override fun onDestroy() {
         super.onDestroy()
         cameraExecutor.shutdown()
     }
 
+    /**
+     * Function implementing the callback interface for the result fragment.
+     * Is called when the result fragment was canceled.
+     */
+    override fun scanResultFragmentCanceled() {
+        viewModel.showItemFinished()
+    }
+
+    /**
+     * Function implementing the callback interface for the result fragment.
+     * Is called when the result fragment was dismissed.
+     */
+    override fun scanResultFragmentDismissed() {
+        viewModel.showItemFinished()
+    }
+
+
+    /**
+     * Companion object with the required permissions.
+     */
     companion object {
         private const val REQUEST_CODE_PERMISSIONS = 10
         private val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.CAMERA)
     }
 
+    /**
+     * Simple image Analyzer for detecting barcodes.
+     */
     class BarcodeAnalyzer(private val barcodeListener: BarcodeListener) : ImageAnalysis.Analyzer {
         // Get an instance of BarcodeScanner
         private val scanner = BarcodeScanning.getClient()
@@ -173,14 +219,6 @@ class ScanFragment : Fragment(), ScanResultFragmentCallback {
                     }
             }
         }
-    }
-
-    override fun scanResultFragmentCanceled() {
-        viewModel.showItemFinished()
-    }
-
-    override fun scanResultFragmentDismissed() {
-        viewModel.showItemFinished()
     }
 }
 
