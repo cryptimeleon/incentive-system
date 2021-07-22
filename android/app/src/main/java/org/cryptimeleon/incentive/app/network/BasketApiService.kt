@@ -5,8 +5,11 @@ import kotlinx.parcelize.Parcelize
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.PUT
 import retrofit2.http.Path
+import java.util.*
 
 
 private const val BASE_URL = "https://incentives.cs.upb.de/basket/"
@@ -22,10 +25,19 @@ interface BasketApiService {
 
     @GET("items/{id}")
     suspend fun getItemById(@Path(value = "id", encoded = true) id: String): Response<Item>
+
+    @PUT("basket/items")
+    suspend fun putItemToBasket(@Body basketItem: BasketItem) : Response<Unit>
+
+    @GET("basket/new")
+    suspend fun getNewBasket(): Response<UUID>
 }
 
 @Parcelize
 data class Item(val id: String, val price: Int, val title: String) : Parcelable
+
+@Parcelize
+data class BasketItem(val basketId: UUID, val count: Int, val itemId: String) : Parcelable
 
 object BasketApi {
     val retrofitService: BasketApiService by lazy {
