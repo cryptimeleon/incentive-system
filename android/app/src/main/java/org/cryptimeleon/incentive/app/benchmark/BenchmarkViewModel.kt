@@ -1,11 +1,11 @@
 package org.cryptimeleon.incentive.app.benchmark
 
 import android.app.Application
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MediatorLiveData
-import androidx.lifecycle.MutableLiveData
-import kotlinx.coroutines.*
+import androidx.lifecycle.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.yield
 import org.cryptimeleon.incentive.crypto.IncentiveSystem
 import org.cryptimeleon.incentive.crypto.Setup
 import org.cryptimeleon.incentive.crypto.benchmark.Benchmark
@@ -14,7 +14,7 @@ import org.cryptimeleon.incentive.crypto.benchmark.BenchmarkResult
 import org.cryptimeleon.incentive.crypto.benchmark.BenchmarkState
 import timber.log.Timber
 
-private const val BENCHMARK_ITERATIONS = 100
+private const val BENCHMARK_ITERATIONS = 10
 private val BENCHMARK_GROUP = Setup.BilinearGroupChoice.Herumi_MCL
 const val SECURITY_PARAMETER = 128
 
@@ -31,9 +31,6 @@ enum class BenchmarkViewState {
  * ViewModel for Benchmark, runs Benchmark in a Coroutine and triggers navigation to BenchmarkResultFragment when finished
  */
 class BenchmarkViewModel(application: Application) : AndroidViewModel(application) {
-
-    private val viewModelJob = Job()
-    private val uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
 
     private val _benchmarkRunning = MutableLiveData(false)
     val benchmarkRunning: LiveData<Boolean>
@@ -87,7 +84,7 @@ class BenchmarkViewModel(application: Application) : AndroidViewModel(applicatio
     fun runBenchmark() {
         _benchmarkRunning.value = true
 
-        uiScope.launch {
+        viewModelScope.launch {
             withContext(Dispatchers.Default) {
                 Timber.i("Generating public parameters")
                 _currentState.postValue(BenchmarkViewState.SETUP)
@@ -115,6 +112,9 @@ class BenchmarkViewModel(application: Application) : AndroidViewModel(applicatio
                     userKeyPair.sk
                 )
 
+                // Stop at this point if cancelled
+                yield()
+
                 // Run benchmark and use Consumer for ui feedback
                 benchmarkResult = Benchmark.runBenchmark(benchmarkConfig) { state, iteration ->
                     when (state) {
@@ -128,8 +128,12 @@ class BenchmarkViewModel(application: Application) : AndroidViewModel(applicatio
                             BenchmarkViewState.SPEND_DEDUCT
                         )
                     }
+
                     _iteration.postValue(iteration)
                 }
+
+                // Stop at this point if cancelled
+                yield()
 
                 // Log the result arrays for debugging
                 Timber.i(benchmarkResult.joinRequestTime.toString())
@@ -160,8 +164,7 @@ class BenchmarkViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     override fun onCleared() {
-        viewModelJob.cancel()
-        Timber.i("Benchmark canceled")
         super.onCleared()
+        Timber.i("BenchmarkViewModel cleared")
     }
 }

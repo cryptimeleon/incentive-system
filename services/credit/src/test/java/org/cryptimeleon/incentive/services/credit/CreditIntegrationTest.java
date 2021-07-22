@@ -54,7 +54,7 @@ public class CreditIntegrationTest {
         // Setup basket repository mock
         var earnAmount = 42;
         var testBasket = new BasketDto();
-        var items = Collections.singletonMap(UUID.randomUUID(), earnAmount);
+        var items = Collections.singletonMap("1234123412", earnAmount);
         testBasket.setBasketID(UUID.randomUUID());
         testBasket.setPaid(true);
         testBasket.setValue(earnAmount);
@@ -94,7 +94,7 @@ public class CreditIntegrationTest {
         // Construct unpaid basket and add to mock
         var earnAmount = 42;
         var testBasket = new BasketDto();
-        var items = Collections.singletonMap(UUID.randomUUID(), earnAmount);
+        var items = Collections.singletonMap("1234123412", earnAmount);
         testBasket.setBasketID(UUID.randomUUID());
         testBasket.setPaid(false);  // Unpaid baskets cannot be redeemed
         testBasket.setValue(earnAmount);

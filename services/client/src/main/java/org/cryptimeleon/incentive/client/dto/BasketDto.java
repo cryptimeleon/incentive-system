@@ -12,7 +12,7 @@ import java.util.UUID;
 @NoArgsConstructor
 public class BasketDto {
     private UUID basketID;
-    private Map<UUID, Integer> items;
+    private Map<String, Integer> items;
     private boolean paid;
     private boolean redeemed;
     private String redeemRequest;
