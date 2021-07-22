@@ -1,0 +1,9 @@
+FROM openjdk:11-jdk-slim
+ARG DEPENDENCY
+ARG APPLICATION
+ENV ENTRYPOINT_APP_ENV=$APPLICATION
+COPY ${DEPENDENCY}/BOOT-INF/lib /app/lib
+COPY ${DEPENDENCY}/META-INF /app/META-INF
+COPY ${DEPENDENCY}/BOOT-INF/classes /app
+COPY ${DEPENDENCY}/../../../jni/libmcljava.so /usr/lib/libmcljava.so
+ENTRYPOINT java -cp app:app/lib/* ${ENTRYPOINT_APP_ENV}

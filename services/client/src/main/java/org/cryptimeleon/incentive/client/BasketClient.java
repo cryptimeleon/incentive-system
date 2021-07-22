@@ -7,10 +7,13 @@ import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
-
+/**
+ * Client calls for info service.
+ * Can be used for testing and prototyping.
+ */
 public class BasketClient {
 
-    /*
+    /**
      * Webclient configured with the url of the basket service
      */
     private WebClient basketClient;
@@ -19,7 +22,7 @@ public class BasketClient {
         this.basketClient = WebClientHelper.buildWebClient(basketUrl);
     }
 
-    /*
+    /**
      * Sends a request to the / endpoint which is configured to return the name of the service
      * This can be used to test whether a service is alive and reachable under some url
      */

@@ -8,6 +8,9 @@ dependencies {
     implementation "io.springfox:springfox-boot-starter:3.0.0"
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    implementation 'org.cryptimeleon.incentive:crypto'
+    implementation project(":client")
 }
 
 test {

@@ -89,7 +89,6 @@ public class Benchmark {
             feedbackFunction.accept(BenchmarkState.ISSUE_JOIN, i);
             start = Instant.now();
             joinRequest = incentiveSystem.generateJoinRequest(
-                    pp,
                     ppk,
                     userKeyPair
             );
@@ -98,7 +97,6 @@ public class Benchmark {
             start = Instant.now();
             joinResponse =
                     incentiveSystem.generateJoinRequestResponse(
-                            pp,
                             providerKeyPair,
                             upk.getUpk(),
                             joinRequest
@@ -107,7 +105,6 @@ public class Benchmark {
             tJoinResponse[i] = Duration.between(start, finish).toNanos();
             start = Instant.now();
             token = incentiveSystem.handleJoinRequestResponse(
-                    pp,
                     ppk,
                     userKeyPair,
                     joinRequest,

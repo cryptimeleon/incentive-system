@@ -7,6 +7,8 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Next Release
 
+- Add mcl support to docker images, separate the gradle builds and add first setup workflow to app [#47](https://github.com/upbcuk/incentive-services/pull/47)
+- Add docker-compose files for server configuration and local deployment, add info service that provides pp and provider keys, and incorporate crypto into credit and issue service [#43](https://github.com/upbcuk/incentive-services/pull/43)
 - Restructure project and build. Merge (private) app repository into this repo. Rename `cryptoprotocol` to `crypto`, `basketserver` to `basket`, and package `incentivesystem` to `incentive` [#41](https://github.com/cryptimeleon/incentive-system/pull/41)
 - Add benchmark to cryptoprotocols and mcl support [#37](https://github.com/cryptimeleon/incentive-system/pull/37)
 - Make cryptoprotocols compatible with android [#39](https://github.com/cryptimeleon/incentive-system/pull/39)

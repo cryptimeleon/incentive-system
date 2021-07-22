@@ -1,0 +1,4 @@
+rootProject.name = 'incentive-app'
+
+includeBuild '../crypto'
+include ":app"

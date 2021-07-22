@@ -9,13 +9,13 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 
-/*
- * https://github.com/springfox/springfox/issues/1959
+/**
+ * This generates a swagger json file to the api folder.
+ * See https://github.com/springfox/springfox/issues/1959 for details.
  */
 @SpringBootTest
 public class GenerateSwagger {
@@ -30,7 +30,7 @@ public class GenerateSwagger {
                 .andDo((result) -> {
                     var swaggerPath = Paths.get("./../api/issue.json");
                     Files.createDirectories(swaggerPath.getParent());
-                    Files.write(swaggerPath, result.getResponse().getContentAsString().getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE);
+                    Files.writeString(swaggerPath, result.getResponse().getContentAsString(), StandardOpenOption.CREATE);
                 });
     }
 }
