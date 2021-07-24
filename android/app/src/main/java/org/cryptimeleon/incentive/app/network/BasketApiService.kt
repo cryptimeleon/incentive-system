@@ -36,12 +36,19 @@ interface BasketApiService {
     @GET("basket/new")
     suspend fun getNewBasket(): Response<UUID>
 
+    // This endpoint is for developing only and will be replaced by some payment process in the future
+    @POST("basket/pay-dev")
+    suspend fun payBasket(@Body payBody: PayBody): Response<Unit>
+
     @GET("basket")
     suspend fun getBasketContent(@Header("basketId") basketId: UUID): Response<Basket>
 
     @DELETE("basket")
     suspend fun deleteBasket(@Header("basketId") basketId: UUID): Response<Unit>
+
 }
+
+data class PayBody(val basketId: UUID, val value: Int)
 
 @Parcelize
 data class Item(val id: String, val price: Int, val title: String) : Parcelable

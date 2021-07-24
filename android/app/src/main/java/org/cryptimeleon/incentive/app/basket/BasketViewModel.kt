@@ -13,6 +13,7 @@ import org.cryptimeleon.incentive.app.database.basket.BasketDatabase
 import org.cryptimeleon.incentive.app.network.Basket
 import org.cryptimeleon.incentive.app.network.BasketApi
 import org.cryptimeleon.incentive.app.network.BasketItem
+import org.cryptimeleon.incentive.app.network.PayBody
 import timber.log.Timber
 import java.util.*
 import kotlin.collections.ArrayList
@@ -142,6 +143,27 @@ class BasketViewModel(application: Application) : AndroidViewModel(application) 
                     BasketDatabase.getInstance(getApplication()).basketDatabaseDao()
                         .insertBasket(basket)
                     loadBasketContent(basket.basketId)
+                }
+            }
+        }
+    }
+
+    fun payAndRedeem() {
+        // TODO continue working on this functionality
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                val basketId = basket.value!!.basketId
+                val payResponse =
+                    BasketApi.retrofitService.payBasket(PayBody(basketId, basket.value!!.value))
+                if (payResponse.isSuccessful) {
+                    BasketDatabase.getInstance(getApplication()).basketDatabaseDao()
+                        .setActive(false, basketId)
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(
+                            getApplication(), "Successfully paid basket!",
+                            Toast.LENGTH_LONG
+                        )
+                    }
                 }
             }
         }
