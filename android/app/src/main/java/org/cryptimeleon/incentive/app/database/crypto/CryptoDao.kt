@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.app.repository.crypto
+package org.cryptimeleon.incentive.app.database.crypto
 
 import androidx.room.Dao
 import androidx.room.Insert

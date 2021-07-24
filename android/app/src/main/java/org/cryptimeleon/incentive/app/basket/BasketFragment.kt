@@ -5,12 +5,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import org.cryptimeleon.incentive.app.BaseFragment
 import org.cryptimeleon.incentive.app.R
 import org.cryptimeleon.incentive.app.databinding.FragmentBasketBinding
 
-class BasketFragment : Fragment() {
+class BasketFragment : BaseFragment() {
 
     private lateinit var binding: FragmentBasketBinding
     private lateinit var viewModel: BasketViewModel
@@ -32,17 +32,22 @@ class BasketFragment : Fragment() {
             false
         )
 
+        binding.basketItemList.adapter = BasketItemRecyclerViewAdapter(
+            BasketItemRecyclerViewAdapter.OnClickListener(
+                {
+                    viewModel.setItemCount(it.item.id, it.count + 1)
+                },
+                {
+                    viewModel.setItemCount(it.item.id, it.count - 1)
+                }
+            )
+        )
+
         viewModel = ViewModelProvider(this).get(BasketViewModel::class.java)
 
         binding.basketViewModel = viewModel
         binding.lifecycleOwner = viewLifecycleOwner
 
         return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        // TODO this should not depend on the apps life cycle
-        viewModel.loadBasketContent()
     }
 }

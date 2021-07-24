@@ -16,4 +16,6 @@
     <string name="total">Total:</string>
     <string name="price">Price:</string>
     <string name="basket">Basket</string>
+    <string name="price_single">Price Single</string>
+    <string name="price_total">Price Total</string>
 </resources>

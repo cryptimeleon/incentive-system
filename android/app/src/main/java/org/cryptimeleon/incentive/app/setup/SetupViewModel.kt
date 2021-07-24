@@ -6,11 +6,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import kotlinx.coroutines.*
+import org.cryptimeleon.incentive.app.database.basket.Basket
+import org.cryptimeleon.incentive.app.database.basket.BasketDatabase
+import org.cryptimeleon.incentive.app.database.crypto.CryptoRepository
 import org.cryptimeleon.incentive.app.network.BasketApi
 import org.cryptimeleon.incentive.app.network.InfoApi
-import org.cryptimeleon.incentive.app.repository.basket.Basket
-import org.cryptimeleon.incentive.app.repository.basket.BasketDatabase
-import org.cryptimeleon.incentive.app.repository.crypto.CryptoRepository
 import timber.log.Timber
 import java.util.*
 
@@ -85,13 +85,12 @@ class SetupViewModel(
                 cryptoRepository.setup(ppResponse.body()!!, ppkResponse.body()!!)
 
                 var basket: Basket? = basketDatabase.basketDatabaseDao().getBasket()
-                if (basket == null) {
+                if (basket == null || !basket.isActive) {
                     val basketResponse = BasketApi.retrofitService.getNewBasket()
                     if (basketResponse.isSuccessful) {
-                        basket = Basket(basketResponse.body()!!)
-                        basketDatabase.basketDatabaseDao().setBasket(basket)
-                    }
-                    if (basket == null) {
+                        basket = Basket(basketResponse.body()!!, true)
+                        basketDatabase.basketDatabaseDao().insertBasket(basket)
+                    } else {
                         _setupState.postValue(SetupState.ERROR)
                         return@withContext
                     }

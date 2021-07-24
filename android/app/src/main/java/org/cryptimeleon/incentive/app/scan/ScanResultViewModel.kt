@@ -10,7 +10,7 @@ import kotlinx.coroutines.withContext
 import org.cryptimeleon.incentive.app.network.BasketApi
 import org.cryptimeleon.incentive.app.network.BasketItem
 import org.cryptimeleon.incentive.app.network.Item
-import org.cryptimeleon.incentive.app.repository.basket.BasketDatabase
+import org.cryptimeleon.incentive.app.database.basket.BasketDatabase
 import timber.log.Timber
 import java.util.*
 

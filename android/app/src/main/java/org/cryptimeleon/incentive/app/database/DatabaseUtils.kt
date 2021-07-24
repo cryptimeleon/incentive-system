@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.app.repository
+package org.cryptimeleon.incentive.app.database
 
 import androidx.room.TypeConverter
 import java.util.*

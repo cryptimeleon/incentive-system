@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.app.repository.crypto
+package org.cryptimeleon.incentive.app.database.crypto
 
 import android.content.Context
 import org.cryptimeleon.incentive.crypto.IncentiveSystem
