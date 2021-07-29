@@ -9,22 +9,29 @@ configurations {
 	}
 }
 
+// specifies which source repositories are used to resolve dependencies
 repositories {
 	mavenCentral()
 }
 
+// lists all dependencies of the project in the format "configuration 'groupId:artifactId:version'"
 dependencies {
+	// testing and convenience
+	implementation 'junit:junit:4.12'
+	compileOnly 'org.projectlombok:lombok' // TODO: ask Paul what this is useful for, why needed twice? isnt annotation processor enough
+	annotationProcessor 'org.projectlombok:lombok'
+
+	// spring boot dependencies
 	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'junit:junit:4.12'
-	implementation 'junit:junit:4.12'
-	compileOnly 'org.projectlombok:lombok'
-	runtimeOnly 'com.h2database:h2'
-	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
-	implementation project(':crypto')
+	// database implementations
+	runtimeOnly 'com.h2database:h2'
+
+	// cryptimeleon dependencies
+	implementation 'org.cryptimeleon.incentive:crypto'
 }
 
 test {

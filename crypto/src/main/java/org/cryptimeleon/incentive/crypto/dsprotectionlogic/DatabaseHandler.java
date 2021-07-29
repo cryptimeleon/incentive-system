@@ -21,6 +21,7 @@ public class DatabaseHandler
     public void addTransactionNode(ZnElement tid, ZnElement gamma, BigInteger k, DoubleSpendingTag dstag){
         // marshall the data as a JSON TODO: continue here
 
+
         // encode the obtained JSON (Base64URL)
 
         // make a HTTP request to the double spending protection database service with the encoded transaction as a GET parameter
