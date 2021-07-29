@@ -12,10 +12,10 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
 @Value
 @AllArgsConstructor
 public class DoubleSpendingTag {
-    Zn.ZnElement c0;
-    Zn.ZnElement c1;
-    Zn.ZnElement gamma;
-    Zn.ZnElement eskStarProv;
+    Zn.ZnElement c0; // challenge for deriving the user secret key
+    Zn.ZnElement c1; // challenge for deriving the encryption secret key
+    Zn.ZnElement gamma; // challenge generation helper value
+    Zn.ZnElement eskStarProv; // provider share for ElGamal encryption secret key
     GroupElementVector ctrace0;
     GroupElementVector ctrace1;
 }

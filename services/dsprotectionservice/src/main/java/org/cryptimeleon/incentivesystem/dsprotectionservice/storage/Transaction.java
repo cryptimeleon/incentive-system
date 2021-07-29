@@ -8,6 +8,8 @@ import java.math.BigInteger;
 
 /**
  * Data class representing a Spend-transaction.
+ * Needs ID attribute and some annotations to be processable by Hibernate (ORM framework).
+ * The counterpart transaction class in the crypto project does not have these but apart from that, the two classes are identical.
  */
 @Entity
 @Table(name = "transactions")
