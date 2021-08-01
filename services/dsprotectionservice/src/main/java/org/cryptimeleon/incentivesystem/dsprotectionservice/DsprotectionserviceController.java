@@ -27,6 +27,13 @@ public class DsprotectionserviceController {
         return "We are in the process of constructing an awesome double-spending protection service here. Please be patient :)";
     }
 
+    @RequestMapping(value = "/addta", params = {"encodedta"})
+    public String addTransaction(
+            @RequestParam(value = "encodedta") String encodedTransaction
+    ) {
+        return "wip";
+    }
+
     @RequestMapping(value = "/adddsid", params = {"encodeddsid"})
     public String addDsID(
             @RequestParam(value = "id") long id,

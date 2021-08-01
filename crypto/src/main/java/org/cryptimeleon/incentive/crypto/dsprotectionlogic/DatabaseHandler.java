@@ -7,7 +7,13 @@ import org.cryptimeleon.incentive.crypto.model.DoubleSpendingTag;
 import org.cryptimeleon.incentive.crypto.model.Transaction;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
+
+import java.io.IOException;
 import java.math.BigInteger;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.Base64;
 
 // TODO: finalize signatures, currently some of them are wip
@@ -19,7 +25,7 @@ import java.util.Base64;
 @Value
 public class DatabaseHandler
 {
-    private String databaseEndpointURL; // URL requested when adding a transaction, dsID or edge to the database, passed as constructor parameter
+    private String databaseEndpointURL; // protocol, domain, port of the URL requested when adding a transaction, dsID or edge to the database, passed as constructor parameter
 
     /**
      * methods for administration of nodes and edges
@@ -33,8 +39,25 @@ public class DatabaseHandler
         String encodedJsonTransaction = Base64.getUrlEncoder().encodeToString(jsonTransaction.getBytes());
         System.out.println(encodedJsonTransaction);
 
+        // TODO: "you shouldnt use GET to alter state (-> CSRF, ...)" -> how to handle POST requests with Spring?
+        // compute the URL corresponding to the addition of the respective transaction node (node info is URL parameter)
+        String additionURL = databaseEndpointURL + "/addta?encodedta=" + encodedJsonTransaction;
+
         // make a HTTP request to the double spending protection database service with the encoded transaction as a GET parameter
-        // TODO
+        HttpClient client = HttpClient.newHttpClient(); // create client object using factory method
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(additionURL))
+                .build(); // creates a HTTP request object using builder pattern
+        try{
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            System.out.println(response.body());
+        }
+        catch (IOException e){
+            System.out.println("IOException while sending transaction addition request to double-spending protection database service: " + e.getMessage());
+        }
+        catch(InterruptedException e){
+            System.out.println("InterruptedException while sending transaction addition request to double-spending protection database service: " + e.getMessage());
+        }
     }
 
     public void addTokenNode(GroupElement dsid){
