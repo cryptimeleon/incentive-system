@@ -16,4 +16,7 @@ interface BasketDao {
 
     @Query("UPDATE baskets SET active=:active WHERE basketId = :id")
     fun setActive(active: Boolean, id: UUID)
+
+    @Query("UPDATE baskets SET active=0")
+    fun setAllInactive()
 }
