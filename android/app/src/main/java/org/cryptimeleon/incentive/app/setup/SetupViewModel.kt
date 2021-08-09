@@ -85,10 +85,15 @@ class SetupViewModel(
                 cryptoRepository.setup(ppResponse.body()!!, ppkResponse.body()!!)
 
                 var basket: Basket? = basketDatabase.basketDatabaseDao().getBasket()
+                Timber.i("Old basket $basket")
+                // TODO Check if basket is known to the basket service
                 if (basket == null || !basket.isActive) {
                     val basketResponse = BasketApi.retrofitService.getNewBasket()
                     if (basketResponse.isSuccessful) {
                         basket = Basket(basketResponse.body()!!, true)
+
+                        // Make sure all other baskets are set to inactive
+                        basketDatabase.basketDatabaseDao().setAllInactive()
                         basketDatabase.basketDatabaseDao().insertBasket(basket)
                     } else {
                         _setupState.postValue(SetupState.ERROR)
