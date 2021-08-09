@@ -7,10 +7,10 @@ import androidx.lifecycle.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.cryptimeleon.incentive.app.database.basket.BasketDatabase
 import org.cryptimeleon.incentive.app.network.BasketApi
 import org.cryptimeleon.incentive.app.network.BasketItem
 import org.cryptimeleon.incentive.app.network.Item
-import org.cryptimeleon.incentive.app.database.basket.BasketDatabase
 import timber.log.Timber
 import java.util.*
 
@@ -57,13 +57,14 @@ class ScanResultViewModel(private val item: Item, application: Application) :
      * Add amount many of the item to the basket.
      */
     fun onAddToBasket() {
-        Timber.i("Add $title $_amount times to basket!")
-
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                val basketId =
+                val basket =
                     BasketDatabase.getInstance(getApplication()).basketDatabaseDao().getBasket()
-                val basketItem = BasketItem(basketId.basketId, _amount.value!!, barcode)
+
+                Timber.i("Add $title ${_amount.value} times to basket ${basket.basketId}!")
+
+                val basketItem = BasketItem(basket.basketId, _amount.value!!, barcode)
                 val putItemResponse = BasketApi.retrofitService.putItemToBasket(basketItem)
                 withContext(Dispatchers.Main) {
                     if (putItemResponse.isSuccessful) {
