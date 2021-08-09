@@ -30,7 +30,6 @@ class BasketItemRecyclerViewAdapter(private val onClickListener: OnClickListener
         }
 
         override fun areContentsTheSame(oldItem: BasketListItem, newItem: BasketListItem): Boolean {
-            // TODO better check possible?
             return oldItem.count == newItem.count && oldItem.item == newItem.item
         }
     }

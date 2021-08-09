@@ -19,7 +19,9 @@ enum class SetupState {
     LOADING_PROVIDER_PK,
     GENERATING_USER_KEYS,
     FINISHED,
-    ERROR
+    ERROR,
+    ISSUE_JOIN,
+    SETUP_BASKET
 }
 
 
@@ -52,6 +54,8 @@ class SetupViewModel(
             SetupState.GENERATING_USER_KEYS -> "Generating a fresh Keypair"
             SetupState.FINISHED -> "Finished!"
             SetupState.ERROR -> "An error occurred!"
+            SetupState.ISSUE_JOIN -> "Retrieving new token"
+            SetupState.SETUP_BASKET -> "Setting up basket!"
         }
     }
 
@@ -82,7 +86,12 @@ class SetupViewModel(
                 }
                 Timber.i("PPK: %s", ppkResponse.body()!!)
 
+                Timber.i("Run issue-join protocol for new (dummy-) token, setup crypto repository")
+                _setupState.postValue(SetupState.ISSUE_JOIN)
                 cryptoRepository.setup(ppResponse.body()!!, ppkResponse.body()!!)
+
+                Timber.i("Setup basket")
+                _setupState.postValue(SetupState.SETUP_BASKET)
 
                 var basket: Basket? = basketDatabase.basketDatabaseDao().getBasket()
                 Timber.i("Old basket $basket")

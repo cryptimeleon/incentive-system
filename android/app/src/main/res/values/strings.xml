@@ -18,4 +18,5 @@
     <string name="basket">Basket</string>
     <string name="price_single">Price Single</string>
     <string name="price_total">Price Total</string>
+    <string name="button_discard_label">Discard</string>
 </resources>

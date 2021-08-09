@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.cryptimeleon.incentive.app.basket.BasketItemRecyclerViewAdapter.BasketListItem
 import org.cryptimeleon.incentive.app.database.basket.BasketDatabase
+import org.cryptimeleon.incentive.app.database.crypto.CryptoRepository
 import org.cryptimeleon.incentive.app.network.Basket
 import org.cryptimeleon.incentive.app.network.BasketApi
 import org.cryptimeleon.incentive.app.network.BasketItem
@@ -122,15 +123,14 @@ class BasketViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    fun deleteBasket() {
+    fun newBasket(delete: Boolean = true) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 val basketId = basket.value!!.basketId
                 BasketDatabase.getInstance(getApplication()).basketDatabaseDao()
                     .setActive(false, basketId)
-                BasketApi.retrofitService.deleteBasket(basketId)
+                if (delete) BasketApi.retrofitService.deleteBasket(basketId)
 
-                // TODO basket is deleted.
                 _basket.postValue(null)
                 _basketContent.postValue(ArrayList())
 
@@ -153,18 +153,36 @@ class BasketViewModel(application: Application) : AndroidViewModel(application) 
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 val basketId = basket.value!!.basketId
+
+                // Pay basket
                 val payResponse =
                     BasketApi.retrofitService.payBasket(PayBody(basketId, basket.value!!.value))
-                if (payResponse.isSuccessful) {
-                    BasketDatabase.getInstance(getApplication()).basketDatabaseDao()
-                        .setActive(false, basketId)
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(
-                            getApplication(), "Successfully paid basket!",
-                            Toast.LENGTH_LONG
-                        )
-                    }
+                if (!payResponse.isSuccessful) {
+                    Timber.e("An exception occured when trying to pay the basket with id $basketId: $payResponse")
+                    Toast.makeText(
+                        getApplication(), "Could not pay basket!",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    return@withContext
                 }
+
+                BasketDatabase.getInstance(getApplication()).basketDatabaseDao()
+                    .setActive(false, basketId)
+
+                // Redeem basket
+                CryptoRepository.getInstance(getApplication()).runCreditEarn(
+                    basketId,
+                    basket.value!!.value
+                )
+
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        getApplication(), "Successfully paid and redeemed basket!",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+
+                newBasket()
             }
         }
     }
