@@ -105,6 +105,8 @@ class CryptoRepository(context: Context) {
         val token = tokens.first()[0]
         val pp = getPublicParameters()
         val incentiveSystem = getIncentiveSystem()
+        val providerPublicKey = getProviderPublicKey()
+        val userKeyPair = getUserKeyPair()
 
         val earnRequest =
             getIncentiveSystem().generateEarnRequest(token, providerPublicKey, userKeyPair)
