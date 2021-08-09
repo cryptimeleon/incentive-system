@@ -31,7 +31,6 @@ class SetupViewModel(
     private val viewModelJob = Job()
     private val uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
     private val _setupState = MutableLiveData(SetupState.LOADING_PP)
-    private val cryptoRepository = CryptoRepository.getInstance(application.applicationContext)
     private val basketDatabase = BasketDatabase.getInstance(application.applicationContext)
 
     private val _navigateToInfo = MutableLiveData(false)
@@ -88,7 +87,7 @@ class SetupViewModel(
 
                 Timber.i("Run issue-join protocol for new (dummy-) token, setup crypto repository")
                 _setupState.postValue(SetupState.ISSUE_JOIN)
-                cryptoRepository.setup(ppResponse.body()!!, ppkResponse.body()!!)
+                CryptoRepository.setup(ppResponse.body()!!, ppkResponse.body()!!, getApplication())
 
                 Timber.i("Setup basket")
                 _setupState.postValue(SetupState.SETUP_BASKET)

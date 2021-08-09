@@ -1,6 +1,9 @@
 package org.cryptimeleon.incentive.app.database.crypto
 
 import android.content.Context
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature
 import org.cryptimeleon.incentive.app.network.CreditEarnApi
 import org.cryptimeleon.incentive.app.network.IssueJoinApi
@@ -33,140 +36,78 @@ class CryptoRepository(context: Context) {
     private val jsonConverter = JSONConverter()
     private val cryptoDao = CryptoDatabase.getInstance(context).cryptoDatabaseDao()
 
-    // We assume these do not change once the app is started
-    lateinit var publicParameters: IncentivePublicParameters
-    lateinit var incentiveSystem: IncentiveSystem
-    lateinit var userKeyPair: UserKeyPair
-    lateinit var providerPublicKey: ProviderPublicKey
+    // We assume that these do not change on a crypto repository was created
+    private var incentivePublicParameters: IncentivePublicParameters? = null
+    private var incentiveSystem: IncentiveSystem? = null
+    private var userKeyPair: UserKeyPair? = null
+    private var providerPublicKey: ProviderPublicKey? = null
 
     // Tokens do change
-    lateinit var token: CryptoModelToken
-
-    /**
-     * Initialization algorithm that takes freshly queried pp and provider public key,
-     * sets up the incentive system, deletes invalid tokens/keys and stores everything to the database
-     *
-     * @param serializedPP the current public parameters serialized to a string
-     * @param serializedProviderPublicKey the current server public key serialized to a string
-     */
-    suspend fun setup(serializedPP: String, serializedProviderPublicKey: String) {
-        var invalidateToken = false // This will be set to true if pp or ppk change
-
-        // Repair if previous setup was not finished (e.g. due to hard reset/crash)
-        val setupWasFinished =
-            (cryptoDao.getAssetByName(SETUP_FINISHED) == TRUE)
-        Timber.i("Previous setup finished? %s", setupWasFinished.toString())
-
-        // Invalidate setup finished variable until this setup is finished
-        cryptoDao.insertAsset(SerializedCryptoAsset(SETUP_FINISHED, FALSE))
-
-        // New public parameters / first start / previous setup failed
-        //   -> store pp and generate new user keys
-        val oldPP = cryptoDao.getAssetByName(PP)
-
-        publicParameters =
-            IncentivePublicParameters(jsonConverter.deserialize(serializedPP))
-        incentiveSystem = IncentiveSystem(publicParameters)
-
-        if (!setupWasFinished || oldPP != serializedPP) {
-            Timber.i("Public parameters changed/were not present. Setting new pp.")
-            cryptoDao.insertAsset(SerializedCryptoAsset(PP, serializedPP))
-
-            Timber.i("Generating user keypair")
-            userKeyPair = incentiveSystem.generateUserKeys()
-            cryptoDao.insertAsset(
-                SerializedCryptoAsset(
-                    USER_PUBLIC_KEY,
-                    jsonConverter.serialize(userKeyPair.pk.representation)
-                )
+    val tokens: Flow<List<CryptoModelToken>> = cryptoDao.getTokens().map {
+        it.map { databaseToken ->
+            CryptoModelToken(
+                jsonConverter.deserialize(databaseToken.serializedToken),
+                getPublicParameters()
             )
-            cryptoDao.insertAsset(
-                SerializedCryptoAsset(
-                    USER_SECRET_KEY,
-                    jsonConverter.serialize(userKeyPair.sk.representation)
-                )
-            )
+        }
+    }
 
-            // If we have a token, we need to delete it since pp and user keys have changed
-            invalidateToken = true
-            Timber.i("Invalidate token since new user keys were generated")
-        } else {
-            Timber.i("Loading user keys from database")
+    suspend fun getPublicParameters(): IncentivePublicParameters {
+        if (incentivePublicParameters == null) {
+            incentivePublicParameters =
+                IncentivePublicParameters(jsonConverter.deserialize(cryptoDao.getAssetByName(PP)))
+        }
+        return incentivePublicParameters as IncentivePublicParameters
+    }
 
+    suspend fun getIncentiveSystem(): IncentiveSystem {
+        if (incentiveSystem == null) {
+            incentiveSystem =
+                IncentiveSystem(getPublicParameters())
+        }
+        return incentiveSystem as IncentiveSystem
+    }
+
+    suspend fun getUserKeyPair(): UserKeyPair {
+        if (userKeyPair == null) {
+            val pp = getPublicParameters()
             userKeyPair = UserKeyPair(
                 UserPublicKey(
-                    jsonConverter.deserialize(cryptoDao.getAssetByName(USER_PUBLIC_KEY)),
-                    publicParameters.bg.g1
+                    jsonConverter.deserialize(
+                        cryptoDao.getAssetByName(
+                            USER_PUBLIC_KEY
+                        )
+                    ), pp.bg.g1
                 ),
                 UserSecretKey(
                     jsonConverter.deserialize(cryptoDao.getAssetByName(USER_SECRET_KEY)),
-                    publicParameters.bg.zn,
-                    publicParameters.prfToZn
-                ),
-            )
-        }
-
-        val oldProviderPublicKey = cryptoDao.getAssetByName(PROVIDER_PUBLIC_KEY)
-        if (!setupWasFinished || oldProviderPublicKey != serializedProviderPublicKey) {
-            cryptoDao.insertAsset(
-                SerializedCryptoAsset(
-                    PROVIDER_PUBLIC_KEY,
-                    serializedProviderPublicKey
+                    pp.bg.zn,
+                    pp.prfToZn
                 )
             )
-            providerPublicKey = ProviderPublicKey(
-                jsonConverter.deserialize(serializedProviderPublicKey),
-                publicParameters.spsEq,
-                publicParameters.bg.g1
-            )
-
-            // If we have a token, we need to delete it since the provider public key has changed
-            invalidateToken = true
-            Timber.i("Invalidate token since new provider keys were loaded")
-        } else {
-            providerPublicKey = ProviderPublicKey(
-                jsonConverter.deserialize(cryptoDao.getAssetByName(PROVIDER_PUBLIC_KEY)),
-                publicParameters.spsEq,
-                publicParameters.bg.g1
-            )
         }
+        return userKeyPair as UserKeyPair
+    }
 
-        // Query dummy token
-        val joinRequest = incentiveSystem.generateJoinRequest(providerPublicKey, userKeyPair)
-        val joinResponse = IssueJoinApi.retrofitService.runIssueJoin(
-            jsonConverter.serialize(joinRequest.representation),
-            jsonConverter.serialize(userKeyPair.pk.representation)
-        )
-
-        val dummyToken = incentiveSystem.handleJoinRequestResponse(
-            providerPublicKey,
-            userKeyPair,
-            joinRequest,
-            JoinResponse(jsonConverter.deserialize(joinResponse.body()), publicParameters)
-        )
-
-
-        // Delete token if it is not anymore valid and use dummy token as new token
-        // Set token using if expression
-        token = if (invalidateToken) {
-            cryptoDao.deleteAllTokens()
-            cryptoDao.insertToken(Token(serializedToken = jsonConverter.serialize(dummyToken.representation)))
-            dummyToken
-        } else {
-            // Deserialize current token (we use [0] bc later there will be multiple tokens)
-            CryptoModelToken(
+    suspend fun getProviderPublicKey(): ProviderPublicKey {
+        if (providerPublicKey == null) {
+            val pp = getPublicParameters()
+            providerPublicKey = ProviderPublicKey(
                 jsonConverter.deserialize(
-                    cryptoDao.getTokens()[0].serializedToken
-                ), publicParameters
+                    cryptoDao.getAssetByName(PROVIDER_PUBLIC_KEY)
+                ), pp.spsEq, pp.bg.g1
             )
         }
-
-        // Setup successful, so we can set finished to true and trust this at the next application start
-        cryptoDao.insertAsset(SerializedCryptoAsset(SETUP_FINISHED, TRUE))
+        return providerPublicKey as ProviderPublicKey
     }
 
     suspend fun runCreditEarn(basketId: UUID, basketValue: Int) {
-        val earnRequest = incentiveSystem.generateEarnRequest(token, providerPublicKey, userKeyPair)
+        val token = tokens.first()[0]
+        val pp = getPublicParameters()
+        val incentiveSystem = getIncentiveSystem()
+
+        val earnRequest =
+            getIncentiveSystem().generateEarnRequest(token, providerPublicKey, userKeyPair)
         val earnResponse = CreditEarnApi.retrofitService.runCreditEarn(
             basketId,
             jsonConverter.serialize(earnRequest.representation)
@@ -175,12 +116,12 @@ class CryptoRepository(context: Context) {
         Timber.i("Earn response $earnResponse")
 
         // The basket service computes the value in the backend, so no need to send it over the wire
-        token = incentiveSystem.handleEarnRequestResponse(
+        val newToken = incentiveSystem.handleEarnRequestResponse(
             earnRequest,
             SPSEQSignature(
                 jsonConverter.deserialize(earnResponse.body()),
-                publicParameters.bg.g1,
-                publicParameters.bg.g2
+                pp.bg.g1,
+                pp.bg.g2
             ),
             BigInteger.valueOf(basketValue.toLong()),
             token,
@@ -191,12 +132,136 @@ class CryptoRepository(context: Context) {
         // Update token in database
         // Will be nicer when handling multiple tokens
         cryptoDao.deleteAllTokens()
-        cryptoDao.insertToken(Token(serializedToken = jsonConverter.serialize(token.representation)))
-        Timber.i("Added new token $token to database")
+        cryptoDao.insertToken(Token(serializedToken = jsonConverter.serialize(newToken.representation)))
+        Timber.i("Added new token $newToken to database")
     }
 
-
     companion object {
+        /**
+         * Initialization algorithm that takes freshly queried pp and provider public key,
+         * sets up the incentive system, deletes invalid tokens/keys and stores everything to the database
+         *
+         * @param serializedPP the current public parameters serialized to a string
+         * @param serializedProviderPublicKey the current server public key serialized to a string
+         */
+        suspend fun setup(
+            serializedPP: String,
+            serializedProviderPublicKey: String,
+            context: Context
+        ) {
+            val jsonConverter = JSONConverter()
+            val cryptoDao = CryptoDatabase.getInstance(context).cryptoDatabaseDao()
+
+            var invalidateToken = false // This will be set to true if pp or ppk change
+
+            // Repair if previous setup was not finished (e.g. due to hard reset/crash)
+            val setupWasFinished =
+                (cryptoDao.getAssetByName(SETUP_FINISHED) == TRUE)
+            Timber.i("Previous setup finished? %s", setupWasFinished.toString())
+
+            // Invalidate setup finished variable until this setup is finished
+            cryptoDao.insertAsset(SerializedCryptoAsset(SETUP_FINISHED, FALSE))
+
+            // New public parameters / first start / previous setup failed
+            //   -> store pp and generate new user keys
+            val oldPP = cryptoDao.getAssetByName(PP)
+
+            val publicParameters =
+                IncentivePublicParameters(jsonConverter.deserialize(serializedPP))
+            val incentiveSystem = IncentiveSystem(publicParameters)
+
+            val userKeyPair: UserKeyPair
+            if (!setupWasFinished || oldPP != serializedPP) {
+                Timber.i("Public parameters changed/were not present. Setting new pp.")
+                cryptoDao.insertAsset(SerializedCryptoAsset(PP, serializedPP))
+
+                Timber.i("Generating user keypair")
+                userKeyPair = incentiveSystem.generateUserKeys()
+                cryptoDao.insertAsset(
+                    SerializedCryptoAsset(
+                        USER_PUBLIC_KEY,
+                        jsonConverter.serialize(userKeyPair.pk.representation)
+                    )
+                )
+                cryptoDao.insertAsset(
+                    SerializedCryptoAsset(
+                        USER_SECRET_KEY,
+                        jsonConverter.serialize(userKeyPair.sk.representation)
+                    )
+                )
+
+                // If we have a token, we need to delete it since pp and user keys have changed
+                invalidateToken = true
+                Timber.i("Invalidate token since new user keys were generated")
+            } else {
+                Timber.i("Loading user keys from database")
+
+                userKeyPair = UserKeyPair(
+                    UserPublicKey(
+                        jsonConverter.deserialize(cryptoDao.getAssetByName(USER_PUBLIC_KEY)),
+                        publicParameters.bg.g1
+                    ),
+                    UserSecretKey(
+                        jsonConverter.deserialize(cryptoDao.getAssetByName(USER_SECRET_KEY)),
+                        publicParameters.bg.zn,
+                        publicParameters.prfToZn
+                    ),
+                )
+            }
+
+            val oldProviderPublicKey = cryptoDao.getAssetByName(PROVIDER_PUBLIC_KEY)
+            val providerPublicKey: ProviderPublicKey
+            if (!setupWasFinished || oldProviderPublicKey != serializedProviderPublicKey) {
+                cryptoDao.insertAsset(
+                    SerializedCryptoAsset(
+                        PROVIDER_PUBLIC_KEY,
+                        serializedProviderPublicKey
+                    )
+                )
+                providerPublicKey = ProviderPublicKey(
+                    jsonConverter.deserialize(serializedProviderPublicKey),
+                    publicParameters.spsEq,
+                    publicParameters.bg.g1
+                )
+
+                // If we have a token, we need to delete it since the provider public key has changed
+                invalidateToken = true
+                Timber.i("Invalidate token since new provider keys were loaded")
+            } else {
+                providerPublicKey = ProviderPublicKey(
+                    jsonConverter.deserialize(cryptoDao.getAssetByName(PROVIDER_PUBLIC_KEY)),
+                    publicParameters.spsEq,
+                    publicParameters.bg.g1
+                )
+            }
+
+            // Query dummy token
+            val joinRequest =
+                incentiveSystem.generateJoinRequest(providerPublicKey, userKeyPair)
+            val joinResponse = IssueJoinApi.retrofitService.runIssueJoin(
+                jsonConverter.serialize(joinRequest.representation),
+                jsonConverter.serialize(userKeyPair.pk.representation)
+            )
+
+            val dummyToken = incentiveSystem.handleJoinRequestResponse(
+                providerPublicKey,
+                userKeyPair,
+                joinRequest,
+                JoinResponse(jsonConverter.deserialize(joinResponse.body()), publicParameters)
+            )
+
+
+            // Delete token if it is not anymore valid and use dummy token as new token
+            // Set token using if expression
+            if (invalidateToken) {
+                cryptoDao.deleteAllTokens()
+                cryptoDao.insertToken(Token(serializedToken = jsonConverter.serialize(dummyToken.representation)))
+            }
+
+            // Setup successful, so we can set finished to true and trust this at the next application start
+            cryptoDao.insertAsset(SerializedCryptoAsset(SETUP_FINISHED, TRUE))
+        }
+
 
         @Volatile
         private var INSTANCE: CryptoRepository? = null

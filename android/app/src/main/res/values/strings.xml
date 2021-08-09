@@ -19,4 +19,7 @@
     <string name="price_single">Price Single</string>
     <string name="price_total">Price Total</string>
     <string name="button_discard_label">Discard</string>
+    <string name="label_promotion_title">Main Promotion</string>
+    <string name="label_promotion_description">Earn 1 point for every cent spent.</string>
+    <string name="content_description_redeem_image">Redeem Image</string>
 </resources>
