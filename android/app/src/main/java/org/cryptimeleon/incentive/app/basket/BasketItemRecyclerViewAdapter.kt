@@ -26,7 +26,7 @@ class BasketItemRecyclerViewAdapter(private val onClickListener: OnClickListener
 
     companion object DiffCallback : DiffUtil.ItemCallback<BasketListItem>() {
         override fun areItemsTheSame(oldItem: BasketListItem, newItem: BasketListItem): Boolean {
-            return oldItem == newItem
+            return oldItem.item.id == newItem.item.id
         }
 
         override fun areContentsTheSame(oldItem: BasketListItem, newItem: BasketListItem): Boolean {
