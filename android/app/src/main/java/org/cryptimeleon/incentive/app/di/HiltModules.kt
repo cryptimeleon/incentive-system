@@ -10,6 +10,7 @@ import org.cryptimeleon.incentive.app.database.crypto.CryptoRepository
 import org.cryptimeleon.incentive.app.network.BasketApiService
 import org.cryptimeleon.incentive.app.network.CreditEarnApiService
 import org.cryptimeleon.incentive.app.network.InfoApiService
+import org.cryptimeleon.incentive.app.network.IssueJoinApiService
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
@@ -17,8 +18,9 @@ import javax.inject.Singleton
 
 
 private const val BASKET_BASE_URL = "https://incentives.cs.upb.de/basket/"
-private const val CREDIT_BASE_URL = "https://incentives.cs.upb.de/credit/"
 private const val INFO_BASE_URL = "https://incentives.cs.upb.de/info/"
+private const val ISSUE_BASE_URL = "https://incentives.cs.upb.de/issue/"
+private const val CREDIT_BASE_URL = "https://incentives.cs.upb.de/credit/"
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -50,6 +52,15 @@ class HiltApiModule {
             .baseUrl(INFO_BASE_URL)
             .build()
             .create(InfoApiService::class.java)
+
+    @Singleton
+    @Provides
+    fun provideIssueJoinApiService(): IssueJoinApiService =
+        Retrofit.Builder()
+            .addConverterFactory(ScalarsConverterFactory.create())
+            .baseUrl(ISSUE_BASE_URL)
+            .build()
+            .create(IssueJoinApiService::class.java)
 }
 
 @Module
@@ -60,6 +71,9 @@ class HiltRepositoryModule {
     @Provides
     fun provideCryptoRepository(
         creditEarnApiService: CreditEarnApiService,
+        infoApiService: InfoApiService,
+        issueJoinApiService: IssueJoinApiService,
         @ApplicationContext context: Context
-    ): CryptoRepository = CryptoRepository(creditEarnApiService, context)
+    ): CryptoRepository =
+        CryptoRepository(creditEarnApiService, infoApiService, issueJoinApiService, context)
 }

@@ -12,6 +12,7 @@ import org.cryptimeleon.incentive.app.database.basket.BasketDatabase
 import org.cryptimeleon.incentive.app.database.crypto.CryptoRepository
 import org.cryptimeleon.incentive.app.network.BasketApiService
 import org.cryptimeleon.incentive.app.network.InfoApiService
+import org.cryptimeleon.incentive.app.network.IssueJoinApiService
 import timber.log.Timber
 import java.util.*
 import javax.inject.Inject
@@ -31,6 +32,7 @@ enum class SetupState {
 class SetupViewModel @Inject constructor(
     private val basketApiService: BasketApiService,
     private val infoApiService: InfoApiService,
+    private val issueJoinApiService: IssueJoinApiService,
     application: Application,
 ) : AndroidViewModel(application) {
     private val viewModelJob = Job()
@@ -92,13 +94,19 @@ class SetupViewModel @Inject constructor(
 
                 Timber.i("Run issue-join protocol for new (dummy-) token, setup crypto repository")
                 _setupState.postValue(SetupState.ISSUE_JOIN)
-                CryptoRepository.setup(ppResponse.body()!!, ppkResponse.body()!!, getApplication())
+                CryptoRepository.setup(
+                    ppResponse.body()!!,
+                    ppkResponse.body()!!,
+                    issueJoinApiService,
+                    getApplication()
+                )
 
                 Timber.i("Setup basket")
                 _setupState.postValue(SetupState.SETUP_BASKET)
 
                 var basket: Basket? = basketDatabase.basketDatabaseDao().getBasket()
                 Timber.i("Old basket $basket")
+
                 // TODO Check if basket is known to the basket service
                 if (basket == null || !basket.isActive) {
                     val basketResponse = basketApiService.getNewBasket()

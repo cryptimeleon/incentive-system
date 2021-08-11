@@ -6,7 +6,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature
 import org.cryptimeleon.incentive.app.network.CreditEarnApiService
-import org.cryptimeleon.incentive.app.network.IssueJoinApi
+import org.cryptimeleon.incentive.app.network.InfoApiService
+import org.cryptimeleon.incentive.app.network.IssueJoinApiService
 import org.cryptimeleon.incentive.crypto.IncentiveSystem
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey
@@ -34,6 +35,8 @@ const val FALSE = "FALSE" // not really needed, but looks nicer
  */
 class CryptoRepository(
     private val creditEarnApiService: CreditEarnApiService,
+    private val infoApiService: InfoApiService,
+    private val issueJoinApiService: IssueJoinApiService,
     context: Context
 ) {
     private val jsonConverter = JSONConverter()
@@ -152,6 +155,7 @@ class CryptoRepository(
         suspend fun setup(
             serializedPP: String,
             serializedProviderPublicKey: String,
+            issueJoinApiService: IssueJoinApiService,
             context: Context
         ) {
             val jsonConverter = JSONConverter()
@@ -243,7 +247,7 @@ class CryptoRepository(
             // Query dummy token
             val joinRequest =
                 incentiveSystem.generateJoinRequest(providerPublicKey, userKeyPair)
-            val joinResponse = IssueJoinApi.retrofitService.runIssueJoin(
+            val joinResponse = issueJoinApiService.runIssueJoin(
                 jsonConverter.serialize(joinRequest.representation),
                 jsonConverter.serialize(userKeyPair.pk.representation)
             )

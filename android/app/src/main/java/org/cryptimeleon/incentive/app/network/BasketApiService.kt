@@ -55,4 +55,3 @@ data class Basket(
     @SerializedName("redeemed") val redeemed: Boolean,
     @SerializedName("value") val value: Int,
 )
-
