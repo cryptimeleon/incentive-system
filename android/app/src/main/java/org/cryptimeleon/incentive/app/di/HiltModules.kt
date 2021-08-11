@@ -1,11 +1,13 @@
 package org.cryptimeleon.incentive.app.di
 
 import android.content.Context
+import androidx.room.Room
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import org.cryptimeleon.incentive.app.database.crypto.CryptoDatabase
 import org.cryptimeleon.incentive.app.database.crypto.CryptoRepository
 import org.cryptimeleon.incentive.app.network.BasketApiService
 import org.cryptimeleon.incentive.app.network.CreditEarnApiService
@@ -65,6 +67,19 @@ class HiltApiModule {
 
 @Module
 @InstallIn(SingletonComponent::class)
+class HiltDatabaseModule {
+
+    @Singleton
+    @Provides
+    fun provideCryptoDatabase(@ApplicationContext context: Context): CryptoDatabase =
+        Room.databaseBuilder(
+            context,
+            CryptoDatabase::class.java, "crypto.db"
+        ).build()
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
 class HiltRepositoryModule {
 
     @Singleton
@@ -73,7 +88,12 @@ class HiltRepositoryModule {
         creditEarnApiService: CreditEarnApiService,
         infoApiService: InfoApiService,
         issueJoinApiService: IssueJoinApiService,
-        @ApplicationContext context: Context
+        cryptoDatabase: CryptoDatabase,
     ): CryptoRepository =
-        CryptoRepository(creditEarnApiService, infoApiService, issueJoinApiService, context)
+        CryptoRepository(
+            creditEarnApiService,
+            infoApiService,
+            issueJoinApiService,
+            cryptoDatabase.cryptoDatabaseDao(),
+        )
 }

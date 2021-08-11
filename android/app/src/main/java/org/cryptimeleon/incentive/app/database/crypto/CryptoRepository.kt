@@ -37,10 +37,9 @@ class CryptoRepository(
     private val creditEarnApiService: CreditEarnApiService,
     private val infoApiService: InfoApiService,
     private val issueJoinApiService: IssueJoinApiService,
-    context: Context
+    private val cryptoDao: CryptoDao,
 ) {
     private val jsonConverter = JSONConverter()
-    private val cryptoDao = CryptoDatabase.getInstance(context).cryptoDatabaseDao()
 
     // We assume that these do not change on a crypto repository was created
     private var incentivePublicParameters: IncentivePublicParameters? = null
@@ -156,10 +155,9 @@ class CryptoRepository(
             serializedPP: String,
             serializedProviderPublicKey: String,
             issueJoinApiService: IssueJoinApiService,
-            context: Context
+            cryptoDao: CryptoDao,
         ) {
             val jsonConverter = JSONConverter()
-            val cryptoDao = CryptoDatabase.getInstance(context).cryptoDatabaseDao()
 
             var invalidateToken = false // This will be set to true if pp or ppk change
 

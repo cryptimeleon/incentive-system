@@ -9,6 +9,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import org.cryptimeleon.incentive.app.database.basket.Basket
 import org.cryptimeleon.incentive.app.database.basket.BasketDatabase
+import org.cryptimeleon.incentive.app.database.crypto.CryptoDatabase
 import org.cryptimeleon.incentive.app.database.crypto.CryptoRepository
 import org.cryptimeleon.incentive.app.network.BasketApiService
 import org.cryptimeleon.incentive.app.network.InfoApiService
@@ -33,6 +34,7 @@ class SetupViewModel @Inject constructor(
     private val basketApiService: BasketApiService,
     private val infoApiService: InfoApiService,
     private val issueJoinApiService: IssueJoinApiService,
+    private val cryptoDatabase: CryptoDatabase,
     application: Application,
 ) : AndroidViewModel(application) {
     private val viewModelJob = Job()
@@ -94,11 +96,13 @@ class SetupViewModel @Inject constructor(
 
                 Timber.i("Run issue-join protocol for new (dummy-) token, setup crypto repository")
                 _setupState.postValue(SetupState.ISSUE_JOIN)
+
+                // TODO put this into the repository
                 CryptoRepository.setup(
                     ppResponse.body()!!,
                     ppkResponse.body()!!,
                     issueJoinApiService,
-                    getApplication()
+                    cryptoDatabase.cryptoDatabaseDao(),
                 )
 
                 Timber.i("Setup basket")
