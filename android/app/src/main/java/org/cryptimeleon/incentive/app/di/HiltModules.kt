@@ -9,6 +9,7 @@ import dagger.hilt.components.SingletonComponent
 import org.cryptimeleon.incentive.app.database.crypto.CryptoRepository
 import org.cryptimeleon.incentive.app.network.BasketApiService
 import org.cryptimeleon.incentive.app.network.CreditEarnApiService
+import org.cryptimeleon.incentive.app.network.InfoApiService
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
@@ -17,6 +18,7 @@ import javax.inject.Singleton
 
 private const val BASKET_BASE_URL = "https://incentives.cs.upb.de/basket/"
 private const val CREDIT_BASE_URL = "https://incentives.cs.upb.de/credit/"
+private const val INFO_BASE_URL = "https://incentives.cs.upb.de/info/"
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -39,6 +41,15 @@ class HiltApiModule {
             .baseUrl(CREDIT_BASE_URL)
             .build()
             .create(CreditEarnApiService::class.java)
+
+    @Singleton
+    @Provides
+    fun provideInfoApiService(): InfoApiService =
+        Retrofit.Builder()
+            .addConverterFactory(ScalarsConverterFactory.create())
+            .baseUrl(INFO_BASE_URL)
+            .build()
+            .create(InfoApiService::class.java)
 }
 
 @Module

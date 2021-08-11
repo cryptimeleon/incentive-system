@@ -11,7 +11,7 @@ import org.cryptimeleon.incentive.app.database.basket.Basket
 import org.cryptimeleon.incentive.app.database.basket.BasketDatabase
 import org.cryptimeleon.incentive.app.database.crypto.CryptoRepository
 import org.cryptimeleon.incentive.app.network.BasketApiService
-import org.cryptimeleon.incentive.app.network.InfoApi
+import org.cryptimeleon.incentive.app.network.InfoApiService
 import timber.log.Timber
 import java.util.*
 import javax.inject.Inject
@@ -30,6 +30,7 @@ enum class SetupState {
 @HiltViewModel
 class SetupViewModel @Inject constructor(
     private val basketApiService: BasketApiService,
+    private val infoApiService: InfoApiService,
     application: Application,
 ) : AndroidViewModel(application) {
     private val viewModelJob = Job()
@@ -71,7 +72,7 @@ class SetupViewModel @Inject constructor(
         uiScope.launch {
             withContext(Dispatchers.IO) {
                 _setupState.postValue(SetupState.LOADING_PP)
-                val ppResponse = InfoApi.retrofitService.getPublicParameters()
+                val ppResponse = infoApiService.getPublicParameters()
                 if (!ppResponse.isSuccessful) {
                     _setupState.postValue(SetupState.ERROR)
                     return@withContext
@@ -81,7 +82,7 @@ class SetupViewModel @Inject constructor(
                 _setupState.postValue(SetupState.LOADING_PROVIDER_PK)
                 // Query provider public key
                 Timber.i("Get Provider Provider keys")
-                val ppkResponse = InfoApi.retrofitService.getProviderPublicKey()
+                val ppkResponse = infoApiService.getProviderPublicKey()
 
                 if (!ppkResponse.isSuccessful) {
                     _setupState.postValue(SetupState.ERROR)
