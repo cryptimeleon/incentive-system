@@ -24,7 +24,7 @@ import javax.inject.Inject
 class ScanResultViewModel @Inject constructor(
     private val basketApiService: BasketApiService,
     application: Application,
-    state: SavedStateHandle
+    state: SavedStateHandle // fragment's bundle is put into SavedStateHandle by Hilt
 ) :
     AndroidViewModel(application) {
 

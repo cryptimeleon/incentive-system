@@ -14,9 +14,11 @@ import org.cryptimeleon.incentive.app.databinding.DashboardFragmentBinding
 
 @AndroidEntryPoint
 class DashboardFragment : BaseFragment() {
-    private val viewModel by activityViewModels<DashboardViewModel>()
     override var bottomNavigationViewVisibility = View.VISIBLE
     lateinit var binding: DashboardFragmentBinding
+
+    // Shared view model through the activityViewModels mechanism
+    private val viewModel by activityViewModels<DashboardViewModel>()
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

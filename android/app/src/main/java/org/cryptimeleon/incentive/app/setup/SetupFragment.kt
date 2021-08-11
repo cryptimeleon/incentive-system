@@ -22,6 +22,8 @@ class SetupFragment : BaseFragment() {
     override var bottomNavigationViewVisibility = View.INVISIBLE
     private val viewModel by viewModels<SetupViewModel>()
     private lateinit var binding: SetupFragmentBinding
+
+    // Shared view model through the activityViewModels mechanism
     private val dashboardViewModel by activityViewModels<DashboardViewModel>()
 
 

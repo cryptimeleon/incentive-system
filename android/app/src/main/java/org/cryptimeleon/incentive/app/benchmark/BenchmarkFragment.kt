@@ -6,16 +6,18 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.NavHostFragment.findNavController
+import dagger.hilt.android.AndroidEntryPoint
 import org.cryptimeleon.incentive.app.R
 import org.cryptimeleon.incentive.app.databinding.BenchmarkFragmentBinding
 
 /**
  * UI Fragment of the Benchmark
  */
+@AndroidEntryPoint
 class BenchmarkFragment : Fragment() {
-    private lateinit var viewModel: BenchmarkViewModel
+    private val viewModel by viewModels<BenchmarkViewModel>()
     private lateinit var binding: BenchmarkFragmentBinding
 
     override fun onCreateView(
@@ -30,7 +32,6 @@ class BenchmarkFragment : Fragment() {
             false
         )
 
-        viewModel = ViewModelProvider(this).get(BenchmarkViewModel::class.java)
         viewModel.navigateToResults.observe(viewLifecycleOwner) {
             if (it == true) {
                 val action =
