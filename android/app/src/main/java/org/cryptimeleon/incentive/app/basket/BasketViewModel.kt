@@ -20,7 +20,9 @@ import kotlin.collections.ArrayList
 
 @HiltViewModel
 class BasketViewModel @Inject constructor(
-    private val basketApiService: BasketApiService, application: Application
+    private val basketApiService: BasketApiService,
+    private val cryptoRepository: CryptoRepository,
+    application: Application
 ) : AndroidViewModel(application) {
 
     private val locale = Locale.GERMANY
@@ -172,7 +174,7 @@ class BasketViewModel @Inject constructor(
                     .setActive(false, basketId)
 
                 // Redeem basket
-                CryptoRepository.getInstance(getApplication()).runCreditEarn(
+                cryptoRepository.runCreditEarn(
                     basketId,
                     basket.value!!.value
                 )

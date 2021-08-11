@@ -6,23 +6,20 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
+import dagger.hilt.android.AndroidEntryPoint
 import org.cryptimeleon.incentive.app.R
 import org.cryptimeleon.incentive.app.databinding.SettingsFragmentBinding
 
+@AndroidEntryPoint
 class SettingsFragment : Fragment() {
-    private lateinit var viewModel: SettingsViewModel
+    private val viewModel by viewModels<SettingsViewModel>()
     private lateinit var binding: SettingsFragmentBinding
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        viewModel = ViewModelProvider(this).get(SettingsViewModel::class.java)
         binding = DataBindingUtil.inflate(
             inflater,
             R.layout.settings_fragment,

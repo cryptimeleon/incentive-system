@@ -5,11 +5,18 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.asLiveData
 import androidx.lifecycle.map
+import dagger.hilt.android.lifecycle.HiltViewModel
 import org.cryptimeleon.incentive.app.database.crypto.CryptoRepository
+import javax.inject.Inject
 
-class DashboardViewModel(application: Application) : AndroidViewModel(application) {
+@HiltViewModel
+class DashboardViewModel @Inject constructor(
+    cryptoRepository: CryptoRepository,
+    application: Application
+) :
+    AndroidViewModel(application) {
+    // TODO put this functionality into setup view model since it does not have anything todo with the Dashboard
     val setupFinished = MutableLiveData(false)
-    private val cryptoRepository = CryptoRepository.getInstance(getApplication())
     val labelTokenPoints =
         cryptoRepository.tokens.asLiveData().map { "${it[0].points} Points" }
 }

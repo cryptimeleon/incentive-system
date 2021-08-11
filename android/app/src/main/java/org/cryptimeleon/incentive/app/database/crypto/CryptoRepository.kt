@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature
-import org.cryptimeleon.incentive.app.network.CreditEarnApi
+import org.cryptimeleon.incentive.app.network.CreditEarnApiService
 import org.cryptimeleon.incentive.app.network.IssueJoinApi
 import org.cryptimeleon.incentive.crypto.IncentiveSystem
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters
@@ -32,7 +32,10 @@ const val FALSE = "FALSE" // not really needed, but looks nicer
  * Repository that handles the crypto database, provides cached deserialized crypto objects and
  * methods for running the protocols.
  */
-class CryptoRepository(context: Context) {
+class CryptoRepository(
+    private val creditEarnApiService: CreditEarnApiService,
+    context: Context
+) {
     private val jsonConverter = JSONConverter()
     private val cryptoDao = CryptoDatabase.getInstance(context).cryptoDatabaseDao()
 
@@ -110,7 +113,7 @@ class CryptoRepository(context: Context) {
 
         val earnRequest =
             getIncentiveSystem().generateEarnRequest(token, providerPublicKey, userKeyPair)
-        val earnResponse = CreditEarnApi.retrofitService.runCreditEarn(
+        val earnResponse = creditEarnApiService.runCreditEarn(
             basketId,
             jsonConverter.serialize(earnRequest.representation)
         )
@@ -263,14 +266,5 @@ class CryptoRepository(context: Context) {
             // Setup successful, so we can set finished to true and trust this at the next application start
             cryptoDao.insertAsset(SerializedCryptoAsset(SETUP_FINISHED, TRUE))
         }
-
-
-        @Volatile
-        private var INSTANCE: CryptoRepository? = null
-
-        fun getInstance(context: Context): CryptoRepository =
-            INSTANCE ?: synchronized(this) {
-                INSTANCE ?: CryptoRepository(context).also { INSTANCE = it }
-            }
     }
 }

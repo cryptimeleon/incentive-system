@@ -22,7 +22,7 @@ class SetupFragment : BaseFragment() {
     override var bottomNavigationViewVisibility = View.INVISIBLE
     private val viewModel by viewModels<SetupViewModel>()
     private lateinit var binding: SetupFragmentBinding
-    private val dashboardViewModel: DashboardViewModel by activityViewModels()
+    private val dashboardViewModel by activityViewModels<DashboardViewModel>()
 
 
     override fun onCreateView(
