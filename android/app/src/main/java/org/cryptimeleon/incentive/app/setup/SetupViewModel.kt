@@ -5,28 +5,42 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
-import org.cryptimeleon.incentive.app.network.InfoApi
-import org.cryptimeleon.incentive.app.repository.crypto.CryptoRepository
+import org.cryptimeleon.incentive.app.database.basket.Basket
+import org.cryptimeleon.incentive.app.database.basket.BasketDatabase
+import org.cryptimeleon.incentive.app.database.crypto.CryptoDatabase
+import org.cryptimeleon.incentive.app.database.crypto.CryptoRepository
+import org.cryptimeleon.incentive.app.network.BasketApiService
+import org.cryptimeleon.incentive.app.network.InfoApiService
+import org.cryptimeleon.incentive.app.network.IssueJoinApiService
 import timber.log.Timber
 import java.util.*
+import javax.inject.Inject
 
 enum class SetupState {
     LOADING_PP,
     LOADING_PROVIDER_PK,
     GENERATING_USER_KEYS,
     FINISHED,
-    ERROR
+    ERROR,
+    ISSUE_JOIN,
+    SETUP_BASKET
 }
 
 
-class SetupViewModel(
+@HiltViewModel
+class SetupViewModel @Inject constructor(
+    private val basketApiService: BasketApiService,
+    private val infoApiService: InfoApiService,
+    private val issueJoinApiService: IssueJoinApiService,
+    private val cryptoDatabase: CryptoDatabase,
+    private val basketDatabase: BasketDatabase,
     application: Application,
 ) : AndroidViewModel(application) {
     private val viewModelJob = Job()
     private val uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
     private val _setupState = MutableLiveData(SetupState.LOADING_PP)
-    private val cryptoRepository = CryptoRepository.getInstance(application.applicationContext)
 
     private val _navigateToInfo = MutableLiveData(false)
     val navigateToInfo: LiveData<Boolean>
@@ -48,6 +62,8 @@ class SetupViewModel(
             SetupState.GENERATING_USER_KEYS -> "Generating a fresh Keypair"
             SetupState.FINISHED -> "Finished!"
             SetupState.ERROR -> "An error occurred!"
+            SetupState.ISSUE_JOIN -> "Retrieving new token"
+            SetupState.SETUP_BASKET -> "Setting up basket!"
         }
     }
 
@@ -60,7 +76,7 @@ class SetupViewModel(
         uiScope.launch {
             withContext(Dispatchers.IO) {
                 _setupState.postValue(SetupState.LOADING_PP)
-                val ppResponse = InfoApi.retrofitService.getPublicParameters()
+                val ppResponse = infoApiService.getPublicParameters()
                 if (!ppResponse.isSuccessful) {
                     _setupState.postValue(SetupState.ERROR)
                     return@withContext
@@ -70,7 +86,7 @@ class SetupViewModel(
                 _setupState.postValue(SetupState.LOADING_PROVIDER_PK)
                 // Query provider public key
                 Timber.i("Get Provider Provider keys")
-                val ppkResponse = InfoApi.retrofitService.getProviderPublicKey()
+                val ppkResponse = infoApiService.getProviderPublicKey()
 
                 if (!ppkResponse.isSuccessful) {
                     _setupState.postValue(SetupState.ERROR)
@@ -78,7 +94,39 @@ class SetupViewModel(
                 }
                 Timber.i("PPK: %s", ppkResponse.body()!!)
 
-                cryptoRepository.setup(ppResponse.body()!!, ppkResponse.body()!!)
+                Timber.i("Run issue-join protocol for new (dummy-) token, setup crypto repository")
+                _setupState.postValue(SetupState.ISSUE_JOIN)
+
+                // TODO put this into the repository
+                CryptoRepository.setup(
+                    ppResponse.body()!!,
+                    ppkResponse.body()!!,
+                    issueJoinApiService,
+                    cryptoDatabase.cryptoDatabaseDao(),
+                )
+
+                Timber.i("Setup basket")
+                _setupState.postValue(SetupState.SETUP_BASKET)
+
+                var basket: Basket? = basketDatabase.basketDatabaseDao().getBasket()
+                Timber.i("Old basket $basket")
+
+                // TODO Check if basket is known to the basket service
+                if (basket == null || !basket.isActive) {
+                    val basketResponse = basketApiService.getNewBasket()
+                    if (basketResponse.isSuccessful) {
+                        basket = Basket(basketResponse.body()!!, true)
+
+                        // Make sure all other baskets are set to inactive
+                        basketDatabase.basketDatabaseDao().setAllInactive()
+                        basketDatabase.basketDatabaseDao().insertBasket(basket)
+                    } else {
+                        _setupState.postValue(SetupState.ERROR)
+                        return@withContext
+                    }
+                }
+
+                Timber.i("Using basket $basket")
 
                 _setupState.postValue(SetupState.FINISHED)
                 Thread.sleep(200)

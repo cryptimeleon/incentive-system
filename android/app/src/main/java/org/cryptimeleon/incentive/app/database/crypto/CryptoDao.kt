@@ -1,17 +1,18 @@
-package org.cryptimeleon.incentive.app.repository.crypto
+package org.cryptimeleon.incentive.app.database.crypto
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface CryptoDao {
     @Query("SELECT * FROM tokens")
-    fun getTokens(): List<Token>
+    fun getTokens(): Flow<List<Token>>
 
     @Query("SELECT serializedAsset FROM crypto_assets where name LIKE :name LIMIT 1")
-    fun getAssetByName(name: String): String
+    suspend fun getAssetByName(name: String): String
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertToken(token: Token)

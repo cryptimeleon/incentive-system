@@ -7,8 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.fragment.navArgs
+import androidx.fragment.app.viewModels
 import org.cryptimeleon.incentive.app.R
 import org.cryptimeleon.incentive.app.databinding.BenchmarkResultFragmentBinding
 
@@ -17,9 +16,7 @@ import org.cryptimeleon.incentive.app.databinding.BenchmarkResultFragmentBinding
  */
 class BenchmarkResultFragment : Fragment() {
     private lateinit var binding: BenchmarkResultFragmentBinding
-    private lateinit var viewModel: BenchmarkResultViewModel
-
-    private val args: BenchmarkResultFragmentArgs by navArgs()
+    private val viewModel by viewModels<BenchmarkResultViewModel>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -32,12 +29,6 @@ class BenchmarkResultFragment : Fragment() {
             false
         )
 
-        viewModel = ViewModelProvider(
-            this, BenchmarkResultViewModelFactory(
-                requireActivity().application,
-                args.result
-            )
-        ).get(BenchmarkResultViewModel::class.java)
         binding.resultViewModel = viewModel
         binding.lifecycleOwner = viewLifecycleOwner
 

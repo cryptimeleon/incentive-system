@@ -4,15 +4,21 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
+import dagger.hilt.android.lifecycle.HiltViewModel
 import org.cryptimeleon.incentive.crypto.benchmark.BenchmarkResult
+import javax.inject.Inject
 
 /**
  * View Model of the Benchmark Result
  */
-class BenchmarkResultViewModel(
+@HiltViewModel
+class BenchmarkResultViewModel @Inject constructor(
     application: Application,
-    benchmarkResult: BenchmarkResult
+    state: SavedStateHandle
 ) : AndroidViewModel(application) {
+
+    val benchmarkResult = state.get<BenchmarkResult>("result")!!
 
     val joinText = protocolText(
         benchmarkResult.joinTotalAvg,

@@ -18,9 +18,10 @@ import androidx.core.content.ContextCompat
 import androidx.core.os.bundleOf
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.common.InputImage
+import dagger.hilt.android.AndroidEntryPoint
 import org.cryptimeleon.incentive.app.R
 import org.cryptimeleon.incentive.app.databinding.FragmentScanBinding
 import timber.log.Timber
@@ -37,10 +38,11 @@ import java.util.concurrent.Executors
  * https://developer.android.com/codelabs/camerax-getting-started#3
  * https://proandroiddev.com/create-vision-app-using-ml-kit-library-and-camerax-7bf022105604
  */
+@AndroidEntryPoint
 class ScanFragment : Fragment(), ScanResultFragmentCallback {
 
     private lateinit var binding: FragmentScanBinding
-    private lateinit var viewModel: ScanViewModel
+    private val viewModel by viewModels<ScanViewModel>()
     private lateinit var cameraExecutor: ExecutorService
 
 
@@ -60,8 +62,6 @@ class ScanFragment : Fragment(), ScanResultFragmentCallback {
             false
         )
 
-        viewModel = ViewModelProvider(this).get(ScanViewModel::class.java)
-
         // Observer show item to start the itemResultFragment when an item was successfully scanned
         viewModel.showItem.observe(viewLifecycleOwner) {
             if (it == true) {
@@ -70,7 +70,7 @@ class ScanFragment : Fragment(), ScanResultFragmentCallback {
                 val scanResultFragment = ScanResultFragment(this)
                 scanResultFragment.arguments = bundle
                 scanResultFragment.show(
-                    (context as AppCompatActivity).supportFragmentManager,
+                    (requireActivity() as AppCompatActivity).supportFragmentManager,
                     "scanResultFragment"
                 )
             }

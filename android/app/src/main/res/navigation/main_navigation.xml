@@ -39,4 +39,8 @@
         android:name="org.cryptimeleon.incentive.app.scan.ScanFragment"
         android:label="Scan"
         tools:layout="@layout/fragment_scan" />
+    <fragment
+        android:id="@+id/basketFragment"
+        android:name="org.cryptimeleon.incentive.app.basket.BasketFragment"
+        android:label="Basket" />
 </navigation>

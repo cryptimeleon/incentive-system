@@ -1,24 +1,39 @@
 package org.cryptimeleon.incentive.app.scan
 
+import android.app.Application
 import android.icu.text.NumberFormat
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.Transformations
-import androidx.lifecycle.ViewModel
+import android.widget.Toast
+import androidx.lifecycle.*
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.cryptimeleon.incentive.app.database.basket.BasketDatabase
+import org.cryptimeleon.incentive.app.network.BasketApiService
+import org.cryptimeleon.incentive.app.network.BasketItem
 import org.cryptimeleon.incentive.app.network.Item
 import timber.log.Timber
 import java.util.*
+import javax.inject.Inject
 
 /**
  * View model for the dialog holding the scanned item.
  * Allows changing the count (amount) and adding it to the basket.
  */
-class ScanResultViewModel(private val item: Item) : ViewModel() {
+@HiltViewModel
+class ScanResultViewModel @Inject constructor(
+    private val basketApiService: BasketApiService,
+    private val basketDatabase: BasketDatabase,
+    application: Application,
+    state: SavedStateHandle // fragment's bundle is put into SavedStateHandle by Hilt
+) :
+    AndroidViewModel(application) {
 
     // Currency formatting
     private val locale = Locale.GERMANY
     private val currencyFormat = NumberFormat.getCurrencyInstance(locale)
 
+    val item: Item = state.get<Item>("item")!!
     val barcode: String = item.id
     val title: String = item.title
     val priceSingle: String = currencyFormat.format(item.price / 100.0)
@@ -51,9 +66,33 @@ class ScanResultViewModel(private val item: Item) : ViewModel() {
      * Add amount many of the item to the basket.
      */
     fun onAddToBasket() {
-        Timber.i("Add $title $_amount times to basket!")
-        // TODO implement some handling here
-        _closeScanResult.value = true
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                val basket = basketDatabase.basketDatabaseDao().getBasket()
+
+                Timber.i("Add $title ${_amount.value} times to basket ${basket.basketId}!")
+
+                val basketItem = BasketItem(basket.basketId, _amount.value!!, barcode)
+                val putItemResponse = basketApiService.putItemToBasket(basketItem)
+                withContext(Dispatchers.Main) {
+                    if (putItemResponse.isSuccessful) {
+                        Toast.makeText(
+                            getApplication(),
+                            "Successfully put ${item.id} to basket.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } else {
+                        Toast.makeText(
+                            getApplication(),
+                            "An error occured when trying to put ${item.id} to basket.\nresponse code: ${putItemResponse.code()}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+                _closeScanResult.postValue(true)
+            }
+        }
+
     }
 
     /**

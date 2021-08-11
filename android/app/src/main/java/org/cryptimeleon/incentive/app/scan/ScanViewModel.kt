@@ -1,16 +1,18 @@
 package org.cryptimeleon.incentive.app.scan
 
 import android.app.Application
-import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.cryptimeleon.incentive.app.network.BasketApi
+import org.cryptimeleon.incentive.app.network.BasketApiService
 import org.cryptimeleon.incentive.app.network.Item
 import timber.log.Timber
+import javax.inject.Inject
 
 /**
  * ViewModel for the ScanFragment.
@@ -18,10 +20,15 @@ import timber.log.Timber
  * In the future, it could find related promotions based on the current basket content, tokens and
  * scanned item, e.g. add three of these to get one for free etc.
  */
-class ScanViewModel(application: Application) : AndroidViewModel(application) {
-    private val _currentBarcode = MutableLiveData<String>()
+@HiltViewModel
+class ScanViewModel @Inject constructor(
+    private val basketApiService: BasketApiService,
+    application: Application
+) :
+    AndroidViewModel(application) {
     val item = MutableLiveData<Item>()
     val showItem = MutableLiveData(false)
+    private val canScanItem = MutableLiveData(true)
 
     /**
      * Handle a new barcode being scanned.
@@ -34,32 +41,27 @@ class ScanViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun setBarcode(barcode: String) {
         // Check if barcode already registered or being displayed
-        if (showItem.value == true || _currentBarcode.value == barcode || barcode == "") {
+        if (showItem.value == true || barcode == "" || canScanItem.value == false) {
             return
         }
 
-        _currentBarcode.value = barcode
         Timber.i(barcode)
 
         // query basket item from basket service and check if it exists
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 // Query item
-                val itemResponse = BasketApi.retrofitService.getItemById(barcode)
+                val itemResponse = basketApiService.getItemById(barcode)
 
                 if (itemResponse.isSuccessful) {
                     Timber.i(itemResponse.body().toString())
-                    item.postValue(itemResponse.body())
-                    showItem.postValue(true)
+                    if (showItem.value == false) {
+                        item.postValue(itemResponse.body())
+                        showItem.postValue(true)
+                        canScanItem.postValue(false)
+                    }
                 } else {
                     // Handle error case
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(
-                            getApplication(),
-                            "Scanned item not found\n($barcode)",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
                     Timber.i("Item with id $barcode not found")
                 }
             }
@@ -72,8 +74,11 @@ class ScanViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun showItemFinished() {
         showItem.value = false
-        item.value = null
-        // Reset barcode to allow rescanning the same item after closing the dialog
-        _currentBarcode.value = ""
+        viewModelScope.launch {
+            // Wait one second between closing the dialog and scanning the next item to avoid
+            // accidentally scanning the same item again
+            delay(1000L)
+            canScanItem.value = true
+        }
     }
 }

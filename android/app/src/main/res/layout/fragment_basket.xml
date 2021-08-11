@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <import type="android.view.View" />
+
+        <variable
+            name="basketViewModel"
+            type="org.cryptimeleon.incentive.app.basket.BasketViewModel" />
+    </data>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/basket_item_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="32dp"
+                android:nestedScrollingEnabled="false"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                app:layout_constraintBottom_toTopOf="@id/barrierInfoArea"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.0"
+                app:listData="@{basketViewModel.basketContent}">
+
+            </androidx.recyclerview.widget.RecyclerView>
+
+            <androidx.constraintlayout.widget.Barrier
+                android:id="@+id/barrierInfoArea"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:barrierDirection="top"
+                app:constraint_referenced_ids="labelBasketEmpty" />
+
+            <TextView
+                android:id="@+id/labelBasketEmpty"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:text="Basket empty"
+                android:visibility="@{basketViewModel.visibleIfBasketEmpty}"
+                app:layout_constraintBottom_toTopOf="@+id/labelBasketEmptyDetail"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/basket_item_list"
+                app:layout_constraintVertical_chainStyle="packed" />
+
+            <TextView
+                android:id="@+id/labelBasketEmptyDetail"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Scan items to add them to the Basket."
+                android:visibility="@{basketViewModel.visibleIfBasketEmpty}"
+                app:layout_constraintBottom_toTopOf="@+id/buttonPayBasket"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/labelBasketEmpty" />
+
+            <androidx.constraintlayout.widget.Barrier
+                android:id="@+id/barrierPayArea"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:barrierDirection="top"
+                app:constraint_referenced_ids="totalBasketPrice, labelTotalBasketPrice, buttonDiscardBasket, buttonPayBasket"
+                tools:layout_editor_absoluteY="386dp" />
+
+            <TextView
+                android:id="@+id/labelTotalBasketPrice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="16dp"
+                android:text="Total:"
+                android:visibility="@{basketViewModel.visibleIfBasketNotEmpty}"
+                app:layout_constraintBottom_toTopOf="@+id/totalBasketPrice"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <TextView
+                android:id="@+id/totalBasketPrice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="32dp"
+                android:text="@{basketViewModel.basketValue}"
+                android:visibility="@{basketViewModel.visibleIfBasketNotEmpty}"
+                app:layout_constraintBottom_toTopOf="@+id/buttonPayBasket"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <Button
+                android:id="@+id/buttonPayBasket"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="16dp"
+                android:enabled="@{basketViewModel.showBasketActionButtons}"
+                android:onClick="@{() -> basketViewModel.payAndRedeem()}"
+                android:text="Pay and Redeem"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toEndOf="@+id/buttonDiscardBasket" />
+
+            <Button
+                android:id="@+id/buttonDiscardBasket"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginBottom="16dp"
+                android:enabled="@{basketViewModel.showBasketActionButtons}"
+                android:onClick="@{() -> basketViewModel.newBasket(true)}"
+                android:text="@string/button_discard_label"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/buttonPayBasket"
+                app:layout_constraintHorizontal_bias="0.5"
+                app:layout_constraintStart_toStartOf="parent" />
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    </ScrollView>
+
+</layout>

@@ -2,30 +2,19 @@ package org.cryptimeleon.incentive.app.settings
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import org.cryptimeleon.incentive.app.repository.crypto.CryptoRepository
+import androidx.lifecycle.liveData
+import dagger.hilt.android.lifecycle.HiltViewModel
+import org.cryptimeleon.incentive.app.database.crypto.CryptoRepository
+import javax.inject.Inject
 
-class SettingsViewModel(
+@HiltViewModel
+class SettingsViewModel @Inject constructor(
+    private val cryptoRepository: CryptoRepository,
     application: Application,
 ) : AndroidViewModel(application) {
-    private val cryptoRepository = CryptoRepository.getInstance(application.applicationContext)
-
-    // TODO LiveData depends on lazy data. How to fix this?
-
-    private val _userSecretKey = MutableLiveData(cryptoRepository.userKeyPair.sk.toString())
-    val userSecretKey: LiveData<String>
-        get() = _userSecretKey
-
-    private val _userPublicKey = MutableLiveData(cryptoRepository.userKeyPair.pk.toString())
-    val userPublicKey: LiveData<String>
-        get() = _userPublicKey
-
-    private val _providerPublicKey = MutableLiveData(cryptoRepository.providerPublicKey.toString())
-    val providerPublicKey: LiveData<String>
-        get() = _providerPublicKey
-
-    private val _publicParameters = MutableLiveData(cryptoRepository.publicParameters.toString())
-    val publicParameter: LiveData<String>
-        get() = _publicParameters
+    val publicParameter = liveData { emit(cryptoRepository.getPublicParameters().toString()) }
+    val userSecretKey =
+        liveData { emit(cryptoRepository.getUserKeyPair().sk.toString()) }
+    val userPublicKey = liveData { emit(cryptoRepository.getUserKeyPair().pk.toString()) }
+    val providerPublicKey = liveData { emit(cryptoRepository.getProviderPublicKey().toString()) }
 }

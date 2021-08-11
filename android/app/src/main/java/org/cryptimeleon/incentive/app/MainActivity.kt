@@ -8,9 +8,11 @@ import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
+import dagger.hilt.android.AndroidEntryPoint
 import org.cryptimeleon.incentive.app.databinding.ActivityMainBinding
 import timber.log.Timber
 
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
     lateinit var binding: ActivityMainBinding
@@ -31,7 +33,8 @@ class MainActivity : AppCompatActivity() {
                 R.id.dashboardFragment,
                 R.id.benchmark_fragment,
                 R.id.settingsFragment,
-                R.id.scanFragment
+                R.id.scanFragment,
+                R.id.basketFragment
             )
         )
         setupActionBarWithNavController(navController, appBarConfiguration)

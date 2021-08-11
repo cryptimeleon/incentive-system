@@ -2,6 +2,7 @@ package org.cryptimeleon.incentive.app.benchmark
 
 import android.app.Application
 import androidx.lifecycle.*
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -13,6 +14,7 @@ import org.cryptimeleon.incentive.crypto.benchmark.BenchmarkConfig
 import org.cryptimeleon.incentive.crypto.benchmark.BenchmarkResult
 import org.cryptimeleon.incentive.crypto.benchmark.BenchmarkState
 import timber.log.Timber
+import javax.inject.Inject
 
 private const val BENCHMARK_ITERATIONS = 10
 private val BENCHMARK_GROUP = Setup.BilinearGroupChoice.Herumi_MCL
@@ -30,7 +32,9 @@ enum class BenchmarkViewState {
 /**
  * ViewModel for Benchmark, runs Benchmark in a Coroutine and triggers navigation to BenchmarkResultFragment when finished
  */
-class BenchmarkViewModel(application: Application) : AndroidViewModel(application) {
+@HiltViewModel
+class BenchmarkViewModel @Inject constructor(application: Application) :
+    AndroidViewModel(application) {
 
     private val _benchmarkRunning = MutableLiveData(false)
     val benchmarkRunning: LiveData<Boolean>
