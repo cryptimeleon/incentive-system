@@ -6,8 +6,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import dagger.hilt.android.AndroidEntryPoint
 import org.cryptimeleon.incentive.app.R
 import org.cryptimeleon.incentive.app.databinding.FragmentScanResultBinding
 import org.cryptimeleon.incentive.app.network.Item
@@ -18,11 +19,12 @@ import org.cryptimeleon.incentive.app.network.Item
  * A user can choose a number of items, see the total price and add it to the basket.
  * Is displayed as a dialog that is opened at the bottom of the screen.
  */
+@AndroidEntryPoint
 class ScanResultFragment(private val scanResultFragmentCallback: ScanResultFragmentCallback) :
     BottomSheetDialogFragment() {
 
     private lateinit var binding: FragmentScanResultBinding
-    private lateinit var viewModel: ScanResultViewModel
+    private val viewModel by viewModels<ScanResultViewModel>()
     private lateinit var item: Item
 
     /**
@@ -41,12 +43,6 @@ class ScanResultFragment(private val scanResultFragmentCallback: ScanResultFragm
 
         // Get item that is delivered via a parcel
         item = arguments?.getParcelable("item")!!
-
-        viewModel = ViewModelProvider(
-            this,
-            ScanResultViewModelFactory(item, requireActivity().application)
-        ).get(ScanResultViewModel::class.java)
-
 
         // Observe this variable of the view model and close the dialog when it becomes true
         viewModel.closeScanResult.observe(viewLifecycleOwner) {

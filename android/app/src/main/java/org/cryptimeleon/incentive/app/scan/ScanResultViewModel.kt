@@ -4,27 +4,36 @@ import android.app.Application
 import android.icu.text.NumberFormat
 import android.widget.Toast
 import androidx.lifecycle.*
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.cryptimeleon.incentive.app.database.basket.BasketDatabase
-import org.cryptimeleon.incentive.app.network.BasketApi
+import org.cryptimeleon.incentive.app.network.BasketApiService
 import org.cryptimeleon.incentive.app.network.BasketItem
 import org.cryptimeleon.incentive.app.network.Item
 import timber.log.Timber
 import java.util.*
+import javax.inject.Inject
 
 /**
  * View model for the dialog holding the scanned item.
  * Allows changing the count (amount) and adding it to the basket.
  */
-class ScanResultViewModel(private val item: Item, application: Application) :
+@HiltViewModel
+class ScanResultViewModel @Inject constructor(
+    private val basketApiService: BasketApiService,
+    application: Application,
+    state: SavedStateHandle
+) :
     AndroidViewModel(application) {
 
     // Currency formatting
     private val locale = Locale.GERMANY
     private val currencyFormat = NumberFormat.getCurrencyInstance(locale)
 
+    // TODO improve upon this
+    val item: Item = state.get<Item>("item")!!
     val barcode: String = item.id
     val title: String = item.title
     val priceSingle: String = currencyFormat.format(item.price / 100.0)
@@ -65,7 +74,7 @@ class ScanResultViewModel(private val item: Item, application: Application) :
                 Timber.i("Add $title ${_amount.value} times to basket ${basket.basketId}!")
 
                 val basketItem = BasketItem(basket.basketId, _amount.value!!, barcode)
-                val putItemResponse = BasketApi.retrofitService.putItemToBasket(basketItem)
+                val putItemResponse = basketApiService.putItemToBasket(basketItem)
                 withContext(Dispatchers.Main) {
                     if (putItemResponse.isSuccessful) {
                         Toast.makeText(

@@ -5,21 +5,23 @@ import android.icu.text.NumberFormat
 import android.view.View
 import android.widget.Toast
 import androidx.lifecycle.*
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.cryptimeleon.incentive.app.basket.BasketItemRecyclerViewAdapter.BasketListItem
 import org.cryptimeleon.incentive.app.database.basket.BasketDatabase
 import org.cryptimeleon.incentive.app.database.crypto.CryptoRepository
-import org.cryptimeleon.incentive.app.network.Basket
-import org.cryptimeleon.incentive.app.network.BasketApi
-import org.cryptimeleon.incentive.app.network.BasketItem
-import org.cryptimeleon.incentive.app.network.PayBody
+import org.cryptimeleon.incentive.app.network.*
 import timber.log.Timber
 import java.util.*
+import javax.inject.Inject
 import kotlin.collections.ArrayList
 
-class BasketViewModel(application: Application) : AndroidViewModel(application) {
+@HiltViewModel
+class BasketViewModel @Inject constructor(
+    private val basketApiService: BasketApiService, application: Application
+) : AndroidViewModel(application) {
 
     private val locale = Locale.GERMANY
     private val currencyFormat = NumberFormat.getCurrencyInstance(locale)
@@ -65,7 +67,7 @@ class BasketViewModel(application: Application) : AndroidViewModel(application) 
     private fun loadBasketContent(basketId: UUID) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                val getBasketResponse = BasketApi.retrofitService.getBasketContent(basketId)
+                val getBasketResponse = basketApiService.getBasketContent(basketId)
                 Timber.i(getBasketResponse.toString())
                 if (getBasketResponse.isSuccessful) {
                     val basket: Basket = getBasketResponse.body()!!
@@ -73,7 +75,7 @@ class BasketViewModel(application: Application) : AndroidViewModel(application) 
 
                     val itemsInBasket = ArrayList<BasketListItem>()
                     basket.items.forEach { (id, count) ->
-                        val item = BasketApi.retrofitService.getItemById(id)
+                        val item = basketApiService.getItemById(id)
                         itemsInBasket.add(
                             BasketListItem(
                                 item.body()!!,
@@ -92,12 +94,12 @@ class BasketViewModel(application: Application) : AndroidViewModel(application) 
             basket.value?.let {
                 withContext(Dispatchers.IO) {
                     val response = if (count <= 0) {
-                        BasketApi.retrofitService.removeItemFromBasket(
+                        basketApiService.removeItemFromBasket(
                             it.basketId,
                             itemId
                         )
                     } else {
-                        BasketApi.retrofitService.putItemToBasket(
+                        basketApiService.putItemToBasket(
                             BasketItem(
                                 it.basketId,
                                 count,
@@ -129,12 +131,12 @@ class BasketViewModel(application: Application) : AndroidViewModel(application) 
                 val basketId = basket.value!!.basketId
                 BasketDatabase.getInstance(getApplication()).basketDatabaseDao()
                     .setActive(false, basketId)
-                if (delete) BasketApi.retrofitService.deleteBasket(basketId)
+                if (delete) basketApiService.deleteBasket(basketId)
 
                 _basket.postValue(null)
                 _basketContent.postValue(ArrayList())
 
-                val basketResponse = BasketApi.retrofitService.getNewBasket()
+                val basketResponse = basketApiService.getNewBasket()
                 if (basketResponse.isSuccessful) {
                     val basket = org.cryptimeleon.incentive.app.database.basket.Basket(
                         basketResponse.body()!!,
@@ -156,7 +158,7 @@ class BasketViewModel(application: Application) : AndroidViewModel(application) 
 
                 // Pay basket
                 val payResponse =
-                    BasketApi.retrofitService.payBasket(PayBody(basketId, basket.value!!.value))
+                    basketApiService.payBasket(PayBody(basketId, basket.value!!.value))
                 if (!payResponse.isSuccessful) {
                     Timber.e("An exception occured when trying to pay the basket with id $basketId: $payResponse")
                     Toast.makeText(

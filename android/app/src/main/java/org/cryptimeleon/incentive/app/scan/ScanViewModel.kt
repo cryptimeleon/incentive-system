@@ -4,13 +4,15 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.cryptimeleon.incentive.app.network.BasketApi
+import org.cryptimeleon.incentive.app.network.BasketApiService
 import org.cryptimeleon.incentive.app.network.Item
 import timber.log.Timber
+import javax.inject.Inject
 
 /**
  * ViewModel for the ScanFragment.
@@ -18,7 +20,12 @@ import timber.log.Timber
  * In the future, it could find related promotions based on the current basket content, tokens and
  * scanned item, e.g. add three of these to get one for free etc.
  */
-class ScanViewModel(application: Application) : AndroidViewModel(application) {
+@HiltViewModel
+class ScanViewModel @Inject constructor(
+    private val basketApiService: BasketApiService,
+    application: Application
+) :
+    AndroidViewModel(application) {
     val item = MutableLiveData<Item>()
     val showItem = MutableLiveData(false)
     private val canScanItem = MutableLiveData(true)
@@ -44,7 +51,7 @@ class ScanViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 // Query item
-                val itemResponse = BasketApi.retrofitService.getItemById(barcode)
+                val itemResponse = basketApiService.getItemById(barcode)
 
                 if (itemResponse.isSuccessful) {
                     Timber.i(itemResponse.body().toString())

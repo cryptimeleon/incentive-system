@@ -5,14 +5,16 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
 import org.cryptimeleon.incentive.app.database.basket.Basket
 import org.cryptimeleon.incentive.app.database.basket.BasketDatabase
 import org.cryptimeleon.incentive.app.database.crypto.CryptoRepository
-import org.cryptimeleon.incentive.app.network.BasketApi
+import org.cryptimeleon.incentive.app.network.BasketApiService
 import org.cryptimeleon.incentive.app.network.InfoApi
 import timber.log.Timber
 import java.util.*
+import javax.inject.Inject
 
 enum class SetupState {
     LOADING_PP,
@@ -25,7 +27,9 @@ enum class SetupState {
 }
 
 
-class SetupViewModel(
+@HiltViewModel
+class SetupViewModel @Inject constructor(
+    private val basketApiService: BasketApiService,
     application: Application,
 ) : AndroidViewModel(application) {
     private val viewModelJob = Job()
@@ -96,7 +100,7 @@ class SetupViewModel(
                 Timber.i("Old basket $basket")
                 // TODO Check if basket is known to the basket service
                 if (basket == null || !basket.isActive) {
-                    val basketResponse = BasketApi.retrofitService.getNewBasket()
+                    val basketResponse = basketApiService.getNewBasket()
                     if (basketResponse.isSuccessful) {
                         basket = Basket(basketResponse.body()!!, true)
 
