@@ -7,6 +7,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import org.cryptimeleon.incentive.app.database.basket.BasketDatabase
 import org.cryptimeleon.incentive.app.database.crypto.CryptoDatabase
 import org.cryptimeleon.incentive.app.database.crypto.CryptoRepository
 import org.cryptimeleon.incentive.app.network.BasketApiService
@@ -75,6 +76,14 @@ class HiltDatabaseModule {
         Room.databaseBuilder(
             context,
             CryptoDatabase::class.java, "crypto.db"
+        ).build()
+
+    @Singleton
+    @Provides
+    fun provideBasketDatabase(@ApplicationContext context: Context): BasketDatabase =
+        Room.databaseBuilder(
+            context,
+            BasketDatabase::class.java, "basket.db"
         ).build()
 }
 

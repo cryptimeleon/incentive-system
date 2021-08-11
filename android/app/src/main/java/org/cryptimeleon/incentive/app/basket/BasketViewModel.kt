@@ -22,6 +22,7 @@ import kotlin.collections.ArrayList
 class BasketViewModel @Inject constructor(
     private val basketApiService: BasketApiService,
     private val cryptoRepository: CryptoRepository,
+    private val basketDatabase: BasketDatabase,
     application: Application
 ) : AndroidViewModel(application) {
 
@@ -59,7 +60,7 @@ class BasketViewModel @Inject constructor(
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 val basketId =
-                    BasketDatabase.getInstance(getApplication()).basketDatabaseDao()
+                    basketDatabase.basketDatabaseDao()
                         .getBasket().basketId
                 loadBasketContent(basketId)
             }
@@ -131,7 +132,7 @@ class BasketViewModel @Inject constructor(
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 val basketId = basket.value!!.basketId
-                BasketDatabase.getInstance(getApplication()).basketDatabaseDao()
+                basketDatabase.basketDatabaseDao()
                     .setActive(false, basketId)
                 if (delete) basketApiService.deleteBasket(basketId)
 
@@ -144,7 +145,7 @@ class BasketViewModel @Inject constructor(
                         basketResponse.body()!!,
                         true
                     )
-                    BasketDatabase.getInstance(getApplication()).basketDatabaseDao()
+                    basketDatabase.basketDatabaseDao()
                         .insertBasket(basket)
                     loadBasketContent(basket.basketId)
                 }
@@ -170,7 +171,7 @@ class BasketViewModel @Inject constructor(
                     return@withContext
                 }
 
-                BasketDatabase.getInstance(getApplication()).basketDatabaseDao()
+                basketDatabase.basketDatabaseDao()
                     .setActive(false, basketId)
 
                 // Redeem basket

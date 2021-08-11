@@ -35,12 +35,12 @@ class SetupViewModel @Inject constructor(
     private val infoApiService: InfoApiService,
     private val issueJoinApiService: IssueJoinApiService,
     private val cryptoDatabase: CryptoDatabase,
+    private val basketDatabase: BasketDatabase,
     application: Application,
 ) : AndroidViewModel(application) {
     private val viewModelJob = Job()
     private val uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
     private val _setupState = MutableLiveData(SetupState.LOADING_PP)
-    private val basketDatabase = BasketDatabase.getInstance(application.applicationContext)
 
     private val _navigateToInfo = MutableLiveData(false)
     val navigateToInfo: LiveData<Boolean>

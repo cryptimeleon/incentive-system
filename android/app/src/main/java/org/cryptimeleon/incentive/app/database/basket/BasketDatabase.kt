@@ -16,21 +16,4 @@ import org.cryptimeleon.incentive.app.database.UUIDConverter
 @TypeConverters(UUIDConverter::class)
 abstract class BasketDatabase : RoomDatabase() {
     abstract fun basketDatabaseDao(): BasketDao
-
-    companion object {
-
-        @Volatile
-        private var INSTANCE: BasketDatabase? = null
-
-        fun getInstance(context: Context): BasketDatabase =
-            INSTANCE ?: synchronized(this) {
-                INSTANCE ?: buildDatabase(context).also { INSTANCE = it }
-            }
-
-        private fun buildDatabase(context: Context) =
-            Room.databaseBuilder(
-                context.applicationContext,
-                BasketDatabase::class.java, "basket.db"
-            ).build()
-    }
 }

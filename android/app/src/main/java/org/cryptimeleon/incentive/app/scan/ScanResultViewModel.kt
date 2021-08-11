@@ -23,6 +23,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ScanResultViewModel @Inject constructor(
     private val basketApiService: BasketApiService,
+    private val basketDatabase: BasketDatabase,
     application: Application,
     state: SavedStateHandle // fragment's bundle is put into SavedStateHandle by Hilt
 ) :
@@ -32,7 +33,6 @@ class ScanResultViewModel @Inject constructor(
     private val locale = Locale.GERMANY
     private val currencyFormat = NumberFormat.getCurrencyInstance(locale)
 
-    // TODO improve upon this
     val item: Item = state.get<Item>("item")!!
     val barcode: String = item.id
     val title: String = item.title
@@ -68,8 +68,7 @@ class ScanResultViewModel @Inject constructor(
     fun onAddToBasket() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                val basket =
-                    BasketDatabase.getInstance(getApplication()).basketDatabaseDao().getBasket()
+                val basket = basketDatabase.basketDatabaseDao().getBasket()
 
                 Timber.i("Add $title ${_amount.value} times to basket ${basket.basketId}!")
 
