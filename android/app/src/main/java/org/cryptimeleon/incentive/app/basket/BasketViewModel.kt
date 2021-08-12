@@ -29,8 +29,7 @@ class BasketViewModel @Inject constructor(
     private val locale = Locale.GERMANY
     private val currencyFormat = NumberFormat.getCurrencyInstance(locale)
 
-    private val _basketContent =
-        MutableLiveData<List<BasketListItem>>(null)
+    private val _basketContent = MutableLiveData<List<BasketListItem>>(null)
     val basketContent: LiveData<List<BasketListItem>>
         get() = _basketContent
 
@@ -163,7 +162,7 @@ class BasketViewModel @Inject constructor(
                 val payResponse =
                     basketApiService.payBasket(PayBody(basketId, basket.value!!.value))
                 if (!payResponse.isSuccessful) {
-                    Timber.e("An exception occured when trying to pay the basket with id $basketId: $payResponse")
+                    Timber.e("An exception occurred when trying to pay the basket with id $basketId: $payResponse")
                     Toast.makeText(
                         getApplication(), "Could not pay basket!",
                         Toast.LENGTH_LONG
@@ -192,4 +191,3 @@ class BasketViewModel @Inject constructor(
         }
     }
 }
-

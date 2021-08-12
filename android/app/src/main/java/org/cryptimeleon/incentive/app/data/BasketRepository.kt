@@ -4,6 +4,7 @@ import org.cryptimeleon.incentive.app.data.database.basket.Basket
 import org.cryptimeleon.incentive.app.data.database.basket.BasketDao
 import org.cryptimeleon.incentive.app.data.network.BasketApiService
 import org.cryptimeleon.incentive.app.data.network.BasketItem
+import org.cryptimeleon.incentive.app.data.network.Item
 
 class BasketRepository(
     private val basketApiService: BasketApiService,
@@ -42,5 +43,9 @@ class BasketRepository(
         val basketItem = BasketItem(basket.basketId, amount, barcode)
         val putItemResponse = basketApiService.putItemToBasket(basketItem)
         return putItemResponse.isSuccessful
+    }
+
+    suspend fun getBasketItem(barcode: String): Item? {
+        return basketApiService.getItemById(barcode).body()
     }
 }

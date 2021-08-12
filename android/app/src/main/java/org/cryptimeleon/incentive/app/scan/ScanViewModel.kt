@@ -9,7 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.cryptimeleon.incentive.app.data.network.BasketApiService
+import org.cryptimeleon.incentive.app.data.BasketRepository
 import org.cryptimeleon.incentive.app.data.network.Item
 import timber.log.Timber
 import javax.inject.Inject
@@ -22,7 +22,7 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class ScanViewModel @Inject constructor(
-    private val basketApiService: BasketApiService,
+    private val basketRepository: BasketRepository,
     application: Application
 ) :
     AndroidViewModel(application) {
@@ -51,18 +51,13 @@ class ScanViewModel @Inject constructor(
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 // Query item
-                val itemResponse = basketApiService.getItemById(barcode)
+                val basketItem = basketRepository.getBasketItem(barcode) ?: return@withContext
 
-                if (itemResponse.isSuccessful) {
-                    Timber.i(itemResponse.body().toString())
-                    if (showItem.value == false) {
-                        item.postValue(itemResponse.body())
-                        showItem.postValue(true)
-                        canScanItem.postValue(false)
-                    }
-                } else {
-                    // Handle error case
-                    Timber.i("Item with id $barcode not found")
+                Timber.i("Item: $basketItem")
+                if (showItem.value == false) {
+                    item.postValue(basketItem)
+                    showItem.postValue(true)
+                    canScanItem.postValue(false)
                 }
             }
             // check if promotions apply or can be applied by adding some more of this item
