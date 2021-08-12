@@ -59,10 +59,10 @@ class BasketViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                val basketId =
+                val basket =
                     basketDatabase.basketDatabaseDao()
-                        .getBasket().basketId
-                loadBasketContent(basketId)
+                        .getBasket() ?: return@withContext
+                loadBasketContent(basket.basketId)
             }
         }
     }

@@ -8,11 +8,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.cryptimeleon.incentive.app.data.database.basket.BasketDatabase
-import org.cryptimeleon.incentive.app.data.network.BasketApiService
-import org.cryptimeleon.incentive.app.data.network.BasketItem
+import org.cryptimeleon.incentive.app.data.BasketRepository
 import org.cryptimeleon.incentive.app.data.network.Item
-import timber.log.Timber
 import java.util.*
 import javax.inject.Inject
 
@@ -22,8 +19,7 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class ScanResultViewModel @Inject constructor(
-    private val basketApiService: BasketApiService,
-    private val basketDatabase: BasketDatabase,
+    private val basketRepository: BasketRepository,
     application: Application,
     state: SavedStateHandle // fragment's bundle is put into SavedStateHandle by Hilt
 ) :
@@ -68,14 +64,11 @@ class ScanResultViewModel @Inject constructor(
     fun onAddToBasket() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                val basket = basketDatabase.basketDatabaseDao().getBasket()
+                val putItemSuccessful =
+                    basketRepository.putItemIntoCurrentBasket(_amount.value!!, item.id)
 
-                Timber.i("Add $title ${_amount.value} times to basket ${basket.basketId}!")
-
-                val basketItem = BasketItem(basket.basketId, _amount.value!!, barcode)
-                val putItemResponse = basketApiService.putItemToBasket(basketItem)
                 withContext(Dispatchers.Main) {
-                    if (putItemResponse.isSuccessful) {
+                    if (putItemSuccessful) {
                         Toast.makeText(
                             getApplication(),
                             "Successfully put ${item.id} to basket.",
@@ -84,7 +77,7 @@ class ScanResultViewModel @Inject constructor(
                     } else {
                         Toast.makeText(
                             getApplication(),
-                            "An error occured when trying to put ${item.id} to basket.\nresponse code: ${putItemResponse.code()}",
+                            "An error occured when trying to put ${item.id} to basket.",
                             Toast.LENGTH_SHORT
                         ).show()
                     }

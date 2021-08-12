@@ -9,7 +9,7 @@ import java.util.*
 @Dao
 interface BasketDao {
     @Query("SELECT * FROM baskets WHERE active=1 LIMIT 1")
-    fun getBasket(): Basket
+    fun getBasket(): Basket?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertBasket(basket: Basket)
