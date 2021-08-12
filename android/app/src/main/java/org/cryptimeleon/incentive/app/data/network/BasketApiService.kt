@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.app.network
+package org.cryptimeleon.incentive.app.data.network
 
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName

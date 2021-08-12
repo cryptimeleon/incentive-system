@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.app.database.basket
+package org.cryptimeleon.incentive.app.data.database.basket
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity

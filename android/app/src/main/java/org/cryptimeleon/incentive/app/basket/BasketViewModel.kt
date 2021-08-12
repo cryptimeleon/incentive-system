@@ -10,9 +10,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.cryptimeleon.incentive.app.basket.BasketItemRecyclerViewAdapter.BasketListItem
-import org.cryptimeleon.incentive.app.database.basket.BasketDatabase
-import org.cryptimeleon.incentive.app.database.crypto.CryptoRepository
-import org.cryptimeleon.incentive.app.network.*
+import org.cryptimeleon.incentive.app.data.CryptoRepository
+import org.cryptimeleon.incentive.app.data.database.basket.BasketDatabase
+import org.cryptimeleon.incentive.app.data.network.*
 import timber.log.Timber
 import java.util.*
 import javax.inject.Inject
@@ -141,7 +141,7 @@ class BasketViewModel @Inject constructor(
 
                 val basketResponse = basketApiService.getNewBasket()
                 if (basketResponse.isSuccessful) {
-                    val basket = org.cryptimeleon.incentive.app.database.basket.Basket(
+                    val basket = org.cryptimeleon.incentive.app.data.database.basket.Basket(
                         basketResponse.body()!!,
                         true
                     )

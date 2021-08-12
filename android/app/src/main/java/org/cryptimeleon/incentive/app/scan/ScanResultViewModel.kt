@@ -8,10 +8,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.cryptimeleon.incentive.app.database.basket.BasketDatabase
-import org.cryptimeleon.incentive.app.network.BasketApiService
-import org.cryptimeleon.incentive.app.network.BasketItem
-import org.cryptimeleon.incentive.app.network.Item
+import org.cryptimeleon.incentive.app.data.database.basket.BasketDatabase
+import org.cryptimeleon.incentive.app.data.network.BasketApiService
+import org.cryptimeleon.incentive.app.data.network.BasketItem
+import org.cryptimeleon.incentive.app.data.network.Item
 import timber.log.Timber
 import java.util.*
 import javax.inject.Inject

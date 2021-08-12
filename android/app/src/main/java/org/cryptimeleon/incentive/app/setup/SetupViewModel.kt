@@ -7,40 +7,33 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
-import org.cryptimeleon.incentive.app.database.basket.Basket
-import org.cryptimeleon.incentive.app.database.basket.BasketDatabase
-import org.cryptimeleon.incentive.app.database.crypto.CryptoDatabase
-import org.cryptimeleon.incentive.app.database.crypto.CryptoRepository
-import org.cryptimeleon.incentive.app.network.BasketApiService
-import org.cryptimeleon.incentive.app.network.InfoApiService
-import org.cryptimeleon.incentive.app.network.IssueJoinApiService
+import org.cryptimeleon.incentive.app.data.CryptoRepository
+import org.cryptimeleon.incentive.app.data.database.basket.Basket
+import org.cryptimeleon.incentive.app.data.database.basket.BasketDatabase
+import org.cryptimeleon.incentive.app.data.network.BasketApiService
 import timber.log.Timber
 import java.util.*
 import javax.inject.Inject
 
 enum class SetupState {
-    LOADING_PP,
-    LOADING_PROVIDER_PK,
-    GENERATING_USER_KEYS,
     FINISHED,
     ERROR,
     ISSUE_JOIN,
-    SETUP_BASKET
+    SETUP_BASKET,
+    LOADING_CRYPTO_MATERIAL
 }
 
 
 @HiltViewModel
 class SetupViewModel @Inject constructor(
+    private val cryptoRepository: CryptoRepository,
     private val basketApiService: BasketApiService,
-    private val infoApiService: InfoApiService,
-    private val issueJoinApiService: IssueJoinApiService,
-    private val cryptoDatabase: CryptoDatabase,
     private val basketDatabase: BasketDatabase,
     application: Application,
 ) : AndroidViewModel(application) {
     private val viewModelJob = Job()
     private val uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
-    private val _setupState = MutableLiveData(SetupState.LOADING_PP)
+    private val _setupState = MutableLiveData(SetupState.LOADING_CRYPTO_MATERIAL)
 
     private val _navigateToInfo = MutableLiveData(false)
     val navigateToInfo: LiveData<Boolean>
@@ -57,13 +50,11 @@ class SetupViewModel @Inject constructor(
     val feedbackText: LiveData<String> = Transformations.map(_setupState) {
         Timber.i("State: $it")
         when (it!!) {
-            SetupState.LOADING_PP -> "Loading Public Parameters"
-            SetupState.LOADING_PROVIDER_PK -> "Loading Provider Public Key"
-            SetupState.GENERATING_USER_KEYS -> "Generating a fresh Keypair"
             SetupState.FINISHED -> "Finished!"
             SetupState.ERROR -> "An error occurred!"
             SetupState.ISSUE_JOIN -> "Retrieving new token"
             SetupState.SETUP_BASKET -> "Setting up basket!"
+            SetupState.LOADING_CRYPTO_MATERIAL -> "Loading crypto material!"
         }
     }
 
@@ -75,35 +66,14 @@ class SetupViewModel @Inject constructor(
     private fun setup() {
         uiScope.launch {
             withContext(Dispatchers.IO) {
-                _setupState.postValue(SetupState.LOADING_PP)
-                val ppResponse = infoApiService.getPublicParameters()
-                if (!ppResponse.isSuccessful) {
-                    _setupState.postValue(SetupState.ERROR)
-                    return@withContext
-                }
-                Timber.i("PP: %s", ppResponse.body()!!)
+                _setupState.postValue(SetupState.LOADING_CRYPTO_MATERIAL)
 
-                _setupState.postValue(SetupState.LOADING_PROVIDER_PK)
-                // Query provider public key
-                Timber.i("Get Provider Provider keys")
-                val ppkResponse = infoApiService.getProviderPublicKey()
-
-                if (!ppkResponse.isSuccessful) {
-                    _setupState.postValue(SetupState.ERROR)
-                    return@withContext
-                }
-                Timber.i("PPK: %s", ppkResponse.body()!!)
+                val storeDummyToken = cryptoRepository.refreshCryptoMaterial()
 
                 Timber.i("Run issue-join protocol for new (dummy-) token, setup crypto repository")
                 _setupState.postValue(SetupState.ISSUE_JOIN)
 
-                // TODO put this into the repository
-                CryptoRepository.setup(
-                    ppResponse.body()!!,
-                    ppkResponse.body()!!,
-                    issueJoinApiService,
-                    cryptoDatabase.cryptoDatabaseDao(),
-                )
+                cryptoRepository.runIssueJoin(!storeDummyToken)
 
                 Timber.i("Setup basket")
                 _setupState.postValue(SetupState.SETUP_BASKET)

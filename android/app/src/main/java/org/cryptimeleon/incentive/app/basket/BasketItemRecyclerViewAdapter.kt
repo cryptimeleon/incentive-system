@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import org.cryptimeleon.incentive.app.databinding.ViewBasketItemBinding
-import org.cryptimeleon.incentive.app.network.Item
+import org.cryptimeleon.incentive.app.data.network.Item
 import java.util.*
 
 class BasketItemRecyclerViewAdapter(private val onClickListener: OnClickListener) :
