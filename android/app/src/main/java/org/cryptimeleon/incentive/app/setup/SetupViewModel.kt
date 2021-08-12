@@ -7,12 +7,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
+import org.cryptimeleon.incentive.app.data.BasketRepository
 import org.cryptimeleon.incentive.app.data.CryptoRepository
-import org.cryptimeleon.incentive.app.data.database.basket.Basket
-import org.cryptimeleon.incentive.app.data.database.basket.BasketDatabase
-import org.cryptimeleon.incentive.app.data.network.BasketApiService
 import timber.log.Timber
-import java.util.*
 import javax.inject.Inject
 
 enum class SetupState {
@@ -27,8 +24,7 @@ enum class SetupState {
 @HiltViewModel
 class SetupViewModel @Inject constructor(
     private val cryptoRepository: CryptoRepository,
-    private val basketApiService: BasketApiService,
-    private val basketDatabase: BasketDatabase,
+    private val basketRepository: BasketRepository,
     application: Application,
 ) : AndroidViewModel(application) {
     private val viewModelJob = Job()
@@ -66,39 +62,25 @@ class SetupViewModel @Inject constructor(
     private fun setup() {
         uiScope.launch {
             withContext(Dispatchers.IO) {
+                // Load pp and provider keys
+                Timber.i("Load crypto material and generate keys if needed")
                 _setupState.postValue(SetupState.LOADING_CRYPTO_MATERIAL)
+                val storeDummy = !cryptoRepository.refreshCryptoMaterial()
 
-                val storeDummyToken = cryptoRepository.refreshCryptoMaterial()
-
+                // Load (dummy-) token
                 Timber.i("Run issue-join protocol for new (dummy-) token, setup crypto repository")
                 _setupState.postValue(SetupState.ISSUE_JOIN)
+                cryptoRepository.runIssueJoin(storeDummy)
 
-                cryptoRepository.runIssueJoin(!storeDummyToken)
-
+                // Ensure there is an active basket
                 Timber.i("Setup basket")
                 _setupState.postValue(SetupState.SETUP_BASKET)
-
-                var basket: Basket? = basketDatabase.basketDatabaseDao().getBasket()
-                Timber.i("Old basket $basket")
-
-                // TODO Check if basket is known to the basket service
-                if (basket == null || !basket.isActive) {
-                    val basketResponse = basketApiService.getNewBasket()
-                    if (basketResponse.isSuccessful) {
-                        basket = Basket(basketResponse.body()!!, true)
-
-                        // Make sure all other baskets are set to inactive
-                        basketDatabase.basketDatabaseDao().setAllInactive()
-                        basketDatabase.basketDatabaseDao().insertBasket(basket)
-                    } else {
-                        _setupState.postValue(SetupState.ERROR)
-                        return@withContext
-                    }
+                if (basketRepository.ensureActiveBasket()) {
+                    _setupState.postValue(SetupState.FINISHED)
+                } else {
+                    _setupState.postValue(SetupState.ERROR)
                 }
 
-                Timber.i("Using basket $basket")
-
-                _setupState.postValue(SetupState.FINISHED)
                 Thread.sleep(200)
                 _navigateToInfo.postValue(true)
             }

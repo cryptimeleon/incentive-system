@@ -7,6 +7,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import org.cryptimeleon.incentive.app.data.BasketRepository
 import org.cryptimeleon.incentive.app.data.CryptoRepository
 import org.cryptimeleon.incentive.app.data.database.basket.BasketDatabase
 import org.cryptimeleon.incentive.app.data.database.crypto.CryptoDatabase
@@ -104,5 +105,16 @@ class HiltRepositoryModule {
             infoApiService,
             issueJoinApiService,
             cryptoDatabase.cryptoDatabaseDao(),
+        )
+
+    @Singleton
+    @Provides
+    fun provideBasketRepository(
+        basketApiService: BasketApiService,
+        basketDatabase: BasketDatabase,
+    ): BasketRepository =
+        BasketRepository(
+            basketApiService,
+            basketDatabase.basketDatabaseDao()
         )
 }
