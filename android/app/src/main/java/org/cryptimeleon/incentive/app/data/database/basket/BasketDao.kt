@@ -8,11 +8,11 @@ import java.util.*
 
 @Dao
 interface BasketDao {
-    @Query("SELECT * FROM baskets WHERE active=1 LIMIT 1")
-    fun getBasket(): Basket?
+    @Query("SELECT basketId FROM baskets WHERE active=1 LIMIT 1")
+    suspend fun getActiveBasketId(): UUID?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertBasket(basket: Basket)
+    fun insertBasket(basketEntity: BasketEntity)
 
     @Query("UPDATE baskets SET active=:active WHERE basketId = :id")
     fun setActive(active: Boolean, id: UUID)

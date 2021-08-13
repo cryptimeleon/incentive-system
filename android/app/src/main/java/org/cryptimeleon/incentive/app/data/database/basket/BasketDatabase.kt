@@ -7,7 +7,7 @@ import org.cryptimeleon.incentive.app.data.database.UUIDConverter
 
 // Annotates class to be a Room Database with a table (entity) of the Word class
 @Database(
-    entities = [Basket::class],
+    entities = [BasketEntity::class],
     version = 1,
     exportSchema = false
 )
