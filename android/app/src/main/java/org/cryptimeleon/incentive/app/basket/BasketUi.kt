@@ -56,14 +56,13 @@ private fun Basket(
 
     Column(
         modifier = Modifier
-            .padding(16.dp)
             .fillMaxHeight(),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         if (allBasketItems.isNotEmpty()) {
             LazyColumn(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(top = 8.dp, bottom = 8.dp),
                 state = lazyListState
             ) {
                 items(allBasketItems) { basketListItem ->
@@ -81,13 +80,18 @@ private fun Basket(
                 }
             }
 
+            Spacer(modifier = Modifier.size(16.dp))
             Text(
                 text = "Total: $basketValue",
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.h6,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
             )
+            Spacer(modifier = Modifier.size(16.dp))
             Row(
+                modifier = Modifier.padding(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 OutlinedButton(
@@ -138,12 +142,13 @@ private fun BasketItem(
     setCount: (Int) -> Unit
 ) {
     Card(
-        elevation = 8.dp,
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight()
-            .clickable(onClick = onClick)
             .animateContentSize()
+            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
+            .clickable(onClick = onClick),
+        elevation = 8.dp,
     ) {
         Column(
             modifier = Modifier
@@ -161,7 +166,7 @@ private fun BasketItem(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
-                    Column() {
+                    Column {
                         Text(
                             text = "${basketListItem.count} x ${basketListItem.priceSingle}",
                             style = MaterialTheme.typography.subtitle1,
@@ -221,7 +226,7 @@ private fun BasketItem(
 
 @Composable
 private fun BasketPreview() {
-    MdcTheme() {
+    MdcTheme {
         val basketItemList = remember {
             listOf(
                 BasketListItem(
@@ -275,7 +280,7 @@ private fun BasketPreviewDark() {
 
 @Composable
 private fun BasketItemPreview(expanded: Boolean = false) {
-    MdcTheme() {
+    MdcTheme {
         val basketItem = remember {
             BasketListItem(
                 Item(

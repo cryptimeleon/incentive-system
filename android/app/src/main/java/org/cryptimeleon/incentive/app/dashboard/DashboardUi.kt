@@ -98,7 +98,10 @@ fun DashboardPreview() {
 }
 
 @Composable
-@Preview()
+@Preview(
+    showBackground = true,
+    name = "Dark Mode"
+)
 fun DashboardPreviewLight() {
     DashboardPreview()
 }

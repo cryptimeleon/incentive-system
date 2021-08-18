@@ -27,6 +27,7 @@ class BasketViewModel @Inject constructor(
     private val locale = Locale.GERMANY
     private val currencyFormat = NumberFormat.getCurrencyInstance(locale)
 
+
     private val _basketContent =
         MutableLiveData<List<BasketListItem>>(emptyList())
     val basketContent: LiveData<List<BasketListItem>>
