@@ -3,9 +3,9 @@ package org.cryptimeleon.incentive.app.dashboard
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.asLiveData
-import androidx.lifecycle.map
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import org.cryptimeleon.incentive.app.database.crypto.CryptoRepository
 import javax.inject.Inject
 
@@ -17,6 +17,21 @@ class DashboardViewModel @Inject constructor(
     AndroidViewModel(application) {
     // TODO put this functionality into setup view model since it does not have anything todo with the Dashboard
     val setupFinished = MutableLiveData(false)
-    val labelTokenPoints =
-        cryptoRepository.tokens.asLiveData().map { "${it[0].points} Points" }
+    val state: Flow<DashboardState> =
+        cryptoRepository.tokens.map { tokenList ->
+            DashboardState(
+                tokenList.map { token ->
+                    PromotionState(count = token.points.integer.toInt())
+                })
+        }
+}
+
+data class DashboardState(val promotionStates: List<PromotionState>)
+
+data class PromotionState(
+    val title: String = "Main Promotion",
+    val description: String = "Earn 1 point for every cent spent.",
+    val count: Int = 0
+) {
+
 }

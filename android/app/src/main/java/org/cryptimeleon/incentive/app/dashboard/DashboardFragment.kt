@@ -4,18 +4,18 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.databinding.DataBindingUtil
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.composethemeadapter.MdcTheme
 import dagger.hilt.android.AndroidEntryPoint
 import org.cryptimeleon.incentive.app.BaseFragment
 import org.cryptimeleon.incentive.app.R
-import org.cryptimeleon.incentive.app.databinding.DashboardFragmentBinding
 
 @AndroidEntryPoint
 class DashboardFragment : BaseFragment() {
     override var bottomNavigationViewVisibility = View.VISIBLE
-    lateinit var binding: DashboardFragmentBinding
 
     // Shared view model through the activityViewModels mechanism
     private val viewModel by activityViewModels<DashboardViewModel>()
@@ -41,15 +41,18 @@ class DashboardFragment : BaseFragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        binding = DataBindingUtil.inflate(
-            inflater,
-            R.layout.dashboard_fragment,
-            container,
-            false
-        )
-        binding.infoViewModel = viewModel
-        binding.lifecycleOwner = viewLifecycleOwner
 
-        return binding.root
+        return ComposeView(requireContext()).apply {
+            // Dispose the Composition when viewLifecycleOwner is destroyed
+            setViewCompositionStrategy(
+                ViewCompositionStrategy.DisposeOnLifecycleDestroyed(viewLifecycleOwner)
+            )
+
+            setContent {
+                MdcTheme {
+                    Dashboard(viewModel)
+                }
+            }
+        }
     }
 }
