@@ -6,7 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import org.cryptimeleon.incentive.app.database.crypto.CryptoRepository
+import org.cryptimeleon.incentive.app.data.CryptoRepository
 import javax.inject.Inject
 
 @HiltViewModel
@@ -17,12 +17,13 @@ class DashboardViewModel @Inject constructor(
     AndroidViewModel(application) {
     // TODO put this functionality into setup view model since it does not have anything todo with the Dashboard
     val setupFinished = MutableLiveData(false)
+
     val state: Flow<DashboardState> =
-        cryptoRepository.tokens.map { tokenList ->
+        cryptoRepository.token.map {
             DashboardState(
-                tokenList.map { token ->
-                    PromotionState(count = token.points.integer.toInt())
-                })
+                it?.let {
+                    listOf(PromotionState(count = it.token.points.integer.toInt()))
+                } ?: emptyList())
         }
 }
 

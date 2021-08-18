@@ -11,7 +11,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import dagger.hilt.android.AndroidEntryPoint
 import org.cryptimeleon.incentive.app.R
 import org.cryptimeleon.incentive.app.databinding.FragmentScanResultBinding
-import org.cryptimeleon.incentive.app.network.Item
+import org.cryptimeleon.incentive.app.data.network.Item
 
 
 /**

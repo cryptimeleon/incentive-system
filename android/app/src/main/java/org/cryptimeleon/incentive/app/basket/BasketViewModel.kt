@@ -8,28 +8,24 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.cryptimeleon.incentive.app.database.basket.BasketDatabase
-import org.cryptimeleon.incentive.app.database.crypto.CryptoRepository
-import org.cryptimeleon.incentive.app.network.*
-import timber.log.Timber
+import org.cryptimeleon.incentive.app.data.BasketRepository
+import org.cryptimeleon.incentive.app.data.CryptoRepository
+import org.cryptimeleon.incentive.app.data.network.Basket
+import org.cryptimeleon.incentive.app.data.network.Item
 import java.util.*
 import javax.inject.Inject
-import kotlin.collections.ArrayList
 
 @HiltViewModel
 class BasketViewModel @Inject constructor(
-    private val basketApiService: BasketApiService,
     private val cryptoRepository: CryptoRepository,
-    private val basketDatabase: BasketDatabase,
+    private val basketRepository: BasketRepository,
     application: Application
 ) : AndroidViewModel(application) {
 
     private val locale = Locale.GERMANY
     private val currencyFormat = NumberFormat.getCurrencyInstance(locale)
 
-
-    private val _basketContent =
-        MutableLiveData<List<BasketListItem>>(emptyList())
+    private val _basketContent = MutableLiveData<List<BasketListItem>>(emptyList())
     val basketContent: LiveData<List<BasketListItem>>
         get() = _basketContent
 
@@ -46,96 +42,37 @@ class BasketViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                val basketId =
-                    basketDatabase.basketDatabaseDao()
-                        .getBasket().basketId
-                loadBasketContent(basketId)
-            }
-        }
-    }
-
-    private fun loadBasketContent(basketId: UUID) {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                val getBasketResponse = basketApiService.getBasketContent(basketId)
-                Timber.i(getBasketResponse.toString())
-                if (getBasketResponse.isSuccessful) {
-                    val basket: Basket = getBasketResponse.body()!!
-                    _basket.postValue(basket)
-
-                    val itemsInBasket = ArrayList<BasketListItem>()
-                    basket.items.forEach { (id, count) ->
-                        val item = basketApiService.getItemById(id)
-                        itemsInBasket.add(
-                            BasketListItem(
-                                item.body()!!,
-                                count
-                            )
-                        )
-                    }
-                    _basketContent.postValue(itemsInBasket)
-                }
+                _basket.postValue(basketRepository.getActiveBasket())
+                _basketContent.postValue(basketRepository.getCurrentBasketContents())
             }
         }
     }
 
     fun setItemCount(itemId: String, count: Int) {
         viewModelScope.launch {
-            basket.value?.let {
-                withContext(Dispatchers.IO) {
-                    val response = if (count <= 0) {
-                        basketApiService.removeItemFromBasket(
-                            it.basketId,
-                            itemId
-                        )
-                    } else {
-                        basketApiService.putItemToBasket(
-                            BasketItem(
-                                it.basketId,
-                                count,
-                                itemId
-                            )
-                        )
+            withContext(Dispatchers.IO) {
+                if (basketRepository.setBasketItemCount(itemId, count)) {
+                    _basket.postValue(basketRepository.getActiveBasket())
+                    _basketContent.postValue(basketRepository.getCurrentBasketContents())
+                } else {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(
+                            getApplication(),
+                            "Could not update item $itemId",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
-                    if (response.isSuccessful) {
-                        loadBasketContent(it.basketId)
-                    } else {
-                        withContext(Dispatchers.Main) {
-                            Toast.makeText(
-                                getApplication(),
-                                "Could not update item $itemId",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    }
-
-
                 }
             }
         }
     }
 
-    fun newBasket(delete: Boolean = true) {
+    fun onDiscardClicked() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                val basketId = basket.value!!.basketId
-                basketDatabase.basketDatabaseDao()
-                    .setActive(false, basketId)
-                if (delete) basketApiService.deleteBasket(basketId)
-
-                _basket.postValue(null)
-                _basketContent.postValue(ArrayList())
-
-                val basketResponse = basketApiService.getNewBasket()
-                if (basketResponse.isSuccessful) {
-                    val basket = org.cryptimeleon.incentive.app.database.basket.Basket(
-                        basketResponse.body()!!,
-                        true
-                    )
-                    basketDatabase.basketDatabaseDao()
-                        .insertBasket(basket)
-                    loadBasketContent(basket.basketId)
-                }
+                basketRepository.discardCurrentBasket(true)
+                _basket.postValue(basketRepository.getActiveBasket())
+                _basketContent.postValue(basketRepository.getCurrentBasketContents())
             }
         }
     }
@@ -144,37 +81,26 @@ class BasketViewModel @Inject constructor(
         // TODO continue working on this functionality
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                val basketId = basket.value!!.basketId
+                // Store basket as it will be replaced by payment
+                val basket = basket.value!!
 
-                // Pay basket
-                val payResponse =
-                    basketApiService.payBasket(PayBody(basketId, basket.value!!.value))
-                if (!payResponse.isSuccessful) {
-                    Timber.e("An exception occured when trying to pay the basket with id $basketId: $payResponse")
-                    Toast.makeText(
-                        getApplication(), "Could not pay basket!",
-                        Toast.LENGTH_LONG
-                    ).show()
-                    return@withContext
+                if (basketRepository.payCurrentBasket()) {
+                    // Redeem basket
+                    cryptoRepository.runCreditEarn(
+                        basket.basketId,
+                        basket.value
+                    )
+
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(
+                            getApplication(), "Successfully paid and redeemed basket!",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+
+                    _basket.postValue(basketRepository.getActiveBasket())
+                    _basketContent.postValue(basketRepository.getCurrentBasketContents())
                 }
-
-                basketDatabase.basketDatabaseDao()
-                    .setActive(false, basketId)
-
-                // Redeem basket
-                cryptoRepository.runCreditEarn(
-                    basketId,
-                    basket.value!!.value
-                )
-
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(
-                        getApplication(), "Successfully paid and redeemed basket!",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-
-                newBasket()
             }
         }
     }
