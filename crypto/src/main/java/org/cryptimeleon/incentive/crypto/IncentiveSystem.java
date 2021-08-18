@@ -6,6 +6,7 @@ import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProof;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignatureScheme;
+import org.cryptimeleon.incentive.crypto.dsprotectionlogic.DatabaseHandler;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
@@ -609,7 +610,7 @@ public class IncentiveSystem {
      * @param dsTag       double-spending tag of used token
      * @param spendAmount point amount spent
      */
-    public void dbSync(ZnElement tid, ZnElement gamma, GroupElement dsid, DoubleSpendingTag dsTag, BigInteger spendAmount) {
+    public void dbSync(ZnElement tid, ZnElement gamma, GroupElement dsid, DoubleSpendingTag dsTag, BigInteger spendAmount, DatabaseHandler dbHandler) {
 
     }
 

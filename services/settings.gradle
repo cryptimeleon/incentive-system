@@ -7,3 +7,5 @@ include ':credit'
 include ':info'
 include ':issue'
 include ':dsprotectionservice'
+include 'dslib'
+
