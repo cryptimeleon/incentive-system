@@ -1,46 +1,123 @@
 package org.cryptimeleon.incentive.app
 
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
-import androidx.databinding.DataBindingUtil
-import androidx.navigation.NavController
-import androidx.navigation.findNavController
-import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.navigation.ui.setupWithNavController
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.annotation.StringRes
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import androidx.core.view.WindowCompat
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import dagger.hilt.android.AndroidEntryPoint
-import org.cryptimeleon.incentive.app.databinding.ActivityMainBinding
+import org.cryptimeleon.incentive.app.basket.Basket
+import org.cryptimeleon.incentive.app.dashboard.Dashboard
+import org.cryptimeleon.incentive.app.scan.ScanScreen
 import timber.log.Timber
 
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity() {
+class MainActivity : ComponentActivity() {
 
-    lateinit var binding: ActivityMainBinding
-    lateinit var navController: NavController
+    private val items = listOf(
+        Screen.Dashboard,
+        Screen.Scan,
+        Screen.Basket,
+    )
 
-
+    @ExperimentalPermissionsApi
+    @ExperimentalAnimationApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = DataBindingUtil.setContentView(
-            this, R.layout.activity_main
-        )
 
-        navController = findNavController(R.id.nav_host_fragment)
+        setContent {
+            MaterialTheme {
+                val navController = rememberNavController()
+                Scaffold(
+                    topBar = {
+                        var showMenu by remember { mutableStateOf(false) }
 
-        // Setup NavBar with navigation, set these as top level entities (no up button)
-        val appBarConfiguration = AppBarConfiguration(
-            setOf(
-                R.id.dashboardFragment,
-                R.id.benchmark_fragment,
-                R.id.settingsFragment,
-                R.id.scanFragment,
-                R.id.basketFragment
-            )
-        )
-        setupActionBarWithNavController(navController, appBarConfiguration)
+                        TopAppBar(
+                            title = { Text("Cryptimeleon Rewards") },
+                            actions = {
+                                IconButton(onClick = { showMenu = !showMenu }) {
+                                    Icon(Icons.Default.MoreVert, "Menu Icon")
+                                }
+                                DropdownMenu(
+                                    expanded = showMenu,
+                                    onDismissRequest = { showMenu = false }
+                                ) {
+                                    DropdownMenuItem(onClick = { /*TODO*/ }) {
+                                        Icon(Icons.Filled.Speed, "Benchmark Icon")
+                                    }
+                                    DropdownMenuItem(onClick = { /*TODO*/ }) {
+                                        Icon(Icons.Filled.Settings, "Settings Icon")
+                                    }
+                                }
+                            }
+                        )
+                    },
+                    bottomBar = {
+                        BottomNavigation {
+                            val navBackStackEntry by navController.currentBackStackEntryAsState()
+                            val currentDestination = navBackStackEntry?.destination
+                            items.forEach { screen ->
+                                BottomNavigationItem(
+                                    icon = {
+                                        Icon(
+                                            screen.icon,
+                                            contentDescription = "${screen.resourceId} Icon"
+                                        )
+                                    },
+                                    label = { Text(stringResource(screen.resourceId)) },
+                                    selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                                    onClick = {
+                                        navController.navigate(screen.route) {
+                                            // Pop up to the start destination of the graph to
+                                            // avoid building up a large stack of destinations
+                                            // on the back stack as users select items
+                                            popUpTo(navController.graph.findStartDestination().id) {
+                                                saveState = false
+                                            }
+                                            // Avoid multiple copies of the same destination when
+                                            // reselecting the same item
+                                            launchSingleTop = true
+                                            // Restore state when reselecting a previously selected item
+                                            restoreState = false
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    }
+                ) { innerPadding ->
+                    NavHost(
+                        navController,
+                        startDestination = Screen.Dashboard.route,
+                        Modifier.padding(innerPadding)
+                    ) {
+                        composable(Screen.Dashboard.route) { Dashboard() }
+                        composable(Screen.Scan.route) { ScanScreen() }
+                        composable(Screen.Basket.route) { Basket() }
+                    }
+                }
+            }
+        }
 
-        // Connect bottom navigation ids to fragment ids from the navigation
-        binding.bottomNavigation.setupWithNavController(navController)
 
         // Load mcl
         System.loadLibrary("mcljava")
@@ -50,12 +127,10 @@ class MainActivity : AppCompatActivity() {
         Timber.plant(Timber.DebugTree())
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        return navController.navigateUp()
-    }
+}
 
-    fun setBottomNavigationVisibility(visibility: Int) {
-        // get the reference of the bottomNavigationView and set the visibility.
-        binding.bottomNavigation.visibility = visibility
-    }
+sealed class Screen(val route: String, @StringRes val resourceId: Int, val icon: ImageVector) {
+    object Dashboard : Screen("dashbaord", R.string.dashboard, Icons.Default.Home)
+    object Scan : Screen("scan", R.string.scan, Icons.Default.QrCodeScanner)
+    object Basket : Screen("basket", R.string.basket, Icons.Default.ShoppingBasket)
 }

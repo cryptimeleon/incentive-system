@@ -16,10 +16,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.google.android.material.composethemeadapter.MdcTheme
+import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
-fun Dashboard(dashboardViewModel: DashboardViewModel) {
+fun Dashboard() {
+    val dashboardViewModel = hiltViewModel<DashboardViewModel>()
     val state by dashboardViewModel.state.collectAsState(DashboardState(emptyList()))
     Dashboard(dashboardState = state)
 }
@@ -42,7 +43,7 @@ fun TokenCard(promotionState: PromotionState) {
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight(),
-        elevation = 8.dp
+        elevation = 4.dp
     ) {
         Row(
             modifier = Modifier
@@ -80,7 +81,7 @@ fun TokenCard(promotionState: PromotionState) {
 
 @Composable
 fun DashboardPreview() {
-    MdcTheme() {
+    MaterialTheme() {
         val dashboardState = remember {
             DashboardState(
                 listOf(

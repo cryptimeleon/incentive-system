@@ -28,17 +28,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionRequired
 import com.google.accompanist.permissions.rememberPermissionState
-import com.google.android.material.composethemeadapter.MdcTheme
 import org.cryptimeleon.incentive.app.data.network.Item
 import androidx.camera.core.Preview as CameraPreview
 
 @ExperimentalAnimationApi
 @ExperimentalPermissionsApi
 @Composable
-fun ScanScreen(viewModel: ScanViewModel) {
+fun ScanScreen() {
+    val viewModel = hiltViewModel<ScanViewModel>()
     val state by viewModel.state.observeAsState()
     Box(
         modifier = Modifier
@@ -188,7 +189,7 @@ private fun Scanner(onScanBarcode: (String) -> Unit) {
                 val imageAnalysis = ImageAnalysis.Builder()
                     .build()
                     .also {
-                        it.setAnalyzer(executor, ScanFragment.BarcodeAnalyzer { barcode ->
+                        it.setAnalyzer(executor, BarcodeAnalyzer { barcode ->
                             onScanBarcode(barcode)
                         })
                     }
@@ -212,7 +213,7 @@ private fun Scanner(onScanBarcode: (String) -> Unit) {
 
 @Composable
 fun ScannedItemPreview() {
-    MdcTheme {
+    MaterialTheme {
         ScannedItemCard(
             state = ScanState(Item("ADJFKLJLKSD", 999, "Apple"), 3),
             setCount = {},
@@ -245,7 +246,7 @@ fun ScannedItemPreviewDark() {
 @ExperimentalPermissionsApi
 @Composable
 fun ScanScreenPreview() {
-    MdcTheme {
+    MaterialTheme {
         Scanner {}
     }
 }

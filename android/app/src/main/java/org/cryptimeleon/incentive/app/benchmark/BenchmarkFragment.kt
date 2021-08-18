@@ -34,11 +34,6 @@ class BenchmarkFragment : Fragment() {
 
         viewModel.navigateToResults.observe(viewLifecycleOwner) {
             if (it == true) {
-                val action =
-                    BenchmarkFragmentDirections.actionBenchmarkFragmentToBenchmarkResultFragment(
-                        viewModel.benchmarkResult
-                    )
-                findNavController(this).navigate(action)
                 viewModel.navigationFinished()
             }
         }

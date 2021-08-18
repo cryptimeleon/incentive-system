@@ -32,6 +32,10 @@ class ScanViewModel @Inject constructor(
     val state = MutableLiveData<ScanState?>(null)
     var allowScan = true
 
+    init {
+        Timber.i("ScanViewModel created")
+    }
+
     /**
      * Handle a new barcode being scanned.
      *  0. Do some checks to ensure items are only analyzed once upon showing item information

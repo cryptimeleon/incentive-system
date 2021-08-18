@@ -7,19 +7,18 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import dagger.hilt.android.AndroidEntryPoint
-import org.cryptimeleon.incentive.app.BaseFragment
 import org.cryptimeleon.incentive.app.R
 import org.cryptimeleon.incentive.app.dashboard.DashboardViewModel
 import org.cryptimeleon.incentive.app.databinding.SetupFragmentBinding
 
 @AndroidEntryPoint
-class SetupFragment : BaseFragment() {
+class SetupFragment : Fragment() {
 
-    override var bottomNavigationViewVisibility = View.INVISIBLE
     private val viewModel by viewModels<SetupViewModel>()
     private lateinit var binding: SetupFragmentBinding
 

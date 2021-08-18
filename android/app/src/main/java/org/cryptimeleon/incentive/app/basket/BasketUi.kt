@@ -22,11 +22,12 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.google.android.material.composethemeadapter.MdcTheme
+import androidx.hilt.navigation.compose.hiltViewModel
 import org.cryptimeleon.incentive.app.data.network.Item
 
 @Composable
-fun Basket(basketViewModel: BasketViewModel) {
+fun Basket() {
+    val basketViewModel = hiltViewModel<BasketViewModel>()
     val allBasketItems by basketViewModel.basketContent.observeAsState(emptyList())
     val basket by basketViewModel.basket.observeAsState()
     val basketValue by basketViewModel.basketValue.observeAsState("")
@@ -148,7 +149,7 @@ private fun BasketItem(
             .animateContentSize()
             .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
             .clickable(onClick = onClick),
-        elevation = 8.dp,
+        elevation = 4.dp,
     ) {
         Column(
             modifier = Modifier
@@ -226,7 +227,7 @@ private fun BasketItem(
 
 @Composable
 private fun BasketPreview() {
-    MdcTheme {
+    MaterialTheme {
         val basketItemList = remember {
             listOf(
                 BasketListItem(
@@ -280,7 +281,7 @@ private fun BasketPreviewDark() {
 
 @Composable
 private fun BasketItemPreview(expanded: Boolean = false) {
-    MdcTheme {
+    MaterialTheme {
         val basketItem = remember {
             BasketListItem(
                 Item(
