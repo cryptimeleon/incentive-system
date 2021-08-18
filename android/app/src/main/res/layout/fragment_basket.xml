@@ -122,7 +122,7 @@
                 android:layout_marginStart="16dp"
                 android:layout_marginBottom="16dp"
                 android:enabled="@{basketViewModel.showBasketActionButtons}"
-                android:onClick="@{() -> basketViewModel.newBasket(true)}"
+                android:onClick="@{() -> basketViewModel.onDiscardClicked()}"
                 android:text="@string/button_discard_label"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toStartOf="@+id/buttonPayBasket"
