@@ -2,14 +2,12 @@ package org.cryptimeleon.incentive.app.basket
 
 import android.app.Application
 import android.icu.text.NumberFormat
-import android.view.View
 import android.widget.Toast
 import androidx.lifecycle.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.cryptimeleon.incentive.app.basket.BasketItemRecyclerViewAdapter.BasketListItem
 import org.cryptimeleon.incentive.app.database.basket.BasketDatabase
 import org.cryptimeleon.incentive.app.database.crypto.CryptoRepository
 import org.cryptimeleon.incentive.app.network.*
@@ -30,7 +28,7 @@ class BasketViewModel @Inject constructor(
     private val currencyFormat = NumberFormat.getCurrencyInstance(locale)
 
     private val _basketContent =
-        MutableLiveData<List<BasketListItem>>(null)
+        MutableLiveData<List<BasketListItem>>(emptyList())
     val basketContent: LiveData<List<BasketListItem>>
         get() = _basketContent
 
@@ -42,18 +40,6 @@ class BasketViewModel @Inject constructor(
         it?.let {
             currencyFormat.format(it.value / 100.0)
         }
-    }
-
-    val showBasketActionButtons = Transformations.map(_basketContent) {
-        (it != null && it.isNotEmpty())
-    }
-
-    val visibleIfBasketEmpty = Transformations.map(_basketContent) {
-        if (it != null && it.isEmpty()) View.VISIBLE else View.INVISIBLE
-    }
-
-    val visibleIfBasketNotEmpty = Transformations.map(_basketContent) {
-        if (it != null && it.isNotEmpty()) View.VISIBLE else View.INVISIBLE
     }
 
     init {
@@ -193,3 +179,15 @@ class BasketViewModel @Inject constructor(
     }
 }
 
+
+/**
+ * Simple class for data binding
+ */
+class BasketListItem(val item: Item, var count: Int) {
+    private val locale = Locale.GERMANY
+    private val currencyFormat = NumberFormat.getCurrencyInstance(locale)
+
+    val priceSingle: String = currencyFormat.format(item.price / 100.0)
+    val priceTotal: String = currencyFormat.format(item.price * count / 100.0)
+    val countStr: String = count.toString()
+}
