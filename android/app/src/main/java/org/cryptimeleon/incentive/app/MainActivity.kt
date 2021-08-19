@@ -16,7 +16,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import androidx.core.view.WindowCompat
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -28,6 +27,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import org.cryptimeleon.incentive.app.basket.Basket
 import org.cryptimeleon.incentive.app.dashboard.Dashboard
 import org.cryptimeleon.incentive.app.scan.ScanScreen
+import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import timber.log.Timber
 
 @AndroidEntryPoint
@@ -44,8 +44,9 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // TODO implement startup screen like https://github.com/android/compose-samples/blob/22eea87c898c8cc76e0c1042274e0962f0e0ba52/Owl/app/src/main/java/com/example/owl/ui/NavGraph.kt#L74
         setContent {
-            MaterialTheme {
+            CryptimeleonTheme {
                 val navController = rememberNavController()
                 Scaffold(
                     topBar = {

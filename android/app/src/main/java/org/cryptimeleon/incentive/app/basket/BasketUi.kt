@@ -24,6 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import org.cryptimeleon.incentive.app.data.network.Item
+import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 
 @Composable
 fun Basket() {
@@ -227,7 +228,7 @@ private fun BasketItem(
 
 @Composable
 private fun BasketPreview() {
-    MaterialTheme {
+    CryptimeleonTheme {
         val basketItemList = remember {
             listOf(
                 BasketListItem(
@@ -281,7 +282,7 @@ private fun BasketPreviewDark() {
 
 @Composable
 private fun BasketItemPreview(expanded: Boolean = false) {
-    MaterialTheme {
+    CryptimeleonTheme {
         val basketItem = remember {
             BasketListItem(
                 Item(

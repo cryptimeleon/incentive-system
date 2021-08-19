@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 
 @Composable
 fun Dashboard() {
@@ -81,7 +82,7 @@ fun TokenCard(promotionState: PromotionState) {
 
 @Composable
 fun DashboardPreview() {
-    MaterialTheme() {
+    CryptimeleonTheme() {
         val dashboardState = remember {
             DashboardState(
                 listOf(

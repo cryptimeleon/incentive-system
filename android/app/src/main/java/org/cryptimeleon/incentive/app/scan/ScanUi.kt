@@ -33,6 +33,7 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionRequired
 import com.google.accompanist.permissions.rememberPermissionState
 import org.cryptimeleon.incentive.app.data.network.Item
+import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import androidx.camera.core.Preview as CameraPreview
 
 @ExperimentalAnimationApi
@@ -88,30 +89,22 @@ private fun ScannedItemCard(
         elevation = 8.dp
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = state.item.title,
+                style = MaterialTheme.typography.h5
+            )
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column() {
-                    Text(
-                        text = state.item.title,
-                        style = MaterialTheme.typography.h5
-                    )
-                    Text(
-                        text = state.priceSingle,
-                        style = MaterialTheme.typography.body1
-                    )
-                }
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(
-                        text = "Total:",
-                        style = MaterialTheme.typography.subtitle1
-                    )
-                    Text(
-                        text = state.priceTotal,
-                        style = MaterialTheme.typography.body1
-                    )
-                }
+                Text(
+                    text = state.priceSingle,
+                    style = MaterialTheme.typography.body1
+                )
+                Text(
+                    text = "Total: ${state.priceTotal}",
+                    style = MaterialTheme.typography.body1
+                )
             }
 
             AndroidView(
@@ -213,7 +206,7 @@ private fun Scanner(onScanBarcode: (String) -> Unit) {
 
 @Composable
 fun ScannedItemPreview() {
-    MaterialTheme {
+    CryptimeleonTheme {
         ScannedItemCard(
             state = ScanState(Item("ADJFKLJLKSD", 999, "Apple"), 3),
             setCount = {},
@@ -246,7 +239,7 @@ fun ScannedItemPreviewDark() {
 @ExperimentalPermissionsApi
 @Composable
 fun ScanScreenPreview() {
-    MaterialTheme {
+    CryptimeleonTheme {
         Scanner {}
     }
 }
