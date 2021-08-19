@@ -56,10 +56,9 @@ class SetupViewModel @Inject constructor(
 
     init {
         Timber.i("Init SetupViewModel")
-        setup()
     }
 
-    private fun setup() {
+    fun startSetup() {
         uiScope.launch {
             withContext(Dispatchers.IO) {
                 // Load pp and provider keys
