@@ -2,10 +2,7 @@ package org.cryptimeleon.incentive.app.dashboard
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Card
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Redeem
 import androidx.compose.runtime.Composable
@@ -17,23 +14,35 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import org.cryptimeleon.incentive.app.common.DefaultTopAppBar
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 
 @Composable
-fun Dashboard() {
+fun Dashboard(openSettings: () -> Unit, openBenchmark: () -> Unit) {
     val dashboardViewModel = hiltViewModel<DashboardViewModel>()
     val state by dashboardViewModel.state.collectAsState(DashboardState(emptyList()))
-    Dashboard(dashboardState = state)
+    Dashboard(dashboardState = state, openSettings = openSettings, openBenchmark = openBenchmark)
 }
 
 @Composable
-fun Dashboard(dashboardState: DashboardState) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        modifier = Modifier.padding(16.dp)
-    ) {
-        for (promotionState in dashboardState.promotionStates) {
-            TokenCard(promotionState = promotionState)
+fun Dashboard(
+    dashboardState: DashboardState,
+    openSettings: () -> Unit = {},
+    openBenchmark: () -> Unit = {}
+) {
+    Scaffold(topBar = {
+        DefaultTopAppBar(
+            onOpenSettings = openSettings,
+            onOpenBenchmark = openBenchmark
+        )
+    }) {
+        Column(
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.padding(16.dp)
+        ) {
+            for (promotionState in dashboardState.promotionStates) {
+                TokenCard(promotionState = promotionState)
+            }
         }
     }
 }

@@ -23,11 +23,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import org.cryptimeleon.incentive.app.common.DefaultTopAppBar
 import org.cryptimeleon.incentive.app.data.network.Item
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 
 @Composable
-fun Basket() {
+fun Basket(openSettings: () -> Unit, openBenchmark: () -> Unit) {
     val basketViewModel = hiltViewModel<BasketViewModel>()
     val allBasketItems by basketViewModel.basketContent.observeAsState(emptyList())
     val basket by basketViewModel.basket.observeAsState()
@@ -38,8 +39,10 @@ fun Basket() {
             allBasketItems,
             basketValue,
             setItemCount = basketViewModel::setItemCount,
-            pay = { basketViewModel.payAndRedeem() },
-            discard = { basketViewModel.onDiscardClicked() },
+            pay = basketViewModel::payAndRedeem,
+            discard = basketViewModel::onDiscardClicked,
+            openSettings = openSettings,
+            openBenchmark = openBenchmark
         )
     }
 
@@ -51,85 +54,94 @@ private fun Basket(
     basketValue: String,
     setItemCount: (String, Int) -> Unit,
     pay: () -> Unit,
-    discard: () -> Unit
+    discard: () -> Unit,
+    openSettings: () -> Unit = {},
+    openBenchmark: () -> Unit = {}
 ) {
     var expandedBasketItem by remember { mutableStateOf<String?>(null) }
     val lazyListState = rememberLazyListState()
 
-    Column(
-        modifier = Modifier
-            .fillMaxHeight(),
-    ) {
-        if (allBasketItems.isNotEmpty()) {
-            LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(top = 8.dp, bottom = 8.dp),
-                state = lazyListState
-            ) {
-                items(allBasketItems) { basketListItem ->
-                    BasketItem(
-                        basketListItem = basketListItem,
-                        expanded = expandedBasketItem == basketListItem.item.id,
-                        onClick = {
-                            expandedBasketItem =
-                                if (expandedBasketItem == basketListItem.item.id) null else basketListItem.item.id
-                        },
-                        { count ->
-                            setItemCount(basketListItem.item.id, count)
-                        }
+    Scaffold(topBar = {
+        DefaultTopAppBar(
+            onOpenSettings = openSettings,
+            onOpenBenchmark = openBenchmark
+        )
+    }) {
+        Column(
+            modifier = Modifier
+                .fillMaxHeight(),
+        ) {
+            if (allBasketItems.isNotEmpty()) {
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(top = 8.dp, bottom = 8.dp),
+                    state = lazyListState
+                ) {
+                    items(allBasketItems) { basketListItem ->
+                        BasketItem(
+                            basketListItem = basketListItem,
+                            expanded = expandedBasketItem == basketListItem.item.id,
+                            onClick = {
+                                expandedBasketItem =
+                                    if (expandedBasketItem == basketListItem.item.id) null else basketListItem.item.id
+                            },
+                            { count ->
+                                setItemCount(basketListItem.item.id, count)
+                            }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.size(16.dp))
+                Text(
+                    text = "Total: $basketValue",
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.h6,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                )
+                Spacer(modifier = Modifier.size(16.dp))
+                Row(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    OutlinedButton(
+                        modifier = Modifier.weight(1f),
+                        onClick = { discard() }
+                    ) {
+                        Text("Discard")
+                    }
+                    Button(
+                        modifier = Modifier.weight(1f),
+                        onClick = { pay() }
+                    ) {
+                        Text("Pay and Redeem")
+                    }
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight(),
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "Basket is empty!",
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.h5,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    )
+                    Text(
+                        text = "Open the scanner to items to your basket!",
+                        textAlign = TextAlign.Center,
+                        style = MaterialTheme.typography.subtitle1,
+                        modifier = Modifier
+                            .fillMaxWidth()
                     )
                 }
-            }
-
-            Spacer(modifier = Modifier.size(16.dp))
-            Text(
-                text = "Total: $basketValue",
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.h6,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            )
-            Spacer(modifier = Modifier.size(16.dp))
-            Row(
-                modifier = Modifier.padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                OutlinedButton(
-                    modifier = Modifier.weight(1f),
-                    onClick = { discard() }
-                ) {
-                    Text("Discard")
-                }
-                Button(
-                    modifier = Modifier.weight(1f),
-                    onClick = { pay() }
-                ) {
-                    Text("Pay and Redeem")
-                }
-            }
-        } else {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(),
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "Basket is empty!",
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.h5,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                )
-                Text(
-                    text = "Open the scanner to items to your basket!",
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.subtitle1,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                )
             }
         }
     }
@@ -257,7 +269,21 @@ private fun BasketPreview() {
     name = "Basket in Light Mode"
 )
 private fun BasketPreviewEmptyLight() {
-    Basket(emptyList(), "", { _, _ -> {} }, {}, {})
+    CryptimeleonTheme() {
+        Basket(emptyList(), "", { _, _ -> {} }, {}, {})
+    }
+}
+
+@Composable
+@Preview(
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    showBackground = true,
+    name = "Basket in Dark Mode"
+)
+private fun BasketPreviewEmptyDark() {
+    CryptimeleonTheme() {
+        Basket(emptyList(), "", { _, _ -> {} }, {}, {})
+    }
 }
 
 @Composable

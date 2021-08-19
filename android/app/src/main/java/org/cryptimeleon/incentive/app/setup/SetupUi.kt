@@ -1,10 +1,9 @@
 package org.cryptimeleon.incentive.app.setup
 
 import android.content.res.Configuration
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -13,6 +12,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 
@@ -31,7 +31,7 @@ fun SetupUi(onFinished: () -> Unit) {
             onFinished()
         }
     }
-   
+
     SetupUi(feedback = feedback)
 }
 
@@ -44,7 +44,8 @@ private fun SetupUi(feedback: String) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         CircularProgressIndicator()
-        Text(feedback)
+        Spacer(modifier = Modifier.size(8.dp))
+        Text(feedback, style = MaterialTheme.typography.subtitle1)
     }
 }
 

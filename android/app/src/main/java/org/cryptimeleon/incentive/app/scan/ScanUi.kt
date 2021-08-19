@@ -32,6 +32,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionRequired
 import com.google.accompanist.permissions.rememberPermissionState
+import org.cryptimeleon.incentive.app.common.DefaultTopAppBar
 import org.cryptimeleon.incentive.app.data.network.Item
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import androidx.camera.core.Preview as CameraPreview
@@ -39,37 +40,45 @@ import androidx.camera.core.Preview as CameraPreview
 @ExperimentalAnimationApi
 @ExperimentalPermissionsApi
 @Composable
-fun ScanScreen() {
+fun ScanScreen(openSettings: () -> Unit, openBenchmark: () -> Unit) {
     val viewModel = hiltViewModel<ScanViewModel>()
     val state by viewModel.state.observeAsState()
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-        CameraPermission {
-            Scanner(viewModel::setBarcode)
-        }
 
-        AnimatedVisibility(
-            visible = state != null,
-            enter = fadeIn(),
-            exit = fadeOut()
+    Scaffold(topBar = {
+        DefaultTopAppBar(
+            onOpenSettings = openSettings,
+            onOpenBenchmark = openBenchmark
+        )
+    }) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .alpha(0.5f)
-                    .background(Color.Black)
-            )
-        }
-        state?.let {
-            ScannedItemCard(
-                it,
-                { amount -> viewModel.onAmountChange(amount) },
-                { viewModel.onAddToBasket() },
-                { viewModel.onDiscardItem() },
-                Modifier.align(Alignment.BottomCenter),
-            )
+            CameraPermission {
+                Scanner(viewModel::setBarcode)
+            }
+
+            AnimatedVisibility(
+                visible = state != null,
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .alpha(0.5f)
+                        .background(Color.Black)
+                )
+            }
+            state?.let {
+                ScannedItemCard(
+                    it,
+                    { amount -> viewModel.onAmountChange(amount) },
+                    { viewModel.onAddToBasket() },
+                    { viewModel.onDiscardItem() },
+                    Modifier.align(Alignment.BottomCenter),
+                )
+            }
         }
     }
 }
@@ -220,7 +229,7 @@ fun ScannedItemPreview() {
 @Composable
 @Preview(
     showBackground = true,
-    name = "Scan Screen in Dark Mode"
+    name = "Scanned Item in Light Mode"
 )
 fun ScannedItemPreviewLight() {
     ScannedItemPreview()
@@ -230,37 +239,8 @@ fun ScannedItemPreviewLight() {
 @Preview(
     uiMode = Configuration.UI_MODE_NIGHT_YES,
     showBackground = true,
-    name = "Scan Screen in Dark Mode"
+    name = "Scanned Item in Dark Mode"
 )
 fun ScannedItemPreviewDark() {
     ScannedItemPreview()
-}
-
-@ExperimentalPermissionsApi
-@Composable
-fun ScanScreenPreview() {
-    CryptimeleonTheme {
-        Scanner {}
-    }
-}
-
-@ExperimentalPermissionsApi
-@Composable
-@Preview(
-    showBackground = true,
-    name = "Scan Screen in Light Mode"
-)
-fun ScanScreenPreviewLight() {
-    ScanScreenPreview()
-}
-
-@ExperimentalPermissionsApi
-@Composable
-@Preview(
-    uiMode = Configuration.UI_MODE_NIGHT_YES,
-    showBackground = true,
-    name = "Scan Screen in Dark Mode"
-)
-fun ScanScreenPreviewDark() {
-    ScanScreenPreview()
 }

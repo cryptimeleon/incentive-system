@@ -2,32 +2,26 @@ package org.cryptimeleon.incentive.app
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.annotation.StringRes
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.QrCodeScanner
+import androidx.compose.material.icons.filled.ShoppingBasket
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import dagger.hilt.android.AndroidEntryPoint
-import org.cryptimeleon.incentive.app.basket.Basket
-import org.cryptimeleon.incentive.app.dashboard.Dashboard
-import org.cryptimeleon.incentive.app.scan.ScanScreen
-import org.cryptimeleon.incentive.app.setup.SetupUi
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import timber.log.Timber
 
@@ -50,29 +44,6 @@ class MainActivity : ComponentActivity() {
             CryptimeleonTheme {
                 val navController = rememberNavController()
                 Scaffold(
-                    topBar = {
-                        var showMenu by remember { mutableStateOf(false) }
-
-                        TopAppBar(
-                            title = { Text("Cryptimeleon Rewards") },
-                            actions = {
-                                IconButton(onClick = { showMenu = !showMenu }) {
-                                    Icon(Icons.Default.MoreVert, "Menu Icon")
-                                }
-                                DropdownMenu(
-                                    expanded = showMenu,
-                                    onDismissRequest = { showMenu = false }
-                                ) {
-                                    DropdownMenuItem(onClick = { /*TODO*/ }) {
-                                        Icon(Icons.Filled.Speed, "Benchmark Icon")
-                                    }
-                                    DropdownMenuItem(onClick = { /*TODO*/ }) {
-                                        Icon(Icons.Filled.Settings, "Settings Icon")
-                                    }
-                                }
-                            }
-                        )
-                    },
                     bottomBar = {
                         CryptimeleonBottomBar(navController)
                     }
@@ -139,64 +110,29 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
-    @ExperimentalPermissionsApi
-    @ExperimentalAnimationApi
-    @Composable
-    private fun NavGraph(
-        navController: NavHostController,
-        finishActivity: () -> Unit = {},
-        innerPadding: PaddingValues
-    ) {
-        val loadingComplete = remember { mutableStateOf(false) }
-        val actions = remember(navController) { MainActions(navController) }
-
-
-        NavHost(
-            navController,
-            startDestination = MainNavigationScreen.Dashboard.route,
-            Modifier.padding(innerPadding)
-        ) {
-            composable("loading") {
-                BackHandler {
-                    finishActivity()
-                }
-
-                SetupUi {
-                    loadingComplete.value = true
-                    actions.onLoadingComplete()
-                }
-            }
-            composable(MainNavigationScreen.Dashboard.route) {
-                LaunchedEffect(loadingComplete) {
-                    if (!loadingComplete.value) {
-                        navController.navigate("loading")
-                    }
-                }
-                if (loadingComplete.value) {
-                    Dashboard()
-                }
-            }
-            composable(MainNavigationScreen.Scan.route) { ScanScreen() }
-            composable(MainNavigationScreen.Basket.route) { Basket() }
-        }
-    }
-
 }
 
-
-class MainActions(navController: NavHostController) {
-    val onLoadingComplete: () -> Unit = {
-        navController.popBackStack()
-    }
-}
 
 sealed class MainNavigationScreen(
     val route: String,
     @StringRes val resourceId: Int,
     val icon: ImageVector
 ) {
-    object Dashboard : MainNavigationScreen("dashbaord", R.string.dashboard, Icons.Default.Home)
-    object Scan : MainNavigationScreen("scan", R.string.scan, Icons.Default.QrCodeScanner)
-    object Basket : MainNavigationScreen("basket", R.string.basket, Icons.Default.ShoppingBasket)
+    object Dashboard : MainNavigationScreen(
+        MainDestination.DASHBOARD_ROUTE,
+        R.string.dashboard,
+        Icons.Default.Home
+    )
+
+    object Scan : MainNavigationScreen(
+        MainDestination.SCANNER_ROUTE,
+        R.string.scan,
+        Icons.Default.QrCodeScanner
+    )
+
+    object Basket : MainNavigationScreen(
+        MainDestination.BASKET_ROUTE,
+        R.string.basket,
+        Icons.Default.ShoppingBasket
+    )
 }

@@ -25,4 +25,8 @@ class SettingsViewModel @Inject constructor(
     val providerPublicKey = cryptoRepository.observeCryptoMaterial().asLiveData().map {
         it!!.ppk.toString()
     }
+
+    val token = cryptoRepository.token.asLiveData().map {
+        it!!.toString()
+    }
 }

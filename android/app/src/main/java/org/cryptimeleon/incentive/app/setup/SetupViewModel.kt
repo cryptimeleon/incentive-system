@@ -35,10 +35,6 @@ class SetupViewModel @Inject constructor(
     val navigateToInfo: LiveData<Boolean>
         get() = _navigateToInfo
 
-    private val _exceptionToast = MutableLiveData("")
-    val exceptionToast: LiveData<String>
-        get() = _exceptionToast
-
     val inErrorState: LiveData<Boolean> = Transformations.map(_setupState) {
         it == SetupState.ERROR
     }
@@ -84,14 +80,6 @@ class SetupViewModel @Inject constructor(
                 _navigateToInfo.postValue(true)
             }
         }
-    }
-
-    fun toastShown() {
-        _exceptionToast.value = ""
-    }
-
-    fun navigateToInfoFinished() {
-        _navigateToInfo.value = false
     }
 
     override fun onCleared() {
