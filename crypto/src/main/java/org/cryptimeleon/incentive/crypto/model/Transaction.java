@@ -1,5 +1,7 @@
 package org.cryptimeleon.incentive.crypto.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Value;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 

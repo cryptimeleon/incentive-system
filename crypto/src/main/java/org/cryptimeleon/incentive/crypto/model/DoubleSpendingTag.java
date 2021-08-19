@@ -7,7 +7,7 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 /**
  * Data associated to a spend operation which the provider requires to trace double-spending.
- * Called `dstag` in the cryptimeleon incentive system paper.
+ * Called 'dstag' in the cryptimeleon incentive system paper.
  */
 @Value
 @AllArgsConstructor
