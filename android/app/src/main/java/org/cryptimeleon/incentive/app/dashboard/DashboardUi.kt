@@ -1,8 +1,18 @@
 package org.cryptimeleon.incentive.app.dashboard
 
 import android.content.res.Configuration
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.material.Card
+import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Redeem
 import androidx.compose.runtime.Composable
@@ -91,7 +101,7 @@ fun TokenCard(promotionState: PromotionState) {
 
 @Composable
 fun DashboardPreview() {
-    CryptimeleonTheme() {
+    CryptimeleonTheme {
         val dashboardState = remember {
             DashboardState(
                 listOf(

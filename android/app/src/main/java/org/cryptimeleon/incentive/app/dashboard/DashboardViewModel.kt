@@ -23,7 +23,8 @@ class DashboardViewModel @Inject constructor(
             DashboardState(
                 it?.let {
                     listOf(PromotionState(count = it.token.points.integer.toInt()))
-                } ?: emptyList())
+                } ?: emptyList()
+            )
         }
 }
 
@@ -33,6 +34,4 @@ data class PromotionState(
     val title: String = "Main Promotion",
     val description: String = "Earn 1 point for every cent spent.",
     val count: Int = 0
-) {
-
-}
+)

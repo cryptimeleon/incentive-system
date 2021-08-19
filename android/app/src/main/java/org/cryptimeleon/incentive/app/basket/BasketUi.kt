@@ -4,18 +4,39 @@ import android.content.res.Configuration
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material.Button
+import androidx.compose.material.Card
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.OutlinedButton
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Remove
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -45,7 +66,6 @@ fun Basket(openSettings: () -> Unit, openBenchmark: () -> Unit) {
             openBenchmark = openBenchmark
         )
     }
-
 }
 
 @Composable
@@ -147,7 +167,6 @@ private fun Basket(
     }
 }
 
-
 @Composable
 private fun BasketItem(
     basketListItem: BasketListItem,
@@ -237,7 +256,6 @@ private fun BasketItem(
     }
 }
 
-
 @Composable
 private fun BasketPreview() {
     CryptimeleonTheme {
@@ -248,14 +266,16 @@ private fun BasketPreview() {
                         "Some id",
                         199,
                         "Apple"
-                    ), 8
+                    ),
+                    8
                 ),
                 BasketListItem(
                     Item(
                         "Some other id",
                         89999,
                         "Ipad with a really, really long title !!!!!!!!!!"
-                    ), 1
+                    ),
+                    1
                 )
             )
         }
@@ -269,7 +289,7 @@ private fun BasketPreview() {
     name = "Basket in Light Mode"
 )
 private fun BasketPreviewEmptyLight() {
-    CryptimeleonTheme() {
+    CryptimeleonTheme {
         Basket(emptyList(), "", { _, _ -> {} }, {}, {})
     }
 }
@@ -281,7 +301,7 @@ private fun BasketPreviewEmptyLight() {
     name = "Basket in Dark Mode"
 )
 private fun BasketPreviewEmptyDark() {
-    CryptimeleonTheme() {
+    CryptimeleonTheme {
         Basket(emptyList(), "", { _, _ -> {} }, {}, {})
     }
 }
@@ -305,7 +325,6 @@ private fun BasketPreviewDark() {
     BasketPreview()
 }
 
-
 @Composable
 private fun BasketItemPreview(expanded: Boolean = false) {
     CryptimeleonTheme {
@@ -315,7 +334,8 @@ private fun BasketItemPreview(expanded: Boolean = false) {
                     "Some id",
                     199,
                     "Apple"
-                ), 8
+                ),
+                8
             )
         }
         BasketItem(basketItem, expanded, {}, {})

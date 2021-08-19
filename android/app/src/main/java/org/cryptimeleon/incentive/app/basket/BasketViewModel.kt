@@ -3,7 +3,11 @@ package org.cryptimeleon.incentive.app.basket
 import android.app.Application
 import android.icu.text.NumberFormat
 import android.widget.Toast
-import androidx.lifecycle.*
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Transformations
+import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -12,7 +16,7 @@ import org.cryptimeleon.incentive.app.data.BasketRepository
 import org.cryptimeleon.incentive.app.data.CryptoRepository
 import org.cryptimeleon.incentive.app.data.network.Basket
 import org.cryptimeleon.incentive.app.data.network.Item
-import java.util.*
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
@@ -105,7 +109,6 @@ class BasketViewModel @Inject constructor(
         }
     }
 }
-
 
 /**
  * Simple class for data binding

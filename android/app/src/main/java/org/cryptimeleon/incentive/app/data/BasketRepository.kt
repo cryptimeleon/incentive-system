@@ -3,9 +3,12 @@ package org.cryptimeleon.incentive.app.data
 import org.cryptimeleon.incentive.app.basket.BasketListItem
 import org.cryptimeleon.incentive.app.data.database.basket.BasketDao
 import org.cryptimeleon.incentive.app.data.database.basket.BasketEntity
-import org.cryptimeleon.incentive.app.data.network.*
-import java.util.*
-import kotlin.collections.ArrayList
+import org.cryptimeleon.incentive.app.data.network.Basket
+import org.cryptimeleon.incentive.app.data.network.BasketApiService
+import org.cryptimeleon.incentive.app.data.network.BasketItem
+import org.cryptimeleon.incentive.app.data.network.Item
+import org.cryptimeleon.incentive.app.data.network.PayBody
+import java.util.UUID
 
 class BasketRepository(
     private val basketApiService: BasketApiService,
@@ -47,7 +50,6 @@ class BasketRepository(
     suspend fun getActiveBasketId(): UUID? {
         return basketDao.getActiveBasketId()
     }
-
 
     // TODO Flow, maybe combine these two into a more detailed basket object
     suspend fun getActiveBasket(): Basket? {
@@ -109,7 +111,6 @@ class BasketRepository(
         }
         return createNewBasket()
     }
-
 
     /**
      * Pays the current basket.

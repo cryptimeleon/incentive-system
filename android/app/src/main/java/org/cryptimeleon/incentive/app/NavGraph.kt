@@ -31,7 +31,6 @@ object MainDestination {
     const val BENCHMARK_ROUTE = "benchmark"
 }
 
-
 @ExperimentalPermissionsApi
 @ExperimentalAnimationApi
 @Composable
@@ -42,7 +41,6 @@ fun NavGraph(
 ) {
     val loadingComplete = remember { mutableStateOf(false) }
     val actions = remember(navController) { MainActions(navController) }
-
 
     NavHost(
         navController,
@@ -110,7 +108,6 @@ class MainActions(navController: NavHostController) {
         navController.navigate(MainDestination.BENCHMARK_ROUTE)
     }
 }
-
 
 /**
  * Fix from OWL app:

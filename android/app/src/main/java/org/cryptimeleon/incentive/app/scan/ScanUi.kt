@@ -11,8 +11,19 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.Button
+import androidx.compose.material.Card
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.OutlinedButton
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -137,21 +148,22 @@ private fun ScannedItemCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f),
-                    onClick = { discard() }) {
+                    onClick = { discard() }
+                ) {
                     Text(text = "Discard")
                 }
                 Button(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f),
-                    onClick = { add() }) {
+                    onClick = { add() }
+                ) {
                     Text(text = "Add")
                 }
             }
         }
     }
 }
-
 
 @ExperimentalPermissionsApi
 @Composable
@@ -191,13 +203,15 @@ private fun Scanner(onScanBarcode: (String) -> Unit) {
                 val imageAnalysis = ImageAnalysis.Builder()
                     .build()
                     .also {
-                        it.setAnalyzer(executor, BarcodeAnalyzer { barcode ->
-                            onScanBarcode(barcode)
-                        })
+                        it.setAnalyzer(
+                            executor,
+                            BarcodeAnalyzer { barcode ->
+                                onScanBarcode(barcode)
+                            }
+                        )
                     }
 
                 val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-
 
                 cameraProvider.unbindAll()
                 cameraProvider.bindToLifecycle(
@@ -222,7 +236,6 @@ fun ScannedItemPreview() {
             add = {},
             discard = {}
         )
-
     }
 }
 

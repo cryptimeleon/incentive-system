@@ -14,7 +14,7 @@ import org.cryptimeleon.incentive.app.data.BasketRepository
 import org.cryptimeleon.incentive.app.data.network.Item
 import timber.log.Timber
 import java.text.NumberFormat
-import java.util.*
+import java.util.Locale
 import javax.inject.Inject
 
 /**
@@ -68,7 +68,6 @@ class ScanViewModel @Inject constructor(
             // check if promotions apply or can be applied by adding some more of this item
         }
     }
-
 
     /**
      * React on amount changes.

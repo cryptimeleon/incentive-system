@@ -152,9 +152,9 @@ data class BenchmarkState(
     val stateText = when (state) {
         BenchmarkViewState.FINISHED -> "Done"
         BenchmarkViewState.SETUP -> "Setup of System"
-        BenchmarkViewState.ISSUE_JOIN -> "Running issue-join (${iteration} of $BENCHMARK_ITERATIONS)"
-        BenchmarkViewState.CREDIT_EARN -> "Running credit-earn (${iteration} of $BENCHMARK_ITERATIONS)"
-        BenchmarkViewState.SPEND_DEDUCT -> "Running spend-deduct (${iteration} of $BENCHMARK_ITERATIONS)"
+        BenchmarkViewState.ISSUE_JOIN -> "Running issue-join ($iteration of $BENCHMARK_ITERATIONS)"
+        BenchmarkViewState.CREDIT_EARN -> "Running credit-earn ($iteration of $BENCHMARK_ITERATIONS)"
+        BenchmarkViewState.SPEND_DEDUCT -> "Running spend-deduct ($iteration of $BENCHMARK_ITERATIONS)"
         else -> "Other state"
     }
 
@@ -194,7 +194,7 @@ data class BenchmarkState(
         handleResponse: Double
     ): String {
         return "Total: ${total.format(2)}\nRequest: ${request.format(2)}\nResponse: ${
-            response.format(2)
+        response.format(2)
         }\nHandle Response: ${handleResponse.format(2)}"
     }
 

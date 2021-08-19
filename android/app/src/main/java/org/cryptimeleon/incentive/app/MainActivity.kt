@@ -5,7 +5,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.StringRes
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.material.*
+import androidx.compose.material.BottomNavigation
+import androidx.compose.material.BottomNavigationItem
+import androidx.compose.material.Icon
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.QrCodeScanner
@@ -39,7 +43,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // TODO implement startup screen like https://github.com/android/compose-samples/blob/22eea87c898c8cc76e0c1042274e0962f0e0ba52/Owl/app/src/main/java/com/example/owl/ui/NavGraph.kt#L74
         setContent {
             CryptimeleonTheme {
                 val navController = rememberNavController()
@@ -56,7 +59,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-
 
         // Load mcl
         System.loadLibrary("mcljava")
@@ -111,7 +113,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
 
 sealed class MainNavigationScreen(
     val route: String,
