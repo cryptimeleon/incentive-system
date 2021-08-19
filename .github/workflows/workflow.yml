@@ -78,7 +78,7 @@ jobs:
           java-version: '11'
           java-package: jdk
           architecture: x64
-      - name: Build android app
+      - name: Run spotless check
         run: |
           pushd android
           ./gradlew spotlessCheck
