@@ -45,8 +45,8 @@ class SetupViewModel @Inject constructor(
             SetupState.FINISHED -> "Finished!"
             SetupState.ERROR -> "An error occurred!"
             SetupState.ISSUE_JOIN -> "Retrieving new token"
-            SetupState.SETUP_BASKET -> "Setting up basket!"
-            SetupState.LOADING_CRYPTO_MATERIAL -> "Loading crypto material!"
+            SetupState.SETUP_BASKET -> "Setting up basket"
+            SetupState.LOADING_CRYPTO_MATERIAL -> "Loading crypto material"
         }
     }
 

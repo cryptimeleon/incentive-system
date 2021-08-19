@@ -4,7 +4,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -17,6 +16,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import org.cryptimeleon.incentive.app.basket.Basket
+import org.cryptimeleon.incentive.app.benchmark.BenchmarkUi
 import org.cryptimeleon.incentive.app.dashboard.Dashboard
 import org.cryptimeleon.incentive.app.scan.ScanScreen
 import org.cryptimeleon.incentive.app.settings.Settings
@@ -85,7 +85,7 @@ fun NavGraph(
             )
         }
         composable(MainDestination.SETTINGS_ROUTE) { Settings(actions.onExitSettings) }
-        composable(MainDestination.BENCHMARK_ROUTE) { Text("Benchmark") }
+        composable(MainDestination.BENCHMARK_ROUTE) { BenchmarkUi(actions.onExitBenchmark) }
     }
 }
 
@@ -95,6 +95,10 @@ class MainActions(navController: NavHostController) {
     }
 
     val onExitSettings: () -> Unit = {
+        navController.popBackStack()
+    }
+
+    val onExitBenchmark: () -> Unit = {
         navController.popBackStack()
     }
 

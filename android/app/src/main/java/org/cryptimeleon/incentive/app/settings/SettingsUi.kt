@@ -70,7 +70,7 @@ fun CryptoItem(title: String, info: String) {
     Column() {
         Text(
             title,
-            style = MaterialTheme.typography.subtitle1
+            style = MaterialTheme.typography.h5
         )
         Text(
             info,
