@@ -17,9 +17,11 @@ on:
   # Nightly builds to ensure dependencies don't break anything
   schedule:
     - cron: '00 00 * * *'
+
 defaults:
   run:
     shell: bash
+
 jobs:
   build-crypto:
     runs-on: ubuntu-latest
@@ -35,6 +37,7 @@ jobs:
         run: |
           pushd crypto
           ./gradlew build
+
   build-services:
     runs-on: ubuntu-latest
     steps:
@@ -49,6 +52,7 @@ jobs:
         run: |
           pushd services
           ./gradlew build
+
   build-android-app:
     runs-on: ubuntu-latest
     steps:
@@ -63,6 +67,21 @@ jobs:
         run: |
           pushd android
           ./gradlew build
+
+  lint-android-app:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v2
+      - uses: actions/setup-java@v1
+        with:
+          java-version: '11'
+          java-package: jdk
+          architecture: x64
+      - name: Build android app
+        run: |
+          pushd android
+          ./gradlew spotlessCheck
 
   integration-test:
     runs-on: ubuntu-latest
@@ -86,6 +105,7 @@ jobs:
         with:
           name: test-results
           path: ./*/reports/test/test/*
+
   deploy:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')  # Only run this job on tags
