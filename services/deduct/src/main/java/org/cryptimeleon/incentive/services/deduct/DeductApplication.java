@@ -1,4 +1,4 @@
-package com.example.deduct;
+package org.cryptimeleon.incentive.services.deduct;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

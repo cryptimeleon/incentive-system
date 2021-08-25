@@ -32,9 +32,14 @@ public class IssueController {
             @RequestHeader(value = "join-request") String serializedJoinRequest,
             @RequestHeader(value = "public-key") String serializedUserPublicKey
     ) {
-        return new ResponseEntity<>(issueService.runIssueJoinProtocol(serializedJoinRequest, serializedUserPublicKey), HttpStatus.OK);
+        return new ResponseEntity<>(issueService.runIssue(serializedJoinRequest, serializedUserPublicKey), HttpStatus.OK);
     }
 
+    /**
+     * Returns a 403 Forbidden response when a RuntimeException occurs in the IssueController class.
+     * @param ex the exception that occured
+     * @return
+     */
     @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(RuntimeException.class)
     public String handleIncentiveException(RuntimeException ex) {

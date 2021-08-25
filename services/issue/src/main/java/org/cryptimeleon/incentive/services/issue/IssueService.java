@@ -12,7 +12,8 @@ import org.springframework.stereotype.Service;
 
 
 /**
- * This service processes the requests and contains all the business.
+ * This service processes the join requests and contains all the business.
+ * Executes the issue logic given a serialized user public key and a serialized join request.
  */
 @Service
 public class IssueService {
@@ -25,13 +26,13 @@ public class IssueService {
     }
 
     /**
-     * Execute the issue-join protocol for a given join-request and return a serialized response.
+     * Executes the issue algorithm from the Issue-Join protocol for a given join-request and user public key (both serialized) and returns a serialized join response.
      *
      * @param serializedJoinRequest   the request to process
-     * @param serializedUserPublicKey the user public key
-     * @return serialized JoinResponse object
+     * @param serializedUserPublicKey the public key of the other party in the Issue-Join protocol
+     * @return the serialized join response
      */
-    public String runIssueJoinProtocol(String serializedJoinRequest, String serializedUserPublicKey) {
+    public String runIssue(String serializedJoinRequest, String serializedUserPublicKey) {
         var pp = cryptoRepository.getPublicParameters();
         var providerPublicKey = cryptoRepository.getProviderPublicKey();
         var providerSecretKey = cryptoRepository.getProviderSecretKey();
@@ -39,9 +40,19 @@ public class IssueService {
 
         JSONConverter jsonConverter = new JSONConverter();
 
-        UserPublicKey userPublicKey = new UserPublicKey(jsonConverter.deserialize(serializedUserPublicKey), pp.getBg().getG1());
-        FiatShamirProofSystem cwfProofSystem = new FiatShamirProofSystem(new CommitmentWellformednessProtocol(pp, providerPublicKey));
-        JoinRequest joinRequest = new JoinRequest(jsonConverter.deserialize(serializedJoinRequest), pp, userPublicKey, cwfProofSystem);
+        UserPublicKey userPublicKey = new UserPublicKey(
+                jsonConverter.deserialize(serializedUserPublicKey),
+                pp.getBg().getG1()
+        );
+        FiatShamirProofSystem cwfProofSystem = new FiatShamirProofSystem(
+                new CommitmentWellformednessProtocol(pp, providerPublicKey)
+        );
+        JoinRequest joinRequest = new JoinRequest(
+                jsonConverter.deserialize(serializedJoinRequest),
+                pp,
+                userPublicKey,
+                cwfProofSystem
+        );
         ProviderKeyPair providerKeyPair = new ProviderKeyPair(providerSecretKey, providerPublicKey);
         JoinResponse joinResponse = incentiveSystem.generateJoinRequestResponse(providerKeyPair, userPublicKey.getUpk(), joinRequest);
         return jsonConverter.serialize(joinResponse.getRepresentation());

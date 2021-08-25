@@ -48,7 +48,7 @@ public class SpendRequest implements Representable {
     GroupElementVector cTrace1;
 
     @NonFinal
-    GroupElement commitmentC0; // Dont sent C_1 since it should be equal to g_1 anyways
+    GroupElement commitmentC0; // Dont sent C_1 since it should be equal to g_1 anyways TODO: C1=g1? sounds odd
 
     @NonFinal
     SPSEQSignature sigma;

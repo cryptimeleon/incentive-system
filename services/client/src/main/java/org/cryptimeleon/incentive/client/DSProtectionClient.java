@@ -22,7 +22,7 @@ public class DSProtectionClient implements DatabaseHandler {
      * methods for administration of nodes and edges
      */
     public void addTransactionNode(Transaction ta){
-        // marshall the data as a JSON
+        // marshall the data as a JSON TODO: maybe switch to JSONConverter from math
         String jsonTransaction = new Gson().toJson(ta);
         System.out.println(jsonTransaction);
 
@@ -52,7 +52,7 @@ public class DSProtectionClient implements DatabaseHandler {
     }
 
     public void addTokenNode(GroupElement dsid){
-        // marshall the data as a JSON
+        // marshall the data as a JSON TODO: maybe switch to JSONConverter from math
         String jsonDsid = new Gson().toJson(dsid);
 
         // encode the obtained JSON (Base64URL)
