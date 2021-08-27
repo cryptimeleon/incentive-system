@@ -36,7 +36,7 @@ public class CreditService {
      * @param basketId              id of the basket that is used for this earn protocol run
      * @return serialized signature
      */
-    public String handleEarnRequest(String serializedEarnRequest, UUID basketId) {
+    public String runCredit(String serializedEarnRequest, UUID basketId) {
         logger.info("EarnRequest:" + serializedEarnRequest);
 
         // Validations

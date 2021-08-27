@@ -35,7 +35,7 @@ public class CreditController {
     public String credit(
             @RequestHeader(value = "earn-request") String serializedEarnRequest,
             @RequestHeader(value = "basket-id") UUID basketId) throws IncentiveException {
-        return creditService.handleEarnRequest(serializedEarnRequest, basketId);
+        return creditService.runCredit(serializedEarnRequest, basketId);
     }
 
     /**

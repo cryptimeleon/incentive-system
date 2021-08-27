@@ -406,7 +406,7 @@ public class IncentiveSystem {
      * @param tid             transaction id, should be verified by the provider
      * @return tuple of response to send to the user and information required for double-spending protection
      */
-    public SpendProviderOutput generateSpendRequestResponse(SpendRequest spendRequest, ProviderKeyPair providerKeyPair, BigInteger k, Zn.ZnElement tid) {
+    public DeductOutput generateSpendRequestResponse(SpendRequest spendRequest, ProviderKeyPair providerKeyPair, BigInteger k, Zn.ZnElement tid) {
         /* Verify that the request is valid and well-formed */
 
         // Verify signature of the old token (C1 must be g1 according to ZKP in T2 paper. We omit the ZKP and use g1 instead of C1)
@@ -441,7 +441,7 @@ public class IncentiveSystem {
         );
 
         // Assemble providers and users output and return as a tuple
-        return new SpendProviderOutput(
+        return new DeductOutput(
                 new SpendResponse(sigmaPrime, eskStarProv),
                 new DoubleSpendingTag(commonInput.c0, commonInput.c1, gamma, eskStarProv, commonInput.ctrace0, commonInput.ctrace1)
         );

@@ -71,7 +71,7 @@ public class Benchmark {
         EarnRequest earnRequest;
         SPSEQSignature earnResponse;
         SpendRequest spendRequest;
-        SpendProviderOutput spendResponseTuple;
+        DeductOutput spendResponseTuple;
         Token token = null;
 
         IncentiveSystem incentiveSystem = benchmarkConfig.incentiveSystem;
