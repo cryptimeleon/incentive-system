@@ -42,6 +42,7 @@ public class DeductService {
      * @param basketID id of the users basket. Needed to deduct previously collected points from token.
      * @return the serialized spend response
      */
+    // TODO: add a promotion identifier as parameter (needed to find out which reward item to add to the basket if any)
     public String runDeduct(String serializedSpendRequest, String serializedUserPublicKey, UUID basketID) {
         // TODO: add all basket-related logic (querying k and tid from basket server using basketID)
         // retrieve serialized crypto assets from the crypto repository
@@ -56,7 +57,7 @@ public class DeductService {
         FiatShamirProofSystem spendDeductZkpProofSystem = new FiatShamirProofSystem( // proof system needed for constructing the spend request from a representation
                 new SpendDeductZkp(pp, providerPublicKey)
         );
-        BigInteger spendAmount = new BigInteger("231"); // TODO: where to get spend amount from? Need another endpoint on the basket server for that, see discord #questions 27.8.2021. Hard-coded spend amount first, to prevent feature creep on feature/dsprotection
+        BigInteger spendAmount = new BigInteger("231"); // TODO: 231 is hard-coded wip value. Where to get spend amount from? Need another endpoint on the basket server for that, see discord #questions 27.8.2021. Hard-coded spend amount first, to prevent feature creep on feature/dsprotection
         Zn.ZnElement transactionId = pp.getBg().getZn().getOneElement(); // TODO: same as for the spend amount
         SpendRequest spendRequest = new SpendRequest(
                 jsonConverter.deserialize(serializedSpendRequest),
@@ -70,8 +71,23 @@ public class DeductService {
         DeductOutput deductOutput = incentiveSystem.generateSpendRequestResponse(spendRequest, providerKeyPair, spendAmount, transactionId);
 
         // adding the generated transaction data to the double-spending database TODO this requires interaction with the db using the dsprotectionclient
+        incentiveSystem.dbSync(
+                    transactionId,
+                    spendRequest.getDsid(),
+                    deductOutput.getDstag(),
+                    spendAmount,
+                    dsProtectionClient
+                );
 
-        // TODO: any further actions needed?
+        /**
+         * TODO: interaction with basket and promotion service to add a special item to the basket ("this item certifies that the user receives a teddy bear")
+         * for now (end-of-february version), only one promotion type is planned.
+         * (i.e. shop assistant will hand out teddy bear to customer spending 2000p).
+         * However, for further type of promotions (-> future work), the deduct service might need further communication with the basket service here
+         * (think of promotions like "pay 100p to get 1€ off for the total price of your basket" or
+         * "pay 100p to get a glass of hazelnut spread with 50% off")
+         * TODO: this comprises finding out which special item to add; passed promotion ID can be resolved by communicating with the promotion service (yet to be implemented)
+         */
 
         // extract and return spend response
         return jsonConverter.serialize(deductOutput.getSpendResponse().getRepresentation());

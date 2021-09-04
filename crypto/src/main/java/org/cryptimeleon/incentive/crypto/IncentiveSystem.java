@@ -605,12 +605,12 @@ public class IncentiveSystem {
      * Triggers further DB-side actions for tracing tokens and transactions resulting from a double-spending attempt if necessary.
      *
      * @param tid         transaction ID
-     * @param gamma       challenge generator
      * @param dsid        double-spending ID of used token
-     * @param dsTag       double-spending tag of used token
+     * @param dsTag       double-spending tag of used token (contains challenge generator gamma)
      * @param spendAmount point amount spent
+     * @param dbHandler reference to the object handling the database connectivity
      */
-    public void dbSync(ZnElement tid, ZnElement gamma, GroupElement dsid, DoubleSpendingTag dsTag, BigInteger spendAmount, DatabaseHandler dbHandler) {
+    public void dbSync(ZnElement tid, GroupElement dsid, DoubleSpendingTag dsTag, BigInteger spendAmount, DatabaseHandler dbHandler) {
 
     }
 
