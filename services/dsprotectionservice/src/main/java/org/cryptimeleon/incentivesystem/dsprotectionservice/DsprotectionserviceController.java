@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+// TODO: implement a proper request mapping as in IssueController, CreditController, ...
+
 /**
  * Handles HTTP requests for double-spending protection database service.
  * Takes requests for adding transactions and double-spending IDs to the double spending database, as well as connections between them

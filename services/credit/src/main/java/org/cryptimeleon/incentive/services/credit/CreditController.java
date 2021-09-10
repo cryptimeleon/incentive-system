@@ -31,7 +31,7 @@ public class CreditController {
      * Run the credit-earn protocol.
      */
     @GetMapping("/credit")
-    @ApiOperation(value = "Credit protocol", notes = "Returns a serialized SPSEQ signature.", response = String.class)
+    @ApiOperation(value = "Credit algorithm from credit-earn protocol", notes = "Returns a serialized SPSEQ signature.", response = String.class)
     public String credit(
             @RequestHeader(value = "earn-request") String serializedEarnRequest,
             @RequestHeader(value = "basket-id") UUID basketId) throws IncentiveException {

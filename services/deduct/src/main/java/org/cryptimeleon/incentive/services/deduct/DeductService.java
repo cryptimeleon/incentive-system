@@ -1,6 +1,7 @@
 package org.cryptimeleon.incentive.services.deduct;
 
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
+import org.cryptimeleon.incentive.client.BasketClient;
 import org.cryptimeleon.incentive.client.DSProtectionClient;
 import org.cryptimeleon.incentive.crypto.model.DeductOutput;
 import org.cryptimeleon.incentive.crypto.model.SpendRequest;
@@ -12,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
-import java.security.Provider;
 import java.util.UUID;
 
 /**
@@ -24,6 +24,8 @@ public class DeductService {
     private CryptoRepository cryptoRepository; // encapsulates all crypto assets the provider needs to provide the deduct service, set via dependency injection ("autowired") mechanism of Spring Boot
 
     private DSProtectionClient dsProtectionClient; // reference to the object making the queries to the double-spending protection service, set via dependency injection ("autowired") mechanism of Spring Boot
+
+    private BasketClient basketClient; // reference to the object making the queries to the basket service, set via dependency injection mechanism ("autowired") mechanism of Spring Boot
 
     /**
      * Default constructor to be executed when an object of this class is used as a Spring bean.
@@ -38,13 +40,12 @@ public class DeductService {
     /**
      * Executes the Deduct algorithm from the Spend-Deduct protocol for a given spend request and a user public key (both serialized) and returns a serialized spend response.
      * @param serializedSpendRequest the request to process (as a serialized Representation object)
-     * @param serializedUserPublicKey the public key of the user who is the other party in the Spend-Deduct protocol
      * @param basketID id of the users basket. Needed to deduct previously collected points from token.
      * @return the serialized spend response
      */
     // TODO: add a promotion identifier as parameter (needed to find out which reward item to add to the basket if any)
-    public String runDeduct(String serializedSpendRequest, String serializedUserPublicKey, UUID basketID) {
-        // TODO: add all basket-related logic (querying k and tid from basket server using basketID)
+    public String runDeduct(String serializedSpendRequest, UUID basketID) {
+        // TODO: add all basket-related logic (querying k and tid from basket server using basketID); requires implementation of new endpoints in basket service
         // retrieve serialized crypto assets from the crypto repository
         var pp = cryptoRepository.getPp(); // for shorthand purposes
         var providerPublicKey = cryptoRepository.getPk();
@@ -70,7 +71,7 @@ public class DeductService {
         // executing Deduct (i.e. processing the spend request)
         DeductOutput deductOutput = incentiveSystem.generateSpendRequestResponse(spendRequest, providerKeyPair, spendAmount, transactionId);
 
-        // adding the generated transaction data to the double-spending database TODO this requires interaction with the db using the dsprotectionclient
+        // adding the generated transaction data to the double-spending database
         incentiveSystem.dbSync(
                     transactionId,
                     spendRequest.getDsid(),

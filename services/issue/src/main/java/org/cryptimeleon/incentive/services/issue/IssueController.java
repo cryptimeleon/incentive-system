@@ -36,13 +36,12 @@ public class IssueController {
     }
 
     /**
-     * Returns a 403 Forbidden response when a RuntimeException occurs in the IssueController class.
+     * Returns a 403 Forbidden response when a RuntimeException occurs somewhere in the IssueController class.
      * @param ex the exception that occured
-     * @return
      */
     @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(RuntimeException.class)
     public String handleIncentiveException(RuntimeException ex) {
-        return "An exception occurred!";
+        return "An exception occurred: " + ex.getMessage();
     }
 }
