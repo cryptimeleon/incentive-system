@@ -611,7 +611,21 @@ public class IncentiveSystem {
      * @param dbHandler reference to the object handling the database connectivity
      */
     public void dbSync(ZnElement tid, GroupElement dsid, DoubleSpendingTag dsTag, BigInteger spendAmount, DatabaseHandler dbHandler) {
+        // if transaction is not yet in the database
+        if(!dbHandler.containsTransactionNode(tid, dsTag.getGamma())) {
+            // add a corresponding transaction node to DB (which also contains the dstag)
+        }
 
+        // if dsid of used token is not yet in DB
+        if(!dbHandler.containsTokenNode(dsid)) {
+            // add a corresponding token node to DB
+        }
+        // if dsid is already in DB -> double-spending attempt detected!
+        else {
+            // make edge from dsid's token node to the node of the passed transaction
+
+            // associate token with user info
+        }
     }
 
     /**
