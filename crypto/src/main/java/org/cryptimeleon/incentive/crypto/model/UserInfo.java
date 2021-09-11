@@ -6,6 +6,7 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 /**
  * Data class storing info about a user that spent a specific token in a specific transaction.
+ * This info is associated with a token (represented by a dsid).
  **/
 @Value
 public class UserInfo {

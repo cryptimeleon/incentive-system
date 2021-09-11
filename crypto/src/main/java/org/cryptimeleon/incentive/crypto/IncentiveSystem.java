@@ -611,8 +611,10 @@ public class IncentiveSystem {
      * @param dbHandler reference to the object handling the database connectivity
      */
     public void dbSync(ZnElement tid, GroupElement dsid, DoubleSpendingTag dsTag, BigInteger spendAmount, DatabaseHandler dbHandler) {
+        ZnElement gamma = dsTag.getGamma();
+
         // if transaction is not yet in the database
-        if(!dbHandler.containsTransactionNode(tid, dsTag.getGamma())) {
+        if(!dbHandler.containsTransactionNode(tid, gamma)) {
             // add a corresponding transaction node to DB (which also contains the dstag)
         }
 
@@ -624,7 +626,10 @@ public class IncentiveSystem {
         else {
             // make edge from dsid's token node to the node of the passed transaction
 
-            // associate token with user info
+            // if the token node has no user info associated with it
+            if(dbHandler.getUserInfo(tid, gamma) == null){
+                // TODO: continue
+            }
         }
     }
 
