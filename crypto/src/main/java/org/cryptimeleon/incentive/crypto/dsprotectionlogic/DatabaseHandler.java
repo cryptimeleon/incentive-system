@@ -4,18 +4,14 @@ import org.cryptimeleon.incentive.crypto.model.Transaction;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
 
-// TODO: finalize signatures, currently some of them are wip
-
 /**
  * Provides an interface to the double-spending DB for the DBSync algorithm from the formal cryptographic definition of the incentive system.
- * This comprises methods for adding nodes and edges to it, representing DsIDs, transactions and both relations between them (transaction consumes token, token is result of transaction).
+ * This comprises methods for adding nodes and edges to it, representing DsIDs, transactions and both relations between them (transaction consumes token, token is result of transaction)
+ * as well as nodes for checking for containment of a certain node or edge of any type.
  */
 
 public interface DatabaseHandler
 {
-    /**
-     * methods for administration of nodes and edges
-     */
     public void addTransactionNode(Transaction ta);
 
     public void addTokenNode(GroupElement dsid);
@@ -30,9 +26,7 @@ public interface DatabaseHandler
 
     public boolean containsTokenNode(GroupElement dsid);
 
-    public boolean containsEdge();
+    public boolean containsTransactionTokenEdge(ZnElement tid, ZnElement gamma, GroupElement dsid);
 
-    /**
-     * end of methods for administration of nodes and edges
-     */
+    public boolean containsTokenTransactionEdge(GroupElement dsid, ZnElement tid, ZnElement gamma);
 }

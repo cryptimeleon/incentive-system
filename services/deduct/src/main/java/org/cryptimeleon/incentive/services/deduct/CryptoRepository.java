@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
@@ -58,7 +59,7 @@ public class CryptoRepository {
      * Ensures that the shared secret is set (exception thrown if not).
      * Then initializes the repository by connecting to the info service and querying the necessary values.
      */
-    // TODO: @Profile annotation missing (see issue/credit services)?
+    @Profile("!test")
     @PostConstruct
     public void validateAndInit() {
         logger.info("Validating shared secret");
