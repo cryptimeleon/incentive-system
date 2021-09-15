@@ -15,8 +15,8 @@ public class InfoClient {
     private WebClient infoClient;
 
 
-    public InfoClient(String creditServiceUrl) {
-        this.infoClient = WebClientHelper.buildWebClient(creditServiceUrl);
+    public InfoClient(String infoServiceUrl) {
+        this.infoClient = WebClientHelper.buildWebClient(infoServiceUrl);
     }
 
     /**

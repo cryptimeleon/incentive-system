@@ -16,9 +16,6 @@ public class CreditApplication {
     @Value("${basket-service.url}")
     private String basketUrl;
 
-    @Value("${basket-service.redeem-secret}")
-    private String redeemSecret;
-
     public static void main(String[] args) {
         SpringApplication.run(CreditApplication.class, args);
     }
