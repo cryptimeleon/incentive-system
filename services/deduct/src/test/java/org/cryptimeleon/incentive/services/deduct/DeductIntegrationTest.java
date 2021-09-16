@@ -44,8 +44,8 @@ public class DeductIntegrationTest {
         logger.info("Starting test for valid spend operation.");
         BigInteger points = new BigInteger("445");
         /**
-         * Due to the missing basket server endpoint for querying the trusted spend amount, the spend amount is currently hard-coded in DeductService.runDeduct.
-         * So until we implement the said endpoint, we cannot use other spend amounts than 231.
+         * Due to the missing basket server endpoint for querying the trusted spend amount (resp. trusted transaction ID), the spend amount (resp. transaction ID) is currently hard-coded in DeductService.runDeduct.
+         * So until we implement the said endpoint, we cannot use other spend amounts than 231 (resp. other tids than one element).
          * TODO: implement said basket server endpoint
          */
         BigInteger spendAmount = new BigInteger("231");
@@ -110,7 +110,7 @@ public class DeductIntegrationTest {
         try{
             // generate and serialize spend request
             logger.info("Preparing to spend " + spendAmount.toString() + " points.");
-            Zn.ZnElement transactionID = pp.getBg().getZn().getOneElement(); // TODO: remove this hard-coded tid once basket service endpoint works
+            Zn.ZnElement transactionID = pp.getBg().getZn().getOneElement(); // TODO: remove this hard-coded tid once basket service endpoint works, other transaction IDs than oneElement won't work until then since tid is hard-coded in DeductService.runDeduct
             UUID basketID = UUID.randomUUID();
             var spendRequest = incentiveSystem.generateSpendRequest(token, pkp.getPk(), spendAmount, ukp, transactionID);
             var serializedSpendRequest = jsonConverter.serialize(spendRequest.getRepresentation());
