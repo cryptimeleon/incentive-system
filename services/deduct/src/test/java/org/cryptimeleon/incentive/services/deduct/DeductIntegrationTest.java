@@ -42,8 +42,13 @@ public class DeductIntegrationTest {
     @Test
     public void validSpendOperationTest(@Autowired WebTestClient webClient) {
         logger.info("Starting test for valid spend operation.");
-        BigInteger points = new BigInteger("231");
-        BigInteger spendAmount = new BigInteger("42");
+        BigInteger points = new BigInteger("445");
+        /**
+         * Due to the missing basket server endpoint for querying the trusted spend amount, the spend amount is currently hard-coded in DeductService.runDeduct.
+         * So until we implement the said endpoint, we cannot use other spend amounts than 231.
+         * TODO: implement said basket server endpoint
+         */
+        BigInteger spendAmount = new BigInteger("231");
         spendOperationTest(points, spendAmount, webClient);
     }
 
@@ -85,6 +90,7 @@ public class DeductIntegrationTest {
 
         // setup mocked basket repository
         // TODO: can only be done once BasketRepository is implemented (which can only be done after addressing endpoint issue for basket server)
+        // TODO: for now, spend amount is passed in the method parameters. We need to rewrite this test template once we implemented the basket server end point for querying the spend amount (create a mock basket in the mock basket server, query the spend amount for it)
 
         // generate fresh user key pair
         logger.info("Generating user key pair.");
