@@ -28,10 +28,10 @@ public class DeductController {
      * @param basketID identifier for user basket
      * @return serialized spend request
      */
-    @GetMapping("/deduct")
+    @PostMapping("/deduct")
     @ApiOperation(value = "Deduct algorithm from the Spend-Deduct protocol.", notes = "Returns a serialized spend response.", response = String.class)
     public String runDeduct(
-            @RequestHeader(value = "spend-request") String serializedSpendRequest,
+            @RequestBody String serializedSpendRequest,
             @RequestHeader(value = "basket-id") UUID basketID) {
         return deductService.runDeduct(serializedSpendRequest, basketID);
     }

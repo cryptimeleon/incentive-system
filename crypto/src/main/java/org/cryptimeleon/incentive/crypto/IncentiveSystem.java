@@ -421,7 +421,7 @@ public class IncentiveSystem {
         var commonInput = new SpendDeductZkpCommonInput(spendRequest, k, gamma);
         var proofValid = fiatShamirProofSystem.checkProof(commonInput, spendRequest.getSpendDeductZkp());
         if (!proofValid) {
-            throw new IllegalArgumentException("ZPK of the request is not valid!");
+            throw new IllegalArgumentException("ZKP of the request is not valid!");
         }
 
         /* Request is valid. Compute new blinded token and signature */
@@ -456,7 +456,7 @@ public class IncentiveSystem {
      * @param spendRequest      the original request
      * @param token             the old token
      * @param providerPublicKey public key of the provider
-     * @param k                 amount to add to the token
+     * @param k                 amount to remove from the token
      * @param userKeyPair       keypair of the user
      * @return token with the value of the old token + k
      */

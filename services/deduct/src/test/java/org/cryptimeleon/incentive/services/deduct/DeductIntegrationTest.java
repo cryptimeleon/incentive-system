@@ -3,15 +3,22 @@ package org.cryptimeleon.incentive.services.deduct;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.Setup;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
+import org.cryptimeleon.incentive.crypto.model.SpendResponse;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.math.BigInteger;
+import java.util.UUID;
 
 import static org.mockito.Mockito.when;
 
@@ -27,48 +34,115 @@ public class DeductIntegrationTest {
     @MockBean
     private BasketRepository basketRepository;
 
+    private Logger logger = LoggerFactory.getLogger(DeductIntegrationTest.class);
+
     /**
-     * Lets the Deduct service handle a valid spend request.
+     * Lets the Deduct service handle a valid spend request and verifies that correct amount of point is removed from token.
      */
     @Test
-    public void validSpendOperationTest() {
+    public void validSpendOperationTest(@Autowired WebTestClient webClient) {
+        logger.info("Starting test for valid spend operation.");
+        BigInteger points = new BigInteger("231");
+        BigInteger spendAmount = new BigInteger("42");
+        spendOperationTest(points, spendAmount, webClient);
+    }
+
+    /**
+     * Sends a spend request to the Deduct service that attempts to spend more points than the token contains.
+     * The expected behaviour is a 403 HTTP response.
+     */
+    @Test
+    public void notEnoughPointsTest(@Autowired WebTestClient webClient) {
+        logger.info("Starting test for invalid spend operation (not enough points).");
+        BigInteger points = new BigInteger("42");
+        BigInteger spendAmount = new BigInteger("231");
+        spendOperationTest(points, spendAmount, webClient);
+    }
+
+    /**
+     * Performs a spend operation spending a certain amount of points from a token that contains the passed number of points.
+     * @param points amount of points that the token contains before the spend operation
+     * @param spendAmount amount of points to be spent
+     * @param webClient client object making the request to the Deduct service
+     */
+    public void spendOperationTest(BigInteger points, BigInteger spendAmount, WebTestClient webClient) {
         // setup the incentive system for the test
+        logger.info("Setting up incentive system for the test.");
         IncentivePublicParameters pp = Setup.trustedSetup(128, Setup.BilinearGroupChoice.Debug); // generate public parameters
         IncentiveSystem incentiveSystem = new IncentiveSystem(pp);
         ProviderKeyPair pkp = Setup.providerKeyGen(pp);
 
         // create a JSON converter for (de-)serialization
+        logger.info("Creating JSON converter.");
         JSONConverter jsonConverter = new JSONConverter();
 
         // setup mocked crypto repository
+        logger.info("Setting up mocked repository for crypto assets.");
         when(cryptoRepository.getIncentiveSystem()).thenReturn(incentiveSystem); // the system instance
         when(cryptoRepository.getPp()).thenReturn(pp); // public parameters
         when(cryptoRepository.getPk()).thenReturn(pkp.getPk()); // provider public key
         when(cryptoRepository.getSk()).thenReturn(pkp.getSk()); // provider secret key
 
         // setup mocked basket repository
-        // TODO: can only be done when BasketRepository is implemented (which can only be done after addressing endpoint issue for basket server)
+        // TODO: can only be done once BasketRepository is implemented (which can only be done after addressing endpoint issue for basket server)
 
         // generate fresh user key pair
+        logger.info("Generating user key pair.");
         UserKeyPair ukp = Setup.userKeyGen(pp);
 
         // generate token by simulating Issue-Join
+        logger.info("Generating token with " + points.toString() + " points.");
         var joinRequest = incentiveSystem.generateJoinRequest(pkp.getPk(), ukp);
         var joinResponse = incentiveSystem.generateJoinRequestResponse(pkp, ukp.getPk().getUpk(), joinRequest);
         var token = incentiveSystem.handleJoinRequestResponse(pkp.getPk(), ukp, joinRequest, joinResponse);
 
         // add points to token by simulating Credit-Earn
-        BigInteger earnAmount = new BigInteger("231");
         var earnRequest = incentiveSystem.generateEarnRequest(token, pkp.getPk(), ukp);
-        var signatureResponse = incentiveSystem.generateEarnRequestResponse(earnRequest, earnAmount, pkp);
-        token = incentiveSystem.handleEarnRequestResponse(earnRequest, signatureResponse, earnAmount, token, pkp.getPk(), ukp);
+        var signatureResponse = incentiveSystem.generateEarnRequestResponse(earnRequest, points, pkp);
+        token = incentiveSystem.handleEarnRequestResponse(earnRequest, signatureResponse, points, token, pkp.getPk(), ukp);
 
-        // generate and serialize spend request
-        Zn.ZnElement transactionID = pp.getBg().getZn().getOneElement(); // TODO: hard-coded until tid endpoint for basket service works
-        BigInteger spendAmount = new BigInteger("42");
-        var spendRequest = incentiveSystem.generateSpendRequest(token, pkp.getPk(), spendAmount, ukp, transactionID);
-        // TODO: continue here, serialize spend request
+        try{
+            // generate and serialize spend request
+            logger.info("Preparing to spend " + spendAmount.toString() + " points.");
+            Zn.ZnElement transactionID = pp.getBg().getZn().getOneElement(); // TODO: remove this hard-coded tid once basket service endpoint works
+            UUID basketID = UUID.randomUUID();
+            var spendRequest = incentiveSystem.generateSpendRequest(token, pkp.getPk(), spendAmount, ukp, transactionID);
+            var serializedSpendRequest = jsonConverter.serialize(spendRequest.getRepresentation());
 
-        // spend points from token by executing Deduct
+            // send a request to the Deduct service to spend some points, receive and deserialize spend response
+            logger.info("Communicating with Deduct service.");
+            String serializedSpendResponse = null;
+
+            // HTTP request marshalling
+            serializedSpendResponse = webClient.post()
+                    .uri(uriBuilder -> uriBuilder.path("/deduct").build())
+                    .header("basket-id", basketID.toString())
+                    .bodyValue(serializedSpendRequest) // spend request must be sent in the body since too large for header
+                    .exchange()
+                    .expectStatus()
+                    .isOk()
+                    .expectBody(String.class)
+                    .returnResult()
+                    .getResponseBody();
+            logger.info("Successfully received spend response.");
+
+            // deserializing answer
+            logger.info("Deserializing...");
+            var spendResponseRepresentation = jsonConverter.deserialize(serializedSpendResponse);
+            var spendResponse = new SpendResponse(spendResponseRepresentation, pp.getBg().getZn(), pp.getSpsEq());
+            logger.info("Done");
+
+            // handle spend response
+            logger.info("Updating token.");
+            token = incentiveSystem.handleSpendRequestResponse(spendResponse, spendRequest, token, spendAmount, pkp.getPk(), ukp);
+
+            // check for outcome correctness
+            logger.info("Verifying token point count.");
+            Assertions.assertEquals(token.getPoints().getInteger(), points.subtract(spendAmount));
+        }
+        // cover case that token does not contain enough points
+        catch(IllegalArgumentException e) {
+            logger.info(e.getMessage());
+        }
     }
 }

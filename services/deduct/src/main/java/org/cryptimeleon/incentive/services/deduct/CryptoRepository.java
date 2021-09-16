@@ -25,7 +25,7 @@ import java.time.Duration;
  */
 @Repository
 public class CryptoRepository {
-    public static final int MAX_TRIES=5; // number of tries the repo should reconnect to the info service upon failure
+    public static final int MAX_TRIES=1; // number of tries the repo should reconnect to the info service upon failure
 
     private Logger logger = LoggerFactory.getLogger(CryptoRepository.class);
 
