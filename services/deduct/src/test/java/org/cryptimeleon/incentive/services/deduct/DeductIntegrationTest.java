@@ -54,7 +54,6 @@ public class DeductIntegrationTest {
 
     /**
      * Sends a spend request to the Deduct service that attempts to spend more points than the token contains.
-     * The expected behaviour is a 403 HTTP response.
      */
     @Test
     public void notEnoughPointsTest(@Autowired WebTestClient webClient) {

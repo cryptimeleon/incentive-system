@@ -1,11 +1,12 @@
 package org.cryptimeleon.incentivesystem.dsprotectionservice;
 
+import org.cryptimeleon.incentivesystem.dsprotectionservice.storage.DoubleSpendingTagRepository;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.storage.DsidRepository;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.storage.TransactionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
 // TODO: implement a proper request mapping as in IssueController, CreditController, ...
 
@@ -23,30 +24,51 @@ public class DsprotectionserviceController {
     @Autowired
     TransactionRepository transactionRepository;
 
-    @RequestMapping("/")
-    public String hello()
+    @Autowired
+    DoubleSpendingTagRepository doubleSpendingTagRepository;
+
+    // TODO: repos for userinfo
+
+    /**
+     * Simple heartbeating method that can be checked whether the double-spending protection service is still up and running.
+     * @return hard-coded standard response
+     */
+    @GetMapping("/")
+    public ResponseEntity<String> heartbeat()
     {
-        return "We are in the process of constructing an awesome double-spending protection service here. Please be patient :)";
+        return new ResponseEntity<String>("Hello from double-spending protection service!", HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/addta", params = {"encodedta"})
-    public String addTransaction(
-            @RequestParam(value = "encodedta") String encodedTransaction
+    /**
+     * Adds a new Spend transaction to the database.
+     * @param encodedTransaction serialized representation of the transaction
+     * @return HTTP response object telling whether adding transaction worked
+     */
+    @PostMapping("/addtransaction")
+    public ResponseEntity<String> addTransaction(
+            @RequestBody String encodedTransaction
     ) {
-        return "wip";
+        return new ResponseEntity<String>("wip", HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/adddsid", params = {"encodeddsid"})
-    public String addDsID(
-            @RequestParam(value = "id") long id,
-            @RequestParam(value = "encodeddsid") String encodedDsID
+    /**
+     * Adds a new token (represented by its double-spending ID) to the database.
+     * @param id object id of the double spending ID inside the database (primary key)
+     * @param encodedDsID serialized representation of a group element
+     * @return HTTP response object telling whether adding dsid worked
+     */
+    @PostMapping("/adddsid")
+    public ResponseEntity<String> addDsID(
+            @RequestHeader(value = "object-id") long id,
+            @RequestHeader(value = "dsid") String encodedDsID
     ) {
-        return "wip";
+        return new ResponseEntity<String>("wip", HttpStatus.OK);
     }
 
-    @RequestMapping("/select")
-    public String select()
+    // TODO: create method signature with proper parameters
+    @GetMapping("/select")
+    public ResponseEntity<String> select()
     {
-        return "wip";
+        return new ResponseEntity<String>("wip", HttpStatus.OK);
     }
 }
