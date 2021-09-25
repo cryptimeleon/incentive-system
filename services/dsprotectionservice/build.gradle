@@ -18,7 +18,7 @@ repositories {
 dependencies {
 	// testing and convenience
 	implementation 'junit:junit:4.12'
-	compileOnly 'org.projectlombok:lombok' // TODO: ask Paul what this is useful for, why needed twice? isnt annotation processor enough
+	compileOnly 'org.projectlombok:lombok' // TODO: ask Paul what this is useful for, why needed twice? isnt one annotation processor enough?
 	annotationProcessor 'org.projectlombok:lombok'
 
 	// spring boot dependencies
@@ -32,6 +32,7 @@ dependencies {
 
 	// cryptimeleon dependencies
 	implementation 'org.cryptimeleon.incentive:crypto'
+	implementation project(":client") // needed to query public parameters from info service
 }
 
 test {

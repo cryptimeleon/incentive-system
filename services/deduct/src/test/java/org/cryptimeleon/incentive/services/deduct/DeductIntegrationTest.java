@@ -123,7 +123,7 @@ public class DeductIntegrationTest {
                     .uri(uriBuilder -> uriBuilder.path("/deduct").build())
                     .header("basket-id", basketID.toString())
                     .bodyValue(serializedSpendRequest) // spend request must be sent in the body since too large for header
-                    .exchange()
+                    .exchange() // TODO: this is wrong, does exchange without request body!
                     .expectStatus()
                     .isOk()
                     .expectBody(String.class)
@@ -135,6 +135,7 @@ public class DeductIntegrationTest {
             logger.info("Deserializing...");
             var spendResponseRepresentation = jsonConverter.deserialize(serializedSpendResponse);
             var spendResponse = new SpendResponse(spendResponseRepresentation, pp.getBg().getZn(), pp.getSpsEq());
+            logger.info(spendResponse.toString());
             logger.info("Done");
 
             // handle spend response

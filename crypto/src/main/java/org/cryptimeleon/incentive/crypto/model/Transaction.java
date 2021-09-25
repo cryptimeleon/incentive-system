@@ -1,7 +1,6 @@
 package org.cryptimeleon.incentive.crypto.model;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
 import lombok.Value;
 import lombok.experimental.NonFinal;
 import org.cryptimeleon.math.serialization.ListRepresentation;
@@ -11,7 +10,6 @@ import org.cryptimeleon.math.serialization.annotations.ReprUtil;
 import org.cryptimeleon.math.serialization.annotations.Represented;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
-import java.lang.annotation.Repeatable;
 import java.math.BigInteger;
 
 /**
@@ -20,7 +18,12 @@ import java.math.BigInteger;
  * and thus not a field of the transaction class (DRY principle).
  */
 @Value
+@AllArgsConstructor
 public class Transaction implements Representable {
+    @NonFinal
+    @Represented
+    private boolean isValid;
+
     @NonFinal
     @Represented(restorer = "Zn")
     private Zn.ZnElement transactionID; // identifier for this transaction on protocol-level

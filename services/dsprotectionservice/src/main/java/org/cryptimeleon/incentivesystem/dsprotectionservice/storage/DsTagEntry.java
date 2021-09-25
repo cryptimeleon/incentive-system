@@ -1,5 +1,6 @@
 package org.cryptimeleon.incentivesystem.dsprotectionservice.storage;
 
+import lombok.Getter;
 import org.cryptimeleon.math.structures.groups.cartesian.GroupElementVector;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
@@ -11,8 +12,9 @@ import javax.persistence.*;
  * The counterpart double-spending tag class in the crypto project does not have these but apart from that, the two classes are identical.
  */
 @Entity
+@Getter
 @Table(name="dstags")
-public class DoubleSpendingTag {
+public class DsTagEntry {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
@@ -24,12 +26,11 @@ public class DoubleSpendingTag {
     private GroupElementVector ctrace0;
     private GroupElementVector ctrace1;
 
-    public DoubleSpendingTag() {
+    public DsTagEntry() {
 
     }
 
-    public DoubleSpendingTag(long id, Zn.ZnElement c0, Zn.ZnElement c1, Zn.ZnElement gamma, Zn.ZnElement eskStarProv, GroupElementVector ctrace0, GroupElementVector ctrace1) {
-        this.id = id;
+    public DsTagEntry(Zn.ZnElement c0, Zn.ZnElement c1, Zn.ZnElement gamma, Zn.ZnElement eskStarProv, GroupElementVector ctrace0, GroupElementVector ctrace1) {
         this.c0 = c0;
         this.c1 = c1;
         this.gamma = gamma;

@@ -13,7 +13,7 @@ import javax.persistence.*;
 
 @Entity
 @Table(name="userInfo")
-public class UserInfo {
+public class UserInfoEntry {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
@@ -24,9 +24,9 @@ public class UserInfo {
 
     private Zn.ZnElement dsTrace;
 
-    public UserInfo() {}
+    public UserInfoEntry() {}
 
-    public UserInfo(long id, UserPublicKey upk, Zn.ZnElement dsBlame, Zn.ZnElement dsTrace) {
+    public UserInfoEntry(long id, UserPublicKey upk, Zn.ZnElement dsBlame, Zn.ZnElement dsTrace) {
         this.id = id;
         this.upk = upk;
         this.dsBlame = dsBlame;

@@ -23,7 +23,12 @@ public interface DatabaseHandler
      * transaction -> token: transaction produced this token
      */
 
-    public void addTransactionNode(Transaction ta);
+    /**
+     * Adds a new transaction node to the database.
+     * @param ta transaction to add
+     * @return result information e.g. HTTP response, ...
+     */
+    public String addTransactionNode(Transaction ta);
 
     public void addTokenNode(GroupElement dsid);
 
