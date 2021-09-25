@@ -1,23 +1,15 @@
 package org.cryptimeleon.incentive.client;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import lombok.AllArgsConstructor;
 import org.cryptimeleon.incentive.crypto.dsprotectionlogic.DatabaseHandler;
 import org.cryptimeleon.incentive.crypto.model.Transaction;
+import org.cryptimeleon.incentive.crypto.model.TransactionIdentifier;
 import org.cryptimeleon.incentive.crypto.model.UserInfo;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
-
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.List;
 
 
 /**
@@ -28,6 +20,9 @@ public class DSProtectionClient implements DatabaseHandler {
     private WebClient dsProtectionClient; // the underlying web client making the requests
 
     public static final String ADD_TRANSACTION_PATH = "/addtransaction";
+
+    public static final String CONTAINS_TRANSACTION_PATH = "/containsta";
+
     public static final String RETRIEVE_TRANSACTION_PATH = "/retrieveta";
     public static final String RETRIEVE_ALL_TRANSACTIONS_PATH = "/retrieveallta";
 
@@ -52,6 +47,11 @@ public class DSProtectionClient implements DatabaseHandler {
     }
 
     public void addTokenNode(GroupElement dsid){
+        // marshall the data as JSON string
+
+        // add double-spending ID using a POST request to ds protection service using web client from object variable
+
+        // return response
 
     }
 
@@ -66,15 +66,19 @@ public class DSProtectionClient implements DatabaseHandler {
     }
 
     public boolean containsTransactionNode(Zn.ZnElement tid, Zn.ZnElement gamma){
-        // retrieve all transactions
-        Mono<ArrayList> serializedTaReprList = dsProtectionClient.get()
-                .uri(uriBuilder -> uriBuilder.path(RETRIEVE_ALL_TRANSACTIONS_PATH).build())
+        // wrap up the transaction-identifying data and marshall it as a JSON string
+        JSONConverter jsonConverter = new JSONConverter();
+        TransactionIdentifier taIdentifier = new TransactionIdentifier(tid, gamma);
+        String serializedTaIdentifierRepr = jsonConverter.serialize(taIdentifier.getRepresentation());
+
+        // make respective get request to ds protection service
+        Mono<Boolean> isContained = dsProtectionClient.get()
+                .uri(uriBuilder -> uriBuilder.path(CONTAINS_TRANSACTION_PATH).build())
+                .header("taidgamma", serializedTaIdentifierRepr)
                 .retrieve()
-                .bodyToMono(ArrayList.class);
+                .bodyToMono(Boolean.class);
 
-        // look for one with fitting tid and gamma
-
-        return false;
+        return false; // TODO how to get boolean value out of the Mono object?
     }
 
     public boolean containsTokenNode(GroupElement dsid){

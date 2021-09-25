@@ -30,12 +30,13 @@ public class TransactionEntry {
 
     private BigInteger k; // number of points spent in this transaction
 
-    private DsTagEntry dsTagEntry; // data associated to a spend transaction that is required to trace double-spending
+    private long dsTagEntryId; // ID of the entry for the double-spending tag of the transaction (data associated to a spend transaction that is required to trace double-spending)
 
-    public TransactionEntry() {}
+    private long dsidEntryId; // ID of the entry of the double-spending ID of the token produced in this transaction (realizes a directed edge in the bipartite double-spending graph)
 
     /**
      * Constructs a transaction entry from a serialized transaction representation (crypto object).
+     * Note that the association with a double-spending tag is done subsequently.
      * @param serializedTransaction serialized representation of a transaction
      * @param pp public parameters of the incentive system
      */
@@ -49,35 +50,37 @@ public class TransactionEntry {
         this.isValid = ta.isValid();
         this.transactionID = ta.getTransactionID();
         this.k = ta.getK();
-        DoubleSpendingTag dsTag = ta.getDsTag();
-        this.dsTagEntry = new DsTagEntry(
-                dsTag.getC0(),
-                dsTag.getC1(),
-                dsTag.getGamma(),
-                dsTag.getEskStarProv(),
-                dsTag.getCtrace0(),
-                dsTag.getCtrace1()
-        );
     }
 
     /**
-     * All-args constructor, note that id is auto-generated.
+     * All args constructor. Note that the ID  of the transaction is auto-generated.
      */
-    public TransactionEntry(boolean isValid, ZnElement tid, BigInteger k, DsTagEntry dsTag){
+    public TransactionEntry(boolean isValid, ZnElement tid, BigInteger k, long dsTagEntryId, long dsidEntryID){
         this.isValid = isValid;
         this.transactionID = tid;
         this.k = k;
-        this.dsTagEntry = dsTag;
+        this.dsTagEntryId = dsTagEntryId;
+        this.dsidEntryId = dsidEntryID;
     }
 
     /**
-     * Marks transaction invalid.
+     * Constructor without id of produced token.
+     */
+    public TransactionEntry(boolean isValid, ZnElement tid, BigInteger k, long dsTagEntryId){
+        this.isValid = isValid;
+        this.transactionID = tid;
+        this.k = k;
+        this.dsTagEntryId = dsTagEntryId;
+    }
+
+    /**
+     * Marks this transaction invalid.
      */
     public void invalidate() {
         this.isValid = false;
     }
 
     public String toString(){
-        return this.id + " " + this.transactionID.toString() + " " + this.k.toString() + " " + this.dsTagEntry.toString();
+        return this.id + " " + this.transactionID.toString() + " " + this.k.toString() + " " + String.valueOf(dsTagEntryId);
     }
 }

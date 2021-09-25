@@ -3,9 +3,12 @@ package org.cryptimeleon.incentivesystem.dsprotectionservice;
 import org.apache.coyote.Response;
 import org.cryptimeleon.incentive.crypto.model.DoubleSpendingTag;
 import org.cryptimeleon.incentive.crypto.model.Transaction;
+import org.cryptimeleon.incentive.crypto.model.TransactionIdentifier;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.storage.*;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
+import org.cryptimeleon.math.structures.groups.GroupElement;
+import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,7 +41,7 @@ public class DsprotectionserviceController {
     // TODO: repo for userinfo
 
     /**
-     * Simple heartbeating method that can be checked whether the double-spending protection service is still up and running.
+     * Simple heartbeating method that can be used to check whether the double-spending protection service is still up and running.
      * @return hard-coded standard response
      */
     @GetMapping("/")
@@ -72,10 +75,30 @@ public class DsprotectionserviceController {
      * @return HTTP response object telling whether adding dsid worked
      */
     @PostMapping("/adddsid")
-    public ResponseEntity<String> addDsID(
+    public ResponseEntity<String> addTokenNode(
             @RequestHeader(value = "dsid") String encodedDsID
     ) {
         return new ResponseEntity<String>("wip", HttpStatus.OK); // TODO implement this
+    }
+
+    /**
+     * Checks the transaction table for containment of a transaction with the passed identifying information.
+     * The result is returned as a HTTP response object.
+     */
+    @GetMapping("/containsta")
+    public ResponseEntity<Boolean> containsTransactionNode(
+        @RequestHeader(value = "taidgamma") String serializedTransactionIdentifierRepr
+    ) {
+        // deserialize transaction identifier representation +  reconstruct identifier from representation
+        JSONConverter jsonConverter = new JSONConverter();
+        Representation taIdentifierRepresentation = jsonConverter.deserialize(serializedTransactionIdentifierRepr);
+        TransactionIdentifier taIdentifier = new TransactionIdentifier(taIdentifierRepresentation, cryptoRepository.getPp());
+
+        // check for containment of transaction
+        boolean isContained = findTransactionWithTidGamma(taIdentifier.getTid(), taIdentifier.getGamma()) != null;
+
+        // return response
+        return new ResponseEntity<Boolean>(isContained, HttpStatus.OK);
     }
 
     /**
@@ -128,12 +151,24 @@ public class DsprotectionserviceController {
         return new ResponseEntity<ArrayList<String>>(serializedTaRepresentationsList, HttpStatus.OK);
     }
 
+
+
+
     /**
      * helper methods
      */
 
+
+
+
+    /**
+     * Converts a transaction database entry to a normal (crypto) transaction.
+     * The original object is not changed.
+     * @param taEntry original transaction entry
+     * @return transaction object
+     */
     private Transaction convertTransactionEntry(TransactionEntry taEntry) {
-        DsTagEntry taDsTagEntry = taEntry.getDsTagEntry();
+        DsTagEntry taDsTagEntry = doubleSpendingTagRepository.findById(taEntry.getDsTagEntryId()).get();
         return new Transaction(
                 taEntry.isValid(),
                 taEntry.getTransactionID(),
@@ -147,5 +182,45 @@ public class DsprotectionserviceController {
                         taDsTagEntry.getCtrace1()
                 )
         );
+    }
+
+    /**
+     * Retrieves and returns the transaction entry for the transaction with the passed transaction ID and gamma if existent.
+     */
+    private TransactionEntry findTransactionWithTidGamma(Zn.ZnElement tid, Zn.ZnElement gamma) {
+        // query all transaction entries from database
+        ArrayList<TransactionEntry> taEntryList = (ArrayList<TransactionEntry>) transactionRepository.findAll();
+
+        // look for one with fitting tid and gamma and return it
+        for (TransactionEntry tae : taEntryList) {
+            if(tae.getTransactionID().equals(tid)) { // less costly lookup in outer if-clause
+                // retrieve corresponding double-spending tag entry
+                DsTagEntry dste = doubleSpendingTagRepository.findById(tae.getDsTagEntryId()).get();
+                if(dste.getGamma().equals(gamma)) {
+                    return tae;
+                }
+            }
+        }
+
+        // drop-down if nothing found
+        return null;
+    }
+
+    /**
+     * Retrieves and returns the double-spending ID entry for the double-spending ID with the passed value (if existent).
+     */
+    private DsIdEntry findDsid(GroupElement dsid) {
+        // query all DSID entries from database
+        ArrayList<DsIdEntry> dsidEntryList = (ArrayList<DsIdEntry>) dsidRepository.findAll();
+
+        // look for one with fitting value and return it
+        for(DsIdEntry dside : dsidEntryList) {
+            if(dside.getDsid().equals(dsid)) {
+                return dside;
+            }
+        }
+
+        // drop-down if nothing found
+        return null;
     }
 }
