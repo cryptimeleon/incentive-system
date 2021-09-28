@@ -1,0 +1,12 @@
+org.cryptimeleon.incentive.promotion/Promotion.java
+ org.cryptimeleon.incentive.promotion.Promotion
+org.cryptimeleon.incentive.promotion/PromotionReward.java
+ org.cryptimeleon.incentive.promotion.PromotionReward
+org.cryptimeleon.incentive.promotion/Basket.java
+ org.cryptimeleon.incentive.promotion.Basket
+org/cryptimeleon/incentive/promotion/ExplicitPromotionDescription.java
+ org.cryptimeleon.incentive.promotion.ExplicitPromotionDescription
+org.cryptimeleon.incentive.promotion/BasketItem.java
+ org.cryptimeleon.incentive.promotion.BasketItem
+org.cryptimeleon.incentive.promotion/PromotionDescription.java
+ org.cryptimeleon.incentive.promotion.PromotionDescription
