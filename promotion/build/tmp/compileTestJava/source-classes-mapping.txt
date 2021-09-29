@@ -1,2 +1,0 @@
-org.cryptimeleon.incentive.promotion/ExplicitPromotionTest.java
- org.cryptimeleon.incentive.promotion.ExplicitPromotionTest
