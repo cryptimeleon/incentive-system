@@ -7,6 +7,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Next Release
 
+- Migrate app to jetpack compose [#55](https://github.com/cryptimeleon/incentive-system/pull/55)
 - Refactor app to use a repository pattern [#54](https://github.com/cryptimeleon/incentive-system/pull/54)
 - Add basket implementation and issue-join + credit-earn to app, use Hilt for dependency injection [#53](https://github.com/cryptimeleon/incentive-system/pull/53)
 - Add barcode scanner and room database to app and change item id in basket service from `UUID` to `String` to allow scanning barcodes [#50](https://github.com/cryptimeleon/incentive-system/pull/50)
