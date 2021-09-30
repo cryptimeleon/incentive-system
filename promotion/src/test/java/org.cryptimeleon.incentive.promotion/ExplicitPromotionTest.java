@@ -3,10 +3,9 @@ package org.cryptimeleon.incentive.promotion;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 public class ExplicitPromotionTest {
 
@@ -22,10 +21,11 @@ public class ExplicitPromotionTest {
     String FREE_HAZELNUT_SPREAD = "Free Chocolate Hazelnut Spread";
 
 
-    Basket basket = new Basket(Map.of(
-            new BasketItem(APPLE, APPLE_ID, 199), 3L,
-            new BasketItem(TOOTHBRUSH, TOOTHBRUSH_ID, 199), 8L,
-            new BasketItem(HAZELNUT_SPREAD, HAZELNUT_SPREAD_ID, 199), 8L
+    Basket emptyBasket = new Basket(Collections.emptyList());
+    Basket basket = new Basket(List.of(
+            new BasketItem(new Item(APPLE, APPLE_ID, 199), 3),
+            new BasketItem(new Item(TOOTHBRUSH, TOOTHBRUSH_ID, 199), 8),
+            new BasketItem(new Item(HAZELNUT_SPREAD, HAZELNUT_SPREAD_ID, 199), 8)
     ));
 
     PromotionDescription firstPromotion = new ExplicitPromotionDescription(
@@ -38,9 +38,7 @@ public class ExplicitPromotionTest {
                     new PromotionReward(20L, FREE_TEDDY),
                     new PromotionReward(100L, FREE_PAN)
             ),
-            Map.of(
-                    APPLE_ID, 5L,
-                    TOOTHBRUSH_ID, 10L
+            Map.of(APPLE_ID, 5L, TOOTHBRUSH_ID, 10L
             )
     );
 
@@ -61,42 +59,14 @@ public class ExplicitPromotionTest {
     @Test
     void testPointsToEarn() {
         var points = Promotion.computePoints(List.of(firstPromotion, secondPromotion), basket);
+        assert points.stream().anyMatch(promotionPoints -> promotionPoints.getPromotionId() == firstPromotion.getPromotionId() && promotionPoints.getPoints() == 95);
+        assert points.stream().anyMatch(promotionPoints -> promotionPoints.getPromotionId() == secondPromotion.getPromotionId() && promotionPoints.getPoints() == 8);
     }
 
     @Test
-    void testFirstPromotionRewards() {
-        var rewards = Promotion.qualifiedRewards(firstPromotion, 19);
-        assertEquals(rewards.size(), 0);
-
-        rewards = Promotion.qualifiedRewards(firstPromotion, 20);
-        assert rewards.size() == 1;
-        assert rewards.stream().anyMatch(promotionReward -> promotionReward.getRewardTitle().equals(FREE_TEDDY));
-
-
-        rewards = Promotion.qualifiedRewards(firstPromotion, 100);
-        assert rewards.stream().anyMatch(promotionReward -> promotionReward.getRewardTitle().equals(FREE_PAN));
-        assert rewards.stream().anyMatch(promotionReward -> promotionReward.getRewardTitle().equals(FREE_TEDDY));
-    }
-
-    @Test
-    void testSecondPromotionRewards() {
-        var rewards = Promotion.qualifiedRewards(secondPromotion, 3);
-        assertEquals(rewards.size(), 0);
-
-        rewards = Promotion.qualifiedRewards(secondPromotion, 4);
-        assert rewards.size() == 1;
-        assert rewards.stream().anyMatch(promotionReward -> promotionReward.getRewardTitle().equals(FREE_HAZELNUT_SPREAD));
-    }
-
-    @Test
-    void testTimePeriod() {
-        // Check valid dates
-        assertTrue(secondPromotion.isValidAt(LocalDate.of(2021, 1, 1)));
-        assertTrue(secondPromotion.isValidAt(LocalDate.of(2021, 5, 10)));
-        assertTrue(secondPromotion.isValidAt(LocalDate.of(2021, 12, 31)));
-
-        // Check invalid dates
-        assertFalse(secondPromotion.isValidAt(LocalDate.of(2020, 5, 10)));
-        assertFalse(secondPromotion.isValidAt(LocalDate.of(2022, 12, 31)));
+    void testPointsToEarnEmptyBasket() {
+        var points = Promotion.computePoints(List.of(firstPromotion, secondPromotion), emptyBasket);
+        assert points.stream().anyMatch(promotionPoints -> promotionPoints.getPromotionId() == firstPromotion.getPromotionId() && promotionPoints.getPoints() == 0);
+        assert points.stream().anyMatch(promotionPoints -> promotionPoints.getPromotionId() == secondPromotion.getPromotionId() && promotionPoints.getPoints() == 0);
     }
 }

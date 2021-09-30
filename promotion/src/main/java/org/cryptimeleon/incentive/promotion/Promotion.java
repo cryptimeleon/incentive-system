@@ -1,7 +1,6 @@
 package org.cryptimeleon.incentive.promotion;
 
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -14,12 +13,10 @@ public class Promotion {
      *
      * @return map of promotionIds and increase for that promotion.
      */
-    static public Map<Long, Long> computePoints(List<PromotionDescription> promotionDescriptions, Basket basket) {
-        return promotionDescriptions.stream()
-                .collect(Collectors.toMap(
-                        promotionDescription -> promotionDescription.promotionId,
-                        promotionDescription -> promotionDescription.computePoints(basket)
-                ));
+    static public List<PromotionPoints> computePoints(List<PromotionDescription> promotionDescriptions, Basket basket) {
+        return promotionDescriptions.stream().map(
+                promotionDescription -> new PromotionPoints(promotionDescription.getPromotionId(), promotionDescription.computePoints(basket))
+        ).collect(Collectors.toList());
     }
 
     /**
@@ -29,3 +26,5 @@ public class Promotion {
         return promotionDescription.qualifiedRewards(points);
     }
 }
+
+

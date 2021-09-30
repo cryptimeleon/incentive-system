@@ -3,11 +3,10 @@ package org.cryptimeleon.incentive.promotion;
 import lombok.Value;
 
 /**
- * Class that represents a single basket item.
+ * Data class for items with their count.
  */
 @Value
 public class BasketItem {
-    public String title;
-    public String id;
-    public long price;
+    Item item;
+    int count;
 }
