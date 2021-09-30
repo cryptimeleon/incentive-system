@@ -20,7 +20,6 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
 import javax.inject.Singleton
 
-
 private const val BASKET_BASE_URL = "https://incentives.cs.upb.de/basket/"
 private const val INFO_BASE_URL = "https://incentives.cs.upb.de/info/"
 private const val ISSUE_BASE_URL = "https://incentives.cs.upb.de/issue/"

@@ -18,8 +18,7 @@ import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse
 import org.cryptimeleon.math.serialization.converter.JSONConverter
 import timber.log.Timber
 import java.math.BigInteger
-import java.util.*
-
+import java.util.UUID
 
 /**
  * Repository that handles the crypto database, provides cached deserialized crypto objects and
@@ -151,9 +150,9 @@ class CryptoRepository(
             return false
         }
 
-        if (oldSerializedCryptoAsset == null
-            || oldSerializedCryptoAsset.serializedPublicParameters != ppResponse.body()
-            || oldSerializedCryptoAsset.serializedProviderPublicKey != ppkResponse.body()
+        if (oldSerializedCryptoAsset == null ||
+            oldSerializedCryptoAsset.serializedPublicParameters != ppResponse.body() ||
+            oldSerializedCryptoAsset.serializedProviderPublicKey != ppkResponse.body()
         ) {
             // First query or new pp -> invalidate all
             Timber.i("Updating crypto assets")

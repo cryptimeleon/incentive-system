@@ -4,9 +4,15 @@ import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 import retrofit2.Response
-import retrofit2.http.*
-import java.util.*
-
+import retrofit2.http.Body
+import retrofit2.http.DELETE
+import retrofit2.http.GET
+import retrofit2.http.Header
+import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Path
+import retrofit2.http.Query
+import java.util.UUID
 
 interface BasketApiService {
     @GET("items")
@@ -36,7 +42,6 @@ interface BasketApiService {
 
     @DELETE("basket")
     suspend fun deleteBasket(@Header("basketId") basketId: UUID): Response<Unit>
-
 }
 
 data class PayBody(val basketId: UUID, val value: Int)

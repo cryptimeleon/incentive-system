@@ -6,7 +6,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.cryptimeleon.incentive.app.data.BasketRepository
 import org.cryptimeleon.incentive.app.data.CryptoRepository
 import timber.log.Timber
@@ -19,7 +23,6 @@ enum class SetupState {
     SETUP_BASKET,
     LOADING_CRYPTO_MATERIAL
 }
-
 
 @HiltViewModel
 class SetupViewModel @Inject constructor(
@@ -35,10 +38,6 @@ class SetupViewModel @Inject constructor(
     val navigateToInfo: LiveData<Boolean>
         get() = _navigateToInfo
 
-    private val _exceptionToast = MutableLiveData("")
-    val exceptionToast: LiveData<String>
-        get() = _exceptionToast
-
     val inErrorState: LiveData<Boolean> = Transformations.map(_setupState) {
         it == SetupState.ERROR
     }
@@ -49,17 +48,16 @@ class SetupViewModel @Inject constructor(
             SetupState.FINISHED -> "Finished!"
             SetupState.ERROR -> "An error occurred!"
             SetupState.ISSUE_JOIN -> "Retrieving new token"
-            SetupState.SETUP_BASKET -> "Setting up basket!"
-            SetupState.LOADING_CRYPTO_MATERIAL -> "Loading crypto material!"
+            SetupState.SETUP_BASKET -> "Setting up basket"
+            SetupState.LOADING_CRYPTO_MATERIAL -> "Loading crypto material"
         }
     }
 
     init {
         Timber.i("Init SetupViewModel")
-        setup()
     }
 
-    private fun setup() {
+    fun startSetup() {
         uiScope.launch {
             withContext(Dispatchers.IO) {
                 // Load pp and provider keys
@@ -85,14 +83,6 @@ class SetupViewModel @Inject constructor(
                 _navigateToInfo.postValue(true)
             }
         }
-    }
-
-    fun toastShown() {
-        _exceptionToast.value = ""
-    }
-
-    fun navigateToInfoFinished() {
-        _navigateToInfo.value = false
     }
 
     override fun onCleared() {
