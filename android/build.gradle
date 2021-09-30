@@ -2,6 +2,7 @@
 buildscript {
     ext.kotlin_version = '1.5.21'
     ext.hilt_version = '2.38.1'
+    ext.composeVersion = '1.0.1'
 
     repositories {
         google()
@@ -9,11 +10,15 @@ buildscript {
 
     }
     dependencies {
-        classpath "com.android.tools.build:gradle:4.2.2"
+        classpath 'com.android.tools.build:gradle:7.0.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "androidx.navigation:navigation-safe-args-gradle-plugin:2.3.5"
         classpath "com.google.dagger:hilt-android-gradle-plugin:$hilt_version"
     }
+}
+
+plugins {
+    id 'com.diffplug.spotless' version '5.14.2'
 }
 
 allprojects {
@@ -21,5 +26,18 @@ allprojects {
         google()
         mavenCentral()
         mavenLocal()
+    }
+}
+
+subprojects {
+    apply plugin: 'com.diffplug.spotless'
+    spotless {
+        kotlin {
+            target '**/*.kt'
+            targetExclude("$buildDir/**/*.kt")
+            targetExclude('bin/**/*.kt')
+
+            ktlint("0.42.1")
+        }
     }
 }

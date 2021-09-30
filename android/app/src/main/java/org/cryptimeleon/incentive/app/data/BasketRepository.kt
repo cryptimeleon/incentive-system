@@ -1,11 +1,14 @@
 package org.cryptimeleon.incentive.app.data
 
-import org.cryptimeleon.incentive.app.basket.BasketItemRecyclerViewAdapter
+import org.cryptimeleon.incentive.app.basket.BasketListItem
 import org.cryptimeleon.incentive.app.data.database.basket.BasketDao
 import org.cryptimeleon.incentive.app.data.database.basket.BasketEntity
-import org.cryptimeleon.incentive.app.data.network.*
-import java.util.*
-import kotlin.collections.ArrayList
+import org.cryptimeleon.incentive.app.data.network.Basket
+import org.cryptimeleon.incentive.app.data.network.BasketApiService
+import org.cryptimeleon.incentive.app.data.network.BasketItem
+import org.cryptimeleon.incentive.app.data.network.Item
+import org.cryptimeleon.incentive.app.data.network.PayBody
+import java.util.UUID
 
 class BasketRepository(
     private val basketApiService: BasketApiService,
@@ -48,7 +51,6 @@ class BasketRepository(
         return basketDao.getActiveBasketId()
     }
 
-
     // TODO Flow, maybe combine these two into a more detailed basket object
     suspend fun getActiveBasket(): Basket? {
         val basketId = getActiveBasketId() ?: return null
@@ -56,17 +58,17 @@ class BasketRepository(
     }
 
     // TODO Flow
-    suspend fun getCurrentBasketContents(): List<BasketItemRecyclerViewAdapter.BasketListItem>? {
+    suspend fun getCurrentBasketContents(): List<BasketListItem>? {
         val basketId = basketDao.getActiveBasketId() ?: return null
         val getBasketResponse = basketApiService.getBasketContent(basketId)
         return if (getBasketResponse.isSuccessful) {
             val basket: Basket = getBasketResponse.body()!!
 
-            val itemsInBasket = ArrayList<BasketItemRecyclerViewAdapter.BasketListItem>()
+            val itemsInBasket = ArrayList<BasketListItem>()
             basket.items.forEach { (id, count) ->
                 val item = basketApiService.getItemById(id)
                 itemsInBasket.add(
-                    BasketItemRecyclerViewAdapter.BasketListItem(
+                    BasketListItem(
                         item.body()!!,
                         count
                     )
@@ -109,7 +111,6 @@ class BasketRepository(
         }
         return createNewBasket()
     }
-
 
     /**
      * Pays the current basket.
