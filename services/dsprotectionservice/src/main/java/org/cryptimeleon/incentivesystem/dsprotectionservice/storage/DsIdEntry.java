@@ -1,6 +1,7 @@
 package org.cryptimeleon.incentivesystem.dsprotectionservice.storage;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 
 import javax.persistence.*;
@@ -10,26 +11,25 @@ import javax.persistence.*;
  */
 @Entity
 @Getter
+@Setter
 @Table(name="dsids")
 public class DsIdEntry {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id; // identifier for entry in database table that represents this object
     private GroupElement dsid; // the actual double spending ID (from nice mathematical structure)
+    private long associatedUserInfoId; // id of the user info entry for this dsid
     private long consumingTransactionId; // ID of the entry of the transaction consuming this token (realizes directed edge in the bipartite double-spending graph)
 
-    public DsIdEntry(long id, GroupElement dsid) {
-        this.id = id;
+
+    public DsIdEntry(GroupElement dsid) {
         this.dsid = dsid;
     }
 
-    public DsIdEntry(long id, GroupElement dsid, long consumingTransactionId) {
+    public DsIdEntry(long id, GroupElement dsid, long associatedUserInfoId, long consumingTransactionId) {
         this.id = id;
         this.dsid = dsid;
+        this.associatedUserInfoId = associatedUserInfoId;
         this.consumingTransactionId = consumingTransactionId;
-    }
-
-    public String toString(){
-        return this.id + " " + this.dsid.toString();
     }
 }

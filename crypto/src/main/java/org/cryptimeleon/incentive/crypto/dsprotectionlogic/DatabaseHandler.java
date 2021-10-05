@@ -3,7 +3,9 @@ package org.cryptimeleon.incentive.crypto.dsprotectionlogic;
 import org.cryptimeleon.incentive.crypto.model.Transaction;
 import org.cryptimeleon.incentive.crypto.model.UserInfo;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
+import org.cryptimeleon.math.structures.groups.Group;
 import org.cryptimeleon.math.structures.groups.GroupElement;
+import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
 
 /**
@@ -30,13 +32,13 @@ public interface DatabaseHandler
      */
     public String addTransactionNode(Transaction ta);
 
-    public void addTokenNode(GroupElement dsid);
+    public String addTokenNode(GroupElement dsid);
 
     // for making an edge from a transaction to a token node
-    public void addTransactionTokenEdge(ZnElement tid, ZnElement gamma, GroupElement dsid);
+    public String addTransactionTokenEdge(ZnElement tid, ZnElement gamma, GroupElement dsid);
 
     // for making an edge from a token to a transaction node
-    public void addTokenTransactionEdge(GroupElement dsid, ZnElement tid, ZnElement gamma);
+    public String addTokenTransactionEdge(GroupElement dsid, ZnElement tid, ZnElement gamma);
 
     /**
      * end of methods for adding nodes and edges
@@ -70,7 +72,7 @@ public interface DatabaseHandler
      * @param dsBlame dsBlame info for the transaction
      * @param dsTrace dsTrace info for the transaction
      */
-    public void addUserInfo(ZnElement tid, ZnElement gamma, UserPublicKey upk, ZnElement dsBlame, ZnElement dsTrace);
+    public String addAndLinkUserInfo(UserPublicKey upk, Zn.ZnElement dsBlame, Zn.ZnElement dsTrace, GroupElement dsid);
 
     /**
      * Returns the user info associated to the transaction identified by tid and gamma.
@@ -78,7 +80,7 @@ public interface DatabaseHandler
      * @param gamma challenge generator of the transaction
      * @return user info
      */
-    public UserInfo getUserInfo(ZnElement tid, ZnElement gamma);
+    public UserInfo getUserInfo(GroupElement dsid);
 
     /**
      * end of methods handling user info associated to a token
@@ -89,5 +91,5 @@ public interface DatabaseHandler
      * @param tid ID of the transaction
      * @param gamma challenge generator of the transaction
      */
-    public void invalidateTransaction(ZnElement tid, ZnElement gamma);
+    public String invalidateTransaction(ZnElement tid, ZnElement gamma);
 }

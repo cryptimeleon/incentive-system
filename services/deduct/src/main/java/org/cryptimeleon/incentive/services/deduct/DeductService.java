@@ -29,7 +29,6 @@ public class DeductService {
 
     /**
      * Default constructor to be executed when an object of this class is used as a Spring bean.
-     * @param cr
      */
     @Autowired
     private DeductService(CryptoRepository cr, DSProtectionClient dspc) {
@@ -81,7 +80,7 @@ public class DeductService {
                 );
 
         /**
-         * TODO: interaction with basket and promotion service to add a special item to the basket ("this item certifies that the user receives a teddy bear")
+         * TODO: interaction with basket and promotion service to add a special item to the basket and check whether user can afford reward ("this item certifies that the user receives a teddy bear")
          * for now (end-of-february version), only one promotion type is planned.
          * (i.e. shop assistant will hand out teddy bear to customer spending 2000p).
          * However, for further type of promotions (-> future work), the deduct service might need further communication with the basket service here
