@@ -10,6 +10,9 @@ import javax.persistence.*;
  * Data class representing a double-spending tag.
  * Needs ID attribute and some annotations to be processable by Hibernate (ORM framework).
  * The counterpart double-spending tag class in the crypto project does not have these but apart from that, the two classes are identical.
+ *
+ * Note that some attributes are serialized representations of the resembled properties since Hibernate
+ * can only marshall objects that have primitive datatype fields only.
  */
 @Entity
 @Getter
@@ -19,33 +22,33 @@ public class DsTagEntry {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
 
-    private Zn.ZnElement c0; // challenge for deriving the user secret key
-    private Zn.ZnElement c1; // challenge for deriving the encryption secret key
-    private Zn.ZnElement gamma; // challenge generation helper value
-    private Zn.ZnElement eskStarProv; // provider share for ElGamal encryption secret key
-    private GroupElementVector ctrace0;
-    private GroupElementVector ctrace1;
+    private String serializedC0Repr; // challenge for deriving the user secret key
+    private String serializedC1Repr; // challenge for deriving the encryption secret key
+    private String serializedGammaRepr; // challenge generation helper value
+    private String serializedEskStarProvRepr; // provider share for ElGamal encryption secret key
+    private String serializedCTrace0Repr;
+    private String serializedCTrace1Repr;
 
     public DsTagEntry() {
 
     }
 
-    public DsTagEntry(Zn.ZnElement c0, Zn.ZnElement c1, Zn.ZnElement gamma, Zn.ZnElement eskStarProv, GroupElementVector ctrace0, GroupElementVector ctrace1) {
-        this.c0 = c0;
-        this.c1 = c1;
-        this.gamma = gamma;
-        this.eskStarProv = eskStarProv;
-        this.ctrace0 = ctrace0;
-        this.ctrace1 = ctrace1;
+    public DsTagEntry(String c0, String c1, String gamma, String eskStarProv, String ctrace0, String ctrace1) {
+        this.serializedC0Repr = c0;
+        this.serializedC1Repr = c1;
+        this.serializedGammaRepr = gamma;
+        this.serializedEskStarProvRepr = eskStarProv;
+        this.serializedCTrace0Repr = ctrace0;
+        this.serializedCTrace1Repr = ctrace1;
     }
 
     public String toString() {
         return this.id
-                + " " + this.c0.toString()
-                + " " + this.c1.toString()
-                + " " + this.gamma.toString()
-                + " " + this.eskStarProv.toString()
-                + " " + this.ctrace0.toString()
-                + " " + this.ctrace1.toString();
+                + " " + serializedC0Repr
+                + " " + serializedC1Repr
+                + " " + serializedGammaRepr
+                + " " + serializedEskStarProvRepr
+                + " " + serializedCTrace0Repr
+                + " " + serializedCTrace1Repr;
     }
 }

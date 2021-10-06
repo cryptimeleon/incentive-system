@@ -1,11 +1,11 @@
 package org.cryptimeleon.incentivesystem.dsprotectionservice;
 
-import org.cryptimeleon.incentive.crypto.model.DoubleSpendingTag;
 import org.cryptimeleon.incentive.crypto.model.Transaction;
 import org.cryptimeleon.incentive.crypto.model.TransactionIdentifier;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.storage.*;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
+import org.cryptimeleon.math.structures.groups.Group;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,7 +85,7 @@ public class DsprotectionserviceController {
         GroupElement dsid = cryptoRepository.getPp().getBg().getG1().restoreElement(dsidRepresentation);
 
         // create dsid entry object
-        DsIdEntry dsIdEntry = new DsIdEntry(dsid);
+        DsIdEntry dsIdEntry = new DsIdEntry(Util.computeSerializedRepresentation(dsid));
 
         // add dsid entry object to database
         dsidRepository.save(dsIdEntry);
@@ -224,17 +224,16 @@ public class DsprotectionserviceController {
     private Transaction convertTransactionEntry(TransactionEntry taEntry) {
         DsTagEntry taDsTagEntry = doubleSpendingTagRepository.findById(taEntry.getDsTagEntryId()).get();
         return new Transaction(
+                this.cryptoRepository.getPp(),
                 taEntry.isValid(),
-                taEntry.getTransactionID(),
+                taEntry.getSerializedTransactionIDRepr(),
                 taEntry.getK(),
-                new DoubleSpendingTag(
-                        taDsTagEntry.getC0(),
-                        taDsTagEntry.getC1(),
-                        taDsTagEntry.getGamma(),
-                        taDsTagEntry.getEskStarProv(),
-                        taDsTagEntry.getCtrace0(),
-                        taDsTagEntry.getCtrace1()
-                )
+                taDsTagEntry.getSerializedC0Repr(),
+                taDsTagEntry.getSerializedC1Repr(),
+                taDsTagEntry.getSerializedGammaRepr(),
+                taDsTagEntry.getSerializedEskStarProvRepr(),
+                taDsTagEntry.getSerializedCTrace0Repr(),
+                taDsTagEntry.getSerializedCTrace1Repr()
         );
     }
 
@@ -245,12 +244,23 @@ public class DsprotectionserviceController {
         // query all transaction entries from database
         ArrayList<TransactionEntry> taEntryList = (ArrayList<TransactionEntry>) transactionRepository.findAll();
 
+
+        JSONConverter jsonConverter = new JSONConverter(); // need a JSON converter for deserializing tids and gammas of transaction entries (required for comparison)
+        Zn usedZn = cryptoRepository.getPp().getBg().getZn();// store used ZN to shorten code
+
         // look for one with fitting tid and gamma and return it
         for (TransactionEntry tae : taEntryList) {
-            if(tae.getTransactionID().equals(tid)) { // less costly lookup in outer if-clause
+            // deserialize tid of currently considered transaction entry
+            Zn.ZnElement taeTid = usedZn.restoreElement(jsonConverter.deserialize(tae.getSerializedTransactionIDRepr()));
+
+            if(taeTid.equals(tid)) { // less costly lookup in outer if-clause
                 // retrieve corresponding double-spending tag entry
                 DsTagEntry dste = doubleSpendingTagRepository.findById(tae.getDsTagEntryId()).get();
-                if(dste.getGamma().equals(gamma)) {
+
+                // deserialize gamma of currently considered transaction entry
+                Zn.ZnElement dsteGamma = usedZn.restoreElement(jsonConverter.deserialize(dste.getSerializedGammaRepr()));
+
+                if(dsteGamma.equals(gamma)) {
                     return tae;
                 }
             }
@@ -267,9 +277,16 @@ public class DsprotectionserviceController {
         // query all DSID entries from database
         ArrayList<DsIdEntry> dsidEntryList = (ArrayList<DsIdEntry>) dsidRepository.findAll();
 
+        // create a JSON converter + store first group from used bilinear group (to shorten code)
+        JSONConverter jsonConverter = new JSONConverter();
+        Group groupG1 = cryptoRepository.getPp().getBg().getG1();
+
         // look for one with fitting value and return it
         for(DsIdEntry dside : dsidEntryList) {
-            if(dside.getDsid().equals(dsid)) {
+            // deserialize dsid of currently considered dsid entry
+            GroupElement dsideDsid = groupG1.restoreElement(jsonConverter.deserialize(dside.getSerializedDsidRepr()));
+
+            if(dsideDsid.equals(dsid)) {
                 return dside;
             }
         }

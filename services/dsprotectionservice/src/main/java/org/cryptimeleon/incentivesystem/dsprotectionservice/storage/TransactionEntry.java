@@ -15,6 +15,9 @@ import java.math.BigInteger;
  * Data class representing a Spend-transaction.
  * Needs ID attribute and some annotations to be processable by Hibernate (ORM framework),
  * furthermore we need to record whether the transaction is still considered valid.
+ *
+ * Note that some attributes are serialized representations of the resembled properties since Hibernate
+ * can only marshall objects that have primitive datatype fields only.
  */
 @Entity
 @Getter
@@ -26,9 +29,9 @@ public class TransactionEntry {
 
     private boolean isValid; // whether this transaction is still considered valid (can be invalidated over the course of double-spending protection)
 
-    private ZnElement transactionID; // identifier for this transaction on protocol-level
+    private String serializedTransactionIDRepr; // identifier for this transaction on protocol-level
 
-    private BigInteger k; // number of points spent in this transaction
+    private String k; // number of points spent in this transaction
 
     private long dsTagEntryId; // ID of the entry for the double-spending tag of the transaction (data associated to a spend transaction that is required to trace double-spending)
 
@@ -48,16 +51,16 @@ public class TransactionEntry {
 
         // create transaction entry object
         this.isValid = ta.isValid();
-        this.transactionID = ta.getTransactionID();
-        this.k = ta.getK();
+        this.serializedTransactionIDRepr = jsonConverter.serialize(ta.getTransactionID().getRepresentation());
+        this.k = ta.getK().toString();
     }
 
     /**
      * All args constructor. Note that the ID  of the transaction is auto-generated.
      */
-    public TransactionEntry(boolean isValid, ZnElement tid, BigInteger k, long dsTagEntryId, long dsidEntryID){
+    public TransactionEntry(boolean isValid, String tid, String k, long dsTagEntryId, long dsidEntryID){
         this.isValid = isValid;
-        this.transactionID = tid;
+        this.serializedTransactionIDRepr = tid;
         this.k = k;
         this.dsTagEntryId = dsTagEntryId;
         this.dsidEntryId = dsidEntryID;
@@ -66,9 +69,9 @@ public class TransactionEntry {
     /**
      * Constructor without id of produced token.
      */
-    public TransactionEntry(boolean isValid, ZnElement tid, BigInteger k, long dsTagEntryId){
+    public TransactionEntry(boolean isValid, String tid, String k, long dsTagEntryId){
         this.isValid = isValid;
-        this.transactionID = tid;
+        this.serializedTransactionIDRepr = tid;
         this.k = k;
         this.dsTagEntryId = dsTagEntryId;
     }
@@ -78,9 +81,5 @@ public class TransactionEntry {
      */
     public void invalidate() {
         this.isValid = false;
-    }
-
-    public String toString(){
-        return this.id + " " + this.transactionID.toString() + " " + this.k.toString() + " " + String.valueOf(dsTagEntryId);
     }
 }

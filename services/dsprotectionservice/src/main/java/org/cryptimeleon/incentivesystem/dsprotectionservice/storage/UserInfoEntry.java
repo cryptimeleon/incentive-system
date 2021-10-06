@@ -5,6 +5,7 @@ import org.apache.catalina.User;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.UserInfo;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
+import org.cryptimeleon.incentivesystem.dsprotectionservice.Util;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
@@ -25,21 +26,21 @@ public class UserInfoEntry {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
 
-    private UserPublicKey upk;
+    private String serializedUpkRepr;
 
-    private Zn.ZnElement dsBlame;
+    private String serializedDsBlameRepr;
 
-    private Zn.ZnElement dsTrace;
+    private String serializedDsTraceRepr;
 
     public UserInfoEntry() {}
 
     /**
      * All args constructor, note that ID is auto-generated.
      */
-    public UserInfoEntry(UserPublicKey upk, Zn.ZnElement dsBlame, Zn.ZnElement dsTrace) {
-        this.upk = upk;
-        this.dsBlame = dsBlame;
-        this.dsTrace = dsTrace;
+    public UserInfoEntry(String upk, String dsBlame, String dsTrace) {
+        this.serializedUpkRepr = upk;
+        this.serializedDsBlameRepr = dsBlame;
+        this.serializedDsTraceRepr = dsTrace;
     }
 
     /**
@@ -54,8 +55,8 @@ public class UserInfoEntry {
         UserInfo uInfo = new UserInfo(uInfoRepr, pp);
 
         // initialize entry object
-        this.upk = uInfo.getUpk();
-        this.dsBlame = uInfo.getDsBlame();
-        this.dsTrace = uInfo.getDsTrace();
+        this.serializedUpkRepr = Util.computeSerializedRepresentation(uInfo.getUpk());
+        this.serializedDsBlameRepr = Util.computeSerializedRepresentation(uInfo.getDsBlame());
+        this.serializedDsTraceRepr = Util.computeSerializedRepresentation(uInfo.getDsBlame());
     }
 }

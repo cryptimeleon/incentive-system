@@ -8,6 +8,7 @@ import org.cryptimeleon.math.serialization.Representable;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.annotations.ReprUtil;
 import org.cryptimeleon.math.serialization.annotations.Represented;
+import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 import java.math.BigInteger;
@@ -38,6 +39,20 @@ public class Transaction implements Representable {
     public Transaction(Representation repr, IncentivePublicParameters pp) {
         new ReprUtil(this).register(pp.getBg().getZn(), "zn").deserialize(repr.list().get(0));
         this.dsTag = new DoubleSpendingTag(repr.list().get(1), pp);
+    }
+
+    /**
+     * All args constructor, all parameters with complex data types are passed as serialized representations.
+     */
+    public Transaction(IncentivePublicParameters pp, boolean isValid, String serializedTransactionIDRepr, String k,
+                       String serializedC0Repr, String serializedC1Repr, String serializedGammaRepr, String serializedEskProvStarRepr, String serializedCTrace0Repr, String serializedCTrace1Repr) {
+        this.isValid = isValid;
+
+        JSONConverter jsonConverter = new JSONConverter();
+        Representation transactionIDRepr = jsonConverter.deserialize(serializedTransactionIDRepr);
+        this.transactionID = pp.getBg().getZn().restoreElement(transactionIDRepr);
+
+        this.k = new BigInteger(k);
     }
 
     @Override
