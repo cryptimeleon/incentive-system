@@ -627,9 +627,7 @@ public class IncentiveSystem {
             // make edge from dsid's token node to the node of the passed transaction
 
             // if the token node has no user info associated with it
-            if(dbHandler.getUserInfo(tid, gamma) == null){
-                // TODO: continue
-            }
+            // TODO: continue
         }
     }
 

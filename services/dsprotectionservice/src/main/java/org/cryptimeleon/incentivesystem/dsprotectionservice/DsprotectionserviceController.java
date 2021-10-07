@@ -2,6 +2,8 @@ package org.cryptimeleon.incentivesystem.dsprotectionservice;
 
 import org.cryptimeleon.incentive.crypto.model.Transaction;
 import org.cryptimeleon.incentive.crypto.model.TransactionIdentifier;
+import org.cryptimeleon.incentive.crypto.model.UserInfo;
+import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.storage.*;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
@@ -55,7 +57,7 @@ public class DsprotectionserviceController {
      * @return HTTP response object telling whether adding transaction worked
      */
     @PostMapping("/addtransaction")
-    public ResponseEntity<String> addTransaction(
+    public ResponseEntity<String> addTransactionNode(
             @RequestBody String encodedTransaction
     ) {
         // create transaction entry object
@@ -72,7 +74,7 @@ public class DsprotectionserviceController {
 
     /**
      * Adds a new token (represented by its double-spending ID) to the database.
-     * @param serializedDsidRepr serialized representation of a group element
+     * @param serializedDsidRepr serialized representation of a double-spending ID
      * @return HTTP response object telling whether adding dsid worked
      */
     @PostMapping("/adddsid")
@@ -90,10 +92,102 @@ public class DsprotectionserviceController {
         // add dsid entry object to database
         dsidRepository.save(dsIdEntry);
 
-        // TODO: add user info object to database, adapt dsid entry class to also store user info entry
+        // TODO: add user info object to database
 
         // return status
         return new ResponseEntity<String>("Successfully added double-spending ID", HttpStatus.OK);
+    }
+
+    /**
+     * Makes an edge from the passed transaction to the passed double-spending ID, if nodes for both exist.
+     * Semantics of this edge: the passed transaction produced the token with the passed double-spending ID
+     * @param serializedTaIdRepr serialized representation of transaction
+     * @param serializedDsIdRepr serialized representation of double-spending ID
+     * @return success or failure report (HTTP response)
+     */
+    @PostMapping("/addtatokenedge")
+    public ResponseEntity<String> addTransactionTokenEdge(
+        @RequestHeader(value = "taid") String serializedTaIdRepr,
+        @RequestHeader(value = "dsid") String serializedDsIdRepr
+    ) {
+        // deserialize transaction identifier and double-spending ID
+        JSONConverter jsonConverter = new JSONConverter();
+        TransactionIdentifier taIdentifier = new TransactionIdentifier(
+                jsonConverter.deserialize(serializedTaIdRepr),
+                cryptoRepository.getPp()
+        );
+        GroupElement dsid = cryptoRepository.getPp().getBg().getG1().restoreElement(
+                jsonConverter.deserialize(serializedDsIdRepr)
+        );
+
+        // retrieve entries for respective transaction and dsID
+        TransactionEntry taEntry = findTransactionEntryWithTaIdentifier(taIdentifier);
+        DsIdEntry dsIdEntry = findDsidEntry(dsid);
+
+        // make edge (i.e. update field of ta entry that holds ID of produced token's dsid) if both nodes exist
+        if(taEntry != null && dsIdEntry != null) {
+            transactionRepository.delete(taEntry);
+            taEntry.setDsidEntryId(dsIdEntry.getId());
+            transactionRepository.save(taEntry);
+
+            return new ResponseEntity<String>("Successfully added transaction->token edge.", HttpStatus.OK);
+        }
+        // send error report if either transaction or dsid was not found in the database
+        else {
+            if (taEntry == null) {
+                return new ResponseEntity<String>("No transaction corresponding to the queried identifier was found in database.", HttpStatus.OK);
+            }
+            if (dsIdEntry == null) {
+                return new ResponseEntity<String>("Queried double-spending ID not found in database.", HttpStatus.OK);
+            }
+            return new ResponseEntity<String>("An unknown error occurred. No write operations performed on database.", HttpStatus.OK);
+        }
+    }
+
+    /**
+     * Makes an edge from the passed double-spending ID to the passed transaction (if both nodes exist).
+     * Semantics of this edge: the token with the passed double-spending ID was consumed in the passed transaction
+     * @param serializedDsIdRepr serialized representation of double-spending ID
+     * @param serializedTaIdRepr serialized representation of transaction
+     * @return success or failure report (HTTP response)
+     */
+    @PostMapping("/addtokentaedge")
+    public ResponseEntity<String> addTokenTransactionEdge(
+        @RequestHeader(value = "dsid") String serializedDsIdRepr,
+        @RequestHeader(value = "taid") String serializedTaIdRepr
+    ) {
+        // deserialize transaction identifier and double-spending ID
+        JSONConverter jsonConverter = new JSONConverter();
+        TransactionIdentifier taIdentifier = new TransactionIdentifier(
+                jsonConverter.deserialize(serializedTaIdRepr),
+                cryptoRepository.getPp()
+        );
+        GroupElement dsid = cryptoRepository.getPp().getBg().getG1().restoreElement(
+                jsonConverter.deserialize(serializedDsIdRepr)
+        );
+
+        // retrieve entries for respective transaction and dsID
+        TransactionEntry taEntry = findTransactionEntryWithTaIdentifier(taIdentifier);
+        DsIdEntry dsIdEntry = findDsidEntry(dsid);
+
+        // make edge (i.e. update field of dsid entry that holds ID of producing transaction's entry) if both nodes exist
+        if(taEntry != null && dsIdEntry != null) {
+            dsidRepository.delete(dsIdEntry);
+            dsIdEntry.setConsumingTransactionId(taEntry.getId());
+            dsidRepository.save(dsIdEntry);
+
+            return new ResponseEntity<String>("Successfully added token->transaction edge.", HttpStatus.OK);
+        }
+        // send error report if either transaction or dsid was not found in the database
+        else {
+            if (taEntry == null) {
+                return new ResponseEntity<String>("No transaction corresponding to the queried identifier was found in database.", HttpStatus.OK);
+            }
+            if (dsIdEntry == null) {
+                return new ResponseEntity<String>("Queried double-spending ID not found in database.", HttpStatus.OK);
+            }
+            return new ResponseEntity<String>("An unknown error occurred. No write operations performed on database.", HttpStatus.OK);
+        }
     }
 
     /**
@@ -111,7 +205,7 @@ public class DsprotectionserviceController {
         TransactionIdentifier taIdentifier = new TransactionIdentifier(taIdentifierRepresentation, cryptoRepository.getPp());
 
         // check for containment of transaction
-        boolean isContained = findTransactionEntryWithTidGamma(taIdentifier.getTid(), taIdentifier.getGamma()) != null;
+        boolean isContained = findTransactionEntryWithTaIdentifier(taIdentifier) != null;
 
         // return response
         return new ResponseEntity<Boolean>(isContained, HttpStatus.OK);
@@ -120,7 +214,7 @@ public class DsprotectionserviceController {
     /**
      * Checks the double-spending ID table for containment of the passed dsid.
      * Result is returned as a HTTP response object.
-     * @param serializedDsidRepr
+     * @param serializedDsidRepr serialized dsid representation
      */
     @GetMapping("/containsdsid")
     public ResponseEntity<Boolean> containsTokenNode(
@@ -139,6 +233,76 @@ public class DsprotectionserviceController {
     }
 
     /**
+     * Checks the database for a connection from passed transaction to token with passed double-spending ID.
+     * So this method checks whether said transaction produced said token.
+     * Result is returned as HTTP response object.
+     * @param serializedTaIdRepr serialized transaction identifier representation
+     * @param serializedDsIdRepr serialized double-spending ID representation
+     * @return HTTP response with result
+     */
+    @GetMapping(name = "/containstatokenedge")
+    public ResponseEntity<Boolean> containsTransactionTokenEdge(
+            @RequestHeader("taid") String serializedTaIdRepr,
+            @RequestHeader("dsid") String serializedDsIdRepr
+    ) {
+        // deserialize transaction identifier and double-spending ID
+        JSONConverter jsonConverter = new JSONConverter();
+        TransactionIdentifier taIdentifier = new TransactionIdentifier(
+                jsonConverter.deserialize(serializedTaIdRepr),
+                cryptoRepository.getPp()
+        );
+        GroupElement dsid = cryptoRepository.getPp().getBg().getG1().restoreElement(
+                jsonConverter.deserialize(serializedDsIdRepr)
+        );
+
+        // retrieve entries for respective transaction and dsID
+        TransactionEntry taEntry = findTransactionEntryWithTaIdentifier(taIdentifier);
+        DsIdEntry dsIdEntry = findDsidEntry(dsid);
+
+        // check for existence of edge
+        boolean edgeExists = taEntry != null &&
+                dsIdEntry != null &&
+                taEntry.getDsidEntryId() == dsIdEntry.getId();
+
+        return new ResponseEntity<Boolean>(edgeExists, HttpStatus.OK);
+    }
+
+    /**
+     * Checks the database for a connection from token with passed double-spending ID to passed transaction.
+     * So this method checks whether said token was consumed in said transaction.
+     * Result is returned as HTTP response object.
+     * @param serializedTaIdRepr serialized transaction identifier representation
+     * @param serializedDsIdRepr serialized double-spending ID representation
+     * @return HTTP response with result
+     */
+    @GetMapping("/containstokentaedge")
+    public ResponseEntity<Boolean> containsTokenTransactionEdge(
+            @RequestHeader("dsid") String serializedDsIdRepr,
+            @RequestHeader("taid") String serializedTaIdRepr
+    ) {
+        // deserialize transaction identifier and double-spending ID
+        JSONConverter jsonConverter = new JSONConverter();
+        TransactionIdentifier taIdentifier = new TransactionIdentifier(
+                jsonConverter.deserialize(serializedTaIdRepr),
+                cryptoRepository.getPp()
+        );
+        GroupElement dsid = cryptoRepository.getPp().getBg().getG1().restoreElement(
+                jsonConverter.deserialize(serializedDsIdRepr)
+        );
+
+        // retrieve entries for respective transaction and dsID
+        TransactionEntry taEntry = findTransactionEntryWithTaIdentifier(taIdentifier);
+        DsIdEntry dsIdEntry = findDsidEntry(dsid);
+
+        // check for existence of edge
+        boolean edgeExists = taEntry != null &&
+                dsIdEntry != null &&
+                dsIdEntry.getConsumingTransactionId() == taEntry.getId();
+
+        return new ResponseEntity<Boolean>(edgeExists, HttpStatus.OK);
+    }
+
+    /**
      * Invalidates the transaction with the passed identifier by modifying the respective transaction entry, if existent.
      * @return success or failure HTTP response
      */
@@ -152,7 +316,7 @@ public class DsprotectionserviceController {
         TransactionIdentifier taIdentifier = new TransactionIdentifier(taIdentifierRepresentation, cryptoRepository.getPp());
 
         // if existent: update respective transaction entry (retrieve, then delete from DB; add modified entry)
-        TransactionEntry tae = findTransactionEntryWithTidGamma(taIdentifier.getTid(), taIdentifier.getGamma());
+        TransactionEntry tae = findTransactionEntryWithTaIdentifier(taIdentifier);
         if(tae != null) {
             transactionRepository.delete(tae);
             tae.invalidate();
@@ -168,7 +332,7 @@ public class DsprotectionserviceController {
 
     /**
      * Adds the passed user info entry to the database and links it to the entry for the passed dsid.
-     * @return
+     * @return success or failure HTTP response
      */
     @PostMapping("/adduserinfo")
     public ResponseEntity<String> addAndLinkUserInfo(
@@ -200,6 +364,32 @@ public class DsprotectionserviceController {
         {
             return new ResponseEntity<String>("User info added, but could not link it to a double-spending ID", HttpStatus.OK);
         }
+    }
+
+    /**
+     * Retrieves the (anonymized) user info associated to the token identified by the passed dsid.
+     * @param serializedDsidRepr serialized representation of the double-spending ID in question
+     * @return success or failure HTTP response containing the queried user info (if existent)
+     */
+    @GetMapping("/getUserInfo")
+    public ResponseEntity<String> getUserInfo(
+            @RequestHeader String serializedDsidRepr
+    ) {
+        // deserialize and retrieve passed dsid
+        JSONConverter jsonConverter = new JSONConverter();
+        Representation dsidRepr = jsonConverter.deserialize(serializedDsidRepr);
+        GroupElement dsid = cryptoRepository.getPp().getBg().getG1().restoreElement(dsidRepr);
+
+        // query user info from database
+        DsIdEntry dside = findDsidEntry(dsid);
+        long uieId = dside.getAssociatedUserInfoId();
+        UserInfoEntry uie = userInfoRepository.findById(uieId).get();
+
+        // convert user info entry to user info
+        UserInfo uInfo = convertUserInfoEntry(uie);
+
+        // return response
+        return new ResponseEntity<String>(Util.computeSerializedRepresentation(uInfo), HttpStatus.OK);
     }
 
 
@@ -238,9 +428,38 @@ public class DsprotectionserviceController {
     }
 
     /**
+     * Converts a user info database entry object to a normal (crypto) user info object.
+     * The original object is not changed.
+     * @param uiEntry original user info entry
+     * @return user info object
+     */
+    private UserInfo convertUserInfoEntry(UserInfoEntry uiEntry) {
+        // create JSON converter and shorthand for the ring Zn used in the system
+        JSONConverter jsonConverter = new JSONConverter();
+        Zn usedZn = cryptoRepository.getPp().getBg().getZn();
+
+        // restore fields from representations
+        UserPublicKey upk = new UserPublicKey(
+                jsonConverter.deserialize(uiEntry.getSerializedUpkRepr()),
+                cryptoRepository.getPp().getBg().getG1()
+        );
+        Zn.ZnElement dsBlame = usedZn.restoreElement(
+                jsonConverter.deserialize(uiEntry.getSerializedDsBlameRepr())
+        );
+        Zn.ZnElement dsTrace = usedZn.restoreElement(
+                jsonConverter.deserialize(uiEntry.getSerializedDsTraceRepr())
+        );
+
+        return new UserInfo(upk, dsBlame, dsTrace);
+    }
+
+    /**
      * Retrieves and returns the transaction entry for the transaction with the passed transaction ID and gamma if existent.
      */
-    private TransactionEntry findTransactionEntryWithTidGamma(Zn.ZnElement tid, Zn.ZnElement gamma) {
+    private TransactionEntry findTransactionEntryWithTaIdentifier(TransactionIdentifier taIdentifier) {
+        Zn.ZnElement tid = taIdentifier.getTid();
+        Zn.ZnElement gamma = taIdentifier.getGamma();
+
         // query all transaction entries from database
         ArrayList<TransactionEntry> taEntryList = (ArrayList<TransactionEntry>) transactionRepository.findAll();
 

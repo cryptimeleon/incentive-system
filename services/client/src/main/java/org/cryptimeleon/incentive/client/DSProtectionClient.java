@@ -1,10 +1,12 @@
 package org.cryptimeleon.incentive.client;
 
 import org.cryptimeleon.incentive.crypto.dsprotectionlogic.DatabaseHandler;
+import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.Transaction;
 import org.cryptimeleon.incentive.crypto.model.TransactionIdentifier;
 import org.cryptimeleon.incentive.crypto.model.UserInfo;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
+import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
@@ -24,12 +26,19 @@ public class DSProtectionClient implements DatabaseHandler {
     public static final String ADD_TRANSACTION_PATH = "/addtransaction";
     public static final String ADD_DSID_PATH = "/adddsid";
 
+    public static final String ADD_TRANSACTION_TOKEN_EDGE_PATH = "/addtatokenedge";
+    public static final String ADD_TOKEN_TRANSACTION_EDGE_PATH = "/addtokentaedge";
+
     public static final String CONTAINS_TRANSACTION_PATH = "/containsta";
     public static final String CONTAINS_TOKEN_PATH = "/containsdsid";
+
+    public static final String CONTAINS_TRANSACTION_TOKEN_EDGE_PATH = "/containstatokenedge";
+    public static final String CONTAINS_TOKEN_TRANSACTION_EDGE_PATH = "/containstokentaedge";
 
     public static final String INVALIDATE_TRANSACTION_PATH = "/invalidateta";
 
     public static final String ADD_AND_LINK_USER_INFO_PATH = "/adduserinfo";
+    public static final String GET_USER_INFO_PATH = "/getUserInfo";
 
     public static final String RETRIEVE_TRANSACTION_PATH = "/retrieveta";
     public static final String RETRIEVE_ALL_TRANSACTIONS_PATH = "/retrieveallta";
@@ -78,14 +87,24 @@ public class DSProtectionClient implements DatabaseHandler {
         return addDsidRequestResponse.block();
     }
 
-    // for making an edge from a transaction to a token node
+    /**
+     * Adds an edge from the transaction with the passed tid and gamma
+     * to the token identified via the passed dsid.
+     * Semantics of this edge: transaction procuced token
+     * @return success or failure report (HTTP response)
+     */
     public String addTransactionTokenEdge(Zn.ZnElement tid, Zn.ZnElement gamma, GroupElement dsid){
-        return "";
+        return this.addEdge(tid, gamma, dsid, ADD_TRANSACTION_TOKEN_EDGE_PATH);
     }
 
-    // for making an edge from a token to a transaction node
+    /**
+     * Adds an edge from the token identified via with the passed dsid
+     * to the transaction with the passed tid and gamma.
+     * Semantics of this edge: token was consumed in transaction
+     * @return success or failure report (HTTP response)
+     */
     public String addTokenTransactionEdge(GroupElement dsid, Zn.ZnElement tid, Zn.ZnElement gamma){
-        return "";
+        return this.addEdge(tid, gamma, dsid, ADD_TOKEN_TRANSACTION_EDGE_PATH);
     }
 
     /**
@@ -129,12 +148,24 @@ public class DSProtectionClient implements DatabaseHandler {
         return isContained.block();
     }
 
+    /**
+     * Checks the remote database for containment of an edge
+     * between the transaction with the passed tid and gamma
+     * and the token with the passed double-spending ID
+     * @return whether the passed edge is in the database
+     */
     public boolean containsTransactionTokenEdge(Zn.ZnElement tid, Zn.ZnElement gamma, GroupElement dsid){
-        return false;
+        return this.containsEdge(tid, gamma, dsid, CONTAINS_TRANSACTION_TOKEN_EDGE_PATH);
     }
 
+    /**
+     * Checks the remote database for containment of an edge
+     * between the token with the passed double-spending ID
+     * and the transaction with the passed tid and gamma
+     * @return whether the passed edge is in the database
+     */
     public boolean containsTokenTransactionEdge(GroupElement dsid, Zn.ZnElement tid, Zn.ZnElement gamma) {
-        return false;
+        return this.containsEdge(tid, gamma, dsid, CONTAINS_TOKEN_TRANSACTION_EDGE_PATH);
     }
 
     /**
@@ -182,7 +213,89 @@ public class DSProtectionClient implements DatabaseHandler {
         return addAndLinkRequestResponse.block();
     }
 
-    public UserInfo getUserInfo(GroupElement dsid){
-        return null; // TODO
+    /**
+     * Retrieves the user info associated to the passed dsid from the database.
+     * @param pp public parameters of the respective incentive system instance
+     *           (needed for restoring the queried user info since server answers with a representation)
+     * @return
+     */
+    public UserInfo getUserInfo(GroupElement dsid, IncentivePublicParameters pp){
+        // marshall double-spending ID
+        JSONConverter jsonConverter = new JSONConverter();
+        String serializedDsidRepr = jsonConverter.serialize(dsid.getRepresentation());
+
+        // make post request to double-spending protection service
+        Mono<String> getUserInfoRequestResponse = this.dsProtectionClient.get()
+                .uri(uriBuilder -> uriBuilder.path(GET_USER_INFO_PATH).build())
+                .header("dsid", serializedDsidRepr)
+                .retrieve()
+                .bodyToMono(String.class);
+
+        // deserialize user info from answer
+        Representation uInfoRepr = jsonConverter.deserialize(getUserInfoRequestResponse.block());
+        UserInfo userInfo = new UserInfo(uInfoRepr, pp);
+
+        return userInfo;
+    }
+
+
+    /**
+     * helper methods
+     */
+
+    /**
+     * Adds an edge between the transaction identified with tid and gamma
+     * and the token identified with dsid
+     * to the remote database.
+     * Direction of the edge is specified by an additional parameter.
+     * @param edgeTypeAdditionPath the URL path of the dsprotection service endpoint for adding the desired edge type
+     *                             (transaction->token or token->transaction),
+     *                             respective constants are defined in this class
+     * @return HTTP response with status information
+     */
+    private String addEdge(Zn.ZnElement tid, Zn.ZnElement gamma, GroupElement dsid, String edgeTypeAdditionPath) {
+        // marshall transaction identifier and dsid
+        TransactionIdentifier taIdentifier = new TransactionIdentifier(tid, gamma);
+        JSONConverter jsonConverter = new JSONConverter();
+        String serializedTaIdRepr = jsonConverter.serialize(taIdentifier.getRepresentation());
+        String serializedDsIdRepr = jsonConverter.serialize(dsid.getRepresentation());
+
+        // make post request to dsprotection service
+        Mono<String> addEdgeRequestResponse = this.dsProtectionClient.post()
+                .uri(uriBuilder -> uriBuilder.path(edgeTypeAdditionPath).build())
+                .header("dsid", serializedDsIdRepr)
+                .header("taid", serializedTaIdRepr)
+                .retrieve()
+                .bodyToMono(String.class);
+
+        return addEdgeRequestResponse.block();
+    }
+
+    /**
+     * Checks remote database for containment of an edge between the transaction identified with tid and gamma
+     * and the token identified with dsid.
+     * Direction of the edge is specified by an additional parameter.
+     * @param edgeTypeContainmentPath the URL path of the dsprotection service endpoint
+     *                                for checking database for containment of the desired edge type
+     *                                (transaction->token or token->transaction),
+     *                                respective constants are defined in this class
+     * @return
+     */
+    private boolean containsEdge(Zn.ZnElement tid, Zn.ZnElement gamma, GroupElement dsid, String edgeTypeContainmentPath) {
+        // marshall transaction identifier and dsid
+        TransactionIdentifier taIdentifier = new TransactionIdentifier(tid, gamma);
+        JSONConverter jsonConverter = new JSONConverter();
+        String serializedTaIdRepr = jsonConverter.serialize(taIdentifier.getRepresentation());
+        String serializedDsIdRepr = jsonConverter.serialize(dsid.getRepresentation());
+
+        // make get request to ds protection service
+        Mono<Boolean> containsEdgeResponse = this.dsProtectionClient.get()
+                .uri(uriBuilder -> uriBuilder.path(edgeTypeContainmentPath).build())
+                .header("taid", serializedTaIdRepr)
+                .header("dsid", serializedDsIdRepr)
+                .retrieve()
+                .bodyToMono(Boolean.class);
+
+        return containsEdgeResponse.block();
     }
 }

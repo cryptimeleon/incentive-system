@@ -1,5 +1,6 @@
 package org.cryptimeleon.incentive.crypto.dsprotectionlogic;
 
+import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.Transaction;
 import org.cryptimeleon.incentive.crypto.model.UserInfo;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
@@ -25,6 +26,8 @@ public interface DatabaseHandler
      * transaction -> token: transaction produced this token
      */
 
+
+
     /**
      * Adds a new transaction node to the database.
      * @param ta transaction to add
@@ -40,6 +43,8 @@ public interface DatabaseHandler
     // for making an edge from a token to a transaction node
     public String addTokenTransactionEdge(GroupElement dsid, ZnElement tid, ZnElement gamma);
 
+
+
     /**
      * end of methods for adding nodes and edges
      */
@@ -47,6 +52,8 @@ public interface DatabaseHandler
     /**
      * Methods for checking for containment of nodes and edges.
      */
+
+
 
     public boolean containsTransactionNode(ZnElement tid, ZnElement gamma);
 
@@ -56,40 +63,44 @@ public interface DatabaseHandler
 
     public boolean containsTokenTransactionEdge(GroupElement dsid, ZnElement tid, ZnElement gamma);
 
+
+
     /**
      * end of methods for containment checks
      */
+
+
 
     /**
      * methods for handling user info associated to a token
      */
 
+
+
     /**
-     * Adds info about the user that spend a specific token in a specific transaction to said token.
-     * @param tid ID of transaction
-     * @param gamma challenge generator for transaction
+     * Adds info about the user that spent a specific token to said token.
      * @param upk public key of user
      * @param dsBlame dsBlame info for the transaction
      * @param dsTrace dsTrace info for the transaction
+     * @param dsid double-spending ID identifying the token
      */
     public String addAndLinkUserInfo(UserPublicKey upk, Zn.ZnElement dsBlame, Zn.ZnElement dsTrace, GroupElement dsid);
 
     /**
-     * Returns the user info associated to the transaction identified by tid and gamma.
-     * @param tid ID of the transaction
-     * @param gamma challenge generator of the transaction
-     * @return user info
+     * Retrieves the user info associated to the passed double-spending ID.
      */
-    public UserInfo getUserInfo(GroupElement dsid);
+    public UserInfo getUserInfo(GroupElement dsid, IncentivePublicParameters pp);
+
+
 
     /**
      * end of methods handling user info associated to a token
      */
 
+
+
     /**
      * Marks the transaction specified by the passed ID and challenge generator as invalid.
-     * @param tid ID of the transaction
-     * @param gamma challenge generator of the transaction
      */
     public String invalidateTransaction(ZnElement tid, ZnElement gamma);
 }

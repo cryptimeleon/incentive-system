@@ -1,6 +1,7 @@
 package org.cryptimeleon.incentivesystem.dsprotectionservice.storage;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.cryptimeleon.incentive.crypto.model.DoubleSpendingTag;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.Transaction;
@@ -21,6 +22,7 @@ import java.math.BigInteger;
  */
 @Entity
 @Getter
+@Setter
 @Table(name = "transactions")
 public class TransactionEntry {
     @Id
