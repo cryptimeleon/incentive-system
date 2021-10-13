@@ -50,6 +50,8 @@ public class Setup {
     // This is due to the CCS range proof used for v>=k in Spend-Deduct
     private static final int MAX_POINTS_BASE_POWER = 6;
 
+    private static final int MAX_STORE_VECTOR_SIZE = 10;
+
     /**
      * Generates public parameters from security parameter
      *
@@ -138,9 +140,9 @@ public class Setup {
      */
     public static ProviderKeyPair providerKeyGen(IncentivePublicParameters pp) {
         // draw the dlogs of the first 6 bases used in the Pedersen commitment in the token
-        RingElementVector q = pp.getBg().getZn().getUniformlyRandomElements(6);
+        RingElementVector q = pp.getBg().getZn().getUniformlyRandomElements(6 + MAX_STORE_VECTOR_SIZE);
 
-        // compute above first 6 bases
+        // compute above bases
         GroupElementVector h = pp.getG1Generator().pow(q).compute();
 
         // generate PRF key for provider

@@ -27,12 +27,7 @@ public class ProviderSecretKey implements Representable {
     @Represented(restorer = "longAes")
     PrfKey betaProv; // Prf Key for PrfToZn
 
-    public ProviderSecretKey(SPSEQSigningKey skSpsEq, RingElementVector q, PrfKey betaProv) throws IllegalArgumentException {
-        // assert that correct number of Zn exponents is passed ()
-        if (q.length() != 6) {
-            throw new IllegalArgumentException("q is required to consist of 6 group elements, found: " + q.length());
-        }
-
+    public ProviderSecretKey(SPSEQSigningKey skSpsEq, RingElementVector q, PrfKey betaProv) {
         this.skSpsEq = skSpsEq;
         this.q = q;
         this.betaProv = betaProv;

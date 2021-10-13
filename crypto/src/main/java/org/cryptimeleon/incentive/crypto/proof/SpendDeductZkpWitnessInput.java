@@ -11,7 +11,6 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
 @AllArgsConstructor
 public class SpendDeductZkpWitnessInput implements SecretInput {
     public final Zn.ZnElement usk;
-    public final Zn.ZnElement v;
     public final Zn.ZnElement z;
     public final Zn.ZnElement zStar;
     public final Zn.ZnElement t;
@@ -25,4 +24,5 @@ public class SpendDeductZkpWitnessInput implements SecretInput {
     public final Zn.ZnElement dsrndStar1;
     public final RingElementVector eskStarUserDec;
     public final RingElementVector rVector;
+    public final RingElementVector store;
 }

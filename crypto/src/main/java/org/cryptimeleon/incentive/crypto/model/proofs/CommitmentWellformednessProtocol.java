@@ -1,15 +1,21 @@
 package org.cryptimeleon.incentive.crypto.model.proofs;
 
 import lombok.AllArgsConstructor;
-import lombok.Value;
 import org.cryptimeleon.craco.protocols.CommonInput;
 import org.cryptimeleon.craco.protocols.SecretInput;
 import org.cryptimeleon.craco.protocols.arguments.sigma.ZnChallengeSpace;
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.DelegateProtocol;
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.LinearStatementFragment;
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.SendThenDelegateFragment;
+import org.cryptimeleon.incentive.crypto.Util;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
+import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
+import org.cryptimeleon.math.expressions.exponent.ExponentConstantExpr;
+import org.cryptimeleon.math.structures.cartesian.ExponentExpressionVector;
+import org.cryptimeleon.math.structures.cartesian.GroupElementExpressionVector;
+import org.cryptimeleon.math.structures.groups.GroupElement;
+import org.cryptimeleon.math.structures.groups.cartesian.GroupElementVector;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 /**
@@ -46,12 +52,7 @@ public class CommitmentWellformednessProtocol extends DelegateProtocol {
     protected SendThenDelegateFragment.SubprotocolSpec provideSubprotocolSpec(CommonInput commonInput, SendThenDelegateFragment.SubprotocolSpecBuilder builder) {
         // read out all values from provider public key and public parameters that are used in the statements to prove
         var w = this.pp.getW();
-        var h1 = this.pk.getH().get(0); // note: h's have 1-based index in paper, 0-based in GroupElementVector
-        var h2 = this.pk.getH().get(1);
-        var h3 = this.pk.getH().get(2);
-        var h4 = this.pk.getH().get(3);
-        var h6 = this.pk.getH().get(5);
-        var h7 = this.pp.getH7();
+        var H = new GroupElementExpressionVector(Util.constructStorelessH(pk, pp).map(GroupElement::expr));
         var g1 = this.pp.getG1Generator();
 
 
@@ -65,6 +66,7 @@ public class CommitmentWellformednessProtocol extends DelegateProtocol {
         var dsrnd0Var = builder.addZnVariable("dsrnd0", usedZn);
         var dsrnd1Var = builder.addZnVariable("dsrnd1", usedZn);
 
+        var exponentVector = new ExponentExpressionVector(tVar, uskVar, eskUsrVar, dsrnd0Var, dsrnd1Var, zVar);
 
         // create statement objects for all three statements that shall be proven
 
@@ -76,17 +78,7 @@ public class CommitmentWellformednessProtocol extends DelegateProtocol {
 
         // first group element in the commitment
         var c0Pre = castedCommonInput.getC0Pre();
-        var firstGeStatement = h1.pow(uskVar).op(
-                h2.pow(eskUsrVar).op(
-                        h3.pow(dsrnd0Var).op(
-                                h4.pow(dsrnd1Var).op(
-                                        h6.pow(zVar).op(
-                                                h7.pow(tVar)
-                                        )
-                                )
-                        )
-                )
-        ).isEqualTo(c0Pre.pow(uInverseVar));
+        var firstGeStatement = H.innerProduct(exponentVector).isEqualTo(c0Pre.pow(uInverseVar));
 
         // second group element in the commitment
         var c1Pre = castedCommonInput.getC1Pre();

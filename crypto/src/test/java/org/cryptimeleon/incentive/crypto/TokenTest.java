@@ -2,6 +2,7 @@ package org.cryptimeleon.incentive.crypto;
 
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentive.crypto.model.Token;
+import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.junit.jupiter.api.Test;
 
 import java.util.logging.Logger;
@@ -36,7 +37,7 @@ public class TokenTest {
                 zp.getUniformlyRandomElement(),
                 zp.getUniformlyRandomElement(),
                 zp.getUniformlyRandomElement(),
-                zp.getUniformlyRandomElement(),
+                Vector.of(zp.getUniformlyRandomElement()),
                 (SPSEQSignature) pp.getSpsEq().sign(
                         providerKeyPair.getSk().getSkSpsEq(),
                         pp.getBg().getG1().getUniformlyRandomElement(),

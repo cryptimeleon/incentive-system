@@ -13,6 +13,7 @@ import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.annotations.ReprUtil;
 import org.cryptimeleon.math.serialization.annotations.Represented;
 import org.cryptimeleon.math.structures.groups.GroupElement;
+import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
 import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
 
 /**
@@ -60,7 +61,7 @@ public class Token implements Representable, UniqueByteRepresentable {
     @NonFinal
     @Represented(restorer = "Zn")
     @UniqueByteRepresented
-    ZnElement points; // number of points that the token currently stores (initially 0), v in the 2020 paper
+    RingElementVector store; // number of points that the token currently stores (initially 0), v in the 2020 paper
 
     @NonFinal
     @UniqueByteRepresented

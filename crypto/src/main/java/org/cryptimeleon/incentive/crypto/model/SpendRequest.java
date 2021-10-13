@@ -11,8 +11,10 @@ import org.cryptimeleon.incentive.crypto.proof.SpendDeductZkpCommonInput;
 import org.cryptimeleon.math.serialization.ListRepresentation;
 import org.cryptimeleon.math.serialization.Representable;
 import org.cryptimeleon.math.serialization.Representation;
+import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.groups.cartesian.GroupElementVector;
+import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 import java.math.BigInteger;
@@ -53,7 +55,7 @@ public class SpendRequest implements Representable {
     @NonFinal
     SPSEQSignature sigma;
 
-    public SpendRequest(Representation repr, IncentivePublicParameters pp, FiatShamirProofSystem fiatShamirProofSystem, BigInteger k, Zn.ZnElement tid) {
+    public SpendRequest(Representation repr, IncentivePublicParameters pp, FiatShamirProofSystem fiatShamirProofSystem, Vector<BigInteger> deltaK, Zn.ZnElement tid) {
         var listRepr = repr.list();
         var zn = pp.getBg().getZn();
         var groupG1 = pp.getBg().getG1();
@@ -68,8 +70,10 @@ public class SpendRequest implements Representable {
         this.cTrace0 = groupG1.restoreVector(listRepr.get(6));
         this.cTrace1 = groupG1.restoreVector(listRepr.get(7));
 
-        var gamma = Util.hashGamma(zn, k, dsid, tid, cPre0, cPre1);
-        var spendDeductCommonInput = new SpendDeductZkpCommonInput(k, gamma, c0, c1, dsid, cPre0, cPre1, commitmentC0, cTrace0, cTrace1);
+        var K = new RingElementVector(deltaK.map(k -> pp.getBg().getG1().getZn().createZnElement(k)));
+
+        var gamma = Util.hashGamma(zn, K, dsid, tid, cPre0, cPre1);
+        var spendDeductCommonInput = new SpendDeductZkpCommonInput(gamma, c0, c1, dsid, cPre0, cPre1, commitmentC0, cTrace0, cTrace1, K);
         this.spendDeductZkp = fiatShamirProofSystem.restoreProof(spendDeductCommonInput, listRepr.get(8));
         this.sigma = new SPSEQSignature(listRepr.get(9), groupG1, groupG2);
     }

@@ -22,11 +22,6 @@ public class ProviderPublicKey implements Representable {
     GroupElementVector h; // first six bases for the Pedersen commitment in the tokens
 
     public ProviderPublicKey(SPSEQVerificationKey pkSpsEq, GroupElementVector h) throws IllegalArgumentException {
-        // asserting correct number of group elements passed
-        if (h.length() != 6) {
-            throw new IllegalArgumentException("h is required to consist of 6 group elements, found: " + h.length());
-        }
-
         this.pkSpsEq = pkSpsEq;
         this.h = h;
     }
