@@ -1,6 +1,11 @@
 package org.cryptimeleon.incentivesystem.dsprotectionservice.storage;
 
 import lombok.Getter;
+import org.cryptimeleon.incentive.crypto.model.DoubleSpendingTag;
+import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
+import org.cryptimeleon.incentivesystem.dsprotectionservice.Util;
+import org.cryptimeleon.math.serialization.Representation;
+import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.groups.cartesian.GroupElementVector;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
@@ -29,10 +34,6 @@ public class DsTagEntry {
     private String serializedCTrace0Repr;
     private String serializedCTrace1Repr;
 
-    public DsTagEntry() {
-
-    }
-
     public DsTagEntry(String c0, String c1, String gamma, String eskStarProv, String ctrace0, String ctrace1) {
         this.serializedC0Repr = c0;
         this.serializedC1Repr = c1;
@@ -40,6 +41,21 @@ public class DsTagEntry {
         this.serializedEskStarProvRepr = eskStarProv;
         this.serializedCTrace0Repr = ctrace0;
         this.serializedCTrace1Repr = ctrace1;
+    }
+
+    public DsTagEntry(String serializedDsTagRepr, IncentivePublicParameters pp) {
+        // deserialize and restore ds tag
+        JSONConverter jsonConverter = new JSONConverter();
+        Representation dsTagRepr = jsonConverter.deserialize(serializedDsTagRepr);
+        DoubleSpendingTag dsTag = new DoubleSpendingTag(dsTagRepr, pp);
+
+        // assign fields
+        this.serializedC0Repr = Util.computeSerializedRepresentation(dsTag.getC0());
+        this.serializedC1Repr = Util.computeSerializedRepresentation(dsTag.getC1());
+        this.serializedGammaRepr = Util.computeSerializedRepresentation(dsTag.getGamma());
+        this.serializedEskStarProvRepr = Util.computeSerializedRepresentation(dsTag.getEskStarProv());
+        this.serializedCTrace0Repr = Util.computeSerializedRepresentation(dsTag.getCtrace0());
+        this.serializedCTrace1Repr = Util.computeSerializedRepresentation(dsTag.getCtrace1());
     }
 
     public String toString() {

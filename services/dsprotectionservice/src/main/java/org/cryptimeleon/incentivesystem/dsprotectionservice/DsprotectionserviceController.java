@@ -1,5 +1,7 @@
 package org.cryptimeleon.incentivesystem.dsprotectionservice;
 
+import org.apache.catalina.User;
+import org.cryptimeleon.incentive.crypto.model.DoubleSpendingTag;
 import org.cryptimeleon.incentive.crypto.model.Transaction;
 import org.cryptimeleon.incentive.crypto.model.TransactionIdentifier;
 import org.cryptimeleon.incentive.crypto.model.UserInfo;
@@ -53,20 +55,29 @@ public class DsprotectionserviceController {
 
     /**
      * Adds a new Spend transaction to the database.
-     * @param encodedTransaction serialized representation of the transaction
+     * @param serializedTaRepr serialized representation of the transaction
      * @return HTTP response object telling whether adding transaction worked
      */
     @PostMapping("/addtransaction")
     public ResponseEntity<String> addTransactionNode(
-            @RequestBody String encodedTransaction
+            @RequestHeader(value = "ta") String serializedTaRepr,
+            @RequestBody String serializedDsTagRepr
     ) {
         // create transaction entry object
-        TransactionEntry newEntry = new TransactionEntry(encodedTransaction, cryptoRepository.getPp());
+        TransactionEntry taEntry = new TransactionEntry(serializedTaRepr, cryptoRepository.getPp());
 
-        // add transaction entry object to database
-        transactionRepository.save(newEntry);
+        // create double-spending tag entry object
+        DsTagEntry dsTagEntry = new DsTagEntry(serializedDsTagRepr, cryptoRepository.getPp());
 
-        // TODO: add double spending tag to database
+        // add double spending tag entry to database
+        doubleSpendingTagRepository.save(dsTagEntry);
+
+        // link newly added dstag to transaction
+        long dsTagEntryId = dsTagEntry.getId();
+        taEntry.setDsTagEntryId(dsTagEntryId);
+
+        // add transaction entry object (with linked dstag) to database
+        transactionRepository.save(taEntry);
 
         // return status
         return new ResponseEntity<String>("Successfully added transaction.", HttpStatus.OK);
@@ -79,7 +90,8 @@ public class DsprotectionserviceController {
      */
     @PostMapping("/adddsid")
     public ResponseEntity<String> addTokenNode(
-            @RequestHeader(value = "dsid") String serializedDsidRepr
+            @RequestHeader(value = "dsid") String serializedDsidRepr,
+            @RequestBody String serializedUserInfoRepr
     ) {
         // deserialize dsid representation
         JSONConverter jsonConverter = new JSONConverter();
@@ -89,10 +101,18 @@ public class DsprotectionserviceController {
         // create dsid entry object
         DsIdEntry dsIdEntry = new DsIdEntry(Util.computeSerializedRepresentation(dsid));
 
-        // add dsid entry object to database
-        dsidRepository.save(dsIdEntry);
+        // create user info entry object
+        UserInfoEntry userInfoEntry = new UserInfoEntry(serializedUserInfoRepr, cryptoRepository.getPp());
 
-        // TODO: add user info object to database
+        // add user info entry object to database
+        userInfoRepository.save(userInfoEntry);
+
+        // link newly added user info to dsid entry
+        long userInfoEntryId = userInfoEntry.getId();
+        dsIdEntry.setAssociatedUserInfoId(userInfoEntryId);
+
+        // add dsid entry object (with linked user info) to database
+        dsidRepository.save(dsIdEntry);
 
         // return status
         return new ResponseEntity<String>("Successfully added double-spending ID", HttpStatus.OK);
@@ -127,7 +147,7 @@ public class DsprotectionserviceController {
         // make edge (i.e. update field of ta entry that holds ID of produced token's dsid) if both nodes exist
         if(taEntry != null && dsIdEntry != null) {
             transactionRepository.delete(taEntry);
-            taEntry.setDsidEntryId(dsIdEntry.getId());
+            taEntry.setProcucedDsidEntryId(dsIdEntry.getId());
             transactionRepository.save(taEntry);
 
             return new ResponseEntity<String>("Successfully added transaction->token edge.", HttpStatus.OK);
@@ -170,11 +190,11 @@ public class DsprotectionserviceController {
         TransactionEntry taEntry = findTransactionEntryWithTaIdentifier(taIdentifier);
         DsIdEntry dsIdEntry = findDsidEntry(dsid);
 
-        // make edge (i.e. update field of dsid entry that holds ID of producing transaction's entry) if both nodes exist
+        // make edge (i.e. update field of transaction entry that holds ID of consumed dsid's entry) if both nodes exist
         if(taEntry != null && dsIdEntry != null) {
-            dsidRepository.delete(dsIdEntry);
-            dsIdEntry.setConsumingTransactionId(taEntry.getId());
-            dsidRepository.save(dsIdEntry);
+            transactionRepository.delete(taEntry);
+            taEntry.setConsumedDsidEntryId(dsIdEntry.getId());
+            transactionRepository.save(taEntry);
 
             return new ResponseEntity<String>("Successfully added token->transaction edge.", HttpStatus.OK);
         }
@@ -262,7 +282,7 @@ public class DsprotectionserviceController {
         // check for existence of edge
         boolean edgeExists = taEntry != null &&
                 dsIdEntry != null &&
-                taEntry.getDsidEntryId() == dsIdEntry.getId();
+                taEntry.getProcucedDsidEntryId() == dsIdEntry.getId();
 
         return new ResponseEntity<Boolean>(edgeExists, HttpStatus.OK);
     }
@@ -297,7 +317,7 @@ public class DsprotectionserviceController {
         // check for existence of edge
         boolean edgeExists = taEntry != null &&
                 dsIdEntry != null &&
-                dsIdEntry.getConsumingTransactionId() == taEntry.getId();
+                dsIdEntry.getId() == taEntry.getConsumedDsidEntryId();
 
         return new ResponseEntity<Boolean>(edgeExists, HttpStatus.OK);
     }

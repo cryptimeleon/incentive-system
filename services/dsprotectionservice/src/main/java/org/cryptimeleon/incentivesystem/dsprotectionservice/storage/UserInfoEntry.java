@@ -32,8 +32,6 @@ public class UserInfoEntry {
 
     private String serializedDsTraceRepr;
 
-    public UserInfoEntry() {}
-
     /**
      * All args constructor, note that ID is auto-generated.
      */

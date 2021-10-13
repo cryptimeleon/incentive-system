@@ -1,5 +1,6 @@
 package org.cryptimeleon.incentive.crypto.dsprotectionlogic;
 
+import org.cryptimeleon.incentive.crypto.model.DoubleSpendingTag;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.Transaction;
 import org.cryptimeleon.incentive.crypto.model.UserInfo;
@@ -33,9 +34,9 @@ public interface DatabaseHandler
      * @param ta transaction to add
      * @return result information e.g. HTTP response, ...
      */
-    public String addTransactionNode(Transaction ta);
+    public String addTransactionNode(Transaction ta, DoubleSpendingTag dsTag);
 
-    public String addTokenNode(GroupElement dsid);
+    public String addTokenNode(GroupElement dsid, UserInfo uInfo);
 
     // for making an edge from a transaction to a token node
     public String addTransactionTokenEdge(ZnElement tid, ZnElement gamma, GroupElement dsid);

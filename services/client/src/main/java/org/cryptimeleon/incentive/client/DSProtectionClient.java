@@ -1,10 +1,7 @@
 package org.cryptimeleon.incentive.client;
 
 import org.cryptimeleon.incentive.crypto.dsprotectionlogic.DatabaseHandler;
-import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
-import org.cryptimeleon.incentive.crypto.model.Transaction;
-import org.cryptimeleon.incentive.crypto.model.TransactionIdentifier;
-import org.cryptimeleon.incentive.crypto.model.UserInfo;
+import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
@@ -51,15 +48,17 @@ public class DSProtectionClient implements DatabaseHandler {
      * Adds the passed transaction to the database.
      * @return dsprotection database server response
      */
-    public String addTransactionNode(Transaction ta){
+    public String addTransactionNode(Transaction ta, DoubleSpendingTag dsTag){
         // marshall the data as JSON string
         JSONConverter jsonConverter = new JSONConverter();
         String serializedTransactionRepr = jsonConverter.serialize(ta.getRepresentation());
+        String serializedDsTagRepr = jsonConverter.serialize(dsTag.getRepresentation());
 
         // add transaction using POST request to ds protection service using web client from object variable
         Mono<String> addTransactionRequestResponse = this.dsProtectionClient.post() // do a POST request
                 .uri(uriBuilder -> uriBuilder.path(ADD_TRANSACTION_PATH).build()) // construct URI the request should go to
-                .bodyValue(serializedTransactionRepr) // add the transaction to add to the database to the body
+                .header("ta", serializedTransactionRepr) // add the transaction to add to the database to the respective header
+                .bodyValue(serializedDsTagRepr)
                 .retrieve() // actually make the request
                 .bodyToMono(String.class); // convert the response body
 
@@ -71,15 +70,17 @@ public class DSProtectionClient implements DatabaseHandler {
      * Adds the passed double-spending ID to the database.
      * @return dsprotrection database server response
      */
-    public String addTokenNode(GroupElement dsid){
+    public String addTokenNode(GroupElement dsid, UserInfo uInfo){
         // marshall the data as JSON string
         JSONConverter jsonConverter = new JSONConverter();
         String serializedDsidRepr = jsonConverter.serialize(dsid.getRepresentation());
+        String serialzedUserInfoRepr = jsonConverter.serialize(uInfo.getRepresentation());
 
         // add double-spending ID using a POST request to ds protection service using web client from object variable
         Mono<String> addDsidRequestResponse = this.dsProtectionClient.post()
                 .uri(uriBuilder -> uriBuilder.path(ADD_DSID_PATH).build())
-                .bodyValue(serializedDsidRepr)
+                .header("dsid", serializedDsidRepr)
+                .bodyValue(serialzedUserInfoRepr)
                 .retrieve()
                 .bodyToMono(String.class);
 

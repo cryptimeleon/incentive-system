@@ -2,15 +2,12 @@ package org.cryptimeleon.incentivesystem.dsprotectionservice.storage;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.cryptimeleon.incentive.crypto.model.DoubleSpendingTag;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.Transaction;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
-import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
 
 import javax.persistence.*;
-import java.math.BigInteger;
 
 /**
  * Data class representing a Spend-transaction.
@@ -37,7 +34,9 @@ public class TransactionEntry {
 
     private long dsTagEntryId; // ID of the entry for the double-spending tag of the transaction (data associated to a spend transaction that is required to trace double-spending)
 
-    private long dsidEntryId; // ID of the entry of the double-spending ID of the token produced in this transaction (realizes a directed edge in the bipartite double-spending graph)
+    private long procucedDsidEntryId; // ID of the entry of the double-spending ID of the token produced in this transaction (realizes a transaction-token edge in the bipartite double-spending graph)
+
+    private long consumedDsidEntryId; // ID of the entry of the double-spending ID of the token consumed in this transaction (realizes a token-transaction edge in the bipartite double-spending protection graph)
 
     /**
      * Constructs a transaction entry from a serialized transaction representation (crypto object).
@@ -60,16 +59,17 @@ public class TransactionEntry {
     /**
      * All args constructor. Note that the ID  of the transaction is auto-generated.
      */
-    public TransactionEntry(boolean isValid, String tid, String k, long dsTagEntryId, long dsidEntryID){
+    public TransactionEntry(boolean isValid, String tid, String k, long dsTagEntryId, long producedDsidEntryID, long consumedDsidEntryId){
         this.isValid = isValid;
         this.serializedTransactionIDRepr = tid;
         this.k = k;
         this.dsTagEntryId = dsTagEntryId;
-        this.dsidEntryId = dsidEntryID;
+        this.procucedDsidEntryId = producedDsidEntryID;
+        this.consumedDsidEntryId = consumedDsidEntryId;
     }
 
     /**
-     * Constructor without id of produced token.
+     * Constructor without IDs of produced and consumed tokens.
      */
     public TransactionEntry(boolean isValid, String tid, String k, long dsTagEntryId){
         this.isValid = isValid;
