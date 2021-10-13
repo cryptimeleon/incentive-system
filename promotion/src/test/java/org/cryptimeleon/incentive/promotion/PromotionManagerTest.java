@@ -8,7 +8,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class PromotionTest {
+public class PromotionManagerTest {
     String APPLE_ID = "id-1";
     String TOOTHBRUSH_ID = "id-2";
 
@@ -45,15 +45,15 @@ public class PromotionTest {
 
     @Test
     void testFirstPromotionRewards() {
-        var rewards = Promotion.qualifiedRewards(firstPromotion, 19);
+        var rewards = PromotionManager.qualifiedRewards(firstPromotion, 19);
         assertEquals(rewards.size(), 0);
 
-        rewards = Promotion.qualifiedRewards(firstPromotion, 20);
+        rewards = PromotionManager.qualifiedRewards(firstPromotion, 20);
         assert rewards.size() == 1;
         assert rewards.stream().anyMatch(promotionReward -> promotionReward.getRewardTitle().equals(FREE_TEDDY));
 
 
-        rewards = Promotion.qualifiedRewards(firstPromotion, 100);
+        rewards = PromotionManager.qualifiedRewards(firstPromotion, 100);
         assert rewards.stream().anyMatch(promotionReward -> promotionReward.getRewardTitle().equals(FREE_PAN));
         assert rewards.stream().anyMatch(promotionReward -> promotionReward.getRewardTitle().equals(FREE_TEDDY));
     }

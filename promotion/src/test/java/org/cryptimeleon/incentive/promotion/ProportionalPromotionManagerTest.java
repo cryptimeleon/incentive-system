@@ -8,7 +8,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class ProportionalPromotionTest {
+public class ProportionalPromotionManagerTest {
     String HAZELNUT_SPREAD = "Chocolate Hazelnut Spread";
     String HAZELNUT_SPREAD_ID = "id-0";
     String APPLE = "Apple";
@@ -17,13 +17,13 @@ public class ProportionalPromotionTest {
     String TOOTHBRUSH_ID = "id-2";
 
 
-    Basket basket = new Basket(List.of(
+    PromotionBasket promotionBasket = new PromotionBasket(List.of(
             new BasketItem(new Item(APPLE, APPLE_ID, 10), 3),
             new BasketItem(new Item(TOOTHBRUSH, TOOTHBRUSH_ID, 50), 8),
             new BasketItem(new Item(HAZELNUT_SPREAD, HAZELNUT_SPREAD_ID, 200), 8)
     ));
 
-    Basket emptyBasket = new Basket(Collections.emptyList());
+    PromotionBasket emptyPromotionBasket = new PromotionBasket(Collections.emptyList());
 
     ProportionalPromotionDescription promotionDescription = new ProportionalPromotionDescription(
             7L,
@@ -37,14 +37,14 @@ public class ProportionalPromotionTest {
 
     @Test
     void emptyBasketTest() {
-        var points = Promotion.computePoints(List.of(promotionDescription), emptyBasket);
+        var points = PromotionManager.computePoints(List.of(promotionDescription), emptyPromotionBasket);
         assertEquals(1, points.size());
         assertEquals(0, points.get(0).getPoints());
     }
 
     @Test
     void proportionalPromotionTest() {
-        var points = Promotion.computePoints(List.of(promotionDescription), basket);
+        var points = PromotionManager.computePoints(List.of(promotionDescription), promotionBasket);
         assertEquals(1, points.size());
         assertEquals(20300, points.get(0).getPoints());
     }

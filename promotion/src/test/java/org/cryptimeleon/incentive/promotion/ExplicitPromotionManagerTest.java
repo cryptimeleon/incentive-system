@@ -7,7 +7,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class ExplicitPromotionTest {
+public class ExplicitPromotionManagerTest {
 
     String HAZELNUT_SPREAD = "Chocolate Hazelnut Spread";
     String HAZELNUT_SPREAD_ID = "id-0";
@@ -21,8 +21,8 @@ public class ExplicitPromotionTest {
     String FREE_HAZELNUT_SPREAD = "Free Chocolate Hazelnut Spread";
 
 
-    Basket emptyBasket = new Basket(Collections.emptyList());
-    Basket basket = new Basket(List.of(
+    PromotionBasket emptyPromotionBasket = new PromotionBasket(Collections.emptyList());
+    PromotionBasket promotionBasket = new PromotionBasket(List.of(
             new BasketItem(new Item(APPLE, APPLE_ID, 199), 3),
             new BasketItem(new Item(TOOTHBRUSH, TOOTHBRUSH_ID, 199), 8),
             new BasketItem(new Item(HAZELNUT_SPREAD, HAZELNUT_SPREAD_ID, 199), 8)
@@ -58,14 +58,14 @@ public class ExplicitPromotionTest {
 
     @Test
     void testPointsToEarn() {
-        var points = Promotion.computePoints(List.of(firstPromotion, secondPromotion), basket);
+        var points = PromotionManager.computePoints(List.of(firstPromotion, secondPromotion), promotionBasket);
         assert points.stream().anyMatch(promotionPoints -> promotionPoints.getPromotionId() == firstPromotion.getPromotionId() && promotionPoints.getPoints() == 95);
         assert points.stream().anyMatch(promotionPoints -> promotionPoints.getPromotionId() == secondPromotion.getPromotionId() && promotionPoints.getPoints() == 8);
     }
 
     @Test
     void testPointsToEarnEmptyBasket() {
-        var points = Promotion.computePoints(List.of(firstPromotion, secondPromotion), emptyBasket);
+        var points = PromotionManager.computePoints(List.of(firstPromotion, secondPromotion), emptyPromotionBasket);
         assert points.stream().anyMatch(promotionPoints -> promotionPoints.getPromotionId() == firstPromotion.getPromotionId() && promotionPoints.getPoints() == 0);
         assert points.stream().anyMatch(promotionPoints -> promotionPoints.getPromotionId() == secondPromotion.getPromotionId() && promotionPoints.getPoints() == 0);
     }

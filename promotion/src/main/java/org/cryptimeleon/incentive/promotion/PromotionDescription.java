@@ -5,21 +5,22 @@ import lombok.Getter;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Abstract class that represents a definition of a promotion.
+ * Is able to compute points that can be earned from a basket for that promotion, rewards that a tokens count
+ * qualifies to and a hybrid of both, where basket contents are taken into account to reduce the points required to
+ * claim a reward and then excluded from the points the user can earn afterwards.
  */
 @Getter
 abstract public class PromotionDescription {
-    long promotionId;
+    PromotionId promotionId;
     String promotionTitle;
     String promotionDescription;
     LocalDate promotionStart;
     LocalDate promotionEnd;
-    List<PromotionReward> promotionRewards;
 
-    public PromotionDescription(long promotionId,
+    public PromotionDescription(PromotionId promotionId,
                                 String promotionTitle,
                                 String promotionDescription,
                                 LocalDate promotionStart,
@@ -30,7 +31,6 @@ abstract public class PromotionDescription {
         this.promotionDescription = promotionDescription;
         this.promotionStart = promotionStart;
         this.promotionEnd = promotionEnd;
-        this.promotionRewards = promotionRewards;
     }
 
     /**
@@ -41,14 +41,12 @@ abstract public class PromotionDescription {
     }
 
     /**
-     * Computes the points that are can be earned for this promotion.
+     * Computes the points that are can be earned for this promotion from a basket.
      */
-    public abstract Long computePoints(Basket basket);
+    public abstract Long computePoints(PromotionBasket promotionBasket);
 
     /**
-     * Return a list of all rewards for which the given token points count qualifies one.
+     * Return a list of all rewards.
      */
-    public List<PromotionReward> qualifiedRewards(long points) {
-        return promotionRewards.stream().filter(promotionReward -> promotionReward.getPrice() <= points).collect(Collectors.toList());
-    }
+    public abstract List<PromotionRewardDescription> getPromotionRewards();
 }

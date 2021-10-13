@@ -7,5 +7,5 @@ import lombok.Value;
 @AllArgsConstructor
 public class PromotionPoints {
     long promotionId;
-    long points;
+    long pointsToAdd;
 }
