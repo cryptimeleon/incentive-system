@@ -84,34 +84,45 @@ public class DsprotectionserviceController {
     }
 
     /**
+     * Finds and returns the transaction that is identified by the passed transaction identifier.
+     * @param serializedTaIdentifier serialized representation of the transaction identifier
+     * @return serialized representation of transaction
+     */
+    @GetMapping("/gettransaction")
+    public ResponseEntity<String> getTransactionNode(
+            @RequestHeader(value = "taid") String serializedTaIdentifier
+    ) {
+        // deserialize and restore transaction
+        JSONConverter jsonConverter = new JSONConverter();
+        TransactionIdentifier taIdentifier = new TransactionIdentifier(
+                jsonConverter.deserialize(serializedTaIdentifier),
+                cryptoRepository.getPp()
+        );
+
+        // retrieve the corresponding transaction
+        TransactionEntry taEntry = this.findTransactionEntryWithTaIdentifier(taIdentifier);
+        Transaction ta = this.convertTransactionEntry(taEntry);
+
+        // marshall the transaction and return it
+        return new ResponseEntity<String>(
+                Util.computeSerializedRepresentation(ta),
+                HttpStatus.OK
+        );
+    }
+
+    /**
      * Adds a new token (represented by its double-spending ID) to the database.
      * @param serializedDsidRepr serialized representation of a double-spending ID
      * @return HTTP response object telling whether adding dsid worked
      */
     @PostMapping("/adddsid")
     public ResponseEntity<String> addTokenNode(
-            @RequestHeader(value = "dsid") String serializedDsidRepr,
-            @RequestBody String serializedUserInfoRepr
+            @RequestHeader(value = "dsid") String serializedDsidRepr
     ) {
-        // deserialize dsid representation
-        JSONConverter jsonConverter = new JSONConverter();
-        Representation dsidRepresentation = jsonConverter.deserialize(serializedDsidRepr);
-        GroupElement dsid = cryptoRepository.getPp().getBg().getG1().restoreElement(dsidRepresentation);
-
         // create dsid entry object
-        DsIdEntry dsIdEntry = new DsIdEntry(Util.computeSerializedRepresentation(dsid));
+        DsIdEntry dsIdEntry = new DsIdEntry(serializedDsidRepr);
 
-        // create user info entry object
-        UserInfoEntry userInfoEntry = new UserInfoEntry(serializedUserInfoRepr, cryptoRepository.getPp());
-
-        // add user info entry object to database
-        userInfoRepository.save(userInfoEntry);
-
-        // link newly added user info to dsid entry
-        long userInfoEntryId = userInfoEntry.getId();
-        dsIdEntry.setAssociatedUserInfoId(userInfoEntryId);
-
-        // add dsid entry object (with linked user info) to database
+        // add dsid entry object to database
         dsidRepository.save(dsIdEntry);
 
         // return status

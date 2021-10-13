@@ -616,18 +616,26 @@ public class IncentiveSystem {
         // if transaction is not yet in the database
         if(!dbHandler.containsTransactionNode(tid, gamma)) {
             // add a corresponding transaction node to DB (which also contains the dstag)
+            Transaction ta = new Transaction(true, tid, spendAmount, dsTag);
+            dbHandler.addTransactionNode(ta);
         }
 
         // if dsid of used token is not yet in DB
         if(!dbHandler.containsTokenNode(dsid)) {
             // add a corresponding token node to DB
+            dbHandler.addTokenNode(dsid);
+            // and make edge from dsid's token node to the node of the passed transaction
+            dbHandler.addTokenTransactionEdge(dsid, tid, gamma);
         }
         // if dsid is already in DB -> double-spending attempt detected!
         else {
             // make edge from dsid's token node to the node of the passed transaction
+            dbHandler.addTokenTransactionEdge(dsid, tid, gamma);
 
             // if the token node has no user info associated with it
             // TODO: continue
+
+
         }
     }
 

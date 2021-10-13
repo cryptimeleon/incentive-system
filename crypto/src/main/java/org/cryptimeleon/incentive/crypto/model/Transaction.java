@@ -46,13 +46,24 @@ public class Transaction implements Representable {
      */
     public Transaction(IncentivePublicParameters pp, boolean isValid, String serializedTransactionIDRepr, String k,
                        String serializedC0Repr, String serializedC1Repr, String serializedGammaRepr, String serializedEskProvStarRepr, String serializedCTrace0Repr, String serializedCTrace1Repr) {
+        // set the primitive fields
         this.isValid = isValid;
-
-        JSONConverter jsonConverter = new JSONConverter();
-        Representation transactionIDRepr = jsonConverter.deserialize(serializedTransactionIDRepr);
-        this.transactionID = pp.getBg().getZn().restoreElement(transactionIDRepr);
-
         this.k = new BigInteger(k);
+
+        // restore other fields from representations
+        JSONConverter jsonConverter = new JSONConverter();
+        this.transactionID = pp.getBg().getZn().restoreElement(
+                jsonConverter.deserialize(serializedTransactionIDRepr)
+        );
+        this.dsTag = new DoubleSpendingTag(
+            pp,
+            serializedC0Repr,
+            serializedC1Repr,
+            serializedGammaRepr,
+            serializedEskProvStarRepr,
+            serializedCTrace0Repr,
+            serializedCTrace1Repr
+        );
     }
 
     @Override

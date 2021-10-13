@@ -21,6 +21,7 @@ public class DSProtectionClient implements DatabaseHandler {
     private WebClient dsProtectionClient; // the underlying web client making the requests
 
     public static final String ADD_TRANSACTION_PATH = "/addtransaction";
+    public static final String GET_TRANSACTION_PATH = "/gettransaction";
     public static final String ADD_DSID_PATH = "/adddsid";
 
     public static final String ADD_TRANSACTION_TOKEN_EDGE_PATH = "/addtatokenedge";
@@ -48,7 +49,9 @@ public class DSProtectionClient implements DatabaseHandler {
      * Adds the passed transaction to the database.
      * @return dsprotection database server response
      */
-    public String addTransactionNode(Transaction ta, DoubleSpendingTag dsTag){
+    public String addTransactionNode(Transaction ta){
+        DoubleSpendingTag dsTag = ta.getDsTag();
+
         // marshall the data as JSON string
         JSONConverter jsonConverter = new JSONConverter();
         String serializedTransactionRepr = jsonConverter.serialize(ta.getRepresentation());
@@ -66,21 +69,43 @@ public class DSProtectionClient implements DatabaseHandler {
         return addTransactionRequestResponse.block();
     }
 
+    public Transaction getTransactionNode(Zn.ZnElement tid, Zn.ZnElement gamma, IncentivePublicParameters pp) {
+        // marshall the data as JSON string
+        TransactionIdentifier taIdentifier = new TransactionIdentifier(tid, gamma);
+        JSONConverter jsonConverter = new JSONConverter();
+        String serializedTaIdentifier = jsonConverter.serialize(
+                taIdentifier.getRepresentation()
+        );
+
+        // retrieve transaction using GET request to ds protection service
+        Mono<String> getTaRequestResponse = this.dsProtectionClient.get()
+                .uri(uriBuilder -> uriBuilder.path(GET_TRANSACTION_PATH).build())
+                .header("taid", serializedTaIdentifier)
+                .retrieve()
+                .bodyToMono(String.class);
+
+        // return result
+        return new Transaction(
+                jsonConverter.deserialize(
+                        getTaRequestResponse.block()
+                ),
+                pp
+        );
+    }
+
     /**
      * Adds the passed double-spending ID to the database.
      * @return dsprotrection database server response
      */
-    public String addTokenNode(GroupElement dsid, UserInfo uInfo){
+    public String addTokenNode(GroupElement dsid){
         // marshall the data as JSON string
         JSONConverter jsonConverter = new JSONConverter();
         String serializedDsidRepr = jsonConverter.serialize(dsid.getRepresentation());
-        String serialzedUserInfoRepr = jsonConverter.serialize(uInfo.getRepresentation());
 
         // add double-spending ID using a POST request to ds protection service using web client from object variable
         Mono<String> addDsidRequestResponse = this.dsProtectionClient.post()
                 .uri(uriBuilder -> uriBuilder.path(ADD_DSID_PATH).build())
                 .header("dsid", serializedDsidRepr)
-                .bodyValue(serialzedUserInfoRepr)
                 .retrieve()
                 .bodyToMono(String.class);
 
