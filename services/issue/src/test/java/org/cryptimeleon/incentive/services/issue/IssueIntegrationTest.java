@@ -3,6 +3,7 @@ package org.cryptimeleon.incentive.services.issue;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.Setup;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
+import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse;
@@ -39,6 +40,7 @@ public class IssueIntegrationTest {
         ProviderKeyPair pkp = Setup.providerKeyGen(pp);
         UserKeyPair ukp = Setup.userKeyGen(pp);
         JSONConverter jsonConverter = new JSONConverter();
+        PromotionParameters promotionParameters = incentiveSystem.legacyPromotionParameters();
 
         // Setup the mock to return the correct values
         when(cryptoRepository.getPublicParameters()).thenReturn(pp);
@@ -62,6 +64,6 @@ public class IssueIntegrationTest {
                 .returnResult().getResponseBody();
 
         var joinResponse = new JoinResponse(jsonConverter.deserialize(serializedJoinResponse), pp);
-        incentiveSystem.handleJoinRequestResponse(pkp.getPk(), ukp, joinRequest, joinResponse);
+        incentiveSystem.handleJoinRequestResponse(promotionParameters, pkp.getPk(), ukp, joinRequest, joinResponse);
     }
 }
