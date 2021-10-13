@@ -69,6 +69,11 @@ public class IncentiveSystem {
         return new PromotionParameters(this.pp.getBg().getZn().getUniformlyRandomElement(), storeSize);
     }
 
+    @Deprecated
+    public PromotionParameters legacyPromotionParameters() {
+        return new PromotionParameters(this.pp.getBg().getZn().getOneElement(), 1);
+    }
+
     /*
      * implementation of the Issue {@literal <}-{@literal >}Join protocol
      */
