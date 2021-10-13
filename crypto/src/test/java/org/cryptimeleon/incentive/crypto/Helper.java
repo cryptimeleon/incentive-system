@@ -52,11 +52,13 @@ public class Helper {
                 dsrd2,
                 z,
                 t,
+                promotionParameters.getPromotionId(),
                 pointsVector,
                 (SPSEQSignature) pp.getSpsEq().sign(
                         providerKeyPair.getSk().getSkSpsEq(),
                         c1,
-                        c2
+                        c2,
+                        c2.pow(promotionParameters.getPromotionId())
                 )
         );
 

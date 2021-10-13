@@ -51,7 +51,13 @@ public class SpendDeductTest {
         var serializedSpendResponse = proverOutput.getSpendResponse().getRepresentation();
         var doubleSpendingTag = proverOutput.getDstag();
 
-        var newToken = incentiveSystem.handleSpendRequestResponse(new SpendResponse(serializedSpendResponse, zp, pp.getSpsEq()), spendRequest, token, k, providerKeyPair.getPk(), userKeyPair);
+        var newToken = incentiveSystem.handleSpendRequestResponse(promotionParameters,
+                new SpendResponse(serializedSpendResponse, zp, pp.getSpsEq()),
+                spendRequest,
+                token,
+                k,
+                providerKeyPair.getPk(),
+                userKeyPair);
 
         for (int i = 0; i < promotionParameters.getStoreSize(); i++) {
             assertEquals(newToken.getStore().get(i).asInteger(), budget.get(i).subtract(k.get(i)));

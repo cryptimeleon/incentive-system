@@ -56,7 +56,11 @@ public class IssueJoinCryptoTest {
 
         // check output token for sanity (certficate valid, zero points)
         SPSEQSignatureScheme usedSpsEq = incSys.getPp().getSpsEq();
-        Assertions.assertTrue(usedSpsEq.verify(pkp.getPk().getPkSpsEq(), testOutput.getSignature(), testOutput.getCommitment0(), testOutput.getCommitment1()));
+        Assertions.assertTrue(usedSpsEq.verify(pkp.getPk().getPkSpsEq(),
+                testOutput.getSignature(),
+                testOutput.getCommitment0(),
+                testOutput.getCommitment1(),
+                testOutput.getCommitment1().pow(promotionParameters.getPromotionId())));
         Assertions.assertTrue(testOutput.getStore().stream().allMatch(e -> e.asInteger().compareTo(BigInteger.ZERO) == 0));
     }
 }

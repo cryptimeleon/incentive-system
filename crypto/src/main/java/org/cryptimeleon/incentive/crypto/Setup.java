@@ -149,7 +149,7 @@ public class Setup {
         PrfKey betaProv = pp.getPrfToZn().generateKey();
 
         // generate SPS-EQ key pair
-        SignatureKeyPair<SPSEQVerificationKey, SPSEQSigningKey> spsEqKeyPair = pp.getSpsEq().generateKeyPair(2);
+        SignatureKeyPair<SPSEQVerificationKey, SPSEQSigningKey> spsEqKeyPair = pp.getSpsEq().generateKeyPair(3);
         SPSEQVerificationKey spseqVerificationKey = spsEqKeyPair.getVerificationKey();
         SPSEQSigningKey spseqSigningKey = spsEqKeyPair.getSigningKey();
 

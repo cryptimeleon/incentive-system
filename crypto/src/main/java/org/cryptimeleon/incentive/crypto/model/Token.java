@@ -60,6 +60,11 @@ public class Token implements Representable, UniqueByteRepresentable {
     @NonFinal
     @Represented(restorer = "Zn")
     @UniqueByteRepresented
+    ZnElement promotionId;
+
+    @NonFinal
+    @Represented(restorer = "Zn")
+    @UniqueByteRepresented
     RingElementVector store; // number of points that the token currently stores (initially 0), v in the 2020 paper
 
     @NonFinal
@@ -89,6 +94,7 @@ public class Token implements Representable, UniqueByteRepresentable {
         accumulator.escapeAndSeparate(this.doubleSpendRandomness1.getUniqueByteRepresentation());
         accumulator.escapeAndSeparate(this.encryptionSecretKey.getUniqueByteRepresentation());
         accumulator.escapeAndSeparate(this.signature.getUniqueByteRepresentation());
+        accumulator.escapeAndSeparate(this.promotionId.getUniqueByteRepresentation());
         accumulator.escapeAndSeparate(this.z.getUniqueByteRepresentation());
         accumulator.escapeAndSeparate(this.t.getUniqueByteRepresentation());
         return accumulator;

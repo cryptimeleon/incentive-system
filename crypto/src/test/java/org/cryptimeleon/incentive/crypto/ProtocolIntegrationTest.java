@@ -166,7 +166,7 @@ public class ProtocolIntegrationTest {
         var deserializedSpendResponse3 = new SpendResponse(serializedSpendResponse3, usedZn, incSys.getPp().getSpsEq());
 
         // user handles spend response
-        updatedToken = incSys.handleSpendRequestResponse(deserializedSpendResponse3, deserializedSpendRequest3, updatedToken, spendAmount3, pkp.getPk(), ukp);
+        updatedToken = incSys.handleSpendRequestResponse(promotionParameters, deserializedSpendResponse3, deserializedSpendRequest3, updatedToken, spendAmount3, pkp.getPk(), ukp);
 
         Assertions.assertArrayEquals(
                 updatedToken.getStore().stream().map(RingElement::asInteger).toArray(),

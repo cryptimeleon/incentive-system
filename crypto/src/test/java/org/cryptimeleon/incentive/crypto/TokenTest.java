@@ -37,9 +37,11 @@ public class TokenTest {
                 zp.getUniformlyRandomElement(),
                 zp.getUniformlyRandomElement(),
                 zp.getUniformlyRandomElement(),
+                zp.getUniformlyRandomElement(),
                 Vector.of(zp.getUniformlyRandomElement()),
                 (SPSEQSignature) pp.getSpsEq().sign(
                         providerKeyPair.getSk().getSkSpsEq(),
+                        pp.getBg().getG1().getUniformlyRandomElement(),
                         pp.getBg().getG1().getUniformlyRandomElement(),
                         pp.getBg().getG1().getUniformlyRandomElement()
                 )

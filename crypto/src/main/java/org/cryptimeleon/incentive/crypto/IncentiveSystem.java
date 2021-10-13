@@ -148,7 +148,10 @@ public class IncentiveSystem {
         GroupElement modifiedC0Pre = c0Pre.op(c1Pre.pow(sk.getQ().get(1).mul(eskProv)));
 
         // create certificate for modified pre-commitment vector
-        SPSEQSignature cert = (SPSEQSignature) pp.getSpsEq().sign(sk.getSkSpsEq(), modifiedC0Pre, c1Pre); // first argument: signing keys, other arguments form the msg vector
+        SPSEQSignature cert = (SPSEQSignature) pp.getSpsEq().sign(sk.getSkSpsEq(),
+                modifiedC0Pre,
+                c1Pre,
+                c1Pre.pow(promotionParameters.getPromotionId())); // first argument: signing keys, other arguments form the msg vector
 
         // assemble and return join response object
         return new JoinResponse(cert, eskProv);
@@ -185,7 +188,11 @@ public class IncentiveSystem {
         GroupElement modifiedC0Pre = c0Pre.op(h2.pow(u.mul(eskProv)));
 
         // verify the signature on the modified pre-commitment
-        if (!usedSpsEq.verify(pk.getPkSpsEq(), preCert, modifiedC0Pre, jReq.getPreCommitment1())) {
+        if (!usedSpsEq.verify(pk.getPkSpsEq(),
+                preCert,
+                modifiedC0Pre,
+                jReq.getPreCommitment1(),
+                jReq.getPreCommitment1().pow(promotionParameters.getPromotionId()))) {
             throw new RuntimeException("signature on pre-commitment's left part is not valid!");
         }
 
@@ -199,7 +206,7 @@ public class IncentiveSystem {
         Zn usedZn = pp.getBg().getZn();
         RingElementVector zeros = RingElementVector.generate(usedZn::getZeroElement, promotionParameters.getStoreSize());
 
-        return new Token(finalCommitment0, finalCommitment1, esk, dsrnd0, dsrnd1, z, t, zeros, finalCert);
+        return new Token(finalCommitment0, finalCommitment1, esk, dsrnd0, dsrnd1, z, t, promotionParameters.getPromotionId(), zeros, finalCert);
     }
 
     /*
@@ -246,21 +253,22 @@ public class IncentiveSystem {
      * @return a signature on a blinded, updated token
      */
     public SPSEQSignature generateEarnRequestResponse(PromotionParameters promotionParameters, EarnRequest earnRequest, Vector<BigInteger> deltaK, ProviderKeyPair providerKeyPair) {
+        var C0 = earnRequest.getC0();
+        var C1 = earnRequest.getC1();
 
         // Verify the blinded signature for the blinded commitment is valid
         var isSignatureValid = pp.getSpsEq().verify(
                 providerKeyPair.getPk().getPkSpsEq(),
                 earnRequest.getBlindedSignature(),
-                earnRequest.getC0(),
-                earnRequest.getC1()
+                C0,
+                C1,
+                C1.pow(promotionParameters.getPromotionId())
         );
         if (!isSignatureValid) {
             throw new IllegalArgumentException("Signature is not valid");
         }
 
         // Sign a blinded commitment with k more points
-        var C0 = earnRequest.getC0();
-        var C1 = earnRequest.getC1();
 
         var Q = Util.constructStoreQ(providerKeyPair.getSk(), promotionParameters);
         var K = deltaK.map(k -> pp.getBg().getG1().getZn().createZnElement(k));
@@ -268,7 +276,8 @@ public class IncentiveSystem {
         return (SPSEQSignature) pp.getSpsEq().sign(
                 providerKeyPair.getSk().getSkSpsEq(),
                 C0.op(C1.pow(Q.innerProduct(K))).compute(), // Add k blinded point to the commitment
-                C1
+                C1,
+                C1.pow(promotionParameters.getPromotionId())
         );
     }
 
@@ -303,7 +312,11 @@ public class IncentiveSystem {
         var blindedNewC1 = earnRequest.getC1();
 
         // Verify signature on recovered commitments
-        var signatureValid = pp.getSpsEq().verify(providerPublicKey.getPkSpsEq(), changedSignature, blindedNewC0, blindedNewC1);
+        var signatureValid = pp.getSpsEq().verify(providerPublicKey.getPkSpsEq(),
+                changedSignature,
+                blindedNewC0,
+                blindedNewC1,
+                blindedNewC1.pow(promotionParameters.getPromotionId()));
         if (!signatureValid) {
             throw new IllegalArgumentException("Signature is not valid");
         }
@@ -320,6 +333,7 @@ public class IncentiveSystem {
                 token.getDoubleSpendRandomness1(),
                 token.getZ(),
                 token.getT(),
+                token.getPromotionId(),
                 new RingElementVector(token.getStore().zip(
                         K,
                         RingElement::add
@@ -427,7 +441,11 @@ public class IncentiveSystem {
         /* Verify that the request is valid and well-formed */
 
         // Verify signature of the old token (C1 must be g1 according to ZKP in T2 paper. We omit the ZKP and use g1 instead of C1)
-        var signatureValid = pp.getSpsEq().verify(providerKeyPair.getPk().getPkSpsEq(), spendRequest.getSigma(), spendRequest.getCommitmentC0(), pp.getG1Generator());
+        var signatureValid = pp.getSpsEq().verify(providerKeyPair.getPk().getPkSpsEq(),
+                spendRequest.getSigma(),
+                spendRequest.getCommitmentC0(),
+                pp.getG1Generator(),
+                pp.getG1Generator().pow(promotionParameters.getPromotionId()));
         if (!signatureValid) {
             throw new IllegalArgumentException("Signature of the request is not valid!");
         }
@@ -454,7 +472,8 @@ public class IncentiveSystem {
         var sigmaPrime = (SPSEQSignature) pp.getSpsEq().sign(
                 providerKeyPair.getSk().getSkSpsEq(),
                 cPre0.op(cPre1.pow(eskStarProv.mul(providerKeyPair.getSk().getQ().get(1)))),
-                cPre1
+                cPre1,
+                cPre1.pow(promotionParameters.getPromotionId())
         );
 
         // Assemble providers and users output and return as a tuple
@@ -477,7 +496,8 @@ public class IncentiveSystem {
      * @param userKeyPair       keypair of the user
      * @return token with the value of the old token + k
      */
-    public Token handleSpendRequestResponse(SpendResponse spendResponse,
+    public Token handleSpendRequestResponse(PromotionParameters promotionParameters,
+                                            SpendResponse spendResponse,
                                             SpendRequest spendRequest,
                                             Token token,
                                             Vector<BigInteger> deltaK,
@@ -498,7 +518,11 @@ public class IncentiveSystem {
         // Verify the signature on the new, blinded commitment
         var blindedCStar0 = spendRequest.getCPre0().op(providerPublicKey.getH().get(1).pow(spendResponse.getEskProvStar().mul(uS)));
         var blindedCStar1 = pp.getG1Generator().pow(uS); // Recompute, just to make sure
-        var valid = pp.getSpsEq().verify(providerPublicKey.getPkSpsEq(), spendResponse.getSigma(), blindedCStar0, blindedCStar1);
+        var valid = pp.getSpsEq().verify(providerPublicKey.getPkSpsEq(),
+                spendResponse.getSigma(),
+                blindedCStar0,
+                blindedCStar1,
+                blindedCStar1.pow(promotionParameters.getPromotionId()));
         if (!valid) {
             throw new IllegalArgumentException("Signature is not valid");
         }
@@ -512,6 +536,7 @@ public class IncentiveSystem {
                 dsrnd1S,
                 zS,
                 tS,
+                token.getPromotionId(),
                 new RingElementVector(token.getStore().zip(
                         K,
                         RingElement::sub
