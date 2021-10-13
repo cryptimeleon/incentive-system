@@ -19,7 +19,7 @@ import org.cryptimeleon.math.serialization.converter.JSONConverter
 import org.cryptimeleon.math.structures.cartesian.Vector
 import timber.log.Timber
 import java.math.BigInteger
-import java.util.*
+import java.util.UUID
 
 /**
  * Repository that handles the crypto database, provides cached deserialized crypto objects and
