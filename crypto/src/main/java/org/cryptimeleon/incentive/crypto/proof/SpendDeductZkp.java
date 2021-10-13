@@ -90,21 +90,27 @@ public class SpendDeductZkp extends DelegateProtocol {
         // C=(H.pow(t^*, usk, \sum_i=0^k[esk^*_(usr,i) * base^i], dsrnd^*_0, dsrnd^*_1, z^*, V-K), g_1^(u^*)) split into two subprotocols
         // We use the sum to combine the esk^*_usr = \sum proof with the C=.. proof
         var powersOfEskDecBase = ExponentExpressionVector.generate(i -> pp.getEskDecBase().pow(BigInteger.valueOf(i)).asExponentExpression(), pp.getNumEskDigits()); // construct vector (eskBase^0, eskBase^1, ...)
-        var exponents = new Vector<>(uskVar, eskDecVarVector.innerProduct(powersOfEskDecBase), dsrndStar0Var, dsrndStar1Var, zStarVar, tStarVar)
-                .concatenate(storeVector.zip(ExponentExpressionVector.fromStream(K.stream().map(ExponentConstantExpr::new)), ExponentExpr::sub));
+        var exponents = new Vector<>(
+                tStarVar,
+                uskVar,
+                eskDecVarVector.innerProduct(powersOfEskDecBase),
+                dsrndStar0Var,
+                dsrndStar1Var,
+                zStarVar
+        ).concatenate(storeVector.zip(ExponentExpressionVector.fromStream(K.stream().map(ExponentConstantExpr::new)), ExponentExpr::sub));
         var cPre0Statement = H.innerProduct(exponents).isEqualTo(commonInput.c0Pre.pow(uStarInverseVar));
         builder.addSubprotocol("C0Pre", new LinearStatementFragment(cPre0Statement));
         builder.addSubprotocol("C1Pre", new LinearStatementFragment(commonInput.c1Pre.pow(uStarInverseVar).isEqualTo(pp.getG1Generator()))); // Use the inverse of uStar to linearize this expression
 
         // esk^*_(usr,i)\in[0,eskDecBase-1]
         for (int i = 0; i < pp.getNumEskDigits(); i++) {
-            builder.addSubprotocol("eskDigitSetMembership_" + i, new SetMembershipFragment(pp.getEskBaseSetMembershipPublicParameters(), eskDecVarVector.get(i)));
+            builder.addSubprotocol("eskDigitSetMembership" + i, new SetMembershipFragment(pp.getEskBaseSetMembershipPublicParameters(), eskDecVarVector.get(i)));
         }
 
         // v >= k (I have more points than required)
         // We prove that v-k\in[0,eskDecBase^{maxPointBasePower+1}-1] and reuse the SetMembershipParameters from the esk digit proof.
         for (int i = 0; i < promotionParameters.getStoreSize(); i++) {
-            builder.addSubprotocol("v>=k", new SmallerThanPowerFragment(storeVector.get(i).sub(K.get(i)), pp.getEskDecBase().getInteger().intValue(), pp.getMaxPointBasePower(), pp.getEskBaseSetMembershipPublicParameters()));
+            builder.addSubprotocol("v" + i + ">=k" + i, new SmallerThanPowerFragment(storeVector.get(i).sub(K.get(i)), pp.getEskDecBase().asInteger().intValue(), pp.getMaxPointBasePower(), pp.getEskBaseSetMembershipPublicParameters()));
         }
 
         // ctrace=(w^{r_i} ,{w^{r_i}}^{esk}*w^{esk^*_{usr,i}}) for all i\in[p]

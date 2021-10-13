@@ -9,13 +9,10 @@ import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.LinearStatementF
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.SendThenDelegateFragment;
 import org.cryptimeleon.incentive.crypto.Util;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
-import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
-import org.cryptimeleon.math.expressions.exponent.ExponentConstantExpr;
 import org.cryptimeleon.math.structures.cartesian.ExponentExpressionVector;
 import org.cryptimeleon.math.structures.cartesian.GroupElementExpressionVector;
 import org.cryptimeleon.math.structures.groups.GroupElement;
-import org.cryptimeleon.math.structures.groups.cartesian.GroupElementVector;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 /**

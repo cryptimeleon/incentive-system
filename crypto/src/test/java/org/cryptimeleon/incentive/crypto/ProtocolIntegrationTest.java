@@ -11,9 +11,9 @@ import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse;
 import org.cryptimeleon.incentive.crypto.model.proofs.CommitmentWellformednessProtocol;
 import org.cryptimeleon.incentive.crypto.proof.SpendDeductZkp;
 import org.cryptimeleon.math.structures.cartesian.Vector;
+import org.cryptimeleon.math.structures.rings.RingElement;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.function.Executable;
 
 import java.math.BigInteger;
 import java.util.logging.Logger;
@@ -117,7 +117,7 @@ public class ProtocolIntegrationTest {
         var updatedToken = incSys.handleEarnRequestResponse(promotionParameters, deserializedEarnRequest1, deserializedEarnResponse1, earnAmount1, initialToken, pkp.getPk(), ukp);
 
         // ensure user token contains 20 points
-        Assertions.assertEquals(updatedToken.getStore().stream().toArray(), earnAmount1.stream().toArray());
+        Assertions.assertArrayEquals(updatedToken.getStore().stream().map(RingElement::asInteger).toArray(), earnAmount1.stream().toArray());
 
         /*
          * transaction 3: user tries to spend 23 points
@@ -168,8 +168,8 @@ public class ProtocolIntegrationTest {
         // user handles spend response
         updatedToken = incSys.handleSpendRequestResponse(deserializedSpendResponse3, deserializedSpendRequest3, updatedToken, spendAmount3, pkp.getPk(), ukp);
 
-        Assertions.assertEquals(
-                updatedToken.getStore().stream().toArray(),
+        Assertions.assertArrayEquals(
+                updatedToken.getStore().stream().map(RingElement::asInteger).toArray(),
                 new BigInteger[]{BigInteger.valueOf(10L), BigInteger.valueOf(3L)}
         );
 
@@ -197,8 +197,8 @@ public class ProtocolIntegrationTest {
         // user handles earn response
         updatedToken = incSys.handleEarnRequestResponse(promotionParameters, deserializedEarnRequest2, deserializedEarnResponse2, earnAmount5, updatedToken, pkp.getPk(), ukp);
 
-        Assertions.assertEquals(
-                updatedToken.getStore().stream().toArray(),
+        Assertions.assertArrayEquals(
+                updatedToken.getStore().stream().map(RingElement::asInteger).toArray(),
                 new BigInteger[]{BigInteger.valueOf(334241L), BigInteger.valueOf(45L)}
         );
 

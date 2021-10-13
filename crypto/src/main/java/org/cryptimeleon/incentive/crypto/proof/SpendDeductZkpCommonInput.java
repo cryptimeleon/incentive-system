@@ -3,7 +3,6 @@ package org.cryptimeleon.incentive.crypto.proof;
 import lombok.AllArgsConstructor;
 import org.cryptimeleon.craco.protocols.CommonInput;
 import org.cryptimeleon.incentive.crypto.model.SpendRequest;
-import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.groups.cartesian.GroupElementVector;
 import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;

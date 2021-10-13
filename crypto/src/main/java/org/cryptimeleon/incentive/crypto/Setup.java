@@ -64,7 +64,7 @@ public class Setup {
         BilinearGroup bg;
         switch (bilinearGroupChoice) {
             case Debug:
-                bg = new DebugBilinearGroup(securityParameter, BilinearGroup.Type.TYPE_3);
+                bg = new DebugBilinearGroup(BilinearGroup.Type.TYPE_3);
                 break;
             case BarretoNaehrig:
                 bg = new BarretoNaehrigBilinearGroup(securityParameter);

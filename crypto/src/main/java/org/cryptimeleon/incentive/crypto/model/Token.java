@@ -6,7 +6,6 @@ import lombok.experimental.NonFinal;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.math.hash.ByteAccumulator;
 import org.cryptimeleon.math.hash.UniqueByteRepresentable;
-import org.cryptimeleon.math.hash.annotations.AnnotatedUbrUtil;
 import org.cryptimeleon.math.hash.annotations.UniqueByteRepresented;
 import org.cryptimeleon.math.serialization.Representable;
 import org.cryptimeleon.math.serialization.Representation;
@@ -83,7 +82,16 @@ public class Token implements Representable, UniqueByteRepresentable {
 
     @Override
     public ByteAccumulator updateAccumulator(ByteAccumulator accumulator) {
-        return AnnotatedUbrUtil.autoAccumulate(accumulator, this);
+        store.stream().forEachOrdered(k -> accumulator.escapeAndSeparate(k.getUniqueByteRepresentation()));
+        accumulator.escapeAndSeparate(this.commitment0.getUniqueByteRepresentation());
+        accumulator.escapeAndSeparate(this.commitment1.getUniqueByteRepresentation());
+        accumulator.escapeAndSeparate(this.doubleSpendRandomness0.getUniqueByteRepresentation());
+        accumulator.escapeAndSeparate(this.doubleSpendRandomness1.getUniqueByteRepresentation());
+        accumulator.escapeAndSeparate(this.encryptionSecretKey.getUniqueByteRepresentation());
+        accumulator.escapeAndSeparate(this.signature.getUniqueByteRepresentation());
+        accumulator.escapeAndSeparate(this.z.getUniqueByteRepresentation());
+        accumulator.escapeAndSeparate(this.t.getUniqueByteRepresentation());
+        return accumulator;
     }
 }
 
