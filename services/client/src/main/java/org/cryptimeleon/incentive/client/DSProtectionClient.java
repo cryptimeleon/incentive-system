@@ -10,6 +10,9 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+
 
 /**
  * Implements the connectivity to the double-spending protection database.
@@ -36,7 +39,10 @@ public class DSProtectionClient implements DatabaseHandler {
     public static final String INVALIDATE_TRANSACTION_PATH = "/invalidateta";
 
     public static final String ADD_AND_LINK_USER_INFO_PATH = "/adduserinfo";
-    public static final String GET_USER_INFO_PATH = "/getUserInfo";
+    public static final String GET_USER_INFO_PATH = "/getuserinfo";
+
+    public static final String GET_CONSUMING_TRANSACTIONS_PATH = "/getconsumingta";
+    public static final String GET_CONSUMED_TOKEN_DSID_PATH = "/getconsumedtoken";
 
     public static final String RETRIEVE_TRANSACTION_PATH = "/retrieveta";
     public static final String RETRIEVE_ALL_TRANSACTIONS_PATH = "/retrieveallta";
@@ -264,10 +270,55 @@ public class DSProtectionClient implements DatabaseHandler {
         return userInfo;
     }
 
+    /**
+     * Retrieves all transactions that have consumed the passed double-spending ID.
+     */
+    public ArrayList<Transaction> getConsumingTransactions(GroupElement dsid) {
+        // marshall double-spending ID
+        JSONConverter jsonConverter = new JSONConverter();
+        String serializedDsidRepr = jsonConverter.serialize(dsid.getRepresentation());
+
+        // make GET request to double-spending protection service
+        Mono<ArrayList> getConsumingTransactionsResponse = this.dsProtectionClient.get()
+                .uri(uriBuilder -> uriBuilder.path(GET_CONSUMING_TRANSACTIONS_PATH).build())
+                .header("dsid", serializedDsidRepr)
+                .retrieve()
+                .bodyToMono(ArrayList.class);
+
+        return (ArrayList<Transaction>) getConsumingTransactionsResponse.block();
+    }
+
+    /**
+     * Retrieves the double-spending ID of the token that was consumed in the transaction with the passed identifier.
+     */
+    public GroupElement getConsumedTokenDsid(TransactionIdentifier taId, IncentivePublicParameters pp) {
+        // marshall transaction identifier
+        JSONConverter jsonConverter = new JSONConverter();
+        String serializedTaIdentRepr = jsonConverter.serialize(taId.getRepresentation());
+
+        // make GET request to double-spending protection service
+        Mono<String> getConsumedTokenResponse = this.dsProtectionClient.get()
+                .uri(uriBuilder -> uriBuilder.path(GET_CONSUMED_TOKEN_DSID_PATH).build())
+                .header("taid", serializedTaIdentRepr)
+                .retrieve()
+                .bodyToMono(String.class);
+
+        // deserialize, restore and return element
+        return
+                pp.getBg().getG1().restoreElement(
+                        jsonConverter.deserialize(getConsumedTokenResponse.block())
+                );
+    }
+
+
+
 
     /**
      * helper methods
      */
+
+
+
 
     /**
      * Adds an edge between the transaction identified with tid and gamma

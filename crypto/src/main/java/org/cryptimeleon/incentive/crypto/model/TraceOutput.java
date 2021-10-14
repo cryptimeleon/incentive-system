@@ -8,6 +8,6 @@ import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
 @Value
 @AllArgsConstructor
 public class TraceOutput {
-    GroupElement dsidPrime;
-    ZnElement dsTracePrime;
+    GroupElement dsidStar;
+    ZnElement dsTraceStar;
 }

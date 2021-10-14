@@ -31,6 +31,7 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 
 
 /**
@@ -516,7 +517,7 @@ public class IncentiveSystem {
      * @param dsTagPrime tag of the second spend operation
      * @return suspected user's key material + tracing information
      */
-    public LinkOutput link(IncentivePublicParameters pp, DoubleSpendingTag dsTag, DoubleSpendingTag dsTagPrime) {
+    public UserInfo link(IncentivePublicParameters pp, DoubleSpendingTag dsTag, DoubleSpendingTag dsTagPrime) {
         // computing dsblame, DLOG of the usk of the user blamed of double-spending
         ZnElement c0 = dsTag.getC0();
         ZnElement c0Prime = dsTagPrime.getC0();
@@ -539,7 +540,7 @@ public class IncentiveSystem {
         UserPublicKey upk = new UserPublicKey(pp.getW().pow(dsBlame));
 
         // assemble and return output
-        return new LinkOutput(dsBlame, upk, dsTrace);
+        return new UserInfo(upk, dsBlame, dsTrace);
     }
 
     /**
@@ -611,7 +612,12 @@ public class IncentiveSystem {
      * @param dbHandler reference to the object handling the database connectivity
      */
     public void dbSync(ZnElement tid, GroupElement dsid, DoubleSpendingTag dsTag, BigInteger spendAmount, DatabaseHandler dbHandler) {
-        ZnElement gamma = dsTag.getGamma();
+        ZnElement gamma = dsTag.getGamma(); // shorthand for readability
+
+        // make list for keeping track of identifiers of transactions that are invalidated over the course of the method
+        ArrayList<TransactionIdentifier> invalidatedTasIdentifiers = new ArrayList<TransactionIdentifier>();
+
+        // first part of DBSync from 2020 incentive system paper: adding a new transaction
 
         // if transaction is not yet in the database
         if(!dbHandler.containsTransactionNode(tid, gamma)) {
@@ -633,10 +639,78 @@ public class IncentiveSystem {
             dbHandler.addTokenTransactionEdge(dsid, tid, gamma);
 
             // if the token node has no user info associated with it
-            // TODO: continue
+            UserInfo associatedUserInfo = dbHandler.getUserInfo(dsid, this.pp);
+            if(associatedUserInfo == null) {
+                // retrieve all transaction that consumed the dsid
+                ArrayList<Transaction> consumingTaList = dbHandler.getConsumingTransactions(dsid);
+
+                // use two of them to compute the user info for this token (i.e. link the double-spending to a user)
+                try {
+                    DoubleSpendingTag firstTaTag = consumingTaList.get(0).getDsTag();
+                    DoubleSpendingTag secondTaTag = consumingTaList.get(1).getDsTag();
+                    UserInfo uInfo = this.link(this.pp, firstTaTag, secondTaTag);
+                    dbHandler.addAndLinkUserInfo(
+                            uInfo.getUpk(),
+                            uInfo.getDsBlame(),
+                            uInfo.getDsTrace(),
+                            dsid
+                    );
+                }
+                catch(Exception e) {
+                    System.out.println("Cannot compute user info for token: need at least 2 consuming transactions"); // TODO: use logger?
+                }
+            }
 
 
+
+            // invalidate transaction
+            dbHandler.invalidateTransaction(tid, gamma);
+            invalidatedTasIdentifiers.add(new TransactionIdentifier(tid, gamma));
         }
+
+        // second part of DBSync: cascading invalidations
+
+        // whenever a transaction is invalidated: invalidate all transactions that resulted from it (if any exist)
+        while(!invalidatedTasIdentifiers.isEmpty()) {
+            TransactionIdentifier currentTaId = invalidatedTasIdentifiers.remove(0);
+
+            // retrieve transaction
+            Transaction ta = dbHandler.getTransactionNode(currentTaId.getTid(), currentTaId.getGamma(), this.pp);
+
+            // retrieve double-spending ID of token consumed by transaction and the corresponding user info
+            GroupElement consumedDsid = dbHandler.getConsumedTokenDsid(currentTaId, this.pp);
+            UserInfo consumedDsidUserInfo = dbHandler.getUserInfo(consumedDsid, this.pp);
+
+            // use Trace to compute remainder token's dsid (remainder token: token that resulted from the currently considered transaction)
+            TraceOutput traceOutput = this.trace(this.pp, consumedDsidUserInfo.getDsTrace(), ta.getDsTag());
+            GroupElement dsidStar = traceOutput.getDsidStar();
+
+            // add remainder token dsid if not contained yet
+            if(dbHandler.containsTokenNode(dsidStar)) {
+                dbHandler.addTokenNode(dsidStar);
+            }
+
+            // associate corresponding user info with remainder token dsid
+            dbHandler.addAndLinkUserInfo(
+                    consumedDsidUserInfo.getUpk(),
+                    consumedDsidUserInfo.getDsBlame(),
+                    traceOutput.getDsTraceStar(),
+                    dsidStar
+            );
+
+            // link current transaction with remainder token in database
+            dbHandler.addTransactionTokenEdge(currentTaId.getTid(), currentTaId.getGamma(), dsidStar);
+
+            // invalidate all transactions that consumed the remainder token or followed from a transaction consuming it
+            ArrayList<Transaction> followingTransactions = dbHandler.getConsumingTransactions(dsidStar);
+            followingTransactions.forEach(currentTa -> {
+                dbHandler.invalidateTransaction(
+                        currentTa.getTransactionID(),
+                        currentTa.getDsTag().getGamma()
+                );
+            });
+        }
+
     }
 
     /**

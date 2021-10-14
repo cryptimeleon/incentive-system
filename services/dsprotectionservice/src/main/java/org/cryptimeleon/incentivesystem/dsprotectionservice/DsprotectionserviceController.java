@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
 
@@ -402,9 +403,9 @@ public class DsprotectionserviceController {
      * @param serializedDsidRepr serialized representation of the double-spending ID in question
      * @return success or failure HTTP response containing the queried user info (if existent)
      */
-    @GetMapping("/getUserInfo")
+    @GetMapping("/getuserinfo")
     public ResponseEntity<String> getUserInfo(
-            @RequestHeader String serializedDsidRepr
+            @RequestHeader(value = "dsid") String serializedDsidRepr
     ) {
         // deserialize and retrieve passed dsid
         JSONConverter jsonConverter = new JSONConverter();
@@ -422,6 +423,68 @@ public class DsprotectionserviceController {
         // return response
         return new ResponseEntity<String>(Util.computeSerializedRepresentation(uInfo), HttpStatus.OK);
     }
+
+    /**
+     * Retrieves all transactions that consumed the token with the passed dsid.
+     * @param serializedDsidRepr serialized double-spending ID representation
+     * @return HTTP response containing a list of serialized transaction representations
+     */
+    @GetMapping("/getconsumingta")
+    public ResponseEntity<ArrayList<String>> getConsumingTransactions(
+            @RequestHeader(value = "dsid") String serializedDsidRepr
+    ) {
+        // deserialize and retrieve passed dsid
+        JSONConverter jsonConverter = new JSONConverter();
+        GroupElement dsid = cryptoRepository.getPp().getBg().getG1().restoreElement(
+                jsonConverter.deserialize(serializedDsidRepr)
+        );
+
+        // query respective entries
+        ArrayList<TransactionEntry> taeList = getConsumingTransactionEntries(
+                findDsidEntry(dsid).getId()
+        );
+
+        // marshall entries for transport
+        ArrayList<String> serializedTaReprList = new ArrayList<String>();
+        taeList.forEach(tae -> {
+            Transaction ta = convertTransactionEntry(tae);
+            String serializedTaRepr = Util.computeSerializedRepresentation(ta);
+            serializedTaReprList.add(serializedTaRepr);
+        });
+
+        return new ResponseEntity<ArrayList<String>>(serializedTaReprList, HttpStatus.OK);
+    }
+
+    /**
+     * Retrieves the double-spending ID of the token that was consumed in the transaction with the passed identifier.
+     * @param serializedTaIdentRepr serialized transaction identifier representation
+     * @return HTTP response containing serialized double-spending ID representation
+     */
+    @GetMapping("/getconsumedtoken")
+    public ResponseEntity<String> getConsumedTokenDsid(
+            @RequestHeader(value = "taid") String serializedTaIdentRepr
+    ) {
+        // deserialize and restore transaction identifier
+        JSONConverter jsonConverter = new JSONConverter();
+        TransactionIdentifier taIdent = new TransactionIdentifier(
+                jsonConverter.deserialize(serializedTaIdentRepr),
+                cryptoRepository.getPp()
+        );
+
+        // find transaction entry
+        TransactionEntry taEntry = findTransactionEntryWithTaIdentifier(taIdent);
+
+        // find dsid entry of consumed token's double-spending ID
+        DsIdEntry consumedDsidEntry = dsidRepository.findById(taEntry.getConsumedDsidEntryId()).get();
+
+        // return serialized dsid representation
+        return new ResponseEntity<String>(
+                consumedDsidEntry.getSerializedDsidRepr(),
+                HttpStatus.OK
+        );
+    }
+
+
 
 
 
@@ -543,6 +606,27 @@ public class DsprotectionserviceController {
 
         // drop-down if nothing found
         return null;
+    }
+
+    /**
+     * Retrieves and returns all transactions that have consumed a Dsid whose corresponding database entry has the passed ID.
+     * @param dsidEntryId database entry ID
+     * @return list of transactions
+     */
+    public ArrayList<TransactionEntry> getConsumingTransactionEntries(long dsidEntryId) {
+        ArrayList<TransactionEntry> resultList = new ArrayList<TransactionEntry>();
+
+        // query all transaction entries from database
+        ArrayList<TransactionEntry> transactionEntryList = (ArrayList<TransactionEntry>) transactionRepository.findAll();
+
+        // filter by consumed dsid entry ID
+        for(TransactionEntry tae : transactionEntryList) {
+            if(tae.getConsumedDsidEntryId() == dsidEntryId) {
+                resultList.add(tae);
+            }
+        }
+
+        return resultList;
     }
 
 

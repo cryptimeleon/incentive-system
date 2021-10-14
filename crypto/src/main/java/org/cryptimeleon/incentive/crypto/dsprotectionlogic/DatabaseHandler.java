@@ -7,6 +7,8 @@ import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
 
+import java.util.ArrayList;
+
 /**
  * Provides an interface to the double-spending DB for the DBSync algorithm from the formal cryptographic definition of the incentive system.
  * This comprises methods for adding nodes and edges to it, representing DsIDs, transactions and both relations between them (transaction consumes token, token is result of transaction)
@@ -33,7 +35,7 @@ public interface DatabaseHandler
      */
     public String addTransactionNode(Transaction ta);
 
-    public String getTransactionNode(ZnElement tid, ZnElement gamma, IncentivePublicParameters pp);
+    public Transaction getTransactionNode(ZnElement tid, ZnElement gamma, IncentivePublicParameters pp);
 
     public String addTokenNode(GroupElement dsid);
 
@@ -97,6 +99,16 @@ public interface DatabaseHandler
      * end of methods handling user info associated to a token
      */
 
+
+    /**
+     * Retrieves all transactions that have consumed the passed double-spending ID.
+     */
+    public ArrayList<Transaction> getConsumingTransactions(GroupElement dsid);
+
+    /**
+     * Retrieves the double-spending ID of the token that was consumed in the transaction with the passed identifier.
+     */
+    public GroupElement getConsumedTokenDsid(TransactionIdentifier taId, IncentivePublicParameters pp);
 
 
     /**
