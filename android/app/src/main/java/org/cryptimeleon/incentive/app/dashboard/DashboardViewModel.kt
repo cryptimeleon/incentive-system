@@ -22,7 +22,7 @@ class DashboardViewModel @Inject constructor(
         cryptoRepository.token.map {
             DashboardState(
                 it?.let {
-                    listOf(PromotionState(count = it.token.store.get(0).asInteger().toInt()))
+                    listOf(PromotionState(count = it.token.points.get(0).asInteger().toInt()))
                 } ?: emptyList()
             )
         }
