@@ -102,7 +102,7 @@ public class IncentiveSystem {
         ZnElement t = (ZnElement) pseudoRandVector.get(4);
         ZnElement u = (ZnElement) pseudoRandVector.get(5);
 
-        var H = Util.constructStorelessH(pk, this.pp);
+        var H = pk.getTokenMetadataH(this.pp);
 
         // compute Pedersen commitment for user token
         // need to retrieve exponent from usk object; point count of 0 is reresented by zero in used Z_n
@@ -275,7 +275,7 @@ public class IncentiveSystem {
 
         // Sign a blinded commitment with k more points
 
-        var Q = Util.constructStoreQ(providerKeyPair.getSk(), promotionParameters);
+        var Q = providerKeyPair.getSk().getTokenPointsQ(promotionParameters);
         var K = deltaK.map(k -> pp.getBg().getG1().getZn().createZnElement(k));
 
         return (SPSEQSignature) pp.getSpsEq().sign(
@@ -310,7 +310,7 @@ public class IncentiveSystem {
 
         // Recover blinded commitments (to match the commitments signed by the prover) with updated value
         var blindedNewC0 = earnRequest.getC0()
-                .op(Util.constructStoreH(providerPublicKey, pp, promotionParameters)
+                .op(providerPublicKey.getTokenPointsH(promotionParameters)
                         .pow(s)
                         .innerProduct(K)
                 ).compute();
@@ -339,7 +339,7 @@ public class IncentiveSystem {
                 token.getZ(),
                 token.getT(),
                 token.getPromotionId(),
-                new RingElementVector(token.getStore().zip(
+                new RingElementVector(token.getPoints().zip(
                         K,
                         RingElement::add
                 )),
@@ -376,7 +376,7 @@ public class IncentiveSystem {
         var usk = userKeyPair.getSk().getUsk();
         var esk = token.getEncryptionSecretKey();
         var dsid = pp.getW().pow(esk);
-        var vectorH = Util.constructH(providerPublicKey, this.pp, promotionParameters);
+        var vectorH = providerPublicKey.getH(this.pp, promotionParameters);
         var vectorR = zp.getUniformlyRandomElements(pp.getNumEskDigits());
         var K = RingElementVector.fromStream(deltaK.stream().map(e -> pp.getBg().getZn().createZnElement(e)));
 
@@ -392,7 +392,7 @@ public class IncentiveSystem {
         Zn.ZnElement uS = (Zn.ZnElement) prfZnElements.get(5);
 
         // Prepare a new commitment (cPre0, cPre1) based on the pseudorandom values
-        var exponents = new RingElementVector(tS, usk, eskUsrS, dsrnd0S, dsrnd1S, zS).concatenate(token.getStore().zip(K, RingElement::sub));
+        var exponents = new RingElementVector(tS, usk, eskUsrS, dsrnd0S, dsrnd1S, zS).concatenate(token.getPoints().zip(K, RingElement::sub));
         var cPre0 = vectorH.innerProduct(exponents).pow(uS).compute();
         var cPre1 = pp.getG1Generator().pow(uS).compute();
 
@@ -417,7 +417,7 @@ public class IncentiveSystem {
 
         /* Build noninteractive (Fiat-Shamir transformed) ZKP to ensure that the user follows the rules of the protocol */
         var fiatShamirProofSystem = new FiatShamirProofSystem(new SpendDeductZkp(pp, providerPublicKey, promotionParameters));
-        var witness = new SpendDeductZkpWitnessInput(usk, token.getZ(), zS, token.getT(), tS, uS, esk, eskUsrS, token.getDoubleSpendRandomness0(), dsrnd0S, token.getDoubleSpendRandomness1(), dsrnd1S, eskUsrSDec, vectorR, token.getStore());
+        var witness = new SpendDeductZkpWitnessInput(usk, token.getZ(), zS, token.getT(), tS, uS, esk, eskUsrS, token.getDoubleSpendRandomness0(), dsrnd0S, token.getDoubleSpendRandomness1(), dsrnd1S, eskUsrSDec, vectorR, token.getPoints());
         var commonInput = new SpendDeductZkpCommonInput(gamma, c0, c1, dsid, cPre0, cPre1, token.getCommitment0(), cTrace0, cTrace1, K);
         var proof = fiatShamirProofSystem.createProof(commonInput, witness);
 
@@ -542,7 +542,7 @@ public class IncentiveSystem {
                 zS,
                 tS,
                 token.getPromotionId(),
-                new RingElementVector(token.getStore().zip(
+                new RingElementVector(token.getPoints().zip(
                         K,
                         RingElement::sub
                 )),

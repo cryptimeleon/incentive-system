@@ -9,7 +9,6 @@ import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.LinearStatementF
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.SendThenDelegateFragment;
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.setmembership.SetMembershipFragment;
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.setmembership.SmallerThanPowerFragment;
-import org.cryptimeleon.incentive.crypto.Util;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
@@ -44,7 +43,7 @@ public class SpendDeductZkp extends DelegateProtocol {
     @Override
     protected SendThenDelegateFragment.SubprotocolSpec provideSubprotocolSpec(CommonInput pCommonInput, SendThenDelegateFragment.SubprotocolSpecBuilder builder) {
         var commonInput = (SpendDeductZkpCommonInput) pCommonInput;
-        var H = new GroupElementExpressionVector(Util.constructH(providerPublicKey, pp, promotionParameters).map(GroupElement::expr));
+        var H = new GroupElementExpressionVector(providerPublicKey.getH(pp, promotionParameters).map(GroupElement::expr));
         var w = pp.getW();
 
         // Variables to use

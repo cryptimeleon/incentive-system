@@ -86,7 +86,7 @@ public class CreditIntegrationTest {
         var signature = new SPSEQSignature(jsonConverter.deserialize(serializedSignature), pp.getBg().getG1(), pp.getBg().getG2());
         var newToken = incentiveSystem.handleEarnRequestResponse(promotionParameters, earnRequest, signature, Vector.of(BigInteger.valueOf(earnAmount)), token, pkp.getPk(), ukp);
 
-        Assertions.assertEquals(newToken.getStore().get(0).asInteger(), token.getStore().get(0).asInteger().add(BigInteger.valueOf(earnAmount)));
+        Assertions.assertEquals(newToken.getPoints().get(0).asInteger(), token.getPoints().get(0).asInteger().add(BigInteger.valueOf(earnAmount)));
     }
 
     /**

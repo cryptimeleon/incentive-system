@@ -117,7 +117,7 @@ public class ProtocolIntegrationTest {
         var updatedToken = incSys.handleEarnRequestResponse(promotionParameters, deserializedEarnRequest1, deserializedEarnResponse1, earnAmount1, initialToken, pkp.getPk(), ukp);
 
         // ensure user token contains 20 points
-        Assertions.assertArrayEquals(updatedToken.getStore().stream().map(RingElement::asInteger).toArray(), earnAmount1.stream().toArray());
+        Assertions.assertArrayEquals(updatedToken.getPoints().stream().map(RingElement::asInteger).toArray(), earnAmount1.stream().toArray());
 
         /*
          * transaction 3: user tries to spend 23 points
@@ -169,7 +169,7 @@ public class ProtocolIntegrationTest {
         updatedToken = incSys.handleSpendRequestResponse(promotionParameters, deserializedSpendResponse3, deserializedSpendRequest3, updatedToken, spendAmount3, pkp.getPk(), ukp);
 
         Assertions.assertArrayEquals(
-                updatedToken.getStore().stream().map(RingElement::asInteger).toArray(),
+                updatedToken.getPoints().stream().map(RingElement::asInteger).toArray(),
                 new BigInteger[]{BigInteger.valueOf(10L), BigInteger.valueOf(3L)}
         );
 
@@ -198,7 +198,7 @@ public class ProtocolIntegrationTest {
         updatedToken = incSys.handleEarnRequestResponse(promotionParameters, deserializedEarnRequest2, deserializedEarnResponse2, earnAmount5, updatedToken, pkp.getPk(), ukp);
 
         Assertions.assertArrayEquals(
-                updatedToken.getStore().stream().map(RingElement::asInteger).toArray(),
+                updatedToken.getPoints().stream().map(RingElement::asInteger).toArray(),
                 new BigInteger[]{BigInteger.valueOf(334241L), BigInteger.valueOf(45L)}
         );
 

@@ -17,8 +17,6 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
  */
 public class Util {
 
-    static final int H_SIZE_WITHOUT_STORE = 6;
-
     /**
      * Hash function to retrieve ZnElement gamma in spend-deduct
      *
@@ -41,21 +39,4 @@ public class Util {
         return hashfunction.hash(accumulator.extractBytes());
     }
 
-    public static GroupElementVector constructH(ProviderPublicKey providerPublicKey, IncentivePublicParameters publicParameters, PromotionParameters promotionParameters) {
-        return providerPublicKey.getH().prepend(publicParameters.getH7()).truncate(H_SIZE_WITHOUT_STORE + promotionParameters.getStoreSize());
-    }
-
-    public static GroupElementVector constructStorelessH(ProviderPublicKey providerPublicKey, IncentivePublicParameters publicParameters) {
-        return providerPublicKey.getH().prepend(publicParameters.getH7()).truncate(H_SIZE_WITHOUT_STORE);
-    }
-
-    public static GroupElementVector constructStoreH(ProviderPublicKey providerPublicKey, IncentivePublicParameters publicParameters, PromotionParameters promotionParameters) {
-        // the -1 is because we do not count h7
-        return GroupElementVector.fromStream(providerPublicKey.getH().stream().skip(H_SIZE_WITHOUT_STORE - 1)).truncate(promotionParameters.getStoreSize());
-    }
-
-    public static RingElementVector constructStoreQ(ProviderSecretKey sk, PromotionParameters promotionParameters) {
-        // the -1 is because we do not know the DLOG q7 to h7
-        return RingElementVector.fromStream(sk.getQ().stream().skip(H_SIZE_WITHOUT_STORE - 1)).truncate(promotionParameters.getStoreSize());
-    }
 }

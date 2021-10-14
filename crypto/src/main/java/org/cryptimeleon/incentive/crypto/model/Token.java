@@ -65,7 +65,7 @@ public class Token implements Representable, UniqueByteRepresentable {
     @NonFinal
     @Represented(restorer = "Zn")
     @UniqueByteRepresented
-    RingElementVector store; // number of points that the token currently stores (initially 0), v in the 2020 paper
+    RingElementVector points; // number of points that the token currently stores (initially 0), v in the 2020 paper
 
     @NonFinal
     @UniqueByteRepresented
@@ -87,7 +87,7 @@ public class Token implements Representable, UniqueByteRepresentable {
 
     @Override
     public ByteAccumulator updateAccumulator(ByteAccumulator accumulator) {
-        store.stream().forEachOrdered(k -> accumulator.escapeAndSeparate(k.getUniqueByteRepresentation()));
+        points.stream().forEachOrdered(k -> accumulator.escapeAndSeparate(k.getUniqueByteRepresentation()));
         accumulator.escapeAndSeparate(this.commitment0.getUniqueByteRepresentation());
         accumulator.escapeAndSeparate(this.commitment1.getUniqueByteRepresentation());
         accumulator.escapeAndSeparate(this.doubleSpendRandomness0.getUniqueByteRepresentation());

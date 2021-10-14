@@ -71,8 +71,8 @@ public class CreditEarnTest {
 
         for (int i = 0; i < promotionParameters.getStoreSize(); i++) {
             assertEquals(
-                    newToken.getStore().get(i).asInteger(),
-                    token.getStore().get(i).asInteger().add(earnAmount.get(i))
+                    newToken.getPoints().get(i).asInteger(),
+                    token.getPoints().get(i).asInteger().add(earnAmount.get(i))
             );
         }
 

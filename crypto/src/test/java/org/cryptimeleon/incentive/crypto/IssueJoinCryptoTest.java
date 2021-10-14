@@ -61,6 +61,6 @@ public class IssueJoinCryptoTest {
                 testOutput.getCommitment0(),
                 testOutput.getCommitment1(),
                 testOutput.getCommitment1().pow(promotionParameters.getPromotionId())));
-        Assertions.assertTrue(testOutput.getStore().stream().allMatch(e -> e.asInteger().compareTo(BigInteger.ZERO) == 0));
+        Assertions.assertTrue(testOutput.getPoints().stream().allMatch(e -> e.asInteger().compareTo(BigInteger.ZERO) == 0));
     }
 }

@@ -28,7 +28,7 @@ public class Helper {
                                ProviderKeyPair providerKeyPair,
                                PromotionParameters promotionParameters,
                                Vector<BigInteger> points) {
-        var vectorH = Util.constructH(providerKeyPair.getPk(), pp, promotionParameters);
+        var vectorH = providerKeyPair.getPk().getH(pp, promotionParameters);
         var zp = pp.getBg().getZn();
         // Manually create a token since issue-join is not yet implemented
         var encryptionSecretKey = zp.getUniformlyRandomNonzeroElement();

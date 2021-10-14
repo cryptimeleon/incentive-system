@@ -7,7 +7,6 @@ import org.cryptimeleon.craco.protocols.arguments.sigma.ZnChallengeSpace;
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.DelegateProtocol;
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.LinearStatementFragment;
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.SendThenDelegateFragment;
-import org.cryptimeleon.incentive.crypto.Util;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.math.structures.cartesian.ExponentExpressionVector;
@@ -49,7 +48,7 @@ public class CommitmentWellformednessProtocol extends DelegateProtocol {
     protected SendThenDelegateFragment.SubprotocolSpec provideSubprotocolSpec(CommonInput commonInput, SendThenDelegateFragment.SubprotocolSpecBuilder builder) {
         // read out all values from provider public key and public parameters that are used in the statements to prove
         var w = this.pp.getW();
-        var H = new GroupElementExpressionVector(Util.constructStorelessH(pk, pp).map(GroupElement::expr));
+        var H = new GroupElementExpressionVector(pk.getTokenMetadataH(pp).map(GroupElement::expr));
         var g1 = this.pp.getG1Generator();
 
 

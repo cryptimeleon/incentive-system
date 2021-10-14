@@ -78,7 +78,7 @@ public class FullWorkflowTest extends IncentiveSystemIntegrationTest {
                 token,
                 providerPublicKey,
                 userKeyPair);
-        Assertions.assertEquals(newToken.getStore().get(0).asInteger().longValueExact(), basket.getValue());
+        Assertions.assertEquals(newToken.getPoints().get(0).asInteger().longValueExact(), basket.getValue());
 
         logger.info("Second earn with paid basket and same request should succeed");
         creditClient.sendEarnRequest(serializedEarnRequest, basket.getBasketID()).block();
