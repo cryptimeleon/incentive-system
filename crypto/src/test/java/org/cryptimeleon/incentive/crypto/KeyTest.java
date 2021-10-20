@@ -19,7 +19,7 @@ public class KeyTest {
 
     @Test
     void testProviderKeyPair() {
-        var pp = IncentiveSystem.setup(128, Setup.BilinearGroupChoice.Debug);
+        var pp = IncentiveSystem.setup(512, Setup.BilinearGroupChoice.Debug);
         var incentiveSystem = new IncentiveSystem(pp);
         var providerKeyPair = incentiveSystem.generateProviderKeys();
 
