@@ -79,21 +79,16 @@ class TokenPointsRangeProofTest {
         zn = pp.getBg().getZn();
 
         witness = new SpendDeductZkpWitnessInput(
+                token,
                 userKey.getSk().getUsk(),
-                token.getZ(),
-                zn.getUniformlyRandomElement(),
-                token.getT(),
                 zn.getUniformlyRandomElement(),
                 zn.getUniformlyRandomElement(),
-                token.getEncryptionSecretKey(),
                 zn.getUniformlyRandomElement(),
-                token.getDoubleSpendRandomness0(),
                 zn.getUniformlyRandomElement(),
-                token.getDoubleSpendRandomness1(),
+                zn.getUniformlyRandomElement(),
                 zn.getUniformlyRandomElement(),
                 RingElementVector.of(zn.getUniformlyRandomElement()),
-                RingElementVector.of(zn.getUniformlyRandomElement()),
-                token.getPoints()
+                RingElementVector.of(zn.getUniformlyRandomElement())
         );
         gamma = zn.getUniformlyRandomElement();
         commonInput = new SpendDeductZkpCommonInput(

@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.crypto.model.proofs;
+package org.cryptimeleon.incentive.crypto.proof.wellformedness;
 
 import lombok.AllArgsConstructor;
 import org.cryptimeleon.craco.protocols.CommonInput;

@@ -1,8 +1,8 @@
 package org.cryptimeleon.incentive.crypto.proof;
 
-public abstract class SpendDeductOrNode extends SpendDeductTree {
-
-    abstract SpendDeductTree getLeft();
-
-    abstract SpendDeductTree getRight();
+public class SpendDeductOrNode extends SpendDeductBinaryNode {
+    SpendDeductOrNode(SpendDeductTree left, SpendDeductTree right) {
+        this.left = left;
+        this.right = right;
+    }
 }

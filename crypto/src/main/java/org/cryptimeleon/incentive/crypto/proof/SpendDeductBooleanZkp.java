@@ -7,6 +7,8 @@ import org.cryptimeleon.craco.protocols.arguments.sigma.ZnChallengeSpace;
 import org.cryptimeleon.craco.protocols.arguments.sigma.partial.ProofOfPartialKnowledge;
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.SendFirstValue;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
+import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
+import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.math.expressions.bool.BooleanExpression;
 import org.cryptimeleon.math.serialization.Representation;
 
@@ -14,10 +16,14 @@ public class SpendDeductBooleanZkp extends ProofOfPartialKnowledge {
 
     private SpendDeductTree spendDeductTree;
     private IncentivePublicParameters pp;
+    private PromotionParameters promotionParameters;
+    private ProviderPublicKey providerPublicKey;
 
-    public SpendDeductBooleanZkp(SpendDeductTree spendDeductTree, IncentivePublicParameters pp) {
+    public SpendDeductBooleanZkp(SpendDeductTree spendDeductTree, IncentivePublicParameters pp, PromotionParameters promotionParameters, ProviderPublicKey providerPublicKey) {
         this.spendDeductTree = spendDeductTree;
         this.pp = pp;
+        this.promotionParameters = promotionParameters;
+        this.providerPublicKey = providerPublicKey;
     }
 
     private ProtocolTree generateProtocolTree(CommonInput commonInput, SendFirstValue sendFirstValue) {
@@ -41,7 +47,7 @@ public class SpendDeductBooleanZkp extends ProofOfPartialKnowledge {
             SpendDeductLeafNode spendDeductLeafNode = (SpendDeductLeafNode) spendDeductTree;
             return leaf(
                     spendDeductLeafNode.getLeafName(),
-                    spendDeductLeafNode.getProtocol(),
+                    spendDeductLeafNode.getProtocol(this.pp, this.promotionParameters, this.providerPublicKey),
                     commonInput
             );
         } else {
@@ -65,7 +71,7 @@ public class SpendDeductBooleanZkp extends ProofOfPartialKnowledge {
         } else if (spendDeductTree instanceof SpendDeductLeafNode) {
             SpendDeductLeafNode spendDeductLeafNode = (SpendDeductLeafNode) spendDeductTree;
             if (spendDeductLeafNode.isTrue()) {
-                builder.putSecretInput(spendDeductLeafNode.getLeafName(), spendDeductLeafNode.getWitness());
+                builder.putSecretInput(spendDeductLeafNode.getLeafName(), secretInput);
             }
         } else {
             throw new RuntimeException("Unexpected instance of SpendDeductTree found!");
