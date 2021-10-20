@@ -55,6 +55,16 @@ public class SpendRequest implements Representable {
     @NonFinal
     SPSEQSignature sigma;
 
+    /**
+     * A constructor for the spend request based on a representation and additional data required to retrieve the
+     * original values.
+     *
+     * @param repr representation of the spend request
+     * @param pp public parameters
+     * @param fiatShamirProofSystem the fiat shamir proof system used to create the proof to be restored
+     * @param deltaK a vector that determines the point updates
+     * @param tid the transaction id
+     */
     public SpendRequest(Representation repr, IncentivePublicParameters pp, FiatShamirProofSystem fiatShamirProofSystem, Vector<BigInteger> deltaK, Zn.ZnElement tid) {
         var listRepr = repr.list();
         var zn = pp.getBg().getZn();
