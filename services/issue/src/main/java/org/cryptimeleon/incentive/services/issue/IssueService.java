@@ -36,6 +36,8 @@ public class IssueService {
         var providerPublicKey = cryptoRepository.getProviderPublicKey();
         var providerSecretKey = cryptoRepository.getProviderSecretKey();
         var incentiveSystem = cryptoRepository.getIncentiveSystem();
+        // TODO this will be replaced by promotion parameters provided by the promotion service
+        var legacyPromotionParameters = incentiveSystem.legacyPromotionParameters();
 
         JSONConverter jsonConverter = new JSONConverter();
 
@@ -43,7 +45,7 @@ public class IssueService {
         FiatShamirProofSystem cwfProofSystem = new FiatShamirProofSystem(new CommitmentWellformednessProtocol(pp, providerPublicKey));
         JoinRequest joinRequest = new JoinRequest(jsonConverter.deserialize(serializedJoinRequest), pp, userPublicKey, cwfProofSystem);
         ProviderKeyPair providerKeyPair = new ProviderKeyPair(providerSecretKey, providerPublicKey);
-        JoinResponse joinResponse = incentiveSystem.generateJoinRequestResponse(providerKeyPair, userPublicKey.getUpk(), joinRequest);
+        JoinResponse joinResponse = incentiveSystem.generateJoinRequestResponse(legacyPromotionParameters, providerKeyPair, userPublicKey.getUpk(), joinRequest);
         return jsonConverter.serialize(joinResponse.getRepresentation());
     }
 }

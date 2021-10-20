@@ -6,13 +6,13 @@ import lombok.experimental.NonFinal;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.math.hash.ByteAccumulator;
 import org.cryptimeleon.math.hash.UniqueByteRepresentable;
-import org.cryptimeleon.math.hash.annotations.AnnotatedUbrUtil;
 import org.cryptimeleon.math.hash.annotations.UniqueByteRepresented;
 import org.cryptimeleon.math.serialization.Representable;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.annotations.ReprUtil;
 import org.cryptimeleon.math.serialization.annotations.Represented;
 import org.cryptimeleon.math.structures.groups.GroupElement;
+import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
 import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
 
 /**
@@ -60,7 +60,12 @@ public class Token implements Representable, UniqueByteRepresentable {
     @NonFinal
     @Represented(restorer = "Zn")
     @UniqueByteRepresented
-    ZnElement points; // number of points that the token currently stores (initially 0), v in the 2020 paper
+    ZnElement promotionId;
+
+    @NonFinal
+    @Represented(restorer = "Zn")
+    @UniqueByteRepresented
+    RingElementVector points; // number of points that the token currently stores (initially 0), v in the 2020 paper
 
     @NonFinal
     @UniqueByteRepresented
@@ -82,7 +87,17 @@ public class Token implements Representable, UniqueByteRepresentable {
 
     @Override
     public ByteAccumulator updateAccumulator(ByteAccumulator accumulator) {
-        return AnnotatedUbrUtil.autoAccumulate(accumulator, this);
+        points.stream().forEachOrdered(k -> accumulator.escapeAndSeparate(k.getUniqueByteRepresentation()));
+        accumulator.escapeAndSeparate(this.commitment0.getUniqueByteRepresentation());
+        accumulator.escapeAndSeparate(this.commitment1.getUniqueByteRepresentation());
+        accumulator.escapeAndSeparate(this.doubleSpendRandomness0.getUniqueByteRepresentation());
+        accumulator.escapeAndSeparate(this.doubleSpendRandomness1.getUniqueByteRepresentation());
+        accumulator.escapeAndSeparate(this.encryptionSecretKey.getUniqueByteRepresentation());
+        accumulator.escapeAndSeparate(this.signature.getUniqueByteRepresentation());
+        accumulator.escapeAndSeparate(this.promotionId.getUniqueByteRepresentation());
+        accumulator.escapeAndSeparate(this.z.getUniqueByteRepresentation());
+        accumulator.escapeAndSeparate(this.t.getUniqueByteRepresentation());
+        return accumulator;
     }
 }
 

@@ -96,6 +96,6 @@ public class IncentivePublicParameters implements PublicParameters {
      * Some initialization of redundant values
      */
     private void init() {
-        numEskDigits = IntegerRing.decomposeIntoDigits(bg.getZn().getCharacteristic(), eskDecBase.getInteger()).length;
+        numEskDigits = IntegerRing.decomposeIntoDigits(bg.getZn().getCharacteristic(), eskDecBase.asInteger()).length;
     }
 }

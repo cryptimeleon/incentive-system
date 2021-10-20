@@ -7,6 +7,7 @@ import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
+import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -43,6 +44,7 @@ public class FullWorkflowTest extends IncentiveSystemIntegrationTest {
                 publicParameters.getSpsEq(),
                 publicParameters.getBg().getG1());
         var incentiveSystem = new IncentiveSystem(publicParameters);
+        var promotionParameters = incentiveSystem.legacyPromotionParameters();
         var userKeyPair = incentiveSystem.generateUserKeys();
 
         logger.info("Send join request to server and retrieve token");
@@ -52,7 +54,7 @@ public class FullWorkflowTest extends IncentiveSystemIntegrationTest {
                 jsonConverter.serialize(userKeyPair.getPk().getRepresentation())
         ).block(Duration.ofSeconds(1));
         var joinResponse = new JoinResponse(jsonConverter.deserialize(serializedJoinResponse), publicParameters);
-        var token = incentiveSystem.handleJoinRequestResponse(providerPublicKey, userKeyPair, joinRequest, joinResponse);
+        var token = incentiveSystem.handleJoinRequestResponse(promotionParameters, providerPublicKey, userKeyPair, joinRequest, joinResponse);
 
         logger.info("Create basket for testing credit-earn");
         var basket = TestHelper.createBasketWithItems(basketUrl);
@@ -68,13 +70,15 @@ public class FullWorkflowTest extends IncentiveSystemIntegrationTest {
         var serializedEarnRequest = jsonConverter.serialize(earnRequest.getRepresentation());
         var serializedSignature = creditClient.sendEarnRequest(serializedEarnRequest, basket.getBasketID()).block();
         var signature = new SPSEQSignature(jsonConverter.deserialize(serializedSignature), publicParameters.getBg().getG1(), publicParameters.getBg().getG2());
-        var newToken = incentiveSystem.handleEarnRequestResponse(earnRequest,
+        var newToken = incentiveSystem.handleEarnRequestResponse(
+                promotionParameters,
+                earnRequest,
                 signature,
-                BigInteger.valueOf(basket.getValue()),
+                Vector.of(BigInteger.valueOf(basket.getValue())),
                 token,
                 providerPublicKey,
                 userKeyPair);
-        Assertions.assertEquals(newToken.getPoints().asInteger().longValueExact(), basket.getValue());
+        Assertions.assertEquals(newToken.getPoints().get(0).asInteger().longValueExact(), basket.getValue());
 
         logger.info("Second earn with paid basket and same request should succeed");
         creditClient.sendEarnRequest(serializedEarnRequest, basket.getBasketID()).block();

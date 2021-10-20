@@ -16,6 +16,7 @@ import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey
 import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse
 import org.cryptimeleon.math.serialization.converter.JSONConverter
+import org.cryptimeleon.math.structures.cartesian.Vector
 import timber.log.Timber
 import java.math.BigInteger
 import java.util.UUID
@@ -59,6 +60,7 @@ class CryptoRepository(
         val incentiveSystem = cryptoMaterial.incentiveSystem
         val providerPublicKey = cryptoMaterial.ppk
         val userKeyPair = cryptoMaterial.ukp
+        val promotionParameters = incentiveSystem.legacyPromotionParameters()
 
         val joinRequest = incentiveSystem.generateJoinRequest(providerPublicKey, userKeyPair)
         val joinResponse = issueJoinApiService.runIssueJoin(
@@ -67,6 +69,7 @@ class CryptoRepository(
         )
 
         val token = incentiveSystem.handleJoinRequestResponse(
+            promotionParameters,
             providerPublicKey,
             userKeyPair,
             joinRequest,
@@ -89,6 +92,7 @@ class CryptoRepository(
         val incentiveSystem = cryptoMaterial.incentiveSystem
         val providerPublicKey = cryptoMaterial.ppk
         val userKeyPair = cryptoMaterial.ukp
+        val promotionParameters = incentiveSystem.legacyPromotionParameters()
 
         val earnRequest =
             incentiveSystem.generateEarnRequest(token, providerPublicKey, userKeyPair)
@@ -101,13 +105,14 @@ class CryptoRepository(
 
         // The basket service computes the value in the backend, so no need to send it over the wire
         val newToken = incentiveSystem.handleEarnRequestResponse(
+            promotionParameters,
             earnRequest,
             SPSEQSignature(
                 jsonConverter.deserialize(earnResponse.body()),
                 pp.bg.g1,
                 pp.bg.g2
             ),
-            BigInteger.valueOf(basketValue.toLong()),
+            Vector.of(BigInteger.valueOf(basketValue.toLong())),
             token,
             providerPublicKey,
             userKeyPair
