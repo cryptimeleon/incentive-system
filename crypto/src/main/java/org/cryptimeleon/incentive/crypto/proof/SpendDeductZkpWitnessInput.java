@@ -24,5 +24,5 @@ public class SpendDeductZkpWitnessInput implements SecretInput {
     public final Zn.ZnElement dsrndStar1;
     public final RingElementVector eskStarUserDec;
     public final RingElementVector rVector;
-    public final RingElementVector store;
+    public final RingElementVector pointsVector;
 }

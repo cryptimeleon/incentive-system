@@ -69,7 +69,7 @@ public class CreditEarnTest {
         var restoredSignature = new SPSEQSignature(signature.getRepresentation(), pp.getBg().getG1(), pp.getBg().getG2());
         assertEquals(signature, restoredSignature);
 
-        for (int i = 0; i < promotionParameters.getStoreSize(); i++) {
+        for (int i = 0; i < promotionParameters.getPointsVectorSize(); i++) {
             assertEquals(
                     newToken.getPoints().get(i).asInteger(),
                     token.getPoints().get(i).asInteger().add(earnAmount.get(i))

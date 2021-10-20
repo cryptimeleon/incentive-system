@@ -20,7 +20,7 @@ public class Helper {
                 userKeyPair,
                 providerKeyPair,
                 promotionParameters,
-                Vector.iterate(BigInteger.valueOf(0), v -> v, promotionParameters.getStoreSize()));
+                Vector.iterate(BigInteger.valueOf(0), v -> v, promotionParameters.getPointsVectorSize()));
     }
 
     static Token generateToken(IncentivePublicParameters pp,

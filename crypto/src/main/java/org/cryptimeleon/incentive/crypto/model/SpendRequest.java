@@ -70,6 +70,7 @@ public class SpendRequest implements Representable {
         this.cTrace0 = groupG1.restoreVector(listRepr.get(6));
         this.cTrace1 = groupG1.restoreVector(listRepr.get(7));
 
+        // Updates on every each point
         var K = new RingElementVector(deltaK.map(k -> pp.getBg().getG1().getZn().createZnElement(k)));
 
         var gamma = Util.hashGamma(zn, K, dsid, tid, cPre0, cPre1);

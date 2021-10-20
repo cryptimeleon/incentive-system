@@ -60,7 +60,7 @@ public class SpendDeductZkp extends DelegateProtocol {
         var uStarInverseVar = builder.addZnVariable("uStarInverse", zn);
         var eskDecVarVector = ExponentExpressionVector.generate(i -> builder.addZnVariable("eskStarUserDec_" + i, zn), pp.getNumEskDigits());
         var rVector = ExponentExpressionVector.generate(i -> builder.addZnVariable("r_" + i, zn), pp.getNumEskDigits());
-        var storeVector = ExponentExpressionVector.generate(i -> builder.addZnVariable("store_" + i, zn), promotionParameters.getStoreSize());
+        var pointsVector = ExponentExpressionVector.generate(i -> builder.addZnVariable("points_" + i, zn), promotionParameters.getPointsVectorSize());
         var K = commonInput.K.map(ringElement -> (Zn.ZnElement) ringElement);
 
         // c0=usk*gamma+dsrnd0
@@ -81,7 +81,7 @@ public class SpendDeductZkp extends DelegateProtocol {
 
         // C=(H.pow(usk, esk, dsrnd_0, dsrnd_1, v, z, t),g_1) split into two subprotocols
         var commitmentC0Statement = H.innerProduct(
-                ExponentExpressionVector.of(tVar, uskVar, eskVar, dsrnd0Var, dsrnd1Var, zVar).concatenate(storeVector.map(e -> e))
+                ExponentExpressionVector.of(tVar, uskVar, eskVar, dsrnd0Var, dsrnd1Var, zVar).concatenate(pointsVector.map(e -> e))
         ).isEqualTo(commonInput.commitmentC0);
         builder.addSubprotocol("C0", new LinearStatementFragment(commitmentC0Statement));
         // C1=g is not sent and verified since no witness is involved.
@@ -96,7 +96,7 @@ public class SpendDeductZkp extends DelegateProtocol {
                 dsrndStar0Var,
                 dsrndStar1Var,
                 zStarVar
-        ).concatenate(storeVector.zip(ExponentExpressionVector.fromStream(K.stream().map(ExponentConstantExpr::new)), ExponentExpr::sub));
+        ).concatenate(pointsVector.zip(ExponentExpressionVector.fromStream(K.stream().map(ExponentConstantExpr::new)), ExponentExpr::sub));
         var cPre0Statement = H.innerProduct(exponents).isEqualTo(commonInput.c0Pre.pow(uStarInverseVar));
         builder.addSubprotocol("C0Pre", new LinearStatementFragment(cPre0Statement));
         builder.addSubprotocol("C1Pre", new LinearStatementFragment(commonInput.c1Pre.pow(uStarInverseVar).isEqualTo(pp.getG1Generator()))); // Use the inverse of uStar to linearize this expression
@@ -108,8 +108,8 @@ public class SpendDeductZkp extends DelegateProtocol {
 
         // v >= k (I have more points than required)
         // We prove that v-k\in[0,eskDecBase^{maxPointBasePower+1}-1] and reuse the SetMembershipParameters from the esk digit proof.
-        for (int i = 0; i < promotionParameters.getStoreSize(); i++) {
-            builder.addSubprotocol("v" + i + ">=k" + i, new SmallerThanPowerFragment(storeVector.get(i).sub(K.get(i)), pp.getEskDecBase().asInteger().intValue(), pp.getMaxPointBasePower(), pp.getEskBaseSetMembershipPublicParameters()));
+        for (int i = 0; i < promotionParameters.getPointsVectorSize(); i++) {
+            builder.addSubprotocol("v" + i + ">=k" + i, new SmallerThanPowerFragment(pointsVector.get(i).sub(K.get(i)), pp.getEskDecBase().asInteger().intValue(), pp.getMaxPointBasePower(), pp.getEskBaseSetMembershipPublicParameters()));
         }
 
         // ctrace=(w^{r_i} ,{w^{r_i}}^{esk}*w^{esk^*_{usr,i}}) for all i\in[p]
@@ -143,8 +143,8 @@ public class SpendDeductZkp extends DelegateProtocol {
             builder.putWitnessValue("r_" + i, (Zn.ZnElement) secretInput.rVector.get(i));
         }
 
-        for (int i = 0; i < promotionParameters.getStoreSize(); i++) {
-            builder.putWitnessValue("store_" + i, (Zn.ZnElement) secretInput.store.get(i));
+        for (int i = 0; i < promotionParameters.getPointsVectorSize(); i++) {
+            builder.putWitnessValue("points_" + i, (Zn.ZnElement) secretInput.pointsVector.get(i));
         }
 
         // Some asserts that might be useful for debugging:

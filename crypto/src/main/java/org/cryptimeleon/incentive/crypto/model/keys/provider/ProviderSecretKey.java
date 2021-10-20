@@ -52,7 +52,7 @@ public class ProviderSecretKey implements Representable {
      */
     public RingElementVector getTokenPointsQ(PromotionParameters promotionParameters) {
         // the -1 is because we do not know the DLOG q7 to h7 from the paper
-        return RingElementVector.fromStream(getQ().stream().skip(Setup.H_SIZE_WITHOUT_STORE - 1)).truncate(promotionParameters.getStoreSize());
+        return RingElementVector.fromStream(getQ().stream().skip(Setup.H_SIZE_WITHOUT_POINTS - 1)).truncate(promotionParameters.getPointsVectorSize());
     }
 
     @Override

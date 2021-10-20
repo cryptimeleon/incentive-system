@@ -59,7 +59,7 @@ public class SpendDeductTest {
                 providerKeyPair.getPk(),
                 userKeyPair);
 
-        for (int i = 0; i < promotionParameters.getStoreSize(); i++) {
+        for (int i = 0; i < promotionParameters.getPointsVectorSize(); i++) {
             assertEquals(newToken.getPoints().get(i).asInteger(), budget.get(i).subtract(k.get(i)));
         }
     }

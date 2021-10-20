@@ -45,7 +45,7 @@ public class ProviderPublicKey implements Representable {
      * @return vector H
      */
     public GroupElementVector getH(IncentivePublicParameters publicParameters, PromotionParameters promotionParameters) {
-        return getH().prepend(publicParameters.getH7()).truncate(Setup.H_SIZE_WITHOUT_STORE + promotionParameters.getStoreSize());
+        return getH().prepend(publicParameters.getH7()).truncate(Setup.H_SIZE_WITHOUT_POINTS + promotionParameters.getPointsVectorSize());
     }
 
     /**
@@ -56,7 +56,7 @@ public class ProviderPublicKey implements Representable {
      * @return metadata part of vector H
      */
     public GroupElementVector getTokenMetadataH(IncentivePublicParameters publicParameters) {
-        return getH().prepend(publicParameters.getH7()).truncate(Setup.H_SIZE_WITHOUT_STORE);
+        return getH().prepend(publicParameters.getH7()).truncate(Setup.H_SIZE_WITHOUT_POINTS);
     }
 
     /**
@@ -68,7 +68,7 @@ public class ProviderPublicKey implements Representable {
      */
     public GroupElementVector getTokenPointsH(PromotionParameters promotionParameters) {
         // the -1 is because we do not count h7 from the paper
-        return GroupElementVector.fromStream(getH().stream().skip(Setup.H_SIZE_WITHOUT_STORE - 1)).truncate(promotionParameters.getStoreSize());
+        return GroupElementVector.fromStream(getH().stream().skip(Setup.H_SIZE_WITHOUT_POINTS - 1)).truncate(promotionParameters.getPointsVectorSize());
     }
 
     @Override

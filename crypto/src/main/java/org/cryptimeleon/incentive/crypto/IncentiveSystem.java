@@ -65,8 +65,8 @@ public class IncentiveSystem {
         return Setup.userKeyGen(this.pp);
     }
 
-    public PromotionParameters generatePromotionParameters(int storeSize) {
-        return new PromotionParameters(this.pp.getBg().getZn().getUniformlyRandomElement(), storeSize);
+    public PromotionParameters generatePromotionParameters(int pointsVectorSize) {
+        return new PromotionParameters(this.pp.getBg().getZn().getUniformlyRandomElement(), pointsVectorSize);
     }
 
     @Deprecated
@@ -209,7 +209,7 @@ public class IncentiveSystem {
         // assemble and return token
         ZnElement esk = eskUsr.add(eskProv);
         Zn usedZn = pp.getBg().getZn();
-        RingElementVector zeros = RingElementVector.generate(usedZn::getZeroElement, promotionParameters.getStoreSize());
+        RingElementVector zeros = RingElementVector.generate(usedZn::getZeroElement, promotionParameters.getPointsVectorSize());
 
         return new Token(finalCommitment0, finalCommitment1, esk, dsrnd0, dsrnd1, z, t, promotionParameters.getPromotionId(), zeros, finalCert);
     }
@@ -359,7 +359,7 @@ public class IncentiveSystem {
      *
      * @param token             the token
      * @param providerPublicKey public key of the provider
-     * @param deltaK            amount to subtract from the token's store
+     * @param deltaK            amount to subtract from the token's points vector
      * @param userKeyPair       keypair of the user that owns the token
      * @param tid               transaction ID, provided by the provider
      * @return serializable spendRequest that can be sent to the provider

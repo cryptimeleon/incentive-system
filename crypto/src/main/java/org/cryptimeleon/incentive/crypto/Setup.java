@@ -50,11 +50,11 @@ public class Setup {
     // This is due to the CCS range proof used for v>=k in Spend-Deduct
     private static final int MAX_POINTS_BASE_POWER = 6;
 
-    // Determines the maximum size of a promotion's points vector under a providwer public key
+    // Determines the maximum size of a promotion's points vector under a provider public key
     private static final int MAX_POINTS_VECTOR_SIZE = 10;
 
     // The size of the metadata base vector of a token
-    public static final int H_SIZE_WITHOUT_STORE = 6;
+    public static final int H_SIZE_WITHOUT_POINTS = 6;
 
     /**
      * Generates public parameters from security parameter

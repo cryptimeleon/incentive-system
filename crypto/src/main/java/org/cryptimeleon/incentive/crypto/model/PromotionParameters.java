@@ -24,7 +24,7 @@ public class PromotionParameters implements Representable {
 
     @NonFinal
     @Represented
-    Integer storeSize;
+    Integer pointsVectorSize;
 
 
     public PromotionParameters(Zn zn, Representation repr) {
