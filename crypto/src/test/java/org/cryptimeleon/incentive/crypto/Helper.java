@@ -12,7 +12,7 @@ import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
 import java.math.BigInteger;
 
 public class Helper {
-    static Token generateToken(IncentivePublicParameters pp,
+    public static Token generateToken(IncentivePublicParameters pp,
                                UserKeyPair userKeyPair,
                                ProviderKeyPair providerKeyPair,
                                PromotionParameters promotionParameters) {
@@ -23,7 +23,7 @@ public class Helper {
                 Vector.iterate(BigInteger.valueOf(0), v -> v, promotionParameters.getPointsVectorSize()));
     }
 
-    static Token generateToken(IncentivePublicParameters pp,
+    public static Token generateToken(IncentivePublicParameters pp,
                                UserKeyPair userKeyPair,
                                ProviderKeyPair providerKeyPair,
                                PromotionParameters promotionParameters,

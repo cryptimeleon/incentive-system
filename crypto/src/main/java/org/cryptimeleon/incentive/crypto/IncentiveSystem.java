@@ -438,7 +438,7 @@ public class IncentiveSystem {
     public SpendProviderOutput generateSpendRequestResponse(PromotionParameters promotionParameters,
                                                             SpendRequest spendRequest,
                                                             ProviderKeyPair providerKeyPair,
-                                                            Vector<BigInteger> deltaK, //
+                                                            Vector<BigInteger> deltaK,
                                                             Zn.ZnElement tid) {
 
         var K = RingElementVector.fromStream(deltaK.stream().map(e -> pp.getBg().getZn().createZnElement(e)));
