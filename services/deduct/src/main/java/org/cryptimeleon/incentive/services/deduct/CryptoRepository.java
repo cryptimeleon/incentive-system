@@ -33,7 +33,7 @@ public class CryptoRepository {
     private IncentiveSystem incentiveSystem;
 
     @Getter
-    private IncentivePublicParameters pp; // TODO: better retrieved using getter than dedicated field?
+    private IncentivePublicParameters pp;
 
     @Getter
     private ProviderSecretKey sk;
@@ -42,7 +42,7 @@ public class CryptoRepository {
     private ProviderPublicKey pk;
 
     @Value("${provider.shared-secret}")
-    private String sharedSecret; // used to authenticate the request for the provider secret key (set via environment variable) // TODO: set this up in the docker compose file
+    private String sharedSecret; // used to authenticate the request for the provider secret key (set via environment variable)
 
     private InfoClient infoClient; // reference to the object handling the queries to the info service, set via dependency injection ("autowired") mechanism of Spring Boot
 
@@ -98,7 +98,7 @@ public class CryptoRepository {
             }
             catch (Exception e) {
                 // exceptions are caught and ignored until the final connection attempt has failed
-                if(i + 1 > MAX_TRIES) {
+                if(i + 1 >= MAX_TRIES) {
                     e.printStackTrace();
                 }
             }
