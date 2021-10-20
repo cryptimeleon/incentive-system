@@ -2,11 +2,16 @@ package org.cryptimeleon.incentivesystem.dsprotectionservice;
 
 import lombok.Getter;
 import org.cryptimeleon.incentive.client.InfoClient;
+import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
+import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
+import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderSecretKey;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;

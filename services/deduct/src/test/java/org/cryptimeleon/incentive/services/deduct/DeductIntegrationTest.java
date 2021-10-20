@@ -26,6 +26,7 @@ import static org.mockito.Mockito.when;
  * Integration test for the Deduct web service.
  * Basket and info service are mocked (means that their expected responses to requests are hard-coded).
  */
+// TODO: make a variant without dbsync call (allows for more precise testing, rest of deduct can work if dsprotection has problems)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class DeductIntegrationTest {
     @MockBean

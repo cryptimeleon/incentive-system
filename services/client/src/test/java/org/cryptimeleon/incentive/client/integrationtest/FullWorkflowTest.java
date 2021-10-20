@@ -21,6 +21,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 /**
  * Test a full (correct) protocol flow.
  */
+// TODO: also test deduct service
 public class FullWorkflowTest extends IncentiveSystemIntegrationTest {
 
     private Logger logger = LoggerFactory.getLogger(FullWorkflowTest.class);

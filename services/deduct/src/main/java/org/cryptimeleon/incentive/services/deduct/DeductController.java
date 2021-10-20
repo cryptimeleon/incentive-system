@@ -44,6 +44,8 @@ public class DeductController {
     @ResponseStatus(HttpStatus.FORBIDDEN)
     @ExceptionHandler(RuntimeException.class)
     public String handleRuntimeException(RuntimeException ex) {
+        System.out.println("handling runtime exception");
+        System.out.println(ex.getMessage());
         return ex.getMessage();
     }
 }
