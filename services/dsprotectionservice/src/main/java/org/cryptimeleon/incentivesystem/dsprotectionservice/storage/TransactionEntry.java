@@ -51,7 +51,7 @@ public class TransactionEntry {
         Transaction ta = new Transaction(taRepresentation, pp);
 
         // create transaction entry object
-        this.isValid = ta.isValid();
+        this.isValid = ta.getIsValid();
         this.serializedTransactionIDRepr = jsonConverter.serialize(ta.getTransactionID().getRepresentation());
         this.k = ta.getK().toString();
     }

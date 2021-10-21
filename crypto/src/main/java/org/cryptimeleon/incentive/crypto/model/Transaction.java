@@ -23,7 +23,7 @@ import java.math.BigInteger;
 public class Transaction implements Representable {
     @NonFinal
     @Represented
-    private boolean isValid;
+    private Boolean isValid;
 
     @NonFinal
     @Represented(restorer = "Zn")

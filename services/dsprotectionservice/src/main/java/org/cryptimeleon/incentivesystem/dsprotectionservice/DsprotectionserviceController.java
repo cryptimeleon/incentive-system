@@ -12,7 +12,10 @@ import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.groups.Group;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.jooq.DslContextDependsOnPostProcessor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +32,8 @@ import java.util.NoSuchElementException;
  */
 @RestController
 public class DsprotectionserviceController {
+    private Logger logger = LoggerFactory.getLogger(DsprotectionserviceController.class);
+
     @Autowired
     CryptoRepository cryptoRepository;
 
@@ -64,11 +69,17 @@ public class DsprotectionserviceController {
             @RequestHeader(value = "ta") String serializedTaRepr,
             @RequestBody String serializedDsTagRepr
     ) {
+        logger.info("Received add transaction request");
+
+        logger.info("Demarshalling data");
+
         // create transaction entry object
         TransactionEntry taEntry = new TransactionEntry(serializedTaRepr, cryptoRepository.getPp());
 
         // create double-spending tag entry object
         DsTagEntry dsTagEntry = new DsTagEntry(serializedDsTagRepr, cryptoRepository.getPp());
+
+        logger.info("Saving and linking data");
 
         // add double spending tag entry to database
         doubleSpendingTagRepository.save(dsTagEntry);
@@ -79,6 +90,8 @@ public class DsprotectionserviceController {
 
         // add transaction entry object (with linked dstag) to database
         transactionRepository.save(taEntry);
+
+        logger.info("About to respond to add transaction request");
 
         // return status
         return new ResponseEntity<String>("Successfully added transaction.", HttpStatus.OK);

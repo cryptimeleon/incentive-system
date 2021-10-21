@@ -37,7 +37,7 @@ public class CryptoRepository {
      * @param infoClient ref to object handling info service queries
      */
     @Autowired
-    private CryptoRepository(InfoClient infoClient) {
+    public CryptoRepository(InfoClient infoClient) {
         this.infoClient = infoClient;
     }
 

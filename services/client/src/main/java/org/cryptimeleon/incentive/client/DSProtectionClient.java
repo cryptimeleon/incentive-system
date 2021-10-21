@@ -10,7 +10,6 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 
