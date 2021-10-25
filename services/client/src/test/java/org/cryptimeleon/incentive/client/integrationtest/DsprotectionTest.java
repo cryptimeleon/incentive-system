@@ -20,6 +20,8 @@ public class DsprotectionTest {
      */
     @Test
     public void addTransactionTest() {
+        System.out.println("ADD TRANSACTION TEST");
+
         // create client
         var dsprotectionClient = new DSProtectionClient(dsprotectionUrl);
 
@@ -45,8 +47,11 @@ public class DsprotectionTest {
 
     @Test
     public void addTokenTest() {
+        System.out.println("ADD TOKEN TEST");
+
         // create client
-        var dsprotectionClient = new DSProtectionClient(dsprotectionUrl);
+        // TODO: URL hard-coded atm, since reading from application.properties does not seem to work.
+        var dsprotectionClient = new DSProtectionClient("http://localhost:8004");
 
         // generate public parameters for implicit incentive system instance
         IncentivePublicParameters pp = Setup.trustedSetup(512, Setup.BilinearGroupChoice.Debug);

@@ -45,7 +45,7 @@ public class DeductController {
     @ExceptionHandler(RuntimeException.class)
     public String handleRuntimeException(RuntimeException ex) {
         System.out.println("handling runtime exception");
-        System.out.println(ex.getMessage());
+        System.out.println("message is: " + ex.getMessage());
         return ex.getMessage();
     }
 }

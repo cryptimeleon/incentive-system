@@ -71,13 +71,13 @@ public class DeductService {
         DeductOutput deductOutput = incentiveSystem.generateSpendRequestResponse(spendRequest, providerKeyPair, spendAmount, transactionId);
 
         // adding the generated transaction data to the double-spending database
-        incentiveSystem.dbSync(
+        /**incentiveSystem.dbSync(
                     transactionId,
                     spendRequest.getDsid(),
                     deductOutput.getDstag(),
                     spendAmount,
                     dsProtectionClient
-                );
+                );*/ // TODO: uncomment once dsprotection service works
 
         /**
          * TODO: interaction with basket and promotion service to add a special item to the basket and check whether user can afford reward ("this item certifies that the user receives a teddy bear")

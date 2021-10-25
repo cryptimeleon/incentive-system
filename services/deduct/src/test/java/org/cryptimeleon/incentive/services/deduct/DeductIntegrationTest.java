@@ -136,7 +136,7 @@ public class DeductIntegrationTest {
             logger.info("Deserializing...");
             var spendResponseRepresentation = jsonConverter.deserialize(serializedSpendResponse);
             var spendResponse = new SpendResponse(spendResponseRepresentation, pp.getBg().getZn(), pp.getSpsEq());
-            logger.info(spendResponse.toString());
+            logger.info("spend response: " + spendResponse.toString());
             logger.info("Done");
 
             // handle spend response
