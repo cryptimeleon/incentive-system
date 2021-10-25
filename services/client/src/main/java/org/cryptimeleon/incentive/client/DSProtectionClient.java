@@ -47,6 +47,7 @@ public class DSProtectionClient implements DatabaseHandler {
     public static final String RETRIEVE_ALL_TRANSACTIONS_PATH = "/retrieveallta";
 
     public DSProtectionClient(String dsProtectionServiceURL) {
+        System.out.println("Creating a client that sends queries to " + dsProtectionServiceURL);
         this.dsProtectionClient = WebClientHelper.buildWebClient(dsProtectionServiceURL);
     }
 
@@ -66,9 +67,9 @@ public class DSProtectionClient implements DatabaseHandler {
         Mono<String> addTransactionRequestResponse = this.dsProtectionClient.post() // do a POST request
                 .uri(uriBuilder -> uriBuilder.path(ADD_TRANSACTION_PATH).build()) // construct URI the request should go to
                 .header("ta", serializedTransactionRepr) // add the transaction to add to the database to the respective header
-                .bodyValue(serializedDsTagRepr)
+                .bodyValue(serializedDsTagRepr) // add the dstag to the body
                 .retrieve() // actually make the request
-                .bodyToMono(String.class); // convert the response body
+                .bodyToMono(String.class);
 
         // return response
         return addTransactionRequestResponse.block();
