@@ -172,7 +172,6 @@ public class Benchmark {
                     promotionParameters,
                     spendRequest,
                     providerKeyPair,
-                    EARN_SPEND_AMOUNT,
                     tid
             );
             finish = Instant.now();

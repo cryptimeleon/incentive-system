@@ -13,8 +13,12 @@ import org.cryptimeleon.incentive.crypto.model.Token;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
+import org.cryptimeleon.incentive.crypto.proof.spend.MetadataZkp;
+import org.cryptimeleon.incentive.crypto.proof.spend.SpendDeductZkpCommonInput;
+import org.cryptimeleon.incentive.crypto.proof.spend.SpendDeductZkpWitnessInput;
+import org.cryptimeleon.incentive.crypto.proof.spend.TokenPointsRangeProof;
+import org.cryptimeleon.incentive.crypto.proof.spend.tree.*;
 import org.cryptimeleon.math.structures.cartesian.Vector;
-import org.cryptimeleon.math.structures.rings.RingElement;
 import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
 import org.cryptimeleon.math.structures.rings.integers.IntegerRing;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
@@ -47,20 +51,13 @@ class SpendDeductBooleanZkpTest {
             BigInteger.valueOf(3),
             null
     };
-
-    BigInteger[] invalidLowerLimits = {
-            BigInteger.valueOf(4),
-            null,
-            null,
-            null
-    };
     BigInteger[] invalidUpperLimits = {
             BigInteger.valueOf(2),
             null,
             null,
             null
     };
-    BigInteger[] spendAmounts = {
+    BigInteger[] newPoints = {
             BigInteger.valueOf(2),
             BigInteger.valueOf(1),
             BigInteger.valueOf(0),
@@ -84,9 +81,10 @@ class SpendDeductBooleanZkpTest {
             this.name = name;
         }
 
-        private BigInteger[] lowerLimits, upperLimits;
-        private Boolean isTrue;
-        private String name;
+        private final BigInteger[] lowerLimits;
+        private final BigInteger[] upperLimits;
+        private final Boolean isTrue;
+        private final String name;
 
         @Override
         public SigmaProtocol getProtocol(IncentivePublicParameters pp, PromotionParameters promotionParameters, ProviderPublicKey providerPublicKey) {
@@ -104,11 +102,11 @@ class SpendDeductBooleanZkpTest {
         }
     }
 
-    private class TestClassicSpendDeductLeafNode extends SpendDeductLeafNode {
+    private static class TestClassicSpendDeductLeafNode extends SpendDeductLeafNode {
 
         @Override
         public SigmaProtocol getProtocol(IncentivePublicParameters pp, PromotionParameters promotionParameters, ProviderPublicKey providerPublicKey) {
-            return new SpendDeductZkp(pp, providerPublicKey, promotionParameters);
+            return new MetadataZkp(pp, providerPublicKey, promotionParameters);
         }
 
         @Override
@@ -231,7 +229,7 @@ class SpendDeductBooleanZkpTest {
         var dsid = pp.getW().pow(esk);
         var vectorH = providerKey.getPk().getH(this.pp, promotion);
         var vectorR = zp.getUniformlyRandomElements(pp.getNumEskDigits());
-        var K = RingElementVector.fromStream(Arrays.stream(spendAmounts).map(e -> pp.getBg().getZn().createZnElement(e)));
+        var newPointsVector = RingElementVector.fromStream(Arrays.stream(newPoints).map(e -> pp.getBg().getZn().createZnElement(e)));
         var tid = zn.getUniformlyRandomElement();
 
 
@@ -246,14 +244,14 @@ class SpendDeductBooleanZkpTest {
         Zn.ZnElement uS = (Zn.ZnElement) prfZnElements.get(5);
 
         // Prepare a new commitment (cPre0, cPre1) based on the pseudorandom values
-        var exponents = new RingElementVector(tS, usk, eskUsrS, dsrnd0S, dsrnd1S, zS).concatenate(token.getPoints().zip(K, RingElement::sub));
+        var exponents = new RingElementVector(tS, usk, eskUsrS, dsrnd0S, dsrnd1S, zS).concatenate(newPointsVector);
         var cPre0 = vectorH.innerProduct(exponents).pow(uS).compute();
         var cPre1 = pp.getG1Generator().pow(uS).compute();
 
         /* Enable double-spending-protection by forcing usk and esk becoming public in that case
            If token is used twice in two different transactions, the provider observes (c0,c1), (c0',c1') with gamma!=gamma'
            Hence, the provider can easily retrieve usk and esk (using the Schnorr-trick, computing (c0-c0')/(gamma-gamma') for usk, analogously for esk). */
-        var gamma = Util.hashGamma(zp, K, dsid, tid, cPre0, cPre1);
+        var gamma = Util.hashGamma(zp, dsid, tid, cPre0, cPre1);
         var c0 = usk.mul(gamma).add(token.getDoubleSpendRandomness0());
         var c1 = esk.mul(gamma).add(token.getDoubleSpendRandomness1());
 
@@ -270,8 +268,8 @@ class SpendDeductBooleanZkpTest {
         var cTrace1 = cTrace0.pow(esk).op(pp.getW().pow(eskUsrSDec)).compute();
 
         /* Build noninteractive (Fiat-Shamir transformed) ZKP to ensure that the user follows the rules of the protocol */
-        var witness = new SpendDeductZkpWitnessInput(usk, token.getZ(), zS, token.getT(), tS, uS, esk, eskUsrS, token.getDoubleSpendRandomness0(), dsrnd0S, token.getDoubleSpendRandomness1(), dsrnd1S, eskUsrSDec, vectorR, token.getPoints());
-        var commonInput = new SpendDeductZkpCommonInput(gamma, c0, c1, dsid, cPre0, cPre1, token.getCommitment0(), cTrace0, cTrace1, K);
+        var witness = new SpendDeductZkpWitnessInput(usk, token.getZ(), zS, token.getT(), tS, uS, esk, eskUsrS, token.getDoubleSpendRandomness0(), dsrnd0S, token.getDoubleSpendRandomness1(), dsrnd1S, eskUsrSDec, vectorR, token.getPoints(), newPointsVector);
+        var commonInput = new SpendDeductZkpCommonInput(gamma, c0, c1, dsid, cPre0, cPre1, token.getCommitment0(), cTrace0, cTrace1);
         return new SpendZkpTestSuite(witness, commonInput);
     }
 

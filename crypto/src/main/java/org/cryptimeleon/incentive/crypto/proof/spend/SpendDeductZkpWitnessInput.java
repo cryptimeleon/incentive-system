@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.crypto.proof;
+package org.cryptimeleon.incentive.crypto.proof.spend;
 
 import lombok.AllArgsConstructor;
 import org.cryptimeleon.craco.protocols.SecretInput;
@@ -26,6 +26,7 @@ public class SpendDeductZkpWitnessInput implements SecretInput {
     public final RingElementVector eskStarUserDec;
     public final RingElementVector rVector;
     public final RingElementVector pointsVector;
+    public final RingElementVector newPointsVector;
 
 
     public SpendDeductZkpWitnessInput(Token token,
@@ -37,7 +38,9 @@ public class SpendDeductZkpWitnessInput implements SecretInput {
                                       Zn.ZnElement dsrndStar0,
                                       Zn.ZnElement dsrndStar1,
                                       RingElementVector eskStarUserDec,
-                                      RingElementVector rVector) {
+                                      RingElementVector rVector,
+                                      RingElementVector newPointsVector
+    ) {
         this.z = token.getZ();
         this.t = token.getT();
         this.esk = token.getEncryptionSecretKey();
@@ -53,5 +56,6 @@ public class SpendDeductZkpWitnessInput implements SecretInput {
         this.dsrndStar1 = dsrndStar1;
         this.eskStarUserDec = eskStarUserDec;
         this.rVector = rVector;
+        this.newPointsVector = newPointsVector;
     }
 }

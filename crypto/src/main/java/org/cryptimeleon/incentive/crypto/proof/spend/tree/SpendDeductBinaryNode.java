@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.crypto.proof;
+package org.cryptimeleon.incentive.crypto.proof.spend.tree;
 
 public abstract class SpendDeductBinaryNode extends SpendDeductTree {
     protected SpendDeductTree left, right;

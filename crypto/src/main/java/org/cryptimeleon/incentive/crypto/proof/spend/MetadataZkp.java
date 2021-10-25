@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.crypto.proof;
+package org.cryptimeleon.incentive.crypto.proof.spend;
 
 import org.cryptimeleon.craco.protocols.CommonInput;
 import org.cryptimeleon.craco.protocols.SecretInput;
@@ -8,12 +8,9 @@ import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.LinearExponentSt
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.LinearStatementFragment;
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.SendThenDelegateFragment;
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.setmembership.SetMembershipFragment;
-import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.setmembership.SmallerThanPowerFragment;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
-import org.cryptimeleon.math.expressions.exponent.ExponentConstantExpr;
-import org.cryptimeleon.math.expressions.exponent.ExponentExpr;
 import org.cryptimeleon.math.structures.cartesian.ExponentExpressionVector;
 import org.cryptimeleon.math.structures.cartesian.GroupElementExpressionVector;
 import org.cryptimeleon.math.structures.cartesian.Vector;
@@ -25,14 +22,14 @@ import java.math.BigInteger;
 /**
  * The ZKP used in the spend-deduct protocol
  */
-public class SpendDeductZkp extends DelegateProtocol {
+public class MetadataZkp extends DelegateProtocol {
 
     private final IncentivePublicParameters pp;
     private final Zn zn;
     private final ProviderPublicKey providerPublicKey;
     private final PromotionParameters promotionParameters;
 
-    public SpendDeductZkp(IncentivePublicParameters incentivePublicParameters, ProviderPublicKey providerPublicKey, PromotionParameters promotionParameters) {
+    public MetadataZkp(IncentivePublicParameters incentivePublicParameters, ProviderPublicKey providerPublicKey, PromotionParameters promotionParameters) {
         this.providerPublicKey = providerPublicKey;
         this.pp = incentivePublicParameters;
         this.zn = incentivePublicParameters.getBg().getZn();
@@ -61,7 +58,7 @@ public class SpendDeductZkp extends DelegateProtocol {
         var eskDecVarVector = ExponentExpressionVector.generate(i -> builder.addZnVariable("eskStarUserDec_" + i, zn), pp.getNumEskDigits());
         var rVector = ExponentExpressionVector.generate(i -> builder.addZnVariable("r_" + i, zn), pp.getNumEskDigits());
         var pointsVector = ExponentExpressionVector.generate(i -> builder.addZnVariable("points_" + i, zn), promotionParameters.getPointsVectorSize());
-        var K = commonInput.K.map(ringElement -> (Zn.ZnElement) ringElement);
+        var newPointsVector = ExponentExpressionVector.generate(i -> builder.addZnVariable("newPoints_" + i, zn), promotionParameters.getPointsVectorSize());
 
         // c0=usk*gamma+dsrnd0
         builder.addSubprotocol(
@@ -96,7 +93,7 @@ public class SpendDeductZkp extends DelegateProtocol {
                 dsrndStar0Var,
                 dsrndStar1Var,
                 zStarVar
-        ).concatenate(pointsVector.zip(ExponentExpressionVector.fromStream(K.stream().map(ExponentConstantExpr::new)), ExponentExpr::sub));
+        ).concatenate(newPointsVector);
         var cPre0Statement = H.innerProduct(exponents).isEqualTo(commonInput.c0Pre.pow(uStarInverseVar));
         builder.addSubprotocol("C0Pre", new LinearStatementFragment(cPre0Statement));
         builder.addSubprotocol("C1Pre", new LinearStatementFragment(commonInput.c1Pre.pow(uStarInverseVar).isEqualTo(pp.getG1Generator()))); // Use the inverse of uStar to linearize this expression
@@ -106,11 +103,6 @@ public class SpendDeductZkp extends DelegateProtocol {
             builder.addSubprotocol("eskDigitSetMembership" + i, new SetMembershipFragment(pp.getEskBaseSetMembershipPublicParameters(), eskDecVarVector.get(i)));
         }
 
-        // v >= k (I have more points than required)
-        // We prove that v-k\in[0,eskDecBase^{maxPointBasePower+1}-1] and reuse the SetMembershipParameters from the esk digit proof.
-        for (int i = 0; i < promotionParameters.getPointsVectorSize(); i++) {
-            builder.addSubprotocol("v" + i + ">=k" + i, new SmallerThanPowerFragment(pointsVector.get(i).sub(K.get(i)), pp.getEskDecBase().asInteger().intValue(), pp.getMaxPointBasePower(), pp.getEskBaseSetMembershipPublicParameters()));
-        }
 
         // ctrace=(w^{r_i} ,{w^{r_i}}^{esk}*w^{esk^*_{usr,i}}) for all i\in[p]
         for (int i = 0; i < pp.getNumEskDigits(); i++) {
@@ -145,6 +137,7 @@ public class SpendDeductZkp extends DelegateProtocol {
 
         for (int i = 0; i < promotionParameters.getPointsVectorSize(); i++) {
             builder.putWitnessValue("points_" + i, (Zn.ZnElement) secretInput.pointsVector.get(i));
+            builder.putWitnessValue("newPoints_" + i, (Zn.ZnElement) secretInput.newPointsVector.get(i));
         }
 
         // Some asserts that might be useful for debugging:

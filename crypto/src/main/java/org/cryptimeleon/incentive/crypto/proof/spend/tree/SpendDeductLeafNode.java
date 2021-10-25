@@ -1,6 +1,5 @@
-package org.cryptimeleon.incentive.crypto.proof;
+package org.cryptimeleon.incentive.crypto.proof.spend.tree;
 
-import org.cryptimeleon.craco.protocols.SecretInput;
 import org.cryptimeleon.craco.protocols.arguments.sigma.SigmaProtocol;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
@@ -10,6 +9,7 @@ public abstract class SpendDeductLeafNode extends SpendDeductTree {
 
     public abstract SigmaProtocol getProtocol(IncentivePublicParameters pp, PromotionParameters promotionParameters, ProviderPublicKey providerPublicKey);
 
+    // Only required and known at prover's side
     public abstract boolean isTrue();
 
     public abstract String getLeafName();

@@ -3,7 +3,7 @@ package org.cryptimeleon.incentive.crypto;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.incentive.crypto.model.SpendRequest;
 import org.cryptimeleon.incentive.crypto.model.SpendResponse;
-import org.cryptimeleon.incentive.crypto.proof.SpendDeductZkp;
+import org.cryptimeleon.incentive.crypto.proof.spend.MetadataZkp;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.junit.jupiter.api.Test;
@@ -23,8 +23,8 @@ public class SpendDeductTest {
         var zp = pp.getBg().getZn();
 
         var budget = Vector.of(BigInteger.valueOf(7), BigInteger.valueOf(8));
-        var k = Vector.of(BigInteger.valueOf(4), BigInteger.valueOf(8));
-        assertEquals(budget.length(), k.length());
+        var newPointsVector = Vector.of(BigInteger.valueOf(4), BigInteger.valueOf(8));
+        assertEquals(budget.length(), newPointsVector.length());
 
         var promotionParameters = incentiveSystem.generatePromotionParameters(budget.length());
         var token = Helper.generateToken(pp, userKeyPair, providerKeyPair, promotionParameters, budget);
@@ -36,18 +36,18 @@ public class SpendDeductTest {
                 promotionParameters,
                 token,
                 providerKeyPair.getPk(),
-                k,
+                newPointsVector,
                 userKeyPair,
                 tid
         );
 
         var serializedSpendRequest = spendRequest.getRepresentation();
 
-        var fiatShamirProofSystem = new FiatShamirProofSystem(new SpendDeductZkp(pp, providerKeyPair.getPk(), promotionParameters));
-        var deserializedSpendRequest = new SpendRequest(serializedSpendRequest, pp, fiatShamirProofSystem, k, tid);
+        var fiatShamirProofSystem = new FiatShamirProofSystem(new MetadataZkp(pp, providerKeyPair.getPk(), promotionParameters));
+        var deserializedSpendRequest = new SpendRequest(serializedSpendRequest, pp, fiatShamirProofSystem, tid);
         assertEquals(spendRequest, deserializedSpendRequest);
 
-        var proverOutput = incentiveSystem.generateSpendRequestResponse(promotionParameters, deserializedSpendRequest, providerKeyPair, k, tid);
+        var proverOutput = incentiveSystem.generateSpendRequestResponse(promotionParameters, deserializedSpendRequest, providerKeyPair, tid);
         var serializedSpendResponse = proverOutput.getSpendResponse().getRepresentation();
         var doubleSpendingTag = proverOutput.getDstag();
 
@@ -55,12 +55,12 @@ public class SpendDeductTest {
                 new SpendResponse(serializedSpendResponse, zp, pp.getSpsEq()),
                 spendRequest,
                 token,
-                k,
+                newPointsVector,
                 providerKeyPair.getPk(),
                 userKeyPair);
 
         for (int i = 0; i < promotionParameters.getPointsVectorSize(); i++) {
-            assertEquals(newToken.getPoints().get(i).asInteger(), budget.get(i).subtract(k.get(i)));
+            assertEquals(newToken.getPoints().get(i).asInteger(), newPointsVector.get(i));
         }
     }
 }

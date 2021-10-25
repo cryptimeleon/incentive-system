@@ -9,6 +9,9 @@ import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.crypto.model.Token;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
+import org.cryptimeleon.incentive.crypto.proof.spend.SpendDeductZkpCommonInput;
+import org.cryptimeleon.incentive.crypto.proof.spend.SpendDeductZkpWitnessInput;
+import org.cryptimeleon.incentive.crypto.proof.spend.TokenPointsRangeProof;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.groups.cartesian.GroupElementVector;
 import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
@@ -88,6 +91,7 @@ class TokenPointsRangeProofTest {
                 zn.getUniformlyRandomElement(),
                 zn.getUniformlyRandomElement(),
                 RingElementVector.of(zn.getUniformlyRandomElement()),
+                RingElementVector.of(zn.getUniformlyRandomElement()),
                 RingElementVector.of(zn.getUniformlyRandomElement())
         );
         gamma = zn.getUniformlyRandomElement();
@@ -100,8 +104,7 @@ class TokenPointsRangeProofTest {
                 pp.getBg().getG1().getUniformlyRandomElement(),
                 token.getCommitment0(),
                 GroupElementVector.of(pp.getBg().getG1().getUniformlyRandomElement()),
-                GroupElementVector.of(pp.getBg().getG1().getUniformlyRandomElement()),
-                RingElementVector.of(zn.getUniformlyRandomElement())
+                GroupElementVector.of(pp.getBg().getG1().getUniformlyRandomElement())
         );
     }
 

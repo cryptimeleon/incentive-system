@@ -1,11 +1,10 @@
-package org.cryptimeleon.incentive.crypto.proof;
+package org.cryptimeleon.incentive.crypto.proof.spend;
 
 import lombok.AllArgsConstructor;
 import org.cryptimeleon.craco.protocols.CommonInput;
 import org.cryptimeleon.incentive.crypto.model.SpendRequest;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.groups.cartesian.GroupElementVector;
-import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 /**
@@ -22,12 +21,11 @@ public class SpendDeductZkpCommonInput implements CommonInput {
     public final GroupElement commitmentC0;
     public final GroupElementVector ctrace0;
     public final GroupElementVector ctrace1;
-    public final RingElementVector K;
 
     /**
      * Alternative Constructor using a SpendRequest as input
      */
-    public SpendDeductZkpCommonInput(SpendRequest spendRequest, RingElementVector earnAmounts, Zn.ZnElement gamma) {
+    public SpendDeductZkpCommonInput(SpendRequest spendRequest, Zn.ZnElement gamma) {
         this.gamma = gamma;
         this.c0 = spendRequest.getC0();
         this.c1 = spendRequest.getC1();
@@ -37,6 +35,5 @@ public class SpendDeductZkpCommonInput implements CommonInput {
         this.commitmentC0 = spendRequest.getCommitmentC0();
         this.ctrace0 = spendRequest.getCTrace0();
         this.ctrace1 = spendRequest.getCTrace1();
-        this.K = earnAmounts;
     }
 }

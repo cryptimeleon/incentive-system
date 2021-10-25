@@ -15,12 +15,12 @@ import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserSecretKey;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinRequest;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse;
+import org.cryptimeleon.incentive.crypto.proof.spend.MetadataZkp;
+import org.cryptimeleon.incentive.crypto.proof.spend.SpendDeductZkpCommonInput;
+import org.cryptimeleon.incentive.crypto.proof.spend.SpendDeductZkpWitnessInput;
 import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellformednessCommonInput;
 import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellformednessProtocol;
 import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellformednessWitness;
-import org.cryptimeleon.incentive.crypto.proof.SpendDeductZkp;
-import org.cryptimeleon.incentive.crypto.proof.SpendDeductZkpCommonInput;
-import org.cryptimeleon.incentive.crypto.proof.SpendDeductZkpWitnessInput;
 import org.cryptimeleon.math.hash.impl.ByteArrayAccumulator;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.groups.GroupElement;
@@ -357,17 +357,18 @@ public class IncentiveSystem {
      * <p>
      * Generates a request to add value k to token.
      *
-     * @param token             the token
-     * @param providerPublicKey public key of the provider
-     * @param deltaK            amount to subtract from the token's points vector
-     * @param userKeyPair       keypair of the user that owns the token
-     * @param tid               transaction ID, provided by the provider
+     * @param promotionParameters the current promotion's parameters
+     * @param token               the token
+     * @param providerPublicKey   public key of the provider
+     * @param newPoints           the new points vector the token should have
+     * @param userKeyPair         keypair of the user that owns the token
+     * @param tid                 transaction ID, provided by the provider
      * @return serializable spendRequest that can be sent to the provider
      */
     public SpendRequest generateSpendRequest(PromotionParameters promotionParameters,
                                              Token token,
                                              ProviderPublicKey providerPublicKey,
-                                             Vector<BigInteger> deltaK, // todo think about this api, we could also pass in the new values instead of changes
+                                             Vector<BigInteger> newPoints,
                                              UserKeyPair userKeyPair,
                                              Zn.ZnElement tid
     ) {
@@ -378,7 +379,7 @@ public class IncentiveSystem {
         var dsid = pp.getW().pow(esk);
         var vectorH = providerPublicKey.getH(this.pp, promotionParameters);
         var vectorR = zp.getUniformlyRandomElements(pp.getNumEskDigits());
-        var K = RingElementVector.fromStream(deltaK.stream().map(e -> pp.getBg().getZn().createZnElement(e)));
+        var newPointsVector = RingElementVector.fromStream(newPoints.stream().map(e -> pp.getBg().getZn().createZnElement(e)));
 
 
         /* Compute pseudorandom values */
@@ -392,14 +393,14 @@ public class IncentiveSystem {
         Zn.ZnElement uS = (Zn.ZnElement) prfZnElements.get(5);
 
         // Prepare a new commitment (cPre0, cPre1) based on the pseudorandom values
-        var exponents = new RingElementVector(tS, usk, eskUsrS, dsrnd0S, dsrnd1S, zS).concatenate(token.getPoints().zip(K, RingElement::sub));
+        var exponents = new RingElementVector(tS, usk, eskUsrS, dsrnd0S, dsrnd1S, zS).concatenate(newPointsVector);
         var cPre0 = vectorH.innerProduct(exponents).pow(uS).compute();
         var cPre1 = pp.getG1Generator().pow(uS).compute();
 
         /* Enable double-spending-protection by forcing usk and esk becoming public in that case
            If token is used twice in two different transactions, the provider observes (c0,c1), (c0',c1') with gamma!=gamma'
            Hence, the provider can easily retrieve usk and esk (using the Schnorr-trick, computing (c0-c0')/(gamma-gamma') for usk, analogously for esk). */
-        var gamma = Util.hashGamma(zp, K, dsid, tid, cPre0, cPre1);
+        var gamma = Util.hashGamma(zp, dsid, tid, cPre0, cPre1);
         var c0 = usk.mul(gamma).add(token.getDoubleSpendRandomness0());
         var c1 = esk.mul(gamma).add(token.getDoubleSpendRandomness1());
 
@@ -415,10 +416,10 @@ public class IncentiveSystem {
         var cTrace0 = pp.getW().pow(vectorR).compute();
         var cTrace1 = cTrace0.pow(esk).op(pp.getW().pow(eskUsrSDec)).compute();
 
-        /* Build noninteractive (Fiat-Shamir transformed) ZKP to ensure that the user follows the rules of the protocol */
-        var fiatShamirProofSystem = new FiatShamirProofSystem(new SpendDeductZkp(pp, providerPublicKey, promotionParameters));
-        var witness = new SpendDeductZkpWitnessInput(usk, token.getZ(), zS, token.getT(), tS, uS, esk, eskUsrS, token.getDoubleSpendRandomness0(), dsrnd0S, token.getDoubleSpendRandomness1(), dsrnd1S, eskUsrSDec, vectorR, token.getPoints());
-        var commonInput = new SpendDeductZkpCommonInput(gamma, c0, c1, dsid, cPre0, cPre1, token.getCommitment0(), cTrace0, cTrace1, K);
+        /* Build non-interactive (Fiat-Shamir transformed) ZKP to ensure that the user follows the rules of the protocol */
+        var fiatShamirProofSystem = new FiatShamirProofSystem(new MetadataZkp(pp, providerPublicKey, promotionParameters));
+        var witness = new SpendDeductZkpWitnessInput(usk, token.getZ(), zS, token.getT(), tS, uS, esk, eskUsrS, token.getDoubleSpendRandomness0(), dsrnd0S, token.getDoubleSpendRandomness1(), dsrnd1S, eskUsrSDec, vectorR, token.getPoints(), newPointsVector);
+        var commonInput = new SpendDeductZkpCommonInput(gamma, c0, c1, dsid, cPre0, cPre1, token.getCommitment0(), cTrace0, cTrace1);
         var proof = fiatShamirProofSystem.createProof(commonInput, witness);
 
         // Assemble request
@@ -431,17 +432,13 @@ public class IncentiveSystem {
      *
      * @param spendRequest    the user's request
      * @param providerKeyPair keypair of the provider
-     * @param deltaK          the amount to subtract from the user's token
      * @param tid             transaction id, should be verified by the provider
      * @return tuple of response to send to the user and information required for double-spending protection
      */
     public SpendProviderOutput generateSpendRequestResponse(PromotionParameters promotionParameters,
                                                             SpendRequest spendRequest,
                                                             ProviderKeyPair providerKeyPair,
-                                                            Vector<BigInteger> deltaK,
                                                             Zn.ZnElement tid) {
-
-        var K = RingElementVector.fromStream(deltaK.stream().map(e -> pp.getBg().getZn().createZnElement(e)));
 
         /* Verify that the request is valid and well-formed */
 
@@ -456,9 +453,9 @@ public class IncentiveSystem {
         }
 
         // Validate ZKP
-        var fiatShamirProofSystem = new FiatShamirProofSystem(new SpendDeductZkp(pp, providerKeyPair.getPk(), promotionParameters));
-        var gamma = Util.hashGamma(pp.getBg().getZn(), K, spendRequest.getDsid(), tid, spendRequest.getCPre0(), spendRequest.getCPre1());
-        var commonInput = new SpendDeductZkpCommonInput(spendRequest, K, gamma);
+        var fiatShamirProofSystem = new FiatShamirProofSystem(new MetadataZkp(pp, providerKeyPair.getPk(), promotionParameters));
+        var gamma = Util.hashGamma(pp.getBg().getZn(), spendRequest.getDsid(), tid, spendRequest.getCPre0(), spendRequest.getCPre1());
+        var commonInput = new SpendDeductZkpCommonInput(spendRequest, gamma);
         var proofValid = fiatShamirProofSystem.checkProof(commonInput, spendRequest.getSpendDeductZkp());
         if (!proofValid) {
             throw new IllegalArgumentException("ZPK of the request is not valid!");
@@ -497,7 +494,7 @@ public class IncentiveSystem {
      * @param spendRequest      the original request
      * @param token             the old token
      * @param providerPublicKey public key of the provider
-     * @param deltaK            amount to subtract from the token
+     * @param newPoints         new token's points vector
      * @param userKeyPair       keypair of the user
      * @return token with the value of the old token + k
      */
@@ -505,11 +502,11 @@ public class IncentiveSystem {
                                             SpendResponse spendResponse,
                                             SpendRequest spendRequest,
                                             Token token,
-                                            Vector<BigInteger> deltaK,
+                                            Vector<BigInteger> newPoints,
                                             ProviderPublicKey providerPublicKey,
                                             UserKeyPair userKeyPair) {
 
-        var K = RingElementVector.fromStream(deltaK.stream().map(e -> pp.getBg().getZn().createZnElement(e)));
+        var newPointsVector = RingElementVector.fromStream(newPoints.stream().map(e -> pp.getBg().getZn().createZnElement(e)));
 
         // Re-compute pseudorandom values
         var prfZnElements = pp.getPrfToZn().hashThenPrfToZnVector(userKeyPair.getSk().getPrfKey(), token, 6, "SpendDeduct");
@@ -542,10 +539,7 @@ public class IncentiveSystem {
                 zS,
                 tS,
                 token.getPromotionId(),
-                new RingElementVector(token.getPoints().zip(
-                        K,
-                        RingElement::sub
-                )),
+                new RingElementVector(newPointsVector),
                 // Change representation of signature to match the un-blinded commitments
                 (SPSEQSignature) pp.getSpsEq().chgRep(spendResponse.getSigma(), uS.inv(), providerPublicKey.getPkSpsEq())
         );

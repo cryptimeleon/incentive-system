@@ -1,11 +1,10 @@
-package org.cryptimeleon.incentive.crypto.proof;
+package org.cryptimeleon.incentive.crypto.proof.spend;
 
 import org.cryptimeleon.craco.protocols.CommonInput;
 import org.cryptimeleon.craco.protocols.SecretInput;
 import org.cryptimeleon.craco.protocols.arguments.sigma.ZnChallengeSpace;
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.DelegateProtocol;
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.LinearStatementFragment;
-import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.SendFirstValue;
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.SendThenDelegateFragment;
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.setmembership.SmallerThanPowerFragment;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
@@ -53,12 +52,12 @@ public class TokenPointsRangeProof extends DelegateProtocol {
         var dsrnd1Var = builder.addZnVariable("dsrnd1", zn);
         var zVar = builder.addZnVariable("z", zn);
         var tVar = builder.addZnVariable("t", zn);
-        var storeVector = ExponentExpressionVector.generate(i -> builder.addZnVariable("store_" + i, zn), promotionParameters.getPointsVectorSize());
+        var pointsVector = ExponentExpressionVector.generate(i -> builder.addZnVariable("points_" + i, zn), promotionParameters.getPointsVectorSize());
 
 
         // C=(H.pow(t, usk, esk, dsrnd_0, dsrnd_1, points, z), g_1)
         var commitmentC0Statement = H.innerProduct(
-                ExponentExpressionVector.of(tVar, uskVar, eskVar, dsrnd0Var, dsrnd1Var, zVar).concatenate(storeVector.map(e -> e))
+                ExponentExpressionVector.of(tVar, uskVar, eskVar, dsrnd0Var, dsrnd1Var, zVar).concatenate(pointsVector.map(e -> e))
         ).isEqualTo(commonInput.commitmentC0);
         builder.addSubprotocol("C0", new LinearStatementFragment(commitmentC0Statement));
 
@@ -66,9 +65,9 @@ public class TokenPointsRangeProof extends DelegateProtocol {
         for (int i = 0; i < promotionParameters.getPointsVectorSize(); i++) {
             if (lowerLimits[i] != null) {
                 builder.addSubprotocol(
-                        "storeVector[" + i + "]>=lowerLimits[" + i + "]",
+                        "pointsVector[" + i + "]>=lowerLimits[" + i + "]",
                         new SmallerThanPowerFragment(
-                                storeVector.get(i).sub(lowerLimits[i].intValue()),
+                                pointsVector.get(i).sub(lowerLimits[i].intValue()),
                                 pp.getEskDecBase().asInteger().intValue(),
                                 pp.getMaxPointBasePower(),
                                 pp.getEskBaseSetMembershipPublicParameters()
@@ -77,9 +76,9 @@ public class TokenPointsRangeProof extends DelegateProtocol {
             }
             if (upperLimits[i] != null) {
                 builder.addSubprotocol(
-                        "storeVector[" + i + "]<=lowerLimits[" + i + "]",
+                        "pointsVector[" + i + "]<=upperLimits[" + i,
                         new SmallerThanPowerFragment(
-                                (new ExponentConstantExpr(upperLimits[i])).sub(storeVector.get(i)),
+                                (new ExponentConstantExpr(upperLimits[i])).sub(pointsVector.get(i)),
                                 pp.getEskDecBase().asInteger().intValue(),
                                 pp.getMaxPointBasePower(),
                                 pp.getEskBaseSetMembershipPublicParameters()
@@ -103,7 +102,7 @@ public class TokenPointsRangeProof extends DelegateProtocol {
         builder.putWitnessValue("t", secretInput.t);
 
         for (int i = 0; i < promotionParameters.getPointsVectorSize(); i++) {
-            builder.putWitnessValue("store_" + i, (Zn.ZnElement) secretInput.pointsVector.get(i));
+            builder.putWitnessValue("points_" + i, (Zn.ZnElement) secretInput.pointsVector.get(i));
         }
 
         return builder.build();

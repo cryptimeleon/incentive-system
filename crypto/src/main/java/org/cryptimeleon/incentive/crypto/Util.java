@@ -19,19 +19,18 @@ public class Util {
 
     /**
      * Hash function to retrieve ZnElement gamma in spend-deduct
+     * TODO think about putting ZKP as additional input, because it defines the token update (pseudorandom?)!
      *
      * @param zn    ZnElement to retrieve
-     * @param K     earn vector to hash
      * @param dsid  disid to hash
      * @param tid   tid to hash
      * @param cPre0 cPre0 to hash
      * @param cPre1 cPre1 to hash
      * @return hashed ZnElement gamma
      */
-    public static Zn.ZnElement hashGamma(Zn zn, RingElementVector K, GroupElement dsid, Zn.ZnElement tid, GroupElement cPre0, GroupElement cPre1) {
+    public static Zn.ZnElement hashGamma(Zn zn, GroupElement dsid, Zn.ZnElement tid, GroupElement cPre0, GroupElement cPre1) {
         var hashfunction = new HashIntoZn(zn);
         var accumulator = new ByteArrayAccumulator();
-        K.stream().forEachOrdered(k -> accumulator.escapeAndSeparate(k.getUniqueByteRepresentation()));
         accumulator.escapeAndSeparate(dsid.getUniqueByteRepresentation());
         accumulator.escapeAndSeparate(tid.getUniqueByteRepresentation());
         accumulator.escapeAndSeparate(cPre0.getUniqueByteRepresentation());
