@@ -15,7 +15,7 @@ import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserSecretKey;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinRequest;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse;
-import org.cryptimeleon.incentive.crypto.proof.spend.MetadataZkp;
+import org.cryptimeleon.incentive.crypto.proof.spend.SpendDeductZkp;
 import org.cryptimeleon.incentive.crypto.proof.spend.SpendDeductZkpCommonInput;
 import org.cryptimeleon.incentive.crypto.proof.spend.SpendDeductZkpWitnessInput;
 import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellformednessCommonInput;
@@ -363,6 +363,7 @@ public class IncentiveSystem {
      * @param newPoints           the new points vector the token should have
      * @param userKeyPair         keypair of the user that owns the token
      * @param tid                 transaction ID, provided by the provider
+     * @param spendDeductZkp      the zero knowledge proof for this promotion
      * @return serializable spendRequest that can be sent to the provider
      */
     public SpendRequest generateSpendRequest(PromotionParameters promotionParameters,
@@ -370,7 +371,8 @@ public class IncentiveSystem {
                                              ProviderPublicKey providerPublicKey,
                                              Vector<BigInteger> newPoints,
                                              UserKeyPair userKeyPair,
-                                             Zn.ZnElement tid
+                                             Zn.ZnElement tid,
+                                             SpendDeductZkp spendDeductZkp
     ) {
         // Some local variables and pre-computations to make the code more readable
         var zp = pp.getBg().getZn();
@@ -417,7 +419,7 @@ public class IncentiveSystem {
         var cTrace1 = cTrace0.pow(esk).op(pp.getW().pow(eskUsrSDec)).compute();
 
         /* Build non-interactive (Fiat-Shamir transformed) ZKP to ensure that the user follows the rules of the protocol */
-        var fiatShamirProofSystem = new FiatShamirProofSystem(new MetadataZkp(pp, providerPublicKey, promotionParameters));
+        var fiatShamirProofSystem = new FiatShamirProofSystem(spendDeductZkp);
         var witness = new SpendDeductZkpWitnessInput(usk, token.getZ(), zS, token.getT(), tS, uS, esk, eskUsrS, token.getDoubleSpendRandomness0(), dsrnd0S, token.getDoubleSpendRandomness1(), dsrnd1S, eskUsrSDec, vectorR, token.getPoints(), newPointsVector);
         var commonInput = new SpendDeductZkpCommonInput(gamma, c0, c1, dsid, cPre0, cPre1, token.getCommitment0(), cTrace0, cTrace1);
         var proof = fiatShamirProofSystem.createProof(commonInput, witness);
@@ -433,12 +435,14 @@ public class IncentiveSystem {
      * @param spendRequest    the user's request
      * @param providerKeyPair keypair of the provider
      * @param tid             transaction id, should be verified by the provider
+     * @param spendDeductZkp  the zero knowledge proof to verify for this promotion
      * @return tuple of response to send to the user and information required for double-spending protection
      */
     public SpendProviderOutput generateSpendRequestResponse(PromotionParameters promotionParameters,
                                                             SpendRequest spendRequest,
                                                             ProviderKeyPair providerKeyPair,
-                                                            Zn.ZnElement tid) {
+                                                            Zn.ZnElement tid,
+                                                            SpendDeductZkp spendDeductZkp) {
 
         /* Verify that the request is valid and well-formed */
 
@@ -453,7 +457,7 @@ public class IncentiveSystem {
         }
 
         // Validate ZKP
-        var fiatShamirProofSystem = new FiatShamirProofSystem(new MetadataZkp(pp, providerKeyPair.getPk(), promotionParameters));
+        var fiatShamirProofSystem = new FiatShamirProofSystem(spendDeductZkp);
         var gamma = Util.hashGamma(pp.getBg().getZn(), spendRequest.getDsid(), tid, spendRequest.getCPre0(), spendRequest.getCPre1());
         var commonInput = new SpendDeductZkpCommonInput(spendRequest, gamma);
         var proofValid = fiatShamirProofSystem.checkProof(commonInput, spendRequest.getSpendDeductZkp());
@@ -504,7 +508,8 @@ public class IncentiveSystem {
                                             Token token,
                                             Vector<BigInteger> newPoints,
                                             ProviderPublicKey providerPublicKey,
-                                            UserKeyPair userKeyPair) {
+                                            UserKeyPair userKeyPair
+    ) {
 
         var newPointsVector = RingElementVector.fromStream(newPoints.stream().map(e -> pp.getBg().getZn().createZnElement(e)));
 

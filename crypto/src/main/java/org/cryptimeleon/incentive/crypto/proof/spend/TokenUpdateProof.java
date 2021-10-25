@@ -22,29 +22,31 @@ import java.math.BigInteger;
 
 public class TokenUpdateProof extends DelegateProtocol {
 
-    public TokenUpdateProof(IncentivePublicParameters pp, BigInteger[] lowerLimits, BigInteger[] upperLimits, ProviderPublicKey providerPublicKey, PromotionParameters promotionParameters) {
+    public TokenUpdateProof(IncentivePublicParameters pp, BigInteger[] lowerLimits, BigInteger[] upperLimits, BigInteger[] aVector, BigInteger[] bVector, ProviderPublicKey providerPublicKey, PromotionParameters promotionParameters) {
         this.pp = pp;
         this.lowerLimits = lowerLimits;
         this.upperLimits = upperLimits;
+        this.aVector = aVector;
+        this.bVector = bVector;
         this.providerPublicKey = providerPublicKey;
         this.promotionParameters = promotionParameters;
     }
 
     // Public parameters
-    IncentivePublicParameters pp;
+    final IncentivePublicParameters pp;
 
     // Proof that lowerLimits[i] <= newPoints[i] <= upperLimits[i] for all i
-    BigInteger[] lowerLimits; // null means no limit
-    BigInteger[] upperLimits; // null means no limit
+    final BigInteger[] lowerLimits; // null means no limit
+    final BigInteger[] upperLimits; // null means no limit
 
     // Proof linear relation between new points and old points
     // newPoints[i] = a[i]* oldPoints[i] + bVector[i]
-    BigInteger[] aVector; // null means no statement
-    BigInteger[] bVector; // null means no statement
+    final BigInteger[] aVector; // null means no statement
+    final BigInteger[] bVector; // null means no statement
 
 
-    ProviderPublicKey providerPublicKey;
-    PromotionParameters promotionParameters;
+    final ProviderPublicKey providerPublicKey;
+    final PromotionParameters promotionParameters;
 
 
     @Override
@@ -103,7 +105,7 @@ public class TokenUpdateProof extends DelegateProtocol {
             }
             if (upperLimits[i] != null) {
                 builder.addSubprotocol(
-                        "newPointsVector[" + i + "]<=upperLimits[" + i + "]",
+                        "newPointsVector[" + i + "]<=upperLimits[" + i,
                         new SmallerThanPowerFragment(
                                 (new ExponentConstantExpr(upperLimits[i])).sub(newPointsVector.get(i)),
                                 pp.getEskDecBase().asInteger().intValue(),
@@ -120,7 +122,7 @@ public class TokenUpdateProof extends DelegateProtocol {
                 builder.addSubprotocol(
                         "newPointsVector[" + i + "]=aVector[" + i + "]*pointsVector[" + i + "]+bVector[" + i + "]",
                         new LinearExponentStatementFragment(
-                                pointsVector.get(i).mul(bVector[i]).add(aVector[i]).isEqualTo(newPointsVector.get(i)), zn
+                                pointsVector.get(i).mul(aVector[i]).add(bVector[i]).isEqualTo(newPointsVector.get(i)), zn
                         )
                 );
 
@@ -130,8 +132,7 @@ public class TokenUpdateProof extends DelegateProtocol {
     }
 
     @Override
-    protected SendThenDelegateFragment.ProverSpec provideProverSpecWithNoSendFirst(CommonInput
-                                                                                           commonInput, SecretInput pSecretInput, SendThenDelegateFragment.ProverSpecBuilder builder) {
+    protected SendThenDelegateFragment.ProverSpec provideProverSpecWithNoSendFirst(CommonInput commonInput, SecretInput pSecretInput, SendThenDelegateFragment.ProverSpecBuilder builder) {
         var secretInput = (SpendDeductZkpWitnessInput) pSecretInput;
 
         // Add variables to witness
@@ -139,14 +140,22 @@ public class TokenUpdateProof extends DelegateProtocol {
         builder.putWitnessValue("usk", secretInput.usk);
         builder.putWitnessValue("dsrnd0", secretInput.dsrnd0);
         builder.putWitnessValue("dsrnd1", secretInput.dsrnd1);
+        builder.putWitnessValue("dsrndStar0", secretInput.dsrndStar0);
+        builder.putWitnessValue("dsrndStar1", secretInput.dsrndStar1);
         builder.putWitnessValue("z", secretInput.z);
         builder.putWitnessValue("t", secretInput.t);
+        builder.putWitnessValue("zStar", secretInput.zStar);
+        builder.putWitnessValue("tStar", secretInput.tStar);
+        builder.putWitnessValue("uStarInverse", secretInput.uStar.inv());
+
+        for (int i = 0; i < pp.getNumEskDigits(); i++) {
+            builder.putWitnessValue("eskStarUserDec_" + i, (Zn.ZnElement) secretInput.eskStarUserDec.get(i));
+        }
 
         for (int i = 0; i < promotionParameters.getPointsVectorSize(); i++) {
             builder.putWitnessValue("points_" + i, (Zn.ZnElement) secretInput.pointsVector.get(i));
             builder.putWitnessValue("newPoints_" + i, (Zn.ZnElement) secretInput.newPointsVector.get(i));
         }
-
         return builder.build();
     }
 

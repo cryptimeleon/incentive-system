@@ -4,6 +4,7 @@ import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSyst
 import org.cryptimeleon.incentive.crypto.model.SpendRequest;
 import org.cryptimeleon.incentive.crypto.model.SpendResponse;
 import org.cryptimeleon.incentive.crypto.proof.spend.MetadataZkp;
+import org.cryptimeleon.incentive.crypto.proof.spend.SpendHelper;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.junit.jupiter.api.Test;
@@ -24,10 +25,16 @@ public class SpendDeductTest {
 
         var budget = Vector.of(BigInteger.valueOf(7), BigInteger.valueOf(8));
         var newPointsVector = Vector.of(BigInteger.valueOf(4), BigInteger.valueOf(8));
+        var spendAmount = new BigInteger[budget.length()];
+        for (int i = 0; i < budget.length(); i++) {
+            spendAmount[i] = budget.get(i).subtract(newPointsVector.get(i));
+        }
+
         assertEquals(budget.length(), newPointsVector.length());
 
         var promotionParameters = incentiveSystem.generatePromotionParameters(budget.length());
         var token = Helper.generateToken(pp, userKeyPair, providerKeyPair, promotionParameters, budget);
+        var spendDeductTestZkp = SpendHelper.generateSimpleTestSpendDeductZkp(pp, promotionParameters, providerKeyPair.getPk(), spendAmount);
 
         // length numDigits
         Zn.ZnElement tid = zp.getUniformlyRandomElement();
@@ -38,7 +45,8 @@ public class SpendDeductTest {
                 providerKeyPair.getPk(),
                 newPointsVector,
                 userKeyPair,
-                tid
+                tid,
+                spendDeductTestZkp
         );
 
         var serializedSpendRequest = spendRequest.getRepresentation();
@@ -47,7 +55,11 @@ public class SpendDeductTest {
         var deserializedSpendRequest = new SpendRequest(serializedSpendRequest, pp, fiatShamirProofSystem, tid);
         assertEquals(spendRequest, deserializedSpendRequest);
 
-        var proverOutput = incentiveSystem.generateSpendRequestResponse(promotionParameters, deserializedSpendRequest, providerKeyPair, tid);
+        var proverOutput = incentiveSystem.generateSpendRequestResponse(promotionParameters,
+                deserializedSpendRequest,
+                providerKeyPair,
+                tid,
+                spendDeductTestZkp);
         var serializedSpendResponse = proverOutput.getSpendResponse().getRepresentation();
         var doubleSpendingTag = proverOutput.getDstag();
 

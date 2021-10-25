@@ -5,10 +5,10 @@ import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentive.crypto.model.EarnRequest;
 import org.cryptimeleon.incentive.crypto.model.SpendRequest;
 import org.cryptimeleon.incentive.crypto.model.SpendResponse;
-import org.cryptimeleon.incentive.crypto.model.Token;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinRequest;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse;
 import org.cryptimeleon.incentive.crypto.proof.spend.MetadataZkp;
+import org.cryptimeleon.incentive.crypto.proof.spend.SpendHelper;
 import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellformednessProtocol;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.rings.RingElement;
@@ -118,7 +118,7 @@ public class ProtocolIntegrationTest {
         var updatedToken = incSys.handleEarnRequestResponse(promotionParameters, deserializedEarnRequest1, deserializedEarnResponse1, earnAmount1, initialToken, pkp.getPk(), ukp);
 
         // ensure user token contains 20 points
-        Assertions.assertArrayEquals(updatedToken.getPoints().stream().map(RingElement::asInteger).toArray(), earnAmount1.stream().toArray());
+        Assertions.assertArrayEquals(earnAmount1.stream().toArray(), updatedToken.getPoints().stream().map(RingElement::asInteger).toArray());
 
         /*
          * transaction 3: user tries to spend 23 points
@@ -142,7 +142,7 @@ public class ProtocolIntegrationTest {
          */
 
         /*
-         * transaction 4: user spends 18 points
+         * transaction 4: user spends points
          */
 
         logger.info("Testing successful spend transaction.");
@@ -151,10 +151,15 @@ public class ProtocolIntegrationTest {
         var tid3 = usedZn.getUniformlyRandomElement();
 
         // define spend amount
-        var spendAmount3 = Vector.of(BigInteger.valueOf(10L), BigInteger.valueOf(2L));
+        var newPointsAmount3 = Vector.of(BigInteger.valueOf(10L), BigInteger.valueOf(2L));
+        var spendAmount = new BigInteger[updatedToken.getPoints().length()];
+        for (int i = 0; i < updatedToken.getPoints().length(); i++) {
+            spendAmount[i] = updatedToken.getPoints().get(i).asInteger().subtract(newPointsAmount3.get(i));
+        }
+        var spendDeductTestZkp = SpendHelper.generateSimpleTestSpendDeductZkp(incSys.pp, promotionParameters, pkp.getPk(), spendAmount);
 
         // user generates spend request
-        SpendRequest spendRequest3 = incSys.generateSpendRequest(promotionParameters, updatedToken, pkp.getPk(), spendAmount3, ukp, tid3);
+        SpendRequest spendRequest3 = incSys.generateSpendRequest(promotionParameters, updatedToken, pkp.getPk(), newPointsAmount3, ukp, tid3, spendDeductTestZkp);
 
         // serialize and deserialize spend request to ensure that serialization does not break anything
         var serializedSpendRequest3 = spendRequest3.getRepresentation();
@@ -162,18 +167,18 @@ public class ProtocolIntegrationTest {
         var deserializedSpendRequest3 = new SpendRequest(serializedSpendRequest3, incSys.getPp(), spendDeductProofSystem, tid3);
 
         // provider handles spend request and generates spend response and information required for double-spending protection (which is discarded on the fly, since not needed in this test)
-        var spendResponse3 = incSys.generateSpendRequestResponse(promotionParameters, deserializedSpendRequest3, pkp, tid3).getSpendResponse();
+        var spendResponse3 = incSys.generateSpendRequestResponse(promotionParameters, deserializedSpendRequest3, pkp, tid3, spendDeductTestZkp).getSpendResponse();
 
         // serialize and deserialize spend request to ensure that serialization does not break anything
         var serializedSpendResponse3 = spendResponse3.getRepresentation();
         var deserializedSpendResponse3 = new SpendResponse(serializedSpendResponse3, usedZn, incSys.getPp().getSpsEq());
 
         // user handles spend response
-        updatedToken = incSys.handleSpendRequestResponse(promotionParameters, deserializedSpendResponse3, deserializedSpendRequest3, updatedToken, spendAmount3, pkp.getPk(), ukp);
+        updatedToken = incSys.handleSpendRequestResponse(promotionParameters, deserializedSpendResponse3, deserializedSpendRequest3, updatedToken, newPointsAmount3, pkp.getPk(), ukp);
 
         Assertions.assertArrayEquals(
-                updatedToken.getPoints().stream().map(RingElement::asInteger).toArray(),
-                new BigInteger[]{BigInteger.valueOf(10L), BigInteger.valueOf(3L)}
+                newPointsAmount3.stream().toArray(),
+                updatedToken.getPoints().stream().map(RingElement::asInteger).toArray()
         );
 
         /*
@@ -201,8 +206,8 @@ public class ProtocolIntegrationTest {
         updatedToken = incSys.handleEarnRequestResponse(promotionParameters, deserializedEarnRequest2, deserializedEarnResponse2, earnAmount5, updatedToken, pkp.getPk(), ukp);
 
         Assertions.assertArrayEquals(
-                updatedToken.getPoints().stream().map(RingElement::asInteger).toArray(),
-                new BigInteger[]{BigInteger.valueOf(334241L), BigInteger.valueOf(45L)}
+                new BigInteger[]{BigInteger.valueOf(334241L), BigInteger.valueOf(44L)},
+                updatedToken.getPoints().stream().map(RingElement::asInteger).toArray()
         );
 
         logger.info("Done testing protocols.");

@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.crypto.proof;
+package org.cryptimeleon.incentive.crypto.proof.spend;
 
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.incentive.crypto.Helper;
@@ -9,9 +9,6 @@ import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.crypto.model.Token;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
-import org.cryptimeleon.incentive.crypto.proof.spend.SpendDeductZkpCommonInput;
-import org.cryptimeleon.incentive.crypto.proof.spend.SpendDeductZkpWitnessInput;
-import org.cryptimeleon.incentive.crypto.proof.spend.TokenPointsRangeProof;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.groups.cartesian.GroupElementVector;
 import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
@@ -68,7 +65,6 @@ class TokenPointsRangeProofTest {
     Zn zn;
     SpendDeductZkpWitnessInput witness;
     SpendDeductZkpCommonInput commonInput;
-    Zn.ZnElement gamma;
 
     @BeforeEach
     void setup() {
@@ -80,32 +76,13 @@ class TokenPointsRangeProofTest {
         token = Helper.generateToken(pp, userKey, providerKey, promotion, Vector.fromStreamPlain(Arrays.stream(points)));
 
         zn = pp.getBg().getZn();
+        var testSuite = SpendHelper.generateTestSuite(
+                new BigInteger[]{BigInteger.valueOf(0), BigInteger.valueOf(0), BigInteger.valueOf(0), BigInteger.valueOf(0)},
+                pp, promotion, providerKey, token, userKey, zn
+        );
 
-        witness = new SpendDeductZkpWitnessInput(
-                token,
-                userKey.getSk().getUsk(),
-                zn.getUniformlyRandomElement(),
-                zn.getUniformlyRandomElement(),
-                zn.getUniformlyRandomElement(),
-                zn.getUniformlyRandomElement(),
-                zn.getUniformlyRandomElement(),
-                zn.getUniformlyRandomElement(),
-                RingElementVector.of(zn.getUniformlyRandomElement()),
-                RingElementVector.of(zn.getUniformlyRandomElement()),
-                RingElementVector.of(zn.getUniformlyRandomElement())
-        );
-        gamma = zn.getUniformlyRandomElement();
-        commonInput = new SpendDeductZkpCommonInput(
-                gamma,
-                zn.getUniformlyRandomElement(),
-                zn.getUniformlyRandomElement(),
-                pp.getBg().getG1().getUniformlyRandomElement(),
-                pp.getBg().getG1().getUniformlyRandomElement(),
-                pp.getBg().getG1().getUniformlyRandomElement(),
-                token.getCommitment0(),
-                GroupElementVector.of(pp.getBg().getG1().getUniformlyRandomElement()),
-                GroupElementVector.of(pp.getBg().getG1().getUniformlyRandomElement())
-        );
+        witness = testSuite.witness;
+        commonInput = testSuite.commonInput;
     }
 
     @Test
