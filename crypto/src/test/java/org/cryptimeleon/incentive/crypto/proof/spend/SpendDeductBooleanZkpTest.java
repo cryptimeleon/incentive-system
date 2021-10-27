@@ -2,7 +2,6 @@ package org.cryptimeleon.incentive.crypto.proof.spend;
 
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProof;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
-import org.cryptimeleon.craco.protocols.arguments.sigma.SigmaProtocol;
 import org.cryptimeleon.incentive.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.Setup;
@@ -10,10 +9,13 @@ import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.crypto.model.Token;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
-import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
-import org.cryptimeleon.incentive.crypto.proof.spend.*;
-import org.cryptimeleon.incentive.crypto.proof.spend.tree.*;
+import org.cryptimeleon.incentive.crypto.proof.spend.leaf.MetadataLeaf;
+import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenPointsLeaf;
+import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductAndNode;
+import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductOrNode;
+import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
+import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.junit.jupiter.api.Assertions;
@@ -67,54 +69,6 @@ class SpendDeductBooleanZkpTest {
     Zn zn;
     SpendHelper.SpendZkpTestSuite testSuite;
 
-    private class TestSpendDeductLeafNode extends SpendDeductLeafNode {
-
-        public TestSpendDeductLeafNode(BigInteger[] lowerLimits, BigInteger[] upperLimits, Boolean isTrue, String name) {
-            this.lowerLimits = lowerLimits;
-            this.upperLimits = upperLimits;
-            this.isTrue = isTrue;
-            this.name = name;
-        }
-
-        private final BigInteger[] lowerLimits;
-        private final BigInteger[] upperLimits;
-        private final Boolean isTrue;
-        private final String name;
-
-        @Override
-        public SigmaProtocol getProtocol(IncentivePublicParameters pp, PromotionParameters promotionParameters, ProviderPublicKey providerPublicKey) {
-            return new TokenPointsRangeProof(pp, this.lowerLimits, this.upperLimits, providerPublicKey, promotionParameters);
-        }
-
-        @Override
-        public boolean isTrue() {
-            return this.isTrue;
-        }
-
-        @Override
-        public String getLeafName() {
-            return this.name;
-        }
-    }
-
-    private static class TestClassicSpendDeductLeafNode extends SpendDeductLeafNode {
-
-        @Override
-        public SigmaProtocol getProtocol(IncentivePublicParameters pp, PromotionParameters promotionParameters, ProviderPublicKey providerPublicKey) {
-            return new MetadataZkp(pp, providerPublicKey, promotionParameters);
-        }
-
-        @Override
-        public boolean isTrue() {
-            return true;
-        }
-
-        @Override
-        public String getLeafName() {
-            return "MainZKP";
-        }
-    }
-
     @BeforeEach
     void setup() {
         pp = Setup.trustedSetup(128, Setup.BilinearGroupChoice.Debug);
@@ -129,7 +83,7 @@ class SpendDeductBooleanZkpTest {
 
     @Test
     void testClassicLeaf() {
-        SpendDeductTree proofTree = new TestClassicSpendDeductLeafNode();
+        SpendDeductTree proofTree = new MetadataLeaf();
         SpendDeductBooleanZkp sigmaProtocol = new SpendDeductBooleanZkp(proofTree, pp, promotion, providerKey.getPk());
 
         FiatShamirProofSystem fiatShamirProofSystem = new FiatShamirProofSystem(sigmaProtocol);
@@ -139,7 +93,7 @@ class SpendDeductBooleanZkpTest {
 
     @Test
     void testRangeProofLeaf() {
-        SpendDeductTree proofTree = new TestSpendDeductLeafNode(lowerLimits, upperLimits, true, "range-proof");
+        SpendDeductTree proofTree = new TokenPointsLeaf("RangeProof", lowerLimits, upperLimits, true);
         SpendDeductBooleanZkp sigmaProtocol = new SpendDeductBooleanZkp(proofTree, pp, promotion, providerKey.getPk());
 
         FiatShamirProofSystem fiatShamirProofSystem = new FiatShamirProofSystem(sigmaProtocol);
@@ -149,7 +103,7 @@ class SpendDeductBooleanZkpTest {
 
     @Test
     void testFalseRangeProofLeaf() {
-        SpendDeductTree proofTree = new TestSpendDeductLeafNode(lowerLimits, invalidUpperLimits, false, "range-proof");
+        SpendDeductTree proofTree = new TokenPointsLeaf("RangeProof", lowerLimits, invalidUpperLimits, false);
         SpendDeductBooleanZkp sigmaProtocol = new SpendDeductBooleanZkp(proofTree, pp, promotion, providerKey.getPk());
 
         FiatShamirProofSystem fiatShamirProofSystem = new FiatShamirProofSystem(sigmaProtocol);
@@ -161,9 +115,9 @@ class SpendDeductBooleanZkpTest {
 
     @Test
     void testAnd() {
-        SpendDeductTree firstValidLeaf = new TestSpendDeductLeafNode(lowerLimits, upperLimits, true, "range-proof-valid-1");
-        SpendDeductTree secondValidLeaf = new TestSpendDeductLeafNode(lowerLimits, upperLimits, true, "range-proof-valid-2");
-        SpendDeductTree invalidLeaf = new TestSpendDeductLeafNode(lowerLimits, invalidUpperLimits, false, "range-proof-invalid");
+        SpendDeductTree firstValidLeaf = new TokenPointsLeaf("RangeProof1", lowerLimits, upperLimits, true);
+        SpendDeductTree secondValidLeaf = new TokenPointsLeaf("RangeProof2", lowerLimits, upperLimits, true);
+        SpendDeductTree invalidLeaf = new TokenPointsLeaf("RangeProof3", lowerLimits, invalidUpperLimits, false);
 
         SpendDeductBooleanZkp sigmaProtocol = new SpendDeductBooleanZkp(new SpendDeductAndNode(firstValidLeaf, secondValidLeaf), pp, promotion, providerKey.getPk());
         FiatShamirProofSystem fiatShamirProofSystem = new FiatShamirProofSystem(sigmaProtocol);
@@ -180,10 +134,10 @@ class SpendDeductBooleanZkpTest {
 
     @Test
     void testOr() {
-        SpendDeductTree firstValidLeaf = new TestSpendDeductLeafNode(lowerLimits, upperLimits, true, "range-proof-valid");
-        SpendDeductTree secondValidLeaf = new TestSpendDeductLeafNode(lowerLimits, upperLimits, true, "range-proof-valid-2");
-        SpendDeductTree firstInvalidLeaf = new TestSpendDeductLeafNode(lowerLimits, invalidUpperLimits, false, "range-proof-invalid-1");
-        SpendDeductTree secondInvalidLeaf = new TestSpendDeductLeafNode(lowerLimits, invalidUpperLimits, false, "range-proof-invalid-2");
+        SpendDeductTree firstValidLeaf = new TokenPointsLeaf("RangeProofValid1", lowerLimits, upperLimits, true);
+        SpendDeductTree secondValidLeaf = new TokenPointsLeaf("RangeProofValid2", lowerLimits, upperLimits, true);
+        SpendDeductTree firstInvalidLeaf = new TokenPointsLeaf("RangeProofInvalid1", lowerLimits, invalidUpperLimits, false);
+        SpendDeductTree secondInvalidLeaf = new TokenPointsLeaf("RangeProofInvalid2", lowerLimits, invalidUpperLimits, false);
 
         SpendDeductBooleanZkp sigmaProtocol = new SpendDeductBooleanZkp(new SpendDeductOrNode(firstValidLeaf, secondValidLeaf), pp, promotion, providerKey.getPk());
         FiatShamirProofSystem fiatShamirProofSystem = new FiatShamirProofSystem(sigmaProtocol);

@@ -1,16 +1,29 @@
 package org.cryptimeleon.incentive.crypto.proof.spend.tree;
 
-import org.cryptimeleon.craco.protocols.arguments.sigma.SigmaProtocol;
-import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
-import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
-import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
-
 public abstract class SpendDeductLeafNode extends SpendDeductTree {
 
-    public abstract SigmaProtocol getProtocol(IncentivePublicParameters pp, PromotionParameters promotionParameters, ProviderPublicKey providerPublicKey);
+    // Indicate whether prover knows a witness for this statement
+    private Boolean hasWitness = null;
+    // Name must be unique
+    private String leafName;
 
-    // Only required and known at prover's side
-    public abstract boolean isTrue();
+    public SpendDeductLeafNode(String leafName) {
+        this.leafName = leafName;
+    }
 
-    public abstract String getLeafName();
+    public String getLeafName() {
+        return leafName;
+    }
+
+    public boolean hasWitness() {
+        // Can be uninitialized on verifier's side
+        if (hasWitness == null) {
+            throw new RuntimeException("hasWitness is not initialized!");
+        }
+        return hasWitness;
+    }
+
+    public void setHasWitness(boolean hasWitness) {
+        this.hasWitness = hasWitness;
+    }
 }

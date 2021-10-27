@@ -12,7 +12,7 @@ import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserSecretKey;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinRequest;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse;
-import org.cryptimeleon.incentive.crypto.proof.spend.SpendDeductZkp;
+import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkp;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 
 import java.math.BigInteger;

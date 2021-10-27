@@ -9,6 +9,9 @@ import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.crypto.model.Token;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
+import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkpCommonInput;
+import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkpWitnessInput;
+import org.cryptimeleon.incentive.crypto.proof.spend.zkp.TokenUpdateZkp;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,7 +22,7 @@ import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class TokenUpdateProofTest {
+class TokenUpdateZkpTest {
 
     private static final int TEST_VECTOR_SIZE = 3;
     BigInteger[] points = {
@@ -100,7 +103,7 @@ class TokenUpdateProofTest {
 
     @Test
     void validIgnoreTest() {
-        var fiatShamirProofSystem = new FiatShamirProofSystem(new TokenUpdateProof(pp, ignoreVector, ignoreVector, ignoreVector, ignoreVector, providerKey.getPk(), promotion));
+        var fiatShamirProofSystem = new FiatShamirProofSystem(new TokenUpdateZkp(pp, ignoreVector, ignoreVector, ignoreVector, ignoreVector, providerKey.getPk(), promotion));
         var proof = fiatShamirProofSystem.createProof(commonInput, witness);
 
         assertTrue(fiatShamirProofSystem.checkProof(commonInput, proof));
@@ -108,7 +111,7 @@ class TokenUpdateProofTest {
 
     @Test
     void validLinearTest() {
-        var fiatShamirProofSystem = new FiatShamirProofSystem(new TokenUpdateProof(pp, ignoreVector, ignoreVector, aVector, bVector, providerKey.getPk(), promotion));
+        var fiatShamirProofSystem = new FiatShamirProofSystem(new TokenUpdateZkp(pp, ignoreVector, ignoreVector, aVector, bVector, providerKey.getPk(), promotion));
         var proof = fiatShamirProofSystem.createProof(commonInput, witness);
 
         assertTrue(fiatShamirProofSystem.checkProof(commonInput, proof));
@@ -116,7 +119,7 @@ class TokenUpdateProofTest {
 
     @Test
     void invalidLinearTest() {
-        var fiatShamirProofSystem = new FiatShamirProofSystem(new TokenUpdateProof(pp, ignoreVector, ignoreVector, aVector, invalidBVector, providerKey.getPk(), promotion));
+        var fiatShamirProofSystem = new FiatShamirProofSystem(new TokenUpdateZkp(pp, ignoreVector, ignoreVector, aVector, invalidBVector, providerKey.getPk(), promotion));
 
         var proof = fiatShamirProofSystem.createProof(commonInput, witness);
         assertFalse(fiatShamirProofSystem.checkProof(commonInput, proof));
@@ -125,7 +128,7 @@ class TokenUpdateProofTest {
     @Test
     void validRangeTest() {
         // Do whatever you want within the range :)
-        var fiatShamirProofSystem = new FiatShamirProofSystem(new TokenUpdateProof(pp, lowerLimitsZero, upperLimits, ignoreVector, ignoreVector, providerKey.getPk(), promotion));
+        var fiatShamirProofSystem = new FiatShamirProofSystem(new TokenUpdateZkp(pp, lowerLimitsZero, upperLimits, ignoreVector, ignoreVector, providerKey.getPk(), promotion));
         var proof = fiatShamirProofSystem.createProof(commonInput, witness);
 
         assertTrue(fiatShamirProofSystem.checkProof(commonInput, proof));
@@ -146,7 +149,7 @@ class TokenUpdateProofTest {
 
         witness = testSuite.witness;
         commonInput = testSuite.commonInput;
-        var fiatShamirProofSystem = new FiatShamirProofSystem(new TokenUpdateProof(pp, lowerLimitsZero, ignoreVector, ignoreVector, ignoreVector, providerKey.getPk(), promotion));
+        var fiatShamirProofSystem = new FiatShamirProofSystem(new TokenUpdateZkp(pp, lowerLimitsZero, ignoreVector, ignoreVector, ignoreVector, providerKey.getPk(), promotion));
 
         assertThrows(RuntimeException.class, () -> {
             var proof = fiatShamirProofSystem.createProof(commonInput, witness);

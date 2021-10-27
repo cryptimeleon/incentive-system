@@ -7,7 +7,7 @@ import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProof;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentive.crypto.Util;
-import org.cryptimeleon.incentive.crypto.proof.spend.SpendDeductZkpCommonInput;
+import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkpCommonInput;
 import org.cryptimeleon.math.serialization.ListRepresentation;
 import org.cryptimeleon.math.serialization.Representable;
 import org.cryptimeleon.math.serialization.Representation;
@@ -55,10 +55,10 @@ public class SpendRequest implements Representable {
      * A constructor for the spend request based on a representation and additional data required to retrieve the
      * original values.
      *
-     * @param repr representation of the spend request
-     * @param pp public parameters
+     * @param repr                  representation of the spend request
+     * @param pp                    public parameters
      * @param fiatShamirProofSystem the fiat shamir proof system used to create the proof to be restored
-     * @param tid the transaction id
+     * @param tid                   the transaction id
      */
     public SpendRequest(Representation repr, IncentivePublicParameters pp, FiatShamirProofSystem fiatShamirProofSystem, Zn.ZnElement tid) {
         var listRepr = repr.list();

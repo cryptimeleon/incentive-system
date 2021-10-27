@@ -13,9 +13,9 @@ import java.math.BigInteger;
 
 public class Helper {
     public static Token generateToken(IncentivePublicParameters pp,
-                               UserKeyPair userKeyPair,
-                               ProviderKeyPair providerKeyPair,
-                               PromotionParameters promotionParameters) {
+                                      UserKeyPair userKeyPair,
+                                      ProviderKeyPair providerKeyPair,
+                                      PromotionParameters promotionParameters) {
         return generateToken(pp,
                 userKeyPair,
                 providerKeyPair,
@@ -24,10 +24,10 @@ public class Helper {
     }
 
     public static Token generateToken(IncentivePublicParameters pp,
-                               UserKeyPair userKeyPair,
-                               ProviderKeyPair providerKeyPair,
-                               PromotionParameters promotionParameters,
-                               Vector<BigInteger> points) {
+                                      UserKeyPair userKeyPair,
+                                      ProviderKeyPair providerKeyPair,
+                                      PromotionParameters promotionParameters,
+                                      Vector<BigInteger> points) {
         var vectorH = providerKeyPair.getPk().getH(pp, promotionParameters);
         var zp = pp.getBg().getZn();
         // Manually create a token since issue-join is not yet implemented

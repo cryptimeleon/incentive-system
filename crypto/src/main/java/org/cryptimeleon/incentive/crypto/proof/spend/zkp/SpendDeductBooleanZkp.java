@@ -1,14 +1,22 @@
-package org.cryptimeleon.incentive.crypto.proof.spend.tree;
+package org.cryptimeleon.incentive.crypto.proof.spend.zkp;
 
 import org.cryptimeleon.craco.protocols.CommonInput;
 import org.cryptimeleon.craco.protocols.SecretInput;
 import org.cryptimeleon.craco.protocols.arguments.sigma.ChallengeSpace;
+import org.cryptimeleon.craco.protocols.arguments.sigma.SigmaProtocol;
 import org.cryptimeleon.craco.protocols.arguments.sigma.ZnChallengeSpace;
 import org.cryptimeleon.craco.protocols.arguments.sigma.partial.ProofOfPartialKnowledge;
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.SendFirstValue;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
+import org.cryptimeleon.incentive.crypto.proof.spend.leaf.MetadataLeaf;
+import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenPointsLeaf;
+import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenUpdateLeaf;
+import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductAndNode;
+import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductLeafNode;
+import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductOrNode;
+import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.math.expressions.bool.BooleanExpression;
 import org.cryptimeleon.math.serialization.Representation;
 
@@ -47,7 +55,7 @@ public class SpendDeductBooleanZkp extends ProofOfPartialKnowledge {
             SpendDeductLeafNode spendDeductLeafNode = (SpendDeductLeafNode) spendDeductTree;
             return leaf(
                     spendDeductLeafNode.getLeafName(),
-                    spendDeductLeafNode.getProtocol(this.pp, this.promotionParameters, this.providerPublicKey),
+                    getProtocolForLeaf(spendDeductLeafNode, pp, promotionParameters, providerPublicKey),
                     commonInput
             );
         } else {
@@ -70,11 +78,26 @@ public class SpendDeductBooleanZkp extends ProofOfPartialKnowledge {
             putWitnesses(spendDeductAndNode.getRight(), commonInput, secretInput, builder);
         } else if (spendDeductTree instanceof SpendDeductLeafNode) {
             SpendDeductLeafNode spendDeductLeafNode = (SpendDeductLeafNode) spendDeductTree;
-            if (spendDeductLeafNode.isTrue()) {
+            if (spendDeductLeafNode.hasWitness()) {
                 builder.putSecretInput(spendDeductLeafNode.getLeafName(), secretInput);
             }
         } else {
             throw new RuntimeException("Unexpected instance of SpendDeductTree found!");
+        }
+    }
+
+    private SigmaProtocol getProtocolForLeaf(SpendDeductLeafNode leafNode, IncentivePublicParameters pp, PromotionParameters promotionParameters, ProviderPublicKey providerPublicKey) {
+        if (leafNode instanceof MetadataLeaf) {
+            MetadataLeaf l = (MetadataLeaf) leafNode;
+            return new MetadataZkp(pp, providerPublicKey, promotionParameters);
+        } else if (leafNode instanceof TokenPointsLeaf) {
+            TokenPointsLeaf l = (TokenPointsLeaf) leafNode;
+            return new TokenPointsZkp(pp, l.lowerLimits, l.upperLimits, providerPublicKey, promotionParameters);
+        } else if (leafNode instanceof TokenUpdateLeaf) {
+            TokenUpdateLeaf l = (TokenUpdateLeaf) leafNode;
+            return new TokenUpdateZkp(pp, l.lowerLimits, l.upperLimits, l.aVector, l.bVector, providerPublicKey, promotionParameters);
+        } else {
+            throw new RuntimeException("Unexpected instance of TokenPointsRangeProofLeaf found!");
         }
     }
 

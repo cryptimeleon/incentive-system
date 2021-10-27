@@ -9,9 +9,10 @@ import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.crypto.model.Token;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
+import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkpCommonInput;
+import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkpWitnessInput;
+import org.cryptimeleon.incentive.crypto.proof.spend.zkp.TokenPointsZkp;
 import org.cryptimeleon.math.structures.cartesian.Vector;
-import org.cryptimeleon.math.structures.groups.cartesian.GroupElementVector;
-import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,7 +23,7 @@ import java.util.Arrays;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class TokenPointsRangeProofTest {
+class TokenPointsZkpTest {
 
     BigInteger[] points = {
             BigInteger.valueOf(3),
@@ -88,7 +89,7 @@ class TokenPointsRangeProofTest {
     @Test
     void validBoundariesTest() {
 
-        var fiatShamirProofSystem = new FiatShamirProofSystem(new TokenPointsRangeProof(pp, lowerLimits, upperLimits, providerKey.getPk(), promotion));
+        var fiatShamirProofSystem = new FiatShamirProofSystem(new TokenPointsZkp(pp, lowerLimits, upperLimits, providerKey.getPk(), promotion));
         var proof = fiatShamirProofSystem.createProof(commonInput, witness);
 
         assertTrue(fiatShamirProofSystem.checkProof(commonInput, proof));
@@ -96,7 +97,7 @@ class TokenPointsRangeProofTest {
 
     @Test
     void invalidUpperLimitsTest() {
-        var fiatShamirProofSystem = new FiatShamirProofSystem(new TokenPointsRangeProof(pp, lowerLimits, invalidUpperLimits, providerKey.getPk(), promotion));
+        var fiatShamirProofSystem = new FiatShamirProofSystem(new TokenPointsZkp(pp, lowerLimits, invalidUpperLimits, providerKey.getPk(), promotion));
 
         assertThrows(RuntimeException.class, () -> {
             var proof = fiatShamirProofSystem.createProof(commonInput, witness);
@@ -106,7 +107,7 @@ class TokenPointsRangeProofTest {
 
     @Test
     void invalidLowerLimitsTest() {
-        var fiatShamirProofSystem = new FiatShamirProofSystem(new TokenPointsRangeProof(pp, invalidLowerLimits, upperLimits, providerKey.getPk(), promotion));
+        var fiatShamirProofSystem = new FiatShamirProofSystem(new TokenPointsZkp(pp, invalidLowerLimits, upperLimits, providerKey.getPk(), promotion));
 
         assertThrows(RuntimeException.class, () -> {
             var proof = fiatShamirProofSystem.createProof(commonInput, witness);

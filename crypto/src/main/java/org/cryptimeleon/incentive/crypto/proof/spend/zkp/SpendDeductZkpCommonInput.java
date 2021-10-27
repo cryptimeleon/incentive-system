@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.crypto.proof.spend;
+package org.cryptimeleon.incentive.crypto.proof.spend.zkp;
 
 import lombok.AllArgsConstructor;
 import org.cryptimeleon.craco.protocols.CommonInput;

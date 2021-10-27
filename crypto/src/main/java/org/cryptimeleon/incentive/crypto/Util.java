@@ -1,13 +1,7 @@
 package org.cryptimeleon.incentive.crypto;
 
-import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
-import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
-import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
-import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderSecretKey;
 import org.cryptimeleon.math.hash.impl.ByteArrayAccumulator;
 import org.cryptimeleon.math.structures.groups.GroupElement;
-import org.cryptimeleon.math.structures.groups.cartesian.GroupElementVector;
-import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
 import org.cryptimeleon.math.structures.rings.zn.HashIntoZn;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
@@ -19,7 +13,8 @@ public class Util {
 
     /**
      * Hash function to retrieve ZnElement gamma in spend-deduct
-     * TODO think about putting ZKP as additional input, because it defines the token update (pseudorandom?)!
+     * TODO think about putting additional input to replace k
+     * TODO no, we have the new commitments in the hash
      *
      * @param zn    ZnElement to retrieve
      * @param dsid  disid to hash

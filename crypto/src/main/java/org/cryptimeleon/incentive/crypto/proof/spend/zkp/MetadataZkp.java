@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.crypto.proof.spend;
+package org.cryptimeleon.incentive.crypto.proof.spend.zkp;
 
 import org.cryptimeleon.craco.protocols.CommonInput;
 import org.cryptimeleon.craco.protocols.SecretInput;
@@ -7,11 +7,10 @@ import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.DelegateProtocol
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.LinearExponentStatementFragment;
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.LinearStatementFragment;
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.SendThenDelegateFragment;
-import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.setmembership.SmallerThanPowerFragment;
+import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.setmembership.SetMembershipFragment;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
-import org.cryptimeleon.math.expressions.exponent.ExponentConstantExpr;
 import org.cryptimeleon.math.structures.cartesian.ExponentExpressionVector;
 import org.cryptimeleon.math.structures.cartesian.GroupElementExpressionVector;
 import org.cryptimeleon.math.structures.cartesian.Vector;
@@ -20,65 +19,72 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 import java.math.BigInteger;
 
-public class TokenUpdateProof extends DelegateProtocol {
+/**
+ * The ZKP used in the spend-deduct protocol
+ */
+public class MetadataZkp extends DelegateProtocol {
 
-    public TokenUpdateProof(IncentivePublicParameters pp, BigInteger[] lowerLimits, BigInteger[] upperLimits, BigInteger[] aVector, BigInteger[] bVector, ProviderPublicKey providerPublicKey, PromotionParameters promotionParameters) {
-        this.pp = pp;
-        this.lowerLimits = lowerLimits;
-        this.upperLimits = upperLimits;
-        this.aVector = aVector;
-        this.bVector = bVector;
+    private final IncentivePublicParameters pp;
+    private final Zn zn;
+    private final ProviderPublicKey providerPublicKey;
+    private final PromotionParameters promotionParameters;
+
+    public MetadataZkp(IncentivePublicParameters incentivePublicParameters, ProviderPublicKey providerPublicKey, PromotionParameters promotionParameters) {
         this.providerPublicKey = providerPublicKey;
+        this.pp = incentivePublicParameters;
+        this.zn = incentivePublicParameters.getBg().getZn();
         this.promotionParameters = promotionParameters;
     }
-
-    // Public parameters
-    final IncentivePublicParameters pp;
-
-    // Proof that lowerLimits[i] <= newPoints[i] <= upperLimits[i] for all i
-    final BigInteger[] lowerLimits; // null means no limit
-    final BigInteger[] upperLimits; // null means no limit
-
-    // Proof linear relation between new points and old points
-    // newPoints[i] = a[i]* oldPoints[i] + bVector[i]
-    final BigInteger[] aVector; // null means no statement
-    final BigInteger[] bVector; // null means no statement
-
-
-    final ProviderPublicKey providerPublicKey;
-    final PromotionParameters promotionParameters;
 
 
     @Override
     protected SendThenDelegateFragment.SubprotocolSpec provideSubprotocolSpec(CommonInput pCommonInput, SendThenDelegateFragment.SubprotocolSpecBuilder builder) {
         var commonInput = (SpendDeductZkpCommonInput) pCommonInput;
         var H = new GroupElementExpressionVector(providerPublicKey.getH(pp, promotionParameters).map(GroupElement::expr));
-        var zn = pp.getBg().getZn();
+        var w = pp.getW();
 
         // Variables to use
         var eskVar = builder.addZnVariable("esk", zn);
         var uskVar = builder.addZnVariable("usk", zn);
         var dsrnd0Var = builder.addZnVariable("dsrnd0", zn);
         var dsrnd1Var = builder.addZnVariable("dsrnd1", zn);
-        var zVar = builder.addZnVariable("z", zn);
-        var tVar = builder.addZnVariable("t", zn);
-        var pointsVector = ExponentExpressionVector.generate(i -> builder.addZnVariable("points_" + i, zn), promotionParameters.getPointsVectorSize());
-        var newPointsVector = ExponentExpressionVector.generate(i -> builder.addZnVariable("newPoints_" + i, zn), promotionParameters.getPointsVectorSize());
         var dsrndStar0Var = builder.addZnVariable("dsrndStar0", zn);
         var dsrndStar1Var = builder.addZnVariable("dsrndStar1", zn);
+        var zVar = builder.addZnVariable("z", zn);
+        var tVar = builder.addZnVariable("t", zn);
         var zStarVar = builder.addZnVariable("zStar", zn);
         var tStarVar = builder.addZnVariable("tStar", zn);
         var uStarInverseVar = builder.addZnVariable("uStarInverse", zn);
         var eskDecVarVector = ExponentExpressionVector.generate(i -> builder.addZnVariable("eskStarUserDec_" + i, zn), pp.getNumEskDigits());
+        var rVector = ExponentExpressionVector.generate(i -> builder.addZnVariable("r_" + i, zn), pp.getNumEskDigits());
+        var pointsVector = ExponentExpressionVector.generate(i -> builder.addZnVariable("points_" + i, zn), promotionParameters.getPointsVectorSize());
+        var newPointsVector = ExponentExpressionVector.generate(i -> builder.addZnVariable("newPoints_" + i, zn), promotionParameters.getPointsVectorSize());
 
+        // c0=usk*gamma+dsrnd0
+        builder.addSubprotocol(
+                "c0=usk*gamma+dsrnd0",
+                new LinearExponentStatementFragment(uskVar.mul(commonInput.gamma).add(dsrnd0Var).isEqualTo(commonInput.c0), zn)
+        );
 
-        // C=(H.pow(t, usk, esk, dsrnd_0, dsrnd_1, points, z), g_1)
+        // c1=esk*gamma+dsrnd1
+        builder.addSubprotocol(
+                "c1=esk*gamma+dsrnd1",
+                new LinearExponentStatementFragment(eskVar.mul(commonInput.gamma).add(dsrnd1Var).isEqualTo(commonInput.c1), zn)
+        );
+
+        // dsid=w^esk
+        var dsidEskStatement = w.pow(eskVar).isEqualTo(commonInput.dsid);
+        builder.addSubprotocol("dsid=w^esk", new LinearStatementFragment(dsidEskStatement));
+
+        // C=(H.pow(usk, esk, dsrnd_0, dsrnd_1, v, z, t),g_1) split into two subprotocols
         var commitmentC0Statement = H.innerProduct(
                 ExponentExpressionVector.of(tVar, uskVar, eskVar, dsrnd0Var, dsrnd1Var, zVar).concatenate(pointsVector.map(e -> e))
         ).isEqualTo(commonInput.commitmentC0);
         builder.addSubprotocol("C0", new LinearStatementFragment(commitmentC0Statement));
+        // C1=g is not sent and verified since no witness is involved.
 
-        // C_1=H.pow(t^*, usk, \sum_i=0^k[esk^*_(usr,i) * base^i], dsrnd^*_0, dsrnd^*_1, z^*, newPointsVector)
+        // C=(H.pow(t^*, usk, \sum_i=0^k[esk^*_(usr,i) * base^i], dsrnd^*_0, dsrnd^*_1, z^*, V-K), g_1^(u^*)) split into two subprotocols
+        // We use the sum to combine the esk^*_usr = \sum proof with the C=.. proof
         var powersOfEskDecBase = ExponentExpressionVector.generate(i -> pp.getEskDecBase().pow(BigInteger.valueOf(i)).asExponentExpression(), pp.getNumEskDigits()); // construct vector (eskBase^0, eskBase^1, ...)
         var exponents = new Vector<>(
                 tStarVar,
@@ -88,51 +94,27 @@ public class TokenUpdateProof extends DelegateProtocol {
                 dsrndStar1Var,
                 zStarVar
         ).concatenate(newPointsVector);
-        builder.addSubprotocol("C0Pre", new LinearStatementFragment(H.innerProduct(exponents).isEqualTo(commonInput.c0Pre.pow(uStarInverseVar))));
+        var cPre0Statement = H.innerProduct(exponents).isEqualTo(commonInput.c0Pre.pow(uStarInverseVar));
+        builder.addSubprotocol("C0Pre", new LinearStatementFragment(cPre0Statement));
+        builder.addSubprotocol("C1Pre", new LinearStatementFragment(commonInput.c1Pre.pow(uStarInverseVar).isEqualTo(pp.getG1Generator()))); // Use the inverse of uStar to linearize this expression
 
-        // Add range proofs
-        for (int i = 0; i < promotionParameters.getPointsVectorSize(); i++) {
-            if (lowerLimits[i] != null) {
-                builder.addSubprotocol(
-                        "newPointsVector[" + i + "]>=lowerLimits[" + i + "]",
-                        new SmallerThanPowerFragment(
-                                newPointsVector.get(i).sub(lowerLimits[i].intValue()),
-                                pp.getEskDecBase().asInteger().intValue(),
-                                pp.getMaxPointBasePower(),
-                                pp.getEskBaseSetMembershipPublicParameters()
-                        )
-                );
-            }
-            if (upperLimits[i] != null) {
-                builder.addSubprotocol(
-                        "newPointsVector[" + i + "]<=upperLimits[" + i,
-                        new SmallerThanPowerFragment(
-                                (new ExponentConstantExpr(upperLimits[i])).sub(newPointsVector.get(i)),
-                                pp.getEskDecBase().asInteger().intValue(),
-                                pp.getMaxPointBasePower(),
-                                pp.getEskBaseSetMembershipPublicParameters()
-                        )
-                );
-            }
+        // esk^*_(usr,i)\in[0,eskDecBase-1]
+        for (int i = 0; i < pp.getNumEskDigits(); i++) {
+            builder.addSubprotocol("eskDigitSetMembership" + i, new SetMembershipFragment(pp.getEskBaseSetMembershipPublicParameters(), eskDecVarVector.get(i)));
         }
 
-        // Add range proofs
-        for (int i = 0; i < promotionParameters.getPointsVectorSize(); i++) {
-            if (aVector[i] != null && bVector[i] != null) {
-                builder.addSubprotocol(
-                        "newPointsVector[" + i + "]=aVector[" + i + "]*pointsVector[" + i + "]+bVector[" + i + "]",
-                        new LinearExponentStatementFragment(
-                                pointsVector.get(i).mul(aVector[i]).add(bVector[i]).isEqualTo(newPointsVector.get(i)), zn
-                        )
-                );
 
-            }
+        // ctrace=(w^{r_i} ,{w^{r_i}}^{esk}*w^{esk^*_{usr,i}}) for all i\in[p]
+        for (int i = 0; i < pp.getNumEskDigits(); i++) {
+            builder.addSubprotocol("ctrace0" + i, new LinearStatementFragment(w.pow(rVector.get(i)).isEqualTo(commonInput.ctrace0.get(i))));
+            builder.addSubprotocol("ctrace1" + i, new LinearStatementFragment(w.pow(eskDecVarVector.get(i)).op(commonInput.ctrace0.get(i).pow(eskVar)).isEqualTo(commonInput.ctrace1.get(i))));
         }
+
         return builder.build();
     }
 
     @Override
-    protected SendThenDelegateFragment.ProverSpec provideProverSpecWithNoSendFirst(CommonInput commonInput, SecretInput pSecretInput, SendThenDelegateFragment.ProverSpecBuilder builder) {
+    protected SendThenDelegateFragment.ProverSpec provideProverSpecWithNoSendFirst(CommonInput pCommonInput, SecretInput pSecretInput, SendThenDelegateFragment.ProverSpecBuilder builder) {
         var secretInput = (SpendDeductZkpWitnessInput) pSecretInput;
 
         // Add variables to witness
@@ -150,12 +132,20 @@ public class TokenUpdateProof extends DelegateProtocol {
 
         for (int i = 0; i < pp.getNumEskDigits(); i++) {
             builder.putWitnessValue("eskStarUserDec_" + i, (Zn.ZnElement) secretInput.eskStarUserDec.get(i));
+            builder.putWitnessValue("r_" + i, (Zn.ZnElement) secretInput.rVector.get(i));
         }
 
         for (int i = 0; i < promotionParameters.getPointsVectorSize(); i++) {
             builder.putWitnessValue("points_" + i, (Zn.ZnElement) secretInput.pointsVector.get(i));
             builder.putWitnessValue("newPoints_" + i, (Zn.ZnElement) secretInput.newPointsVector.get(i));
         }
+
+        // Some asserts that might be useful for debugging:
+        // assert pp.getNumEskDigits() == secretInput.eskStarUserDec.length();
+        // assert secretInput.eskStarUser.equals(secretInput.eskStarUserDec.map((integer, znElement) -> znElement.mul(pp.getEskDecBase().pow(BigInteger.valueOf(integer)))).reduce(Zn.ZnElement::add));
+        // assert commonInput.ctrace0.equals(pp.getW().pow(secretInput.rVector));
+        // assert commonInput.ctrace1.equals(commonInput.ctrace0.pow(secretInput.esk).op(pp.getW().pow(secretInput.eskStarUserDec)));
+
         return builder.build();
     }
 

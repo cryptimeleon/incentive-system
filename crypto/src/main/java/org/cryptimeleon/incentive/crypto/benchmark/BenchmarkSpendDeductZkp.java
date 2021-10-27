@@ -1,14 +1,12 @@
 package org.cryptimeleon.incentive.crypto.benchmark;
 
-import org.cryptimeleon.craco.protocols.arguments.sigma.SigmaProtocol;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
-import org.cryptimeleon.incentive.crypto.proof.spend.SpendDeductZkp;
-import org.cryptimeleon.incentive.crypto.proof.spend.TokenPointsRangeProof;
-import org.cryptimeleon.incentive.crypto.proof.spend.TokenUpdateProof;
-import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductLeafNode;
+import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenPointsLeaf;
+import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenUpdateLeaf;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
+import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkp;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -22,45 +20,8 @@ public class BenchmarkSpendDeductZkp {
         Arrays.fill(ones, BigInteger.ONE);
 
 
-        SpendDeductTree conditionTree = new SpendDeductLeafNode() {
-            @Override
-            public SigmaProtocol getProtocol(IncentivePublicParameters pp, PromotionParameters promotionParameters, ProviderPublicKey providerPublicKey) {
-                return new TokenPointsRangeProof(pp, subtractPoints, ignore, providerPublicKey, promotionParameters);
-            }
-
-            @Override
-            public boolean isTrue() {
-                return true;
-            }
-
-            @Override
-            public String getLeafName() {
-                return "ConditionNode";
-            }
-        };
-
-        SpendDeductTree updateTree = new SpendDeductLeafNode() {
-            @Override
-            public SigmaProtocol getProtocol(IncentivePublicParameters pp, PromotionParameters promotionParameters, ProviderPublicKey providerPublicKey) {
-                return new TokenUpdateProof(pp,
-                        ignore,
-                        ignore,
-                        ones,
-                        Arrays.stream(subtractPoints).map(BigInteger::negate).toArray(BigInteger[]::new),
-                        providerPublicKey,
-                        promotionParameters);
-            }
-
-            @Override
-            public boolean isTrue() {
-                return true;
-            }
-
-            @Override
-            public String getLeafName() {
-                return "UpdateNode";
-            }
-        };
+        SpendDeductTree conditionTree = new TokenPointsLeaf("TokenPointsLeaf", subtractPoints, ignore, true);
+        SpendDeductTree updateTree = new TokenUpdateLeaf("TokenUpdateLeaf", ignore, ignore, ones, Arrays.stream(subtractPoints).map(BigInteger::negate).toArray(BigInteger[]::new), true);
 
         return new SpendDeductZkp(conditionTree, updateTree, pp, promotionParameters, providerPublicKey);
     }

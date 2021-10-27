@@ -1,6 +1,5 @@
 package org.cryptimeleon.incentive.crypto.proof.spend;
 
-import org.cryptimeleon.craco.protocols.arguments.sigma.SigmaProtocol;
 import org.cryptimeleon.incentive.crypto.Util;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
@@ -8,15 +7,18 @@ import org.cryptimeleon.incentive.crypto.model.Token;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
-import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductLeafNode;
+import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenPointsLeaf;
+import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenUpdateLeaf;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
+import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkp;
+import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkpCommonInput;
+import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkpWitnessInput;
 import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
 import org.cryptimeleon.math.structures.rings.integers.IntegerRing;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 import java.math.BigInteger;
 import java.util.Arrays;
-import java.util.function.Function;
 
 public class SpendHelper {
 
@@ -82,40 +84,8 @@ public class SpendHelper {
                                                  BigInteger[] aVector,
                                                  BigInteger[] bVector) {
 
-        SpendDeductTree conditionTree = new SpendDeductLeafNode() {
-            @Override
-            public SigmaProtocol getProtocol(IncentivePublicParameters pp, PromotionParameters promotionParameters, ProviderPublicKey providerPublicKey) {
-                return new TokenPointsRangeProof(pp, lowerLimits, upperLimits, providerPublicKey, promotionParameters);
-            }
-
-            @Override
-            public boolean isTrue() {
-                return true;
-            }
-
-            @Override
-            public String getLeafName() {
-                return "ConditionNode";
-            }
-        };
-
-        SpendDeductTree updateTree = new SpendDeductLeafNode() {
-            @Override
-            public SigmaProtocol getProtocol(IncentivePublicParameters pp, PromotionParameters promotionParameters, ProviderPublicKey providerPublicKey) {
-                return new TokenUpdateProof(pp, newLowerLimits, newUpperLimits, aVector, bVector, providerPublicKey, promotionParameters);
-            }
-
-            @Override
-            public boolean isTrue() {
-                return true;
-            }
-
-            @Override
-            public String getLeafName() {
-                return "UpdateNode";
-            }
-        };
-
+        SpendDeductTree conditionTree = new TokenPointsLeaf("RangeProof", lowerLimits, upperLimits, true);
+        SpendDeductTree updateTree = new TokenUpdateLeaf("UpdateProof", newLowerLimits, newUpperLimits, aVector, bVector, true);
         return new SpendDeductZkp(conditionTree, updateTree, pp, promotionParameters, providerPublicKey);
     }
 
