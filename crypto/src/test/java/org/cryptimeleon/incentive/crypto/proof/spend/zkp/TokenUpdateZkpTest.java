@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.crypto.proof.spend;
+package org.cryptimeleon.incentive.crypto.proof.spend.zkp;
 
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.incentive.crypto.Helper;
@@ -9,9 +9,7 @@ import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.crypto.model.Token;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
-import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkpCommonInput;
-import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkpWitnessInput;
-import org.cryptimeleon.incentive.crypto.proof.spend.zkp.TokenUpdateZkp;
+import org.cryptimeleon.incentive.crypto.proof.spend.SpendHelper;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.junit.jupiter.api.BeforeEach;

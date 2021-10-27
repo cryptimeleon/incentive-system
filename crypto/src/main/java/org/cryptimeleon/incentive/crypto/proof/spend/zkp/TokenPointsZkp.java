@@ -18,7 +18,7 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 import java.math.BigInteger;
 
-public class TokenPointsZkp extends DelegateProtocol {
+class TokenPointsZkp extends DelegateProtocol {
 
     // Public parameters
     IncentivePublicParameters pp;
@@ -27,6 +27,7 @@ public class TokenPointsZkp extends DelegateProtocol {
     BigInteger[] upperLimits; // null means no limit
     ProviderPublicKey providerPublicKey;
     PromotionParameters promotionParameters;
+
     public TokenPointsZkp(IncentivePublicParameters pp, BigInteger[] lowerLimits, BigInteger[] upperLimits, ProviderPublicKey providerPublicKey, PromotionParameters promotionParameters) {
         this.pp = pp;
         this.lowerLimits = lowerLimits;

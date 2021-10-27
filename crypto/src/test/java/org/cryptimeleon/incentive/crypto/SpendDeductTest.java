@@ -4,12 +4,15 @@ import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSyst
 import org.cryptimeleon.incentive.crypto.model.SpendRequest;
 import org.cryptimeleon.incentive.crypto.model.SpendResponse;
 import org.cryptimeleon.incentive.crypto.proof.spend.SpendHelper;
-import org.cryptimeleon.incentive.crypto.proof.spend.zkp.MetadataZkp;
+import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenPointsLeaf;
+import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenUpdateLeaf;
+import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkp;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
+import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -33,6 +36,11 @@ public class SpendDeductTest {
         assertEquals(budget.length(), newPointsVector.length());
 
         var promotionParameters = incentiveSystem.generatePromotionParameters(budget.length());
+        BigInteger[] ignore = new BigInteger[budget.length()];
+        Arrays.fill(ignore, null);
+        BigInteger[] ones = new BigInteger[budget.length()];
+        Arrays.fill(ignore, BigInteger.ONE);
+
         var token = Helper.generateToken(pp, userKeyPair, providerKeyPair, promotionParameters, budget);
         var spendDeductTestZkp = SpendHelper.generateSimpleTestSpendDeductZkp(pp, promotionParameters, providerKeyPair.getPk(), spendAmount);
 
@@ -51,7 +59,15 @@ public class SpendDeductTest {
 
         var serializedSpendRequest = spendRequest.getRepresentation();
 
-        var fiatShamirProofSystem = new FiatShamirProofSystem(new MetadataZkp(pp, providerKeyPair.getPk(), promotionParameters));
+        var fiatShamirProofSystem = new FiatShamirProofSystem(
+                new SpendDeductZkp(
+                        new TokenPointsLeaf("TokenPointsLeaf", spendAmount, ignore),
+                        new TokenUpdateLeaf("TokenUpdateLeaf", spendAmount, ignore, ones, Arrays.stream(spendAmount).map(BigInteger::negate).toArray(BigInteger[]::new)),
+                        pp,
+                        promotionParameters,
+                        providerKeyPair.getPk()
+                )
+        );
         var deserializedSpendRequest = new SpendRequest(serializedSpendRequest, pp, fiatShamirProofSystem, tid);
         assertEquals(spendRequest, deserializedSpendRequest);
 

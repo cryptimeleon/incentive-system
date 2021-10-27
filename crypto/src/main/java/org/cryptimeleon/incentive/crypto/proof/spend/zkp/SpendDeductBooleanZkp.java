@@ -42,14 +42,14 @@ public class SpendDeductBooleanZkp extends ProofOfPartialKnowledge {
         if (spendDeductTree instanceof SpendDeductOrNode) {
             SpendDeductOrNode spendDeductOrNode = (SpendDeductOrNode) spendDeductTree;
             return or(
-                    generateProtocolTree(spendDeductOrNode.getLeft(), commonInput, sendFirstValue),
-                    generateProtocolTree(spendDeductOrNode.getRight(), commonInput, sendFirstValue)
+                    generateProtocolTree(spendDeductOrNode.left, commonInput, sendFirstValue),
+                    generateProtocolTree(spendDeductOrNode.right, commonInput, sendFirstValue)
             );
         } else if (spendDeductTree instanceof SpendDeductAndNode) {
             SpendDeductAndNode spendDeductAndNode = (SpendDeductAndNode) spendDeductTree;
             return and(
-                    generateProtocolTree(spendDeductAndNode.getLeft(), commonInput, sendFirstValue),
-                    generateProtocolTree(spendDeductAndNode.getRight(), commonInput, sendFirstValue)
+                    generateProtocolTree(spendDeductAndNode.left, commonInput, sendFirstValue),
+                    generateProtocolTree(spendDeductAndNode.right, commonInput, sendFirstValue)
             );
         } else if (spendDeductTree instanceof SpendDeductLeafNode) {
             SpendDeductLeafNode spendDeductLeafNode = (SpendDeductLeafNode) spendDeductTree;
@@ -70,12 +70,12 @@ public class SpendDeductBooleanZkp extends ProofOfPartialKnowledge {
     private void putWitnesses(SpendDeductTree spendDeductTree, CommonInput commonInput, SecretInput secretInput, ProverSpecBuilder builder) {
         if (spendDeductTree instanceof SpendDeductOrNode) {
             SpendDeductOrNode spendDeductOrNode = (SpendDeductOrNode) spendDeductTree;
-            putWitnesses(spendDeductOrNode.getLeft(), commonInput, secretInput, builder);
-            putWitnesses(spendDeductOrNode.getRight(), commonInput, secretInput, builder);
+            putWitnesses(spendDeductOrNode.left, commonInput, secretInput, builder);
+            putWitnesses(spendDeductOrNode.right, commonInput, secretInput, builder);
         } else if (spendDeductTree instanceof SpendDeductAndNode) {
             SpendDeductAndNode spendDeductAndNode = (SpendDeductAndNode) spendDeductTree;
-            putWitnesses(spendDeductAndNode.getLeft(), commonInput, secretInput, builder);
-            putWitnesses(spendDeductAndNode.getRight(), commonInput, secretInput, builder);
+            putWitnesses(spendDeductAndNode.left, commonInput, secretInput, builder);
+            putWitnesses(spendDeductAndNode.right, commonInput, secretInput, builder);
         } else if (spendDeductTree instanceof SpendDeductLeafNode) {
             SpendDeductLeafNode spendDeductLeafNode = (SpendDeductLeafNode) spendDeductTree;
             if (spendDeductLeafNode.hasWitness()) {

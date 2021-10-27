@@ -8,7 +8,9 @@ import org.cryptimeleon.incentive.crypto.model.SpendResponse;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinRequest;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse;
 import org.cryptimeleon.incentive.crypto.proof.spend.SpendHelper;
-import org.cryptimeleon.incentive.crypto.proof.spend.zkp.MetadataZkp;
+import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenPointsLeaf;
+import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenUpdateLeaf;
+import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkp;
 import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellformednessProtocol;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.rings.RingElement;
@@ -16,6 +18,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.logging.Logger;
 
 /**
@@ -50,6 +53,8 @@ public class ProtocolIntegrationTest {
 
         // generate promotion parameters
         var promotionParameters = incSys.generatePromotionParameters(2);
+        BigInteger[] ignore = {null, null};
+        BigInteger[] ones = {BigInteger.ONE, BigInteger.ONE};
 
         /*
          * user joins system using issue-join protocol
@@ -163,7 +168,11 @@ public class ProtocolIntegrationTest {
 
         // serialize and deserialize spend request to ensure that serialization does not break anything
         var serializedSpendRequest3 = spendRequest3.getRepresentation();
-        FiatShamirProofSystem spendDeductProofSystem = new FiatShamirProofSystem(new MetadataZkp(incSys.getPp(), pkp.getPk(), promotionParameters));
+        FiatShamirProofSystem spendDeductProofSystem = new FiatShamirProofSystem(
+                new SpendDeductZkp(
+                        new TokenPointsLeaf("TokenPointsLeaf", spendAmount, ignore),
+                        new TokenUpdateLeaf("TokenUpdateLeaf", spendAmount, ignore, ones, Arrays.stream(spendAmount).map(BigInteger::negate).toArray(BigInteger[]::new)),
+                        incSys.getPp(), promotionParameters, pkp.getPk()));
         var deserializedSpendRequest3 = new SpendRequest(serializedSpendRequest3, incSys.getPp(), spendDeductProofSystem, tid3);
 
         // provider handles spend request and generates spend response and information required for double-spending protection (which is discarded on the fly, since not needed in this test)

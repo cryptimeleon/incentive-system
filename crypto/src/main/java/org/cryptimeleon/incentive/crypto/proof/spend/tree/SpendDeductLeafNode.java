@@ -1,11 +1,12 @@
 package org.cryptimeleon.incentive.crypto.proof.spend.tree;
 
-public abstract class SpendDeductLeafNode extends SpendDeductTree {
+public abstract class SpendDeductLeafNode implements SpendDeductTree {
+
+    // Name must be unique within the whole SpendDeductTree
+    private final String leafName;
 
     // Indicate whether prover knows a witness for this statement
     private Boolean hasWitness = null;
-    // Name must be unique
-    private String leafName;
 
     public SpendDeductLeafNode(String leafName) {
         this.leafName = leafName;

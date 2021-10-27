@@ -22,7 +22,7 @@ import java.math.BigInteger;
 /**
  * The ZKP used in the spend-deduct protocol
  */
-public class MetadataZkp extends DelegateProtocol {
+class MetadataZkp extends DelegateProtocol {
 
     private final IncentivePublicParameters pp;
     private final Zn zn;

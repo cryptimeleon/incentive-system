@@ -141,8 +141,8 @@ public class SpendHelper {
     }
 
     public static class SpendZkpTestSuite {
-        SpendDeductZkpCommonInput commonInput;
-        SpendDeductZkpWitnessInput witness;
+        public final SpendDeductZkpCommonInput commonInput;
+        public final SpendDeductZkpWitnessInput witness;
 
         public SpendZkpTestSuite(SpendDeductZkpWitnessInput witness, SpendDeductZkpCommonInput commonInput) {
             this.witness = witness;
