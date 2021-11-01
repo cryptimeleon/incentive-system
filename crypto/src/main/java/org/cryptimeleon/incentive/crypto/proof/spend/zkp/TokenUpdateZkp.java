@@ -20,6 +20,9 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 import java.math.BigInteger;
 
+/**
+ * A zero knowledge proof for defining update relations between the old and new token.
+ */
 class TokenUpdateZkp extends DelegateProtocol {
 
     // Public parameters

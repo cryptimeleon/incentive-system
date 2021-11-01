@@ -27,35 +27,4 @@ public class SpendDeductZkpWitnessInput implements SecretInput {
     public final RingElementVector rVector;
     public final RingElementVector pointsVector;
     public final RingElementVector newPointsVector;
-
-
-    public SpendDeductZkpWitnessInput(Token token,
-                                      Zn.ZnElement usk,
-                                      Zn.ZnElement zStar,
-                                      Zn.ZnElement tStar,
-                                      Zn.ZnElement uStar,
-                                      Zn.ZnElement eskStarUser,
-                                      Zn.ZnElement dsrndStar0,
-                                      Zn.ZnElement dsrndStar1,
-                                      RingElementVector eskStarUserDec,
-                                      RingElementVector rVector,
-                                      RingElementVector newPointsVector
-    ) {
-        this.z = token.getZ();
-        this.t = token.getT();
-        this.esk = token.getEncryptionSecretKey();
-        this.dsrnd0 = token.getDoubleSpendRandomness0();
-        this.dsrnd1 = token.getDoubleSpendRandomness1();
-        this.pointsVector = token.getPoints();
-        this.usk = usk;
-        this.zStar = zStar;
-        this.tStar = tStar;
-        this.uStar = uStar;
-        this.eskStarUser = eskStarUser;
-        this.dsrndStar0 = dsrndStar0;
-        this.dsrndStar1 = dsrndStar1;
-        this.eskStarUserDec = eskStarUserDec;
-        this.rVector = rVector;
-        this.newPointsVector = newPointsVector;
-    }
 }

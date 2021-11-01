@@ -20,6 +20,10 @@ import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.math.expressions.bool.BooleanExpression;
 import org.cryptimeleon.math.serialization.Representation;
 
+/**
+ * Proofs of partial knowledge that can be assembled from a SpendDeductTree.
+ * All sub-protocols share a common input and witness space for simplicity.
+ */
 public class SpendDeductBooleanZkp extends ProofOfPartialKnowledge {
 
     private final SpendDeductTree spendDeductTree;
@@ -34,10 +38,16 @@ public class SpendDeductBooleanZkp extends ProofOfPartialKnowledge {
         this.providerPublicKey = providerPublicKey;
     }
 
+    /**
+     * Wrapper function around the recursive calls for generating the protocol tree.
+     */
     private ProtocolTree generateProtocolTree(CommonInput commonInput, SendFirstValue sendFirstValue) {
         return generateProtocolTree(this.spendDeductTree, commonInput, sendFirstValue);
     }
 
+    /**
+     * Function used to recursively generate the protocol tree.
+     */
     private ProtocolTree generateProtocolTree(SpendDeductTree spendDeductTree, CommonInput commonInput, SendFirstValue sendFirstValue) {
         if (spendDeductTree instanceof SpendDeductOrNode) {
             SpendDeductOrNode spendDeductOrNode = (SpendDeductOrNode) spendDeductTree;
@@ -63,10 +73,16 @@ public class SpendDeductBooleanZkp extends ProofOfPartialKnowledge {
         }
     }
 
+    /**
+     * Wrapper function around the recursive function with the same name for adding all known witnesses to the builder.
+     */
     private void putWitnesses(CommonInput commonInput, SecretInput secretInput, ProverSpecBuilder builder) {
         putWitnesses(this.spendDeductTree, commonInput, secretInput, builder);
     }
 
+    /**
+     * Recursively adds witness to all nodes that are valid the builder.
+     */
     private void putWitnesses(SpendDeductTree spendDeductTree, CommonInput commonInput, SecretInput secretInput, ProverSpecBuilder builder) {
         if (spendDeductTree instanceof SpendDeductOrNode) {
             SpendDeductOrNode spendDeductOrNode = (SpendDeductOrNode) spendDeductTree;
@@ -86,6 +102,9 @@ public class SpendDeductBooleanZkp extends ProofOfPartialKnowledge {
         }
     }
 
+    /**
+     * Helper function that creates the matching SigmaProtocol for a SpendDeductLeafNode.
+     */
     private SigmaProtocol getProtocolForLeaf(SpendDeductLeafNode leafNode, IncentivePublicParameters pp, PromotionParameters promotionParameters, ProviderPublicKey providerPublicKey) {
         if (leafNode instanceof MetadataLeaf) {
             MetadataLeaf l = (MetadataLeaf) leafNode;

@@ -1,5 +1,8 @@
 package org.cryptimeleon.incentive.crypto.proof.spend.tree;
 
+/**
+ * Leaf nodes that represent the actual statements of the boolean formula.
+ */
 public abstract class SpendDeductLeafNode implements SpendDeductTree {
 
     // Name must be unique within the whole SpendDeductTree
@@ -8,6 +11,11 @@ public abstract class SpendDeductLeafNode implements SpendDeductTree {
     // Indicate whether prover knows a witness for this statement
     private Boolean hasWitness = null;
 
+    /**
+     * Create a leaf node with a name that is unique within the tree.
+     *
+     * @param leafName name of the leaf node
+     */
     public SpendDeductLeafNode(String leafName) {
         this.leafName = leafName;
     }
@@ -16,6 +24,9 @@ public abstract class SpendDeductLeafNode implements SpendDeductTree {
         return leafName;
     }
 
+    /**
+     * Getter for the hasWitness field. Throws a runtime exception if accessed even though hasWitness is not set.
+     */
     public boolean hasWitness() {
         // Can be uninitialized on verifier's side
         if (hasWitness == null) {

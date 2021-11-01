@@ -20,7 +20,8 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
 import java.math.BigInteger;
 
 /**
- * The ZKP used in the spend-deduct protocol
+ * ZKP to proof knowledge of correct metadata witnesses for a token.
+ * Contains all but the points range proof of the paper's spend-deduct ZKP.
  */
 class MetadataZkp extends DelegateProtocol {
 
@@ -61,39 +62,24 @@ class MetadataZkp extends DelegateProtocol {
         var newPointsVector = ExponentExpressionVector.generate(i -> builder.addZnVariable("newPoints_" + i, zn), promotionParameters.getPointsVectorSize());
 
         // c0=usk*gamma+dsrnd0
-        builder.addSubprotocol(
-                "c0=usk*gamma+dsrnd0",
-                new LinearExponentStatementFragment(uskVar.mul(commonInput.gamma).add(dsrnd0Var).isEqualTo(commonInput.c0), zn)
-        );
+        builder.addSubprotocol("c0=usk*gamma+dsrnd0", new LinearExponentStatementFragment(uskVar.mul(commonInput.gamma).add(dsrnd0Var).isEqualTo(commonInput.c0), zn));
 
         // c1=esk*gamma+dsrnd1
-        builder.addSubprotocol(
-                "c1=esk*gamma+dsrnd1",
-                new LinearExponentStatementFragment(eskVar.mul(commonInput.gamma).add(dsrnd1Var).isEqualTo(commonInput.c1), zn)
-        );
+        builder.addSubprotocol("c1=esk*gamma+dsrnd1", new LinearExponentStatementFragment(eskVar.mul(commonInput.gamma).add(dsrnd1Var).isEqualTo(commonInput.c1), zn));
 
         // dsid=w^esk
         var dsidEskStatement = w.pow(eskVar).isEqualTo(commonInput.dsid);
         builder.addSubprotocol("dsid=w^esk", new LinearStatementFragment(dsidEskStatement));
 
         // C=(H.pow(usk, esk, dsrnd_0, dsrnd_1, v, z, t),g_1) split into two subprotocols
-        var commitmentC0Statement = H.innerProduct(
-                ExponentExpressionVector.of(tVar, uskVar, eskVar, dsrnd0Var, dsrnd1Var, zVar).concatenate(pointsVector.map(e -> e))
-        ).isEqualTo(commonInput.commitmentC0);
+        var commitmentC0Statement = H.innerProduct(ExponentExpressionVector.of(tVar, uskVar, eskVar, dsrnd0Var, dsrnd1Var, zVar).concatenate(pointsVector.map(e -> e))).isEqualTo(commonInput.commitmentC0);
         builder.addSubprotocol("C0", new LinearStatementFragment(commitmentC0Statement));
         // C1=g is not sent and verified since no witness is involved.
 
         // C=(H.pow(t^*, usk, \sum_i=0^k[esk^*_(usr,i) * base^i], dsrnd^*_0, dsrnd^*_1, z^*, V-K), g_1^(u^*)) split into two subprotocols
         // We use the sum to combine the esk^*_usr = \sum proof with the C=.. proof
         var powersOfEskDecBase = ExponentExpressionVector.generate(i -> pp.getEskDecBase().pow(BigInteger.valueOf(i)).asExponentExpression(), pp.getNumEskDigits()); // construct vector (eskBase^0, eskBase^1, ...)
-        var exponents = new Vector<>(
-                tStarVar,
-                uskVar,
-                eskDecVarVector.innerProduct(powersOfEskDecBase),
-                dsrndStar0Var,
-                dsrndStar1Var,
-                zStarVar
-        ).concatenate(newPointsVector);
+        var exponents = new Vector<>(tStarVar, uskVar, eskDecVarVector.innerProduct(powersOfEskDecBase), dsrndStar0Var, dsrndStar1Var, zStarVar).concatenate(newPointsVector);
         var cPre0Statement = H.innerProduct(exponents).isEqualTo(commonInput.c0Pre.pow(uStarInverseVar));
         builder.addSubprotocol("C0Pre", new LinearStatementFragment(cPre0Statement));
         builder.addSubprotocol("C1Pre", new LinearStatementFragment(commonInput.c1Pre.pow(uStarInverseVar).isEqualTo(pp.getG1Generator()))); // Use the inverse of uStar to linearize this expression
@@ -139,12 +125,6 @@ class MetadataZkp extends DelegateProtocol {
             builder.putWitnessValue("points_" + i, (Zn.ZnElement) secretInput.pointsVector.get(i));
             builder.putWitnessValue("newPoints_" + i, (Zn.ZnElement) secretInput.newPointsVector.get(i));
         }
-
-        // Some asserts that might be useful for debugging:
-        // assert pp.getNumEskDigits() == secretInput.eskStarUserDec.length();
-        // assert secretInput.eskStarUser.equals(secretInput.eskStarUserDec.map((integer, znElement) -> znElement.mul(pp.getEskDecBase().pow(BigInteger.valueOf(integer)))).reduce(Zn.ZnElement::add));
-        // assert commonInput.ctrace0.equals(pp.getW().pow(secretInput.rVector));
-        // assert commonInput.ctrace1.equals(commonInput.ctrace0.pow(secretInput.esk).op(pp.getW().pow(secretInput.eskStarUserDec)));
 
         return builder.build();
     }

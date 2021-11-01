@@ -8,7 +8,7 @@ import java.math.BigInteger;
 
 /**
  * Leaf node for representing range proofs over the points vector of the old token.
- * The statement has the form `for all i: lowerLimits[i] <= pointsVector[i] <= upperLimits[i]`
+ * The statement has the form {@literal `for all i: lowerLimits[i] <= pointsVector[i] <= upperLimits[i]`}
  * Also supports only partial range proofs by setting all other entries to null.
  */
 public class TokenPointsLeaf extends SpendDeductLeafNode {

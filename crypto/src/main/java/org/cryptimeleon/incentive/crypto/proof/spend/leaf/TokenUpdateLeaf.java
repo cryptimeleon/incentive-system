@@ -11,8 +11,8 @@ import java.math.BigInteger;
  * between the points of the old and new token.
  * <p>
  * The statement has the form:
- * for all i: lowerLimits[i] <= oldPointsVector[i] <= upperLimits[i]
- * and newPointsVector[i] = aVector[i] * oldVector[i] + bVector[i]`
+ * {@literal for all i: lowerLimits[i] <= oldPointsVector[i] <= upperLimits[i]
+ * and newPointsVector[i] = aVector[i] * oldVector[i] + bVector[i]`}
  * <p>
  * Also supports only partial range proofs and partial affine linear relation proofs by setting all other entries to null.
  */

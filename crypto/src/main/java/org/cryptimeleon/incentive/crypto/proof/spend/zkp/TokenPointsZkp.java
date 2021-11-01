@@ -19,6 +19,9 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 import java.math.BigInteger;
 
+/**
+ * A zero knowledge proof over a token's points for range proofs.
+ */
 class TokenPointsZkp extends DelegateProtocol {
 
     // Public parameters
