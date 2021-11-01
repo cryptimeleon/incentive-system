@@ -28,7 +28,7 @@ import java.util.logging.Logger;
  * and performs some (valid as well as invalid) Spend operations.
  * Note: since no state is stored on either side at cryptoprotocol level, it makes no sense to test with multiple users here.
  */
-public class ProtocolIntegrationTest {
+public class IncentiveSystemTest {
     Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
     @Test
