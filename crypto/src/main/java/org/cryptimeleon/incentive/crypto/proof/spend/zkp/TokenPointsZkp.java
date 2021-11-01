@@ -77,7 +77,7 @@ class TokenPointsZkp extends DelegateProtocol {
             }
             if (upperLimits.get(i) != null) {
                 builder.addSubprotocol(
-                        "pointsVector[" + i + "]<=upperLimits[" + i,
+                        "pointsVector[" + i + "]<=upperLimits[" + i + "]",
                         new SmallerThanPowerFragment(
                                 (new ExponentConstantExpr(upperLimits.get(i))).sub(pointsVector.get(i)),
                                 pp.getEskDecBase().asInteger().intValue(),
@@ -87,6 +87,7 @@ class TokenPointsZkp extends DelegateProtocol {
                 );
             }
         }
+
         return builder.build();
     }
 

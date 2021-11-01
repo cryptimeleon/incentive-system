@@ -216,9 +216,9 @@ public class IncentiveSystemTest {
         // user handles earn response
         updatedToken = incSys.handleEarnRequestResponse(promotionParameters, deserializedEarnRequest2, deserializedEarnResponse2, earnAmount5, updatedToken, pkp.getPk(), ukp);
 
-        Assertions.assertArrayEquals(
-                new BigInteger[]{BigInteger.valueOf(334241L), BigInteger.valueOf(44L)},
-                updatedToken.getPoints().stream().map(RingElement::asInteger).toArray()
+        Assertions.assertEquals(
+                Vector.of(BigInteger.valueOf(334241L), BigInteger.valueOf(44L)),
+                updatedToken.getPoints().map(RingElement::asInteger)
         );
 
         logger.info("Done testing protocols.");

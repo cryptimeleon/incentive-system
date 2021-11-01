@@ -160,5 +160,4 @@ class SpendDeductBooleanZkpTest {
             invalidFiatShamirProofSystem.checkProof(testSuite.commonInput, invalidProof);
         });
     }
-
 }

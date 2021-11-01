@@ -20,7 +20,7 @@ public class Util {
      * TODO no, we have the new commitments in the hash
      *
      * @param zn    ZnElement to retrieve
-     * @param dsid  disid to hash
+     * @param dsid  dsid to hash
      * @param tid   tid to hash
      * @param cPre0 cPre0 to hash
      * @param cPre1 cPre1 to hash
@@ -37,7 +37,7 @@ public class Util {
     }
 
     public static Vector<BigInteger> getNullBigIntegerVector(int size) {
-        return Vector.iterate((BigInteger) null, e -> e, size);
+        return Vector.iterate(null, e -> e, size);
     }
 
     public static Vector<BigInteger> getZeroBigIntegerVector(int size) {

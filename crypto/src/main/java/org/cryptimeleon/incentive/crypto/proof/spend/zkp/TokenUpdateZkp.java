@@ -71,21 +71,12 @@ class TokenUpdateZkp extends DelegateProtocol {
 
 
         // C=(H.pow(t, usk, esk, dsrnd_0, dsrnd_1, points, z), g_1)
-        var commitmentC0Statement = H.innerProduct(
-                ExponentExpressionVector.of(tVar, uskVar, eskVar, dsrnd0Var, dsrnd1Var, zVar).concatenate(pointsVector.map(e -> e))
-        ).isEqualTo(commonInput.commitmentC0);
+        var commitmentC0Statement = H.innerProduct(ExponentExpressionVector.of(tVar, uskVar, eskVar, dsrnd0Var, dsrnd1Var, zVar).concatenate(pointsVector.map(e -> e))).isEqualTo(commonInput.commitmentC0);
         builder.addSubprotocol("C0", new LinearStatementFragment(commitmentC0Statement));
 
         // C_1=H.pow(t^*, usk, \sum_i=0^k[esk^*_(usr,i) * base^i], dsrnd^*_0, dsrnd^*_1, z^*, newPointsVector)
         var powersOfEskDecBase = ExponentExpressionVector.generate(i -> pp.getEskDecBase().pow(BigInteger.valueOf(i)).asExponentExpression(), pp.getNumEskDigits()); // construct vector (eskBase^0, eskBase^1, ...)
-        var exponents = new Vector<>(
-                tStarVar,
-                uskVar,
-                eskDecVarVector.innerProduct(powersOfEskDecBase),
-                dsrndStar0Var,
-                dsrndStar1Var,
-                zStarVar
-        ).concatenate(newPointsVector);
+        var exponents = new Vector<>(tStarVar, uskVar, eskDecVarVector.innerProduct(powersOfEskDecBase), dsrndStar0Var, dsrndStar1Var, zStarVar).concatenate(newPointsVector);
         builder.addSubprotocol("C0Pre", new LinearStatementFragment(H.innerProduct(exponents).isEqualTo(commonInput.c0Pre.pow(uStarInverseVar))));
 
         // Add range proofs
@@ -126,6 +117,7 @@ class TokenUpdateZkp extends DelegateProtocol {
 
             }
         }
+
         return builder.build();
     }
 
@@ -154,6 +146,7 @@ class TokenUpdateZkp extends DelegateProtocol {
             builder.putWitnessValue("points_" + i, (Zn.ZnElement) secretInput.pointsVector.get(i));
             builder.putWitnessValue("newPoints_" + i, (Zn.ZnElement) secretInput.newPointsVector.get(i));
         }
+
         return builder.build();
     }
 

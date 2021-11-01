@@ -2,7 +2,6 @@ package org.cryptimeleon.incentive.crypto.model;
 
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.Setup;
-import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.junit.jupiter.api.Test;
 
 import java.util.logging.Logger;

@@ -2,7 +2,6 @@ package org.cryptimeleon.incentive.crypto.proof.spend.zkp;
 
 import lombok.AllArgsConstructor;
 import org.cryptimeleon.craco.protocols.SecretInput;
-import org.cryptimeleon.incentive.crypto.model.Token;
 import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
