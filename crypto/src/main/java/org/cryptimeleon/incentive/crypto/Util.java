@@ -1,9 +1,12 @@
 package org.cryptimeleon.incentive.crypto;
 
 import org.cryptimeleon.math.hash.impl.ByteArrayAccumulator;
+import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.HashIntoZn;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
+
+import java.math.BigInteger;
 
 
 /**
@@ -33,4 +36,15 @@ public class Util {
         return hashfunction.hash(accumulator.extractBytes());
     }
 
+    public static Vector<BigInteger> getNullBigIntegerVector(int size) {
+        return Vector.iterate((BigInteger) null, e -> e, size);
+    }
+
+    public static Vector<BigInteger> getZeroBigIntegerVector(int size) {
+        return Vector.iterate(BigInteger.ZERO, e -> e, size);
+    }
+
+    public static Vector<BigInteger> getOneBigIntegerVector(int size) {
+        return Vector.iterate(BigInteger.ONE, e -> e, size);
+    }
 }

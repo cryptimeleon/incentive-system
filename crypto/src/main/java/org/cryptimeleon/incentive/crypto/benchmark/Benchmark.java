@@ -86,7 +86,7 @@ public class Benchmark {
         SpendDeductZkp spendDeductZkp = BenchmarkSpendDeductZkp.getBenchmarkSpendDeductZkp(pp,
                 promotionParameters,
                 ppk,
-                EARN_SPEND_AMOUNT.stream().toArray(BigInteger[]::new));
+                EARN_SPEND_AMOUNT);
 
         var userKeyPair = new UserKeyPair(upk, usk);
         var providerKeyPair = new ProviderKeyPair(psk, ppk);

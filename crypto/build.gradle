@@ -14,7 +14,8 @@ repositories {
 }
 
 dependencies {
-    api 'org.cryptimeleon:craco:3.0.1'
+    api 'org.cryptimeleon:craco:3.0.2'
+    api 'org.cryptimeleon:math:3.0.3'
     implementation 'org.cryptimeleon:mclwrap:3.0.0'
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.0")

@@ -12,7 +12,6 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
-import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -26,20 +25,18 @@ public class SpendDeductTest {
         var userKeyPair = incentiveSystem.generateUserKeys();
         var zp = pp.getBg().getZn();
 
-        var budget = Vector.of(BigInteger.valueOf(7), BigInteger.valueOf(8));
+        Vector<BigInteger> budget = Vector.of(BigInteger.valueOf(7), BigInteger.valueOf(8));
         var newPointsVector = Vector.of(BigInteger.valueOf(4), BigInteger.valueOf(8));
-        var spendAmount = new BigInteger[budget.length()];
-        for (int i = 0; i < budget.length(); i++) {
-            spendAmount[i] = budget.get(i).subtract(newPointsVector.get(i));
-        }
+        Vector<BigInteger> spendAmount = Vector.generatePlain(
+                i -> budget.get(i).subtract(newPointsVector.get(i)),
+                budget.length()
+        );
 
         assertEquals(budget.length(), newPointsVector.length());
 
         var promotionParameters = incentiveSystem.generatePromotionParameters(budget.length());
-        BigInteger[] ignore = new BigInteger[budget.length()];
-        Arrays.fill(ignore, null);
-        BigInteger[] ones = new BigInteger[budget.length()];
-        Arrays.fill(ignore, BigInteger.ONE);
+        Vector<BigInteger> ignore = Util.getNullBigIntegerVector(budget.length());
+        Vector<BigInteger> ones = Util.getNullBigIntegerVector(budget.length());
 
         var token = Helper.generateToken(pp, userKeyPair, providerKeyPair, promotionParameters, budget);
         var spendDeductTestZkp = SpendHelper.generateSimpleTestSpendDeductZkp(pp, promotionParameters, providerKeyPair.getPk(), spendAmount);
@@ -59,10 +56,11 @@ public class SpendDeductTest {
 
         var serializedSpendRequest = spendRequest.getRepresentation();
 
+        Vector<BigInteger> negatedSpendAmount = Vector.fromStreamPlain(spendAmount.stream().map(BigInteger::negate));
         var fiatShamirProofSystem = new FiatShamirProofSystem(
                 new SpendDeductZkp(
                         new TokenPointsLeaf("TokenPointsLeaf", spendAmount, ignore),
-                        new TokenUpdateLeaf("TokenUpdateLeaf", spendAmount, ignore, ones, Arrays.stream(spendAmount).map(BigInteger::negate).toArray(BigInteger[]::new)),
+                        new TokenUpdateLeaf("TokenUpdateLeaf", spendAmount, ignore, ones, negatedSpendAmount),
                         pp,
                         promotionParameters,
                         providerKeyPair.getPk()

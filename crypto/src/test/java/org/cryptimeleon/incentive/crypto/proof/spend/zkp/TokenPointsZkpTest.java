@@ -29,31 +29,31 @@ class TokenPointsZkpTest {
             BigInteger.valueOf(3),
             BigInteger.valueOf(3)
     };
-    BigInteger[] lowerLimits = {
+    Vector<BigInteger> lowerLimits = Vector.of(
             BigInteger.valueOf(2),
             BigInteger.valueOf(3),
             null,
             null
-    };
-    BigInteger[] upperLimits = {
+    );
+    Vector<BigInteger> upperLimits = Vector.of(
             BigInteger.valueOf(4),
             BigInteger.valueOf(3),
             BigInteger.valueOf(3),
             null
-    };
+    );
 
-    BigInteger[] invalidLowerLimits = {
+    Vector<BigInteger> invalidLowerLimits = Vector.of(
             BigInteger.valueOf(4),
             null,
             null,
             null
-    };
-    BigInteger[] invalidUpperLimits = {
+    );
+    Vector<BigInteger> invalidUpperLimits = Vector.of(
             BigInteger.valueOf(2),
             null,
             null,
             null
-    };
+    );
 
     IncentivePublicParameters pp;
     ProviderKeyPair providerKey;
@@ -76,7 +76,7 @@ class TokenPointsZkpTest {
 
         zn = pp.getBg().getZn();
         var testSuite = SpendHelper.generateTestSuite(
-                new BigInteger[]{BigInteger.valueOf(0), BigInteger.valueOf(0), BigInteger.valueOf(0), BigInteger.valueOf(0)},
+                Vector.of(BigInteger.valueOf(0), BigInteger.valueOf(0), BigInteger.valueOf(0), BigInteger.valueOf(0)),
                 pp, promotion, providerKey, token, userKey, zn
         );
 

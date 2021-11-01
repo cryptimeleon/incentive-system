@@ -13,6 +13,7 @@ import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.math.expressions.exponent.ExponentConstantExpr;
 import org.cryptimeleon.math.structures.cartesian.ExponentExpressionVector;
 import org.cryptimeleon.math.structures.cartesian.GroupElementExpressionVector;
+import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
@@ -23,12 +24,12 @@ class TokenPointsZkp extends DelegateProtocol {
     // Public parameters
     IncentivePublicParameters pp;
     // Proof that lowerLimits[i] <= points[i] <= upperLimits[i] for all i
-    BigInteger[] lowerLimits; // null means no limit
-    BigInteger[] upperLimits; // null means no limit
+    Vector<BigInteger> lowerLimits; // null means no limit
+    Vector<BigInteger> upperLimits; // null means no limit
     ProviderPublicKey providerPublicKey;
     PromotionParameters promotionParameters;
 
-    public TokenPointsZkp(IncentivePublicParameters pp, BigInteger[] lowerLimits, BigInteger[] upperLimits, ProviderPublicKey providerPublicKey, PromotionParameters promotionParameters) {
+    public TokenPointsZkp(IncentivePublicParameters pp, Vector<BigInteger> lowerLimits, Vector<BigInteger> upperLimits, ProviderPublicKey providerPublicKey, PromotionParameters promotionParameters) {
         this.pp = pp;
         this.lowerLimits = lowerLimits;
         this.upperLimits = upperLimits;
@@ -60,22 +61,22 @@ class TokenPointsZkp extends DelegateProtocol {
 
         // Add range proofs
         for (int i = 0; i < promotionParameters.getPointsVectorSize(); i++) {
-            if (lowerLimits[i] != null) {
+            if (lowerLimits.get(i) != null) {
                 builder.addSubprotocol(
                         "pointsVector[" + i + "]>=lowerLimits[" + i + "]",
                         new SmallerThanPowerFragment(
-                                pointsVector.get(i).sub(lowerLimits[i].intValue()),
+                                pointsVector.get(i).sub(lowerLimits.get(i).intValue()),
                                 pp.getEskDecBase().asInteger().intValue(),
                                 pp.getMaxPointBasePower(),
                                 pp.getEskBaseSetMembershipPublicParameters()
                         )
                 );
             }
-            if (upperLimits[i] != null) {
+            if (upperLimits.get(i) != null) {
                 builder.addSubprotocol(
                         "pointsVector[" + i + "]<=upperLimits[" + i,
                         new SmallerThanPowerFragment(
-                                (new ExponentConstantExpr(upperLimits[i])).sub(pointsVector.get(i)),
+                                (new ExponentConstantExpr(upperLimits.get(i))).sub(pointsVector.get(i)),
                                 pp.getEskDecBase().asInteger().intValue(),
                                 pp.getMaxPointBasePower(),
                                 pp.getEskBaseSetMembershipPublicParameters()

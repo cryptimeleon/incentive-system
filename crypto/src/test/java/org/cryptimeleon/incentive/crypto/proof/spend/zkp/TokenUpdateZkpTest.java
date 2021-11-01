@@ -4,6 +4,7 @@ import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSyst
 import org.cryptimeleon.incentive.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.Setup;
+import org.cryptimeleon.incentive.crypto.Util;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.crypto.model.Token;
@@ -16,54 +17,49 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
-import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class TokenUpdateZkpTest {
 
     private static final int TEST_VECTOR_SIZE = 3;
-    BigInteger[] points = {
+    Vector<BigInteger> points = Vector.of(
             BigInteger.valueOf(3),
             BigInteger.valueOf(3),
-            BigInteger.valueOf(3),
-    };
-    BigInteger[] newPoints = {
+            BigInteger.valueOf(3)
+    );
+    Vector<BigInteger> newPoints = Vector.of(
             BigInteger.valueOf(2),
             BigInteger.valueOf(3),
-            BigInteger.valueOf(4),
-    };
-    BigInteger[] aVector = {
+            BigInteger.valueOf(4)
+    );
+    Vector<BigInteger> aVector = Vector.of(
             BigInteger.valueOf(1),
             BigInteger.valueOf(1),
-            BigInteger.valueOf(0),
-    };
-    BigInteger[] bVector = {
+            BigInteger.valueOf(0)
+    );
+    Vector<BigInteger> bVector = Vector.of(
             BigInteger.valueOf(-1),
             BigInteger.valueOf(0),
-            BigInteger.valueOf(4),
-    };
-    BigInteger[] invalidBVector = {
+            BigInteger.valueOf(4)
+    );
+    Vector<BigInteger> invalidBVector = Vector.of(
             BigInteger.valueOf(-1),
             BigInteger.valueOf(1),
-            BigInteger.valueOf(4),
-    };
-    BigInteger[] tooSmallNewPoints = {
+            BigInteger.valueOf(4)
+    );
+    Vector<BigInteger> tooSmallNewPoints = Vector.of(
             BigInteger.valueOf(-1),
             BigInteger.valueOf(3),
             BigInteger.valueOf(3)
-    };
-    BigInteger[] lowerLimitsZero = {
-            BigInteger.valueOf(0),
-            BigInteger.valueOf(0),
-            BigInteger.valueOf(0)
-    };
-    BigInteger[] upperLimits = {
+    );
+    Vector<BigInteger> lowerLimitsZero = Util.getZeroBigIntegerVector(TEST_VECTOR_SIZE);
+    Vector<BigInteger> upperLimits = Vector.of(
             BigInteger.valueOf(3),
             BigInteger.valueOf(3),
             BigInteger.valueOf(4)
-    };
-    BigInteger[] ignoreVector = {null, null, null};
+    );
+    Vector<BigInteger> ignoreVector = Util.getNullBigIntegerVector(TEST_VECTOR_SIZE);
 
     IncentivePublicParameters pp;
     ProviderKeyPair providerKey;
@@ -83,7 +79,7 @@ class TokenUpdateZkpTest {
         userKey = Setup.userKeyGen(pp);
         incentiveSystem = new IncentiveSystem(pp);
         promotion = incentiveSystem.generatePromotionParameters(TEST_VECTOR_SIZE);
-        token = Helper.generateToken(pp, userKey, providerKey, promotion, Vector.fromStreamPlain(Arrays.stream(points)));
+        token = Helper.generateToken(pp, userKey, providerKey, promotion, points);
 
         var testSuite = SpendHelper.generateTestSuite(
                 newPoints,

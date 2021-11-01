@@ -2,6 +2,7 @@ package org.cryptimeleon.incentive.crypto.proof.spend.leaf;
 
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductLeafNode;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
+import org.cryptimeleon.math.structures.cartesian.Vector;
 
 import java.math.BigInteger;
 
@@ -17,10 +18,10 @@ import java.math.BigInteger;
  */
 public class TokenUpdateLeaf extends SpendDeductLeafNode {
 
-    public final BigInteger[] lowerLimits;
-    public final BigInteger[] upperLimits;
-    public final BigInteger[] aVector;
-    public final BigInteger[] bVector;
+    public final Vector<BigInteger> lowerLimits;
+    public final Vector<BigInteger> upperLimits;
+    public final Vector<BigInteger> aVector;
+    public final Vector<BigInteger> bVector;
 
     /**
      * Constructor with uninitialized hasWitness field, to be used by the verifier who neither knows nor needs that attribute.
@@ -32,7 +33,7 @@ public class TokenUpdateLeaf extends SpendDeductLeafNode {
      * @param aVector     an array of coefficients a for the affine linear relation proofs.
      * @param bVector     an array of summands a for the affine linear relation proofs.
      */
-    public TokenUpdateLeaf(String leafName, BigInteger[] lowerLimits, BigInteger[] upperLimits, BigInteger[] aVector, BigInteger[] bVector) {
+    public TokenUpdateLeaf(String leafName, Vector<BigInteger> lowerLimits, Vector<BigInteger> upperLimits, Vector<BigInteger> aVector, Vector<BigInteger> bVector) {
         super(leafName);
         this.lowerLimits = lowerLimits;
         this.upperLimits = upperLimits;
@@ -51,7 +52,7 @@ public class TokenUpdateLeaf extends SpendDeductLeafNode {
      * @param bVector     an array of summands a for the affine linear relation proofs.
      * @param hasWitness  determines whether a witness for this relation is known
      */
-    public TokenUpdateLeaf(String leafName, BigInteger[] lowerLimits, BigInteger[] upperLimits, BigInteger[] aVector, BigInteger[] bVector, boolean hasWitness) {
+    public TokenUpdateLeaf(String leafName, Vector<BigInteger> lowerLimits, Vector<BigInteger> upperLimits, Vector<BigInteger> aVector, Vector<BigInteger> bVector, boolean hasWitness) {
         super(leafName);
         this.lowerLimits = lowerLimits;
         this.upperLimits = upperLimits;

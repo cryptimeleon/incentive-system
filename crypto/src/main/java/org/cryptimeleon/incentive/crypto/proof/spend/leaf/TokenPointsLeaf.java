@@ -2,6 +2,7 @@ package org.cryptimeleon.incentive.crypto.proof.spend.leaf;
 
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductLeafNode;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
+import org.cryptimeleon.math.structures.cartesian.Vector;
 
 import java.math.BigInteger;
 
@@ -11,8 +12,8 @@ import java.math.BigInteger;
  * Also supports only partial range proofs by setting all other entries to null.
  */
 public class TokenPointsLeaf extends SpendDeductLeafNode {
-    public final BigInteger[] lowerLimits;
-    public final BigInteger[] upperLimits;
+    public final Vector<BigInteger> lowerLimits;
+    public final Vector<BigInteger> upperLimits;
 
     /**
      * Constructor with uninitialized hasWitness field, to be used by the verifier who neither knows nor needs that attribute.
@@ -22,7 +23,7 @@ public class TokenPointsLeaf extends SpendDeductLeafNode {
      * @param lowerLimits an array of greater than or equal relations to show.
      * @param upperLimits an array of less than or equal relations to show.
      */
-    public TokenPointsLeaf(String leafName, BigInteger[] lowerLimits, BigInteger[] upperLimits) {
+    public TokenPointsLeaf(String leafName, Vector<BigInteger> lowerLimits, Vector<BigInteger> upperLimits) {
         super(leafName);
         this.lowerLimits = lowerLimits;
         this.upperLimits = upperLimits;
@@ -37,7 +38,7 @@ public class TokenPointsLeaf extends SpendDeductLeafNode {
      * @param upperLimits an array of less than or equal relations to show.
      * @param hasWitness  determines whether a witness for this relation is known
      */
-    public TokenPointsLeaf(String leafName, BigInteger[] lowerLimits, BigInteger[] upperLimits, boolean hasWitness) {
+    public TokenPointsLeaf(String leafName, Vector<BigInteger> lowerLimits, Vector<BigInteger> upperLimits, boolean hasWitness) {
         super(leafName);
         this.lowerLimits = lowerLimits;
         this.upperLimits = upperLimits;

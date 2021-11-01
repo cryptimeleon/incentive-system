@@ -5,6 +5,7 @@ import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentive.crypto.model.EarnRequest;
 import org.cryptimeleon.incentive.crypto.model.SpendRequest;
 import org.cryptimeleon.incentive.crypto.model.SpendResponse;
+import org.cryptimeleon.incentive.crypto.model.Token;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinRequest;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse;
 import org.cryptimeleon.incentive.crypto.proof.spend.SpendHelper;
@@ -18,7 +19,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
-import java.util.Arrays;
 import java.util.logging.Logger;
 
 /**
@@ -53,8 +53,8 @@ public class ProtocolIntegrationTest {
 
         // generate promotion parameters
         var promotionParameters = incSys.generatePromotionParameters(2);
-        BigInteger[] ignore = {null, null};
-        BigInteger[] ones = {BigInteger.ONE, BigInteger.ONE};
+        Vector<BigInteger> ignore = Util.getNullBigIntegerVector(2);
+        Vector<BigInteger> ones = Util.getOneBigIntegerVector(2);
 
         /*
          * user joins system using issue-join protocol
@@ -157,21 +157,23 @@ public class ProtocolIntegrationTest {
 
         // define spend amount
         var newPointsAmount3 = Vector.of(BigInteger.valueOf(10L), BigInteger.valueOf(2L));
-        var spendAmount = new BigInteger[updatedToken.getPoints().length()];
-        for (int i = 0; i < updatedToken.getPoints().length(); i++) {
-            spendAmount[i] = updatedToken.getPoints().get(i).asInteger().subtract(newPointsAmount3.get(i));
-        }
+        Token finalUpdatedToken = updatedToken;
+        Vector<BigInteger> spendAmount = Vector.generatePlain(
+                i -> finalUpdatedToken.getPoints().get(i).asInteger().subtract(newPointsAmount3.get(i)),
+                newPointsAmount3.length()
+        );
         var spendDeductTestZkp = SpendHelper.generateSimpleTestSpendDeductZkp(incSys.pp, promotionParameters, pkp.getPk(), spendAmount);
 
         // user generates spend request
         SpendRequest spendRequest3 = incSys.generateSpendRequest(promotionParameters, updatedToken, pkp.getPk(), newPointsAmount3, ukp, tid3, spendDeductTestZkp);
+        Vector<BigInteger> negatedSpendAmount = Vector.fromStreamPlain(spendAmount.stream().map(BigInteger::negate));
 
         // serialize and deserialize spend request to ensure that serialization does not break anything
         var serializedSpendRequest3 = spendRequest3.getRepresentation();
         FiatShamirProofSystem spendDeductProofSystem = new FiatShamirProofSystem(
                 new SpendDeductZkp(
                         new TokenPointsLeaf("TokenPointsLeaf", spendAmount, ignore),
-                        new TokenUpdateLeaf("TokenUpdateLeaf", spendAmount, ignore, ones, Arrays.stream(spendAmount).map(BigInteger::negate).toArray(BigInteger[]::new)),
+                        new TokenUpdateLeaf("TokenUpdateLeaf", spendAmount, ignore, ones, negatedSpendAmount),
                         incSys.getPp(), promotionParameters, pkp.getPk()));
         var deserializedSpendRequest3 = new SpendRequest(serializedSpendRequest3, incSys.getPp(), spendDeductProofSystem, tid3);
 

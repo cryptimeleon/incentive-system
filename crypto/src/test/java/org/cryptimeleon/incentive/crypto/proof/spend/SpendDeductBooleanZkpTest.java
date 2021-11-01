@@ -23,42 +23,41 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
-import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SpendDeductBooleanZkpTest {
 
-    BigInteger[] points = {
+    Vector<BigInteger> points = Vector.of(
             BigInteger.valueOf(3),
             BigInteger.valueOf(3),
             BigInteger.valueOf(3),
             BigInteger.valueOf(3)
-    };
-    BigInteger[] lowerLimits = {
+    );
+    Vector<BigInteger> lowerLimits = Vector.of(
             BigInteger.valueOf(2),
             BigInteger.valueOf(3),
             null,
             null
-    };
-    BigInteger[] upperLimits = {
+    );
+    Vector<BigInteger> upperLimits = Vector.of(
             BigInteger.valueOf(4),
             BigInteger.valueOf(3),
             BigInteger.valueOf(3),
             null
-    };
-    BigInteger[] invalidUpperLimits = {
+    );
+    Vector<BigInteger> invalidUpperLimits = Vector.of(
             BigInteger.valueOf(2),
             null,
             null,
             null
-    };
-    BigInteger[] newPoints = {
+    );
+    Vector<BigInteger> newPoints = Vector.of(
             BigInteger.valueOf(2),
             BigInteger.valueOf(1),
             BigInteger.valueOf(0),
-            BigInteger.valueOf(3),
-    };
+            BigInteger.valueOf(3)
+    );
 
     IncentivePublicParameters pp;
     ProviderKeyPair providerKey;
@@ -76,7 +75,7 @@ class SpendDeductBooleanZkpTest {
         userKey = Setup.userKeyGen(pp);
         incentiveSystem = new IncentiveSystem(pp);
         promotion = incentiveSystem.generatePromotionParameters(4);
-        token = Helper.generateToken(pp, userKey, providerKey, promotion, Vector.fromStreamPlain(Arrays.stream(points)));
+        token = Helper.generateToken(pp, userKey, providerKey, promotion, points);
         zn = pp.getBg().getZn();
         testSuite = SpendHelper.generateTestSuite(newPoints, pp, promotion, providerKey, token, userKey, zn);
     }

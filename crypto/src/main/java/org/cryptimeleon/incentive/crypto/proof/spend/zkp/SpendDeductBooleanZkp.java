@@ -22,10 +22,10 @@ import org.cryptimeleon.math.serialization.Representation;
 
 public class SpendDeductBooleanZkp extends ProofOfPartialKnowledge {
 
-    private SpendDeductTree spendDeductTree;
-    private IncentivePublicParameters pp;
-    private PromotionParameters promotionParameters;
-    private ProviderPublicKey providerPublicKey;
+    private final SpendDeductTree spendDeductTree;
+    private final IncentivePublicParameters pp;
+    private final PromotionParameters promotionParameters;
+    private final ProviderPublicKey providerPublicKey;
 
     public SpendDeductBooleanZkp(SpendDeductTree spendDeductTree, IncentivePublicParameters pp, PromotionParameters promotionParameters, ProviderPublicKey providerPublicKey) {
         this.spendDeductTree = spendDeductTree;

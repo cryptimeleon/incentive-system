@@ -13,12 +13,12 @@ import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkp;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkpCommonInput;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkpWitnessInput;
+import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
 import org.cryptimeleon.math.structures.rings.integers.IntegerRing;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 import java.math.BigInteger;
-import java.util.Arrays;
 
 public class SpendHelper {
 
@@ -35,13 +35,11 @@ public class SpendHelper {
     public static SpendDeductZkp generateSimpleTestSpendDeductZkp(IncentivePublicParameters pp,
                                                                   PromotionParameters promotionParameters,
                                                                   ProviderPublicKey providerPublicKey,
-                                                                  BigInteger[] subtractPoints) {
+                                                                  Vector<BigInteger> subtractPoints) {
 
-        BigInteger[] ignore = new BigInteger[promotionParameters.getPointsVectorSize()];
-        Arrays.fill(ignore, null);
-
-        BigInteger[] ones = new BigInteger[promotionParameters.getPointsVectorSize()];
-        Arrays.fill(ones, BigInteger.ONE);
+        Vector<BigInteger> ignore = Util.getNullBigIntegerVector(promotionParameters.getPointsVectorSize());
+        Vector<BigInteger> ones = Util.getOneBigIntegerVector(promotionParameters.getPointsVectorSize());
+        Vector<BigInteger> negatedSubtractPoints = Vector.fromStreamPlain(subtractPoints.stream().map(BigInteger::negate));
 
         return generateTestZkp(
                 pp,
@@ -52,7 +50,7 @@ public class SpendHelper {
                 ignore,
                 ignore,
                 ones,
-                Arrays.stream(subtractPoints).map(BigInteger::negate).toArray(BigInteger[]::new));
+                negatedSubtractPoints);
     }
 
     /**
@@ -77,26 +75,26 @@ public class SpendHelper {
     public static SpendDeductZkp generateTestZkp(IncentivePublicParameters pp,
                                                  PromotionParameters promotionParameters,
                                                  ProviderPublicKey providerPublicKey,
-                                                 BigInteger[] lowerLimits,
-                                                 BigInteger[] upperLimits,
-                                                 BigInteger[] newLowerLimits,
-                                                 BigInteger[] newUpperLimits,
-                                                 BigInteger[] aVector,
-                                                 BigInteger[] bVector) {
+                                                 Vector<BigInteger> lowerLimits,
+                                                 Vector<BigInteger> upperLimits,
+                                                 Vector<BigInteger> newLowerLimits,
+                                                 Vector<BigInteger> newUpperLimits,
+                                                 Vector<BigInteger> aVector,
+                                                 Vector<BigInteger> bVector) {
 
         SpendDeductTree conditionTree = new TokenPointsLeaf("RangeProof", lowerLimits, upperLimits, true);
         SpendDeductTree updateTree = new TokenUpdateLeaf("UpdateProof", newLowerLimits, newUpperLimits, aVector, bVector, true);
         return new SpendDeductZkp(conditionTree, updateTree, pp, promotionParameters, providerPublicKey);
     }
 
-    public static SpendZkpTestSuite generateTestSuite(BigInteger[] newPoints, IncentivePublicParameters pp, PromotionParameters promotion, ProviderKeyPair providerKey, Token token, UserKeyPair userKey, Zn zn) {
+    public static SpendZkpTestSuite generateTestSuite(Vector<BigInteger> newPoints, IncentivePublicParameters pp, PromotionParameters promotion, ProviderKeyPair providerKey, Token token, UserKeyPair userKey, Zn zn) {
         var zp = pp.getBg().getZn();
         var usk = userKey.getSk().getUsk();
         var esk = token.getEncryptionSecretKey();
         var dsid = pp.getW().pow(esk);
         var vectorH = providerKey.getPk().getH(pp, promotion);
         var vectorR = zp.getUniformlyRandomElements(pp.getNumEskDigits());
-        var newPointsVector = RingElementVector.fromStream(Arrays.stream(newPoints).map(e -> pp.getBg().getZn().createZnElement(e)));
+        var newPointsVector = RingElementVector.fromStream(newPoints.stream().map(e -> pp.getBg().getZn().createZnElement(e)));
         var tid = zn.getUniformlyRandomElement();
 
 

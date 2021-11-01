@@ -25,16 +25,16 @@ class TokenUpdateZkp extends DelegateProtocol {
     // Public parameters
     final IncentivePublicParameters pp;
     // Proof that lowerLimits[i] <= newPoints[i] <= upperLimits[i] for all i
-    final BigInteger[] lowerLimits; // null means no limit
-    final BigInteger[] upperLimits; // null means no limit
+    final Vector<BigInteger> lowerLimits; // null means no limit
+    final Vector<BigInteger> upperLimits; // null means no limit
     // Proof linear relation between new points and old points
     // newPoints[i] = a[i]* oldPoints[i] + bVector[i]
-    final BigInteger[] aVector; // null means no statement
-    final BigInteger[] bVector; // null means no statement
+    final Vector<BigInteger> aVector; // null means no statement
+    final Vector<BigInteger> bVector; // null means no statement
     final ProviderPublicKey providerPublicKey;
     final PromotionParameters promotionParameters;
 
-    public TokenUpdateZkp(IncentivePublicParameters pp, BigInteger[] lowerLimits, BigInteger[] upperLimits, BigInteger[] aVector, BigInteger[] bVector, ProviderPublicKey providerPublicKey, PromotionParameters promotionParameters) {
+    public TokenUpdateZkp(IncentivePublicParameters pp, Vector<BigInteger> lowerLimits, Vector<BigInteger> upperLimits, Vector<BigInteger> aVector, Vector<BigInteger> bVector, ProviderPublicKey providerPublicKey, PromotionParameters promotionParameters) {
         this.pp = pp;
         this.lowerLimits = lowerLimits;
         this.upperLimits = upperLimits;
@@ -87,22 +87,22 @@ class TokenUpdateZkp extends DelegateProtocol {
 
         // Add range proofs
         for (int i = 0; i < promotionParameters.getPointsVectorSize(); i++) {
-            if (lowerLimits[i] != null) {
+            if (lowerLimits.get(i) != null) {
                 builder.addSubprotocol(
                         "newPointsVector[" + i + "]>=lowerLimits[" + i + "]",
                         new SmallerThanPowerFragment(
-                                newPointsVector.get(i).sub(lowerLimits[i].intValue()),
+                                newPointsVector.get(i).sub(lowerLimits.get(i).intValue()),
                                 pp.getEskDecBase().asInteger().intValue(),
                                 pp.getMaxPointBasePower(),
                                 pp.getEskBaseSetMembershipPublicParameters()
                         )
                 );
             }
-            if (upperLimits[i] != null) {
+            if (upperLimits.get(i) != null) {
                 builder.addSubprotocol(
-                        "newPointsVector[" + i + "]<=upperLimits[" + i,
+                        "newPointsVector[" + i + "]<=upperLimits[" + i + "]",
                         new SmallerThanPowerFragment(
-                                (new ExponentConstantExpr(upperLimits[i])).sub(newPointsVector.get(i)),
+                                (new ExponentConstantExpr(upperLimits.get(i))).sub(newPointsVector.get(i)),
                                 pp.getEskDecBase().asInteger().intValue(),
                                 pp.getMaxPointBasePower(),
                                 pp.getEskBaseSetMembershipPublicParameters()
@@ -113,11 +113,11 @@ class TokenUpdateZkp extends DelegateProtocol {
 
         // Add affine linear statements
         for (int i = 0; i < promotionParameters.getPointsVectorSize(); i++) {
-            if (aVector[i] != null && bVector[i] != null) {
+            if (aVector.get(i) != null && bVector.get(i) != null) {
                 builder.addSubprotocol(
                         "newPointsVector[" + i + "]=aVector[" + i + "]*pointsVector[" + i + "]+bVector[" + i + "]",
                         new LinearExponentStatementFragment(
-                                pointsVector.get(i).mul(aVector[i]).add(bVector[i]).isEqualTo(newPointsVector.get(i)), zn
+                                pointsVector.get(i).mul(aVector.get(i)).add(bVector.get(i)).isEqualTo(newPointsVector.get(i)), zn
                         )
                 );
 
