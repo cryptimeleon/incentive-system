@@ -82,8 +82,8 @@ public class SpendHelper {
                                                  Vector<BigInteger> aVector,
                                                  Vector<BigInteger> bVector) {
 
-        SpendDeductTree conditionTree = new TokenPointsLeaf("RangeProof", lowerLimits, upperLimits, true);
-        SpendDeductTree updateTree = new TokenUpdateLeaf("UpdateProof", newLowerLimits, newUpperLimits, aVector, bVector, true);
+        SpendDeductTree conditionTree = new TokenPointsLeaf("RangeProof", lowerLimits, upperLimits);
+        SpendDeductTree updateTree = new TokenUpdateLeaf("UpdateProof", newLowerLimits, newUpperLimits, aVector, bVector);
         return new SpendDeductZkp(conditionTree, updateTree, pp, promotionParameters, providerPublicKey);
     }
 

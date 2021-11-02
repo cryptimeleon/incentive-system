@@ -3,6 +3,7 @@ package org.cryptimeleon.incentive.crypto;
 import org.cryptimeleon.math.hash.impl.ByteArrayAccumulator;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.groups.GroupElement;
+import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
 import org.cryptimeleon.math.structures.rings.zn.HashIntoZn;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
@@ -36,15 +37,48 @@ public class Util {
         return hashfunction.hash(accumulator.extractBytes());
     }
 
+    /**
+     * Returns a Vector of size many null elements.
+     *
+     * @param size size of the vector
+     * @return vector of type BigInteger
+     */
     public static Vector<BigInteger> getNullBigIntegerVector(int size) {
         return Vector.iterate(null, e -> e, size);
     }
 
+    /**
+     * Returns a Vector of size many zero elements.
+     *
+     * @param size size of the vector
+     * @return vector of type BigInteger
+     */
     public static Vector<BigInteger> getZeroBigIntegerVector(int size) {
         return Vector.iterate(BigInteger.ZERO, e -> e, size);
     }
 
+    /**
+     * Returns a Vector of size many one elements.
+     *
+     * @param size size of the vector
+     * @return vector of type BigInteger
+     */
     public static Vector<BigInteger> getOneBigIntegerVector(int size) {
         return Vector.iterate(BigInteger.ONE, e -> e, size);
+    }
+
+    /**
+     * Determines whether {@literal lowerLimits[i] <= pointsVector[i] <= upperLimits[i] for all i}.
+     * If limits are null, relation skipped.
+     *
+     * @param pointsVector a vector of points
+     * @param lowerLimits  a vector of lower limits
+     * @param upperLimits  a vector of upper limits
+     * @return whether are relations are satisfied
+     */
+    public static boolean arePointsInRange(RingElementVector pointsVector, Vector<BigInteger> lowerLimits, Vector<BigInteger> upperLimits) {
+        boolean isValid = lowerLimits.zipReduce(pointsVector, (lowerLimit, points) -> lowerLimit == null || lowerLimit.compareTo(points.asInteger()) <= 0, (a, b) -> a && b);
+        isValid &= upperLimits.zipReduce(pointsVector, (upperLimit, points) -> upperLimit == null || upperLimit.compareTo(points.asInteger()) >= 0, (a, b) -> a && b);
+        return isValid;
     }
 }

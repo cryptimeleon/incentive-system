@@ -18,8 +18,8 @@ public class BenchmarkSpendDeductZkp {
         Vector<BigInteger> ones = Util.getOneBigIntegerVector(promotionParameters.getPointsVectorSize());
         Vector<BigInteger> negatedSubtractPoints = Vector.fromStreamPlain(subtractPoints.stream().map(BigInteger::negate));
 
-        SpendDeductTree conditionTree = new TokenPointsLeaf("TokenPointsLeaf", subtractPoints, ignore, true);
-        SpendDeductTree updateTree = new TokenUpdateLeaf("TokenUpdateLeaf", ignore, ignore, ones, negatedSubtractPoints, true);
+        SpendDeductTree conditionTree = new TokenPointsLeaf("TokenPointsLeaf", subtractPoints, ignore);
+        SpendDeductTree updateTree = new TokenUpdateLeaf("TokenUpdateLeaf", ignore, ignore, ones, negatedSubtractPoints);
 
         return new SpendDeductZkp(conditionTree, updateTree, pp, promotionParameters, providerPublicKey);
     }

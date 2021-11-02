@@ -10,7 +10,6 @@ import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.SendFirstValue;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
-import org.cryptimeleon.incentive.crypto.proof.spend.leaf.MetadataLeaf;
 import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenPointsLeaf;
 import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenUpdateLeaf;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductAndNode;
@@ -26,6 +25,7 @@ import org.cryptimeleon.math.serialization.Representation;
  */
 public class SpendDeductBooleanZkp extends ProofOfPartialKnowledge {
 
+    private static final String META_LEAF_NAME = "MetadataLeaf";
     private final SpendDeductTree spendDeductTree;
     private final IncentivePublicParameters pp;
     private final PromotionParameters promotionParameters;
@@ -40,9 +40,15 @@ public class SpendDeductBooleanZkp extends ProofOfPartialKnowledge {
 
     /**
      * Wrapper function around the recursive calls for generating the protocol tree.
+     * Always inserts a metadata zkp to the protocol tree that must be true.
      */
     private ProtocolTree generateProtocolTree(CommonInput commonInput, SendFirstValue sendFirstValue) {
-        return generateProtocolTree(this.spendDeductTree, commonInput, sendFirstValue);
+        return and(
+                // Metadata proof must always be true
+                leaf(META_LEAF_NAME, new MetadataZkp(this.pp, this.providerPublicKey, this.promotionParameters), commonInput),
+                // Add reaming protocol tree
+                generateProtocolTree(this.spendDeductTree, commonInput, sendFirstValue)
+        );
     }
 
     /**
@@ -77,6 +83,8 @@ public class SpendDeductBooleanZkp extends ProofOfPartialKnowledge {
      * Wrapper function around the recursive function with the same name for adding all known witnesses to the builder.
      */
     private void putWitnesses(CommonInput commonInput, SecretInput secretInput, ProverSpecBuilder builder) {
+        // Metadata leaf must always be satisfied
+        builder.putSecretInput(META_LEAF_NAME, secretInput);
         putWitnesses(this.spendDeductTree, commonInput, secretInput, builder);
     }
 
@@ -94,7 +102,8 @@ public class SpendDeductBooleanZkp extends ProofOfPartialKnowledge {
             putWitnesses(spendDeductAndNode.right, commonInput, secretInput, builder);
         } else if (spendDeductTree instanceof SpendDeductLeafNode) {
             SpendDeductLeafNode spendDeductLeafNode = (SpendDeductLeafNode) spendDeductTree;
-            if (spendDeductLeafNode.hasWitness()) {
+            SpendDeductZkpWitnessInput witnessInput = (SpendDeductZkpWitnessInput) secretInput;
+            if (spendDeductLeafNode.isValidForPoints(witnessInput.pointsVector, witnessInput.newPointsVector)) {
                 builder.putSecretInput(spendDeductLeafNode.getLeafName(), secretInput);
             }
         } else {
@@ -106,10 +115,7 @@ public class SpendDeductBooleanZkp extends ProofOfPartialKnowledge {
      * Helper function that creates the matching SigmaProtocol for a SpendDeductLeafNode.
      */
     private SigmaProtocol getProtocolForLeaf(SpendDeductLeafNode leafNode, IncentivePublicParameters pp, PromotionParameters promotionParameters, ProviderPublicKey providerPublicKey) {
-        if (leafNode instanceof MetadataLeaf) {
-            MetadataLeaf l = (MetadataLeaf) leafNode;
-            return new MetadataZkp(pp, providerPublicKey, promotionParameters);
-        } else if (leafNode instanceof TokenPointsLeaf) {
+        if (leafNode instanceof TokenPointsLeaf) {
             TokenPointsLeaf l = (TokenPointsLeaf) leafNode;
             return new TokenPointsZkp(pp, l.lowerLimits, l.upperLimits, providerPublicKey, promotionParameters);
         } else if (leafNode instanceof TokenUpdateLeaf) {

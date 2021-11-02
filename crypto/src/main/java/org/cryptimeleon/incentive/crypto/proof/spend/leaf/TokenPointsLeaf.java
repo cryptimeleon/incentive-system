@@ -1,8 +1,10 @@
 package org.cryptimeleon.incentive.crypto.proof.spend.leaf;
 
+import org.cryptimeleon.incentive.crypto.Util;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductLeafNode;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.math.structures.cartesian.Vector;
+import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
 
 import java.math.BigInteger;
 
@@ -29,19 +31,8 @@ public class TokenPointsLeaf extends SpendDeductLeafNode {
         this.upperLimits = upperLimits;
     }
 
-    /**
-     * Alternative constructor that can be used at the client's side to set the hasWitness field.
-     * Set members to null to indicate that no proof should be performed for that index.
-     *
-     * @param leafName    a name that uniquely identifies this leaf in a {@link SpendDeductTree}.
-     * @param lowerLimits an array of greater than or equal relations to show.
-     * @param upperLimits an array of less than or equal relations to show.
-     * @param hasWitness  determines whether a witness for this relation is known
-     */
-    public TokenPointsLeaf(String leafName, Vector<BigInteger> lowerLimits, Vector<BigInteger> upperLimits, boolean hasWitness) {
-        super(leafName);
-        this.lowerLimits = lowerLimits;
-        this.upperLimits = upperLimits;
-        this.setHasWitness(hasWitness);
+    @Override
+    public boolean isValidForPoints(RingElementVector pointsVector, RingElementVector newPointsVector) {
+        return Util.arePointsInRange(pointsVector, this.lowerLimits, this.upperLimits);
     }
 }
