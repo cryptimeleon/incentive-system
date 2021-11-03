@@ -77,7 +77,9 @@ public class DeductService {
                     deductOutput.getDstag(),
                     spendAmount,
                     dsProtectionClient
-                );*/ // TODO: uncomment once dsprotection service works
+                );*/ // TODO: uncomment for production and system test
+
+        // TODO: need to cache parameter tuple and only periodically send tuples over to dsprot. via dbsync
 
         /**
          * TODO: interaction with basket and promotion service to add a special item to the basket and check whether user can afford reward ("this item certifies that the user receives a teddy bear")

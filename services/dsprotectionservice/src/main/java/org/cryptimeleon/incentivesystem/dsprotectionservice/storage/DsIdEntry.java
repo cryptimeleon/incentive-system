@@ -22,6 +22,10 @@ public class DsIdEntry {
     private String serializedDsidRepr; // the actual double spending ID (from nice mathematical structure), in serialized-representation form
     private long associatedUserInfoId; // id of the user info entry for this dsid
 
+    /**
+     * Default (i.e. no args) constructor needed for ORM reasons
+     */
+    public DsIdEntry() {}
 
     public DsIdEntry(String serializedDsidRepr) {
         this.serializedDsidRepr = serializedDsidRepr;

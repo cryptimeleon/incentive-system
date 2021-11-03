@@ -28,10 +28,24 @@ public class DsTagEntry {
     private long id;
 
     private String serializedC0Repr; // challenge for deriving the user secret key
+
     private String serializedC1Repr; // challenge for deriving the encryption secret key
+
     private String serializedGammaRepr; // challenge generation helper value
+
     private String serializedEskStarProvRepr; // provider share for ElGamal encryption secret key
+
+    /**
+     * Default (i.e. no args) constructor needed for ORM reasons
+     */
+    public DsTagEntry() {}
+
+    @Column(name="serializedCTrace0Repr", columnDefinition="CLOB NOT NULL")
+    @Lob
     private String serializedCTrace0Repr;
+
+    @Column(name="serializedCTrace1Repr", columnDefinition="CLOB NOT NULL")
+    @Lob
     private String serializedCTrace1Repr;
 
     public DsTagEntry(String c0, String c1, String gamma, String eskStarProv, String ctrace0, String ctrace1) {

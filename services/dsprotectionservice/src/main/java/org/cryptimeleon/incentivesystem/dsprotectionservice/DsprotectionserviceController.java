@@ -1,7 +1,5 @@
 package org.cryptimeleon.incentivesystem.dsprotectionservice;
 
-import org.apache.catalina.User;
-import org.cryptimeleon.incentive.crypto.model.DoubleSpendingTag;
 import org.cryptimeleon.incentive.crypto.model.Transaction;
 import org.cryptimeleon.incentive.crypto.model.TransactionIdentifier;
 import org.cryptimeleon.incentive.crypto.model.UserInfo;
@@ -15,12 +13,10 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.jooq.DslContextDependsOnPostProcessor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
 
@@ -79,14 +75,18 @@ public class DsprotectionserviceController {
         // create double-spending tag entry object
         DsTagEntry dsTagEntry = new DsTagEntry(serializedDsTagRepr, cryptoRepository.getPp());
 
-        logger.info("Saving and linking data");
+        logger.info("Saving double-spending tag");
 
         // add double spending tag entry to database
         doubleSpendingTagRepository.save(dsTagEntry);
 
+        logger.info("Linking double-spending tag to transaction");
+
         // link newly added dstag to transaction
         long dsTagEntryId = dsTagEntry.getId();
         taEntry.setDsTagEntryId(dsTagEntryId);
+
+        logger.info("Saving transaction");
 
         // add transaction entry object (with linked dstag) to database
         transactionRepository.save(taEntry);
@@ -579,7 +579,7 @@ public class DsprotectionserviceController {
             // deserialize tid of currently considered transaction entry
             Zn.ZnElement taeTid = usedZn.restoreElement(jsonConverter.deserialize(tae.getSerializedTransactionIDRepr()));
 
-            if(taeTid.equals(tid)) { // less costly lookup in outer if-clause
+            if(taeTid.equals(tid)) {
                 // retrieve corresponding double-spending tag entry
                 DsTagEntry dste = doubleSpendingTagRepository.findById(tae.getDsTagEntryId()).get();
 
@@ -678,11 +678,13 @@ public class DsprotectionserviceController {
      * Retrieves transaction info for all transactions in the database.
      * @return list of transaction objects
      */
-    @GetMapping("retrieveallta")
+    @GetMapping("/retrieveallta")
     public ResponseEntity<ArrayList<String>> retrieveAllTransactions() {
+        logger.info("Querying all transaction entries from database.");
         // query all transaction entries from database
         ArrayList<TransactionEntry> taEntryList = (ArrayList<TransactionEntry>) transactionRepository.findAll();
 
+        logger.info("Converting entries to crypto objects.");
         // convert all of them to (crypto) transaction objects whose serialized representations aggregated in a list
         ArrayList<String> serializedTaRepresentationsList = new ArrayList<String>();
         JSONConverter jsonConverter = new JSONConverter();

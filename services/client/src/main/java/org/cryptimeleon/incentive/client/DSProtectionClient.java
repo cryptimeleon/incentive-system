@@ -7,6 +7,8 @@ import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -20,6 +22,8 @@ import java.util.ArrayList;
  * Communication is done via POST requests, data objects are transferred as JSON-marshalled representations (see Representation in math package).
  */
 public class DSProtectionClient implements DatabaseHandler {
+    private Logger logger = LoggerFactory.getLogger(DSProtectionClient.class);
+
     private WebClient dsProtectionClient; // the underlying web client making the requests
 
     public static final String ADD_TRANSACTION_PATH = "/addtransaction";
@@ -47,7 +51,7 @@ public class DSProtectionClient implements DatabaseHandler {
     public static final String RETRIEVE_ALL_TRANSACTIONS_PATH = "/retrieveallta";
 
     public DSProtectionClient(String dsProtectionServiceURL) {
-        System.out.println("Creating a client that sends queries to " + dsProtectionServiceURL);
+        logger.info("Creating a client that sends queries to " + dsProtectionServiceURL);
         this.dsProtectionClient = WebClientHelper.buildWebClient(dsProtectionServiceURL);
     }
 
@@ -56,12 +60,16 @@ public class DSProtectionClient implements DatabaseHandler {
      * @return dsprotection database server response
      */
     public String addTransactionNode(Transaction ta){
+        logger.info("Marshalling transaction data.");
+
         DoubleSpendingTag dsTag = ta.getDsTag();
 
         // marshall the data as JSON string
         JSONConverter jsonConverter = new JSONConverter();
         String serializedTransactionRepr = jsonConverter.serialize(ta.getRepresentation());
         String serializedDsTagRepr = jsonConverter.serialize(dsTag.getRepresentation());
+
+        logger.info("Making request to path " + ADD_TRANSACTION_PATH);
 
         // add transaction using POST request to ds protection service using web client from object variable
         Mono<String> addTransactionRequestResponse = this.dsProtectionClient.post() // do a POST request
@@ -70,6 +78,8 @@ public class DSProtectionClient implements DatabaseHandler {
                 .bodyValue(serializedDsTagRepr) // add the dstag to the body
                 .retrieve() // actually make the request
                 .bodyToMono(String.class);
+
+        logger.info("Received response, returning...");
 
         // return response
         return addTransactionRequestResponse.block();

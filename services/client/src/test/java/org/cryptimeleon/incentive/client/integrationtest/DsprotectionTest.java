@@ -9,11 +9,12 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.SpringBootTest;
 
 /**
  * Tests the methods for interacting with the double-spending database.
  */
-public class DsprotectionTest {
+public class DsprotectionTest extends IncentiveSystemIntegrationTest {
     @Value("${dsprotection.url}")
     public String dsprotectionUrl;
 
@@ -62,8 +63,7 @@ public class DsprotectionTest {
         System.out.println("ADD TOKEN TEST");
 
         // create client
-        // TODO: URL hard-coded atm, since reading from application.properties does not seem to work.
-        var dsprotectionClient = new DSProtectionClient("http://localhost:8004");
+        var dsprotectionClient = new DSProtectionClient(this.dsprotectionUrl);
 
         // generate public parameters for implicit incentive system instance
         IncentivePublicParameters pp = Setup.trustedSetup(512, Setup.BilinearGroupChoice.Debug);

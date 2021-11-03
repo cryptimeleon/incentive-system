@@ -23,7 +23,7 @@ public class DeductController {
     }
 
     /**
-     * Runs the Deduct algorithm and adds transaction data to the database.
+     * Runs the Deduct algorithm and adds the transaction data generated in the process to the database.
      * @param serializedSpendRequest the spend request to handle using the Deduct algorithm.
      * @param basketID identifier for user basket
      * @return serialized spend request

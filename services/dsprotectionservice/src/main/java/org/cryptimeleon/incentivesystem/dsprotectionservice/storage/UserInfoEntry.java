@@ -33,6 +33,11 @@ public class UserInfoEntry {
     private String serializedDsTraceRepr;
 
     /**
+     * Default (i.e. no args) constructor needed for ORM reasons
+     */
+    public UserInfoEntry() {}
+
+    /**
      * All args constructor, note that ID is auto-generated.
      */
     public UserInfoEntry(String upk, String dsBlame, String dsTrace) {

@@ -39,6 +39,11 @@ public class TransactionEntry {
     private long consumedDsidEntryId; // ID of the entry of the double-spending ID of the token consumed in this transaction (realizes a token-transaction edge in the bipartite double-spending protection graph)
 
     /**
+     * Default (i.e. no args) constructor needed for ORM reasons
+     */
+    public TransactionEntry() {}
+
+    /**
      * Constructs a transaction entry from a serialized transaction representation (crypto object).
      * Note that the association with a double-spending tag is done subsequently.
      * @param serializedTransaction serialized representation of a transaction
