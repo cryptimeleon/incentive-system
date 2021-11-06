@@ -1,6 +1,8 @@
 package org.cryptimeleon.incentive.crypto.model;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.Value;
 import lombok.experimental.NonFinal;
 import org.cryptimeleon.math.serialization.Representable;
@@ -16,7 +18,8 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
  * Data associated to a spend operation which the provider requires to trace double-spending.
  * Called 'dstag' in the cryptimeleon incentive system paper.
  */
-@Value
+@Getter
+@Setter
 @AllArgsConstructor
 public class DoubleSpendingTag implements Representable {
     @NonFinal
@@ -77,5 +80,31 @@ public class DoubleSpendingTag implements Representable {
     @Override
     public Representation getRepresentation() {
         return ReprUtil.serialize(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if(!o.getClass().equals(DoubleSpendingTag.class)) {
+            return false;
+        }
+        else {
+            DoubleSpendingTag otherTag = (DoubleSpendingTag) o;
+            return otherTag.getC0().equals(this.c0)
+                    && otherTag.getC1().equals(this.c1)
+                    && otherTag.getEskStarProv().equals(this.eskStarProv)
+                    && otherTag.getGamma().equals(this.gamma)
+                    && otherTag.getCtrace0().equals(this.ctrace0)
+                    && otherTag.getCtrace1().equals(this.ctrace1);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return this.c0.toString() + " "
+                + this.c1.toString() + " "
+                + this.eskStarProv.toString() + " "
+                + this.gamma.toString() + " "
+                + this.ctrace0.toString() + " "
+                + this.ctrace1.toString();
     }
 }

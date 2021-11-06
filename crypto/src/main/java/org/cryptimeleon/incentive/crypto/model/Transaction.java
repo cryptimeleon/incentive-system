@@ -1,6 +1,8 @@
 package org.cryptimeleon.incentive.crypto.model;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.Value;
 import lombok.experimental.NonFinal;
 import org.cryptimeleon.math.serialization.ListRepresentation;
@@ -18,7 +20,8 @@ import java.math.BigInteger;
  * Note that the challenge generation helper value gamma is contained in the double spending tag
  * and thus not a field of the transaction class (DRY principle).
  */
-@Value
+@Getter
+@Setter
 @AllArgsConstructor
 public class Transaction implements Representable {
     @NonFinal
@@ -66,11 +69,45 @@ public class Transaction implements Representable {
         );
     }
 
+    /**
+     * Returns identifying information for this transaction,
+     * consisting of the transaction ID and the challenge generator gamma of the associated double-spending tag.
+     * @return TransactionIdentifier
+     */
+    public TransactionIdentifier getTaIdentifier() {
+        return new TransactionIdentifier(
+                this.transactionID,
+                this.dsTag.getGamma()
+        );
+    }
+
     @Override
     public Representation getRepresentation() {
         ListRepresentation repr = new ListRepresentation();
         repr.add(ReprUtil.serialize(this));
         repr.add(dsTag.getRepresentation());
         return repr;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if(!o.getClass().equals(Transaction.class)) {
+            return false;
+        }
+        else {
+            Transaction otherTa = (Transaction) o;
+            return otherTa.getIsValid()== this.isValid
+                    && otherTa.getTransactionID().equals(this.transactionID)
+                    && otherTa.getK().equals(this.k)
+                    && otherTa.getDsTag().equals(this.getDsTag());
+        }
+    }
+
+    @Override
+    public String toString() {
+        return this.isValid.toString() + " "
+                + this.transactionID.toString() + " "
+                + this.k.toString() + " "
+                + this.dsTag.toString();
     }
 }

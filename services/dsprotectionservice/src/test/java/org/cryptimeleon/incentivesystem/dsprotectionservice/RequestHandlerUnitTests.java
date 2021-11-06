@@ -3,6 +3,8 @@ package org.cryptimeleon.incentivesystem.dsprotectionservice;
 import org.cryptimeleon.incentive.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.Setup;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
+import org.cryptimeleon.incentive.crypto.model.Transaction;
+import org.cryptimeleon.incentive.crypto.model.TransactionIdentifier;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -63,42 +65,20 @@ public class RequestHandlerUnitTests {
         when(cryptoRepository.getPp()).thenReturn(pp);
 
         logger.info("Generating and serializing valid random transaction and associated double-spending tag.");
-        var ta1 = Helper.generateTransaction(pp, true);
-        var serializedTa1Repr = Util.computeSerializedRepresentation(ta1);
-        var serialiazedDsTag1Repr = Util.computeSerializedRepresentation(ta1.getDsTag());
+        var ta1 = Helper.generateTransaction(cryptoRepository.getPp(), true);
 
         logger.info("Communicating with double-spending protection service to add transaction to DB.");
-        String addTransactionResponse1 = webClient.post()
-                .uri(uriBuilder -> uriBuilder.path("/addtransaction").build())
-                .header("ta", serializedTa1Repr)
-                .bodyValue(serialiazedDsTag1Repr)
-                .exchange()
-                .expectStatus()
-                .isOk()
-                .expectBody(String.class)
-                .returnResult()
-                .getResponseBody();
+        String addTransactionResponse1 = this.addTransactionNode(ta1, webClient);
         logger.info("Received response from endpoint: " + addTransactionResponse1);
 
         logger.info("Generating and serializing invalid random transaction and associated double-spending tag.");
-        var ta2 = Helper.generateTransaction(pp, false);
-        var serializedTa2Repr = Util.computeSerializedRepresentation(ta2);
-        var serialiazedDsTag2Repr = Util.computeSerializedRepresentation(ta2.getDsTag());
+        var ta2 = Helper.generateTransaction(cryptoRepository.getPp(), false);
 
         logger.info("Communicating with double-spending protection service to add transaction to DB.");
-        String addTransactionResponse2 = webClient.post()
-                .uri(uriBuilder -> uriBuilder.path("/addtransaction").build())
-                .header("ta", serializedTa1Repr)
-                .bodyValue(serialiazedDsTag1Repr)
-                .exchange()
-                .expectStatus()
-                .isOk()
-                .expectBody(String.class)
-                .returnResult()
-                .getResponseBody();
+        String addTransactionResponse2 = this.addTransactionNode(ta2, webClient);
         logger.info("Received response from endpoint: " + addTransactionResponse2);
 
-        logger.info("Checking whether DB contains correct number of transactions");
+        logger.info("Checking whether DB contains correct number of transactions.");
 
         // retrieve all transactions to ensure that database contains exactly 2
         ArrayList<String> serializedTransactionList = webClient.get()
@@ -111,5 +91,88 @@ public class RequestHandlerUnitTests {
                 .getResponseBody();
 
         Assertions.assertTrue(serializedTransactionList.size() == 2);
+
+        logger.info("Checking whether DB contains both individual transactions.");
+
+        boolean containsTa1 = this.containsTransaction(ta1.getTaIdentifier(), webClient);
+        Assertions.assertTrue(containsTa1);
+
+        boolean containsTa2 = this.containsTransaction(ta2.getTaIdentifier(), webClient);
+        Assertions.assertTrue(containsTa2);
+
+        logger.info("Retrieving second stored transaction from database.");
+
+        var serializedTa2Id = Util.computeSerializedRepresentation(
+                new TransactionIdentifier(
+                        ta2.getTransactionID(),
+                        ta2.getDsTag().getGamma()
+                )
+        );
+
+        // GET-request to double-spending protection service to obtain transaction from DB
+        String retrievedSerializedTa2Repr = webClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/gettransaction").build())
+                .header("taid", serializedTa2Id)
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody(String.class)
+                .returnResult()
+                .getResponseBody();
+
+        Transaction retrievedTa2 = new Transaction(
+                new JSONConverter().deserialize(retrievedSerializedTa2Repr),
+                cryptoRepository.getPp()
+        );
+
+        logger.info("Checking whether original second transaction was retrieved correctly");
+
+        Assertions.assertTrue(ta2.equals(retrievedTa2));
+    }
+
+    /**
+     * Adds a token to the database. Verifies token count in the database afterwards.
+     */
+    @Test
+    public void addTokenTest(@Autowired WebTestClient webClient)
+    {
+
+    }
+
+
+    /**
+     * helper methods
+     */
+
+    /**
+     * Adds the passed transaction to the database.
+     */
+    public String addTransactionNode(Transaction ta, WebTestClient webClient) {
+        var serializedTaRepr = Util.computeSerializedRepresentation(ta);
+        var serialiazedDsTagRepr = Util.computeSerializedRepresentation(ta.getDsTag());
+
+        // POST request to double-spending protection service
+        return webClient.post()
+                .uri(uriBuilder -> uriBuilder.path("/addtransaction").build())
+                .header("ta", serializedTaRepr)
+                .bodyValue(serialiazedDsTagRepr)
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody(String.class)
+                .returnResult()
+                .getResponseBody();
+    }
+
+    public boolean containsTransaction(TransactionIdentifier taId, WebTestClient webClient) {
+        return webClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/containsta").build())
+                .header("taidgamma", Util.computeSerializedRepresentation(taId))
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody(boolean.class)
+                .returnResult()
+                .getResponseBody();
     }
 }
