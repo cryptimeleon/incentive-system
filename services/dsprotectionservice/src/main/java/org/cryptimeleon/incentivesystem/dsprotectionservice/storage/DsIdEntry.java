@@ -19,7 +19,11 @@ public class DsIdEntry {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id; // identifier for entry in database table that represents this object
+
+    @Column(name="serializedDsidRepr", columnDefinition="CLOB NOT NULL")
+    @Lob
     private String serializedDsidRepr; // the actual double spending ID (from nice mathematical structure), in serialized-representation form
+
     private long associatedUserInfoId; // id of the user info entry for this dsid
 
     /**

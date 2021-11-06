@@ -1,19 +1,17 @@
 package org.cryptimeleon.incentive.crypto;
 
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
-import org.cryptimeleon.incentive.crypto.model.DoubleSpendingTag;
-import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
-import org.cryptimeleon.incentive.crypto.model.Token;
-import org.cryptimeleon.incentive.crypto.model.Transaction;
+import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
+import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.math.structures.groups.Group;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 import java.math.BigInteger;
 
 /**
- * Class that creates some random mathematic objects. Used to shorten
+ * Class that creates some random mathematic objects. Used to shorten tests.
  */
 public class Helper {
     static Token generateToken(IncentivePublicParameters pp, UserKeyPair userKeyPair, ProviderKeyPair providerKeyPair) {
@@ -61,6 +59,7 @@ public class Helper {
      * Creates and returns a transaction with spend amount 1 and random other fields.
      * @param valid whether the generated transaction shall be valid or not
      */
+    // TODO: make spend amount random once basket server endpoint is implemented
     public static Transaction generateTransaction(IncentivePublicParameters pp, boolean valid) {
         Zn usedZn = pp.getBg().getZn();
         Group usedG1 = pp.getBg().getG1();
@@ -77,6 +76,21 @@ public class Helper {
                     usedG1.getUniformlyRandomElements(3),
                     usedG1.getUniformlyRandomElements(3)
             )
+        );
+    }
+
+    /**
+     * Creates random user info.
+     * @return UserInfo
+     */
+    public static UserInfo generateUserInfo(IncentivePublicParameters pp) {
+        Zn usedZn = pp.getBg().getZn();
+        Group usedG1 = pp.getBg().getG1();
+
+        return new UserInfo(
+                new UserPublicKey(usedG1.getUniformlyRandomElement()),
+                usedZn.getUniformlyRandomElement(),
+                usedZn.getUniformlyRandomElement()
         );
     }
 

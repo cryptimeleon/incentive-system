@@ -4,11 +4,9 @@ import lombok.Getter;
 import org.apache.catalina.User;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.UserInfo;
-import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.Util;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
-import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 import javax.persistence.*;
 
@@ -26,6 +24,8 @@ public class UserInfoEntry {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
 
+    @Column(name="serializedUpkRepr", columnDefinition="CLOB NOT NULL")
+    @Lob
     private String serializedUpkRepr;
 
     private String serializedDsBlameRepr;

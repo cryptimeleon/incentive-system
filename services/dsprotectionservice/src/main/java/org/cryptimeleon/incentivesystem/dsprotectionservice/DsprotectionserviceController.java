@@ -91,8 +91,6 @@ public class DsprotectionserviceController {
         // add transaction entry object (with linked dstag) to database
         transactionRepository.save(taEntry);
 
-        logger.info("About to respond to add transaction request");
-
         // return status
         return new ResponseEntity<String>("Successfully added transaction.", HttpStatus.OK);
     }

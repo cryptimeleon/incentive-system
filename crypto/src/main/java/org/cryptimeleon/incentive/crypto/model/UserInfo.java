@@ -1,6 +1,8 @@
 package org.cryptimeleon.incentive.crypto.model;
 
 import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.Value;
 import lombok.experimental.NonFinal;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
@@ -15,7 +17,8 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
  * Data class storing info about a user that spent a specific token in a specific transaction.
  * This info is associated with a token (represented by a dsid).
  **/
-@Value
+@Getter
+@Setter
 @AllArgsConstructor
 public class UserInfo implements Representable {
     @NonFinal
@@ -43,4 +46,19 @@ public class UserInfo implements Representable {
 
         return repr;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if(!o.getClass().equals(UserInfo.class)) {
+            return false;
+        }
+        else {
+            System.out.println("comparing user info entry by entry");
+            UserInfo otherUserInfo = (UserInfo) o;
+            return otherUserInfo.upk.equals(this.upk)
+                    && otherUserInfo.dsBlame.equals(this.dsBlame)
+                    && otherUserInfo.dsTrace.equals(this.dsTrace);
+        }
+    }
+
 }
