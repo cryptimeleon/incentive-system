@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.crypto.model.proofs;
+package org.cryptimeleon.incentive.crypto.proof.wellformedness;
 
 import lombok.AllArgsConstructor;
 import lombok.Value;
@@ -10,11 +10,11 @@ import org.cryptimeleon.math.structures.groups.GroupElement;
 @AllArgsConstructor
 public class CommitmentWellformednessCommonInput implements CommonInput {
     @NonFinal
-    private GroupElement upk; // user public key
+    GroupElement upk; // user public key
 
     @NonFinal
-    private GroupElement c0Pre; // left part of preliminary token's commitment
+    GroupElement c0Pre; // left part of preliminary token's commitment
 
     @NonFinal
-    private GroupElement c1Pre; // right part of the preliminary token's commitment
+    GroupElement c1Pre; // right part of the preliminary token's commitment
 }

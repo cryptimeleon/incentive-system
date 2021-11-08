@@ -100,4 +100,3 @@ public class Token implements Representable, UniqueByteRepresentable {
         return accumulator;
     }
 }
-

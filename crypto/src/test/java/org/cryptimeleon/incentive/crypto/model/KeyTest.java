@@ -1,5 +1,7 @@
-package org.cryptimeleon.incentive.crypto;
+package org.cryptimeleon.incentive.crypto.model;
 
+import org.cryptimeleon.incentive.crypto.IncentiveSystem;
+import org.cryptimeleon.incentive.crypto.Setup;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderSecretKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;

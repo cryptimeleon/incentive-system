@@ -7,6 +7,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Next Release
 
+- Adapt SpendDeductZkp to a PartialProofOfKnowledge [#62](https://github.com/cryptimeleon/incentive-system/pull/62)
 - Add promotion id to tokens and change token's single value to a vector. [#63](https://github.com/cryptimeleon/incentive-system/pull/63)
 - Migrate app to jetpack compose [#55](https://github.com/cryptimeleon/incentive-system/pull/55)
 - Refactor app to use a repository pattern [#54](https://github.com/cryptimeleon/incentive-system/pull/54)

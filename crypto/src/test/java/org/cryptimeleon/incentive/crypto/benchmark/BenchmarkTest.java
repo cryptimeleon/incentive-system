@@ -1,8 +1,6 @@
-package org.cryptimeleon.incentive.crypto;
+package org.cryptimeleon.incentive.crypto.benchmark;
 
-import org.cryptimeleon.incentive.crypto.benchmark.Benchmark;
-import org.cryptimeleon.incentive.crypto.benchmark.BenchmarkConfig;
-import org.cryptimeleon.incentive.crypto.benchmark.BenchmarkResult;
+import org.cryptimeleon.incentive.crypto.Setup;
 import org.junit.jupiter.api.Test;
 
 import java.util.logging.Logger;

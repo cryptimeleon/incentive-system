@@ -12,10 +12,10 @@ import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
 import java.math.BigInteger;
 
 public class Helper {
-    static Token generateToken(IncentivePublicParameters pp,
-                               UserKeyPair userKeyPair,
-                               ProviderKeyPair providerKeyPair,
-                               PromotionParameters promotionParameters) {
+    public static Token generateToken(IncentivePublicParameters pp,
+                                      UserKeyPair userKeyPair,
+                                      ProviderKeyPair providerKeyPair,
+                                      PromotionParameters promotionParameters) {
         return generateToken(pp,
                 userKeyPair,
                 providerKeyPair,
@@ -23,11 +23,11 @@ public class Helper {
                 Vector.iterate(BigInteger.valueOf(0), v -> v, promotionParameters.getPointsVectorSize()));
     }
 
-    static Token generateToken(IncentivePublicParameters pp,
-                               UserKeyPair userKeyPair,
-                               ProviderKeyPair providerKeyPair,
-                               PromotionParameters promotionParameters,
-                               Vector<BigInteger> points) {
+    public static Token generateToken(IncentivePublicParameters pp,
+                                      UserKeyPair userKeyPair,
+                                      ProviderKeyPair providerKeyPair,
+                                      PromotionParameters promotionParameters,
+                                      Vector<BigInteger> points) {
         var vectorH = providerKeyPair.getPk().getH(pp, promotionParameters);
         var zp = pp.getBg().getZn();
         // Manually create a token since issue-join is not yet implemented

@@ -1,6 +1,7 @@
 plugins {
     id "java-library"
     id "io.freefair.lombok" version "6.0.0-m2"
+    id 'jacoco'
 }
 
 sourceCompatibility = JavaVersion.VERSION_11
@@ -14,7 +15,8 @@ repositories {
 }
 
 dependencies {
-    api 'org.cryptimeleon:craco:3.0.1'
+    api 'org.cryptimeleon:craco:3.0.2'
+    api 'org.cryptimeleon:math:3.0.3'
     implementation 'org.cryptimeleon:mclwrap:3.0.0'
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.0")
@@ -23,6 +25,7 @@ dependencies {
 
 test {
     useJUnitPlatform()
+    finalizedBy jacocoTestReport // report is always generated after tests run
 }
 
 java {
@@ -32,7 +35,7 @@ java {
 
 test {
     useJUnitPlatform()
-    exclude '**/benchmark/**'
+    exclude '**/benchmark/run/**'
 }
 
 task benchmark(type: Test) {
@@ -41,5 +44,5 @@ task benchmark(type: Test) {
         outputs.upToDateWhen { false }
         showStandardStreams = true
     }
-    include '**/benchmark/**'
+    include '**/benchmark/run/**'
 }
