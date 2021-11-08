@@ -4,6 +4,7 @@ import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSyst
 import org.cryptimeleon.incentive.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.Setup;
+import org.cryptimeleon.incentive.crypto.Util;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.crypto.model.Token;
@@ -76,7 +77,7 @@ class TokenPointsZkpTest {
 
         zn = pp.getBg().getZn();
         var testSuite = SpendHelper.generateTestSuite(
-                Vector.of(BigInteger.valueOf(0), BigInteger.valueOf(0), BigInteger.valueOf(0), BigInteger.valueOf(0)),
+                Util.getZeroBigIntegerVector(4),
                 pp, promotion, providerKey, token, userKey, zn
         );
 

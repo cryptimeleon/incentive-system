@@ -9,8 +9,9 @@ import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenPointsLeaf;
 import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenUpdateLeaf;
+import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductAndNode;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
-import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkp;
+import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkpCommonInput;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkpWitnessInput;
 import org.cryptimeleon.math.structures.cartesian.Vector;
@@ -32,10 +33,10 @@ public class SpendHelper {
      * @param subtractPoints      the points that shall be subtracted from the user's token
      * @return a zero knowledge proof for this statement
      */
-    public static SpendDeductZkp generateSimpleTestSpendDeductZkp(IncentivePublicParameters pp,
-                                                                  PromotionParameters promotionParameters,
-                                                                  ProviderPublicKey providerPublicKey,
-                                                                  Vector<BigInteger> subtractPoints) {
+    public static SpendDeductBooleanZkp generateSimpleTestSpendDeductZkp(IncentivePublicParameters pp,
+                                                                         PromotionParameters promotionParameters,
+                                                                         ProviderPublicKey providerPublicKey,
+                                                                         Vector<BigInteger> subtractPoints) {
 
         Vector<BigInteger> ignore = Util.getNullBigIntegerVector(promotionParameters.getPointsVectorSize());
         Vector<BigInteger> ones = Util.getOneBigIntegerVector(promotionParameters.getPointsVectorSize());
@@ -72,19 +73,19 @@ public class SpendHelper {
      * @param bVector             vector of summands b_i for the linear relation proof. Ignore if null
      * @return SpendDeductZkp for the upper statement
      */
-    public static SpendDeductZkp generateTestZkp(IncentivePublicParameters pp,
-                                                 PromotionParameters promotionParameters,
-                                                 ProviderPublicKey providerPublicKey,
-                                                 Vector<BigInteger> lowerLimits,
-                                                 Vector<BigInteger> upperLimits,
-                                                 Vector<BigInteger> newLowerLimits,
-                                                 Vector<BigInteger> newUpperLimits,
-                                                 Vector<BigInteger> aVector,
-                                                 Vector<BigInteger> bVector) {
+    public static SpendDeductBooleanZkp generateTestZkp(IncentivePublicParameters pp,
+                                                        PromotionParameters promotionParameters,
+                                                        ProviderPublicKey providerPublicKey,
+                                                        Vector<BigInteger> lowerLimits,
+                                                        Vector<BigInteger> upperLimits,
+                                                        Vector<BigInteger> newLowerLimits,
+                                                        Vector<BigInteger> newUpperLimits,
+                                                        Vector<BigInteger> aVector,
+                                                        Vector<BigInteger> bVector) {
 
         SpendDeductTree conditionTree = new TokenPointsLeaf("RangeProof", lowerLimits, upperLimits);
         SpendDeductTree updateTree = new TokenUpdateLeaf("UpdateProof", newLowerLimits, newUpperLimits, aVector, bVector);
-        return new SpendDeductZkp(conditionTree, updateTree, pp, promotionParameters, providerPublicKey);
+        return new SpendDeductBooleanZkp(new SpendDeductAndNode(updateTree, conditionTree), pp, promotionParameters, providerPublicKey);
     }
 
     public static SpendZkpTestSuite generateTestSuite(Vector<BigInteger> newPoints, IncentivePublicParameters pp, PromotionParameters promotion, ProviderKeyPair providerKey, Token token, UserKeyPair userKey, Zn zn) {

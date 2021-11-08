@@ -9,9 +9,8 @@ import org.cryptimeleon.incentive.crypto.model.Token;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinRequest;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse;
 import org.cryptimeleon.incentive.crypto.proof.spend.SpendHelper;
-import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenPointsLeaf;
 import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenUpdateLeaf;
-import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkp;
+import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
 import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellformednessProtocol;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.rings.RingElement;
@@ -55,6 +54,7 @@ public class IncentiveSystemTest {
         var promotionParameters = incSys.generatePromotionParameters(2);
         Vector<BigInteger> ignore = Util.getNullBigIntegerVector(2);
         Vector<BigInteger> ones = Util.getOneBigIntegerVector(2);
+        Vector<BigInteger> zeros = Util.getZeroBigIntegerVector(2);
 
         /*
          * user joins system using issue-join protocol
@@ -171,9 +171,8 @@ public class IncentiveSystemTest {
         // serialize and deserialize spend request to ensure that serialization does not break anything
         var serializedSpendRequest3 = spendRequest3.getRepresentation();
         FiatShamirProofSystem spendDeductProofSystem = new FiatShamirProofSystem(
-                new SpendDeductZkp(
-                        new TokenPointsLeaf("TokenPointsLeaf", spendAmount, ignore),
-                        new TokenUpdateLeaf("TokenUpdateLeaf", spendAmount, ignore, ones, negatedSpendAmount),
+                new SpendDeductBooleanZkp(
+                        new TokenUpdateLeaf("TokenUpdateLeaf", zeros, ignore, ones, negatedSpendAmount),
                         incSys.getPp(), promotionParameters, pkp.getPk()));
         var deserializedSpendRequest3 = new SpendRequest(serializedSpendRequest3, incSys.getPp(), spendDeductProofSystem, tid3);
 

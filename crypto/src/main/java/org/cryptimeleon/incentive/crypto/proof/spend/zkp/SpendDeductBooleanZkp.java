@@ -31,6 +31,14 @@ public class SpendDeductBooleanZkp extends ProofOfPartialKnowledge {
     private final PromotionParameters promotionParameters;
     private final ProviderPublicKey providerPublicKey;
 
+    /**
+     * Constructor.
+     *
+     * @param spendDeductTree     a SpendDeductTree that represents the ZKP
+     * @param pp                  the public parameters
+     * @param promotionParameters the promotion parameters
+     * @param providerPublicKey   the public key of the provider
+     */
     public SpendDeductBooleanZkp(SpendDeductTree spendDeductTree, IncentivePublicParameters pp, PromotionParameters promotionParameters, ProviderPublicKey providerPublicKey) {
         this.spendDeductTree = spendDeductTree;
         this.pp = pp;
@@ -46,7 +54,6 @@ public class SpendDeductBooleanZkp extends ProofOfPartialKnowledge {
         return and(
                 // Metadata proof must always be true
                 leaf(META_LEAF_NAME, new MetadataZkp(this.pp, this.providerPublicKey, this.promotionParameters), commonInput),
-                // Add reaming protocol tree
                 generateProtocolTree(this.spendDeductTree, commonInput, sendFirstValue)
         );
     }

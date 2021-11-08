@@ -15,7 +15,7 @@ import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserSecretKey;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinRequest;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse;
-import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkp;
+import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkpCommonInput;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkpWitnessInput;
 import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellformednessCommonInput;
@@ -134,7 +134,7 @@ public class IncentiveSystem {
         ProviderPublicKey pk = pkp.getPk();
         ProviderSecretKey sk = pkp.getSk();
 
-        // read out parts of the precommitment and the commitment well-formedness proof from the join request object
+        // read out parts of the pre-commitment and the commitment well-formedness proof from the join request object
         GroupElement c0Pre = jr.getPreCommitment0();
         GroupElement c1Pre = jr.getPreCommitment1();
         FiatShamirProof cwfProof = jr.getCwfProof();
@@ -148,7 +148,7 @@ public class IncentiveSystem {
             throw new IllegalArgumentException("The proof of the commitment being well-formed was rejected.");
         }
 
-        // modify precommitment 0 using homomorphism trick and randomly chosen exponent
+        // modify pre-commitment 0 using homomorphism trick and randomly chosen exponent
         ZnElement eskProv = pp.getBg().getZn().getUniformlyRandomElement();
         GroupElement modifiedC0Pre = c0Pre.op(c1Pre.pow(sk.getQ().get(1).mul(eskProv)));
 
@@ -372,7 +372,7 @@ public class IncentiveSystem {
                                              Vector<BigInteger> newPoints,
                                              UserKeyPair userKeyPair,
                                              Zn.ZnElement tid,
-                                             SpendDeductZkp spendDeductZkp
+                                             SpendDeductBooleanZkp spendDeductZkp
     ) {
         // Some local variables and pre-computations to make the code more readable
         var zp = pp.getBg().getZn();
@@ -442,7 +442,7 @@ public class IncentiveSystem {
                                                             SpendRequest spendRequest,
                                                             ProviderKeyPair providerKeyPair,
                                                             Zn.ZnElement tid,
-                                                            SpendDeductZkp spendDeductZkp) {
+                                                            SpendDeductBooleanZkp spendDeductZkp) {
 
         /* Verify that the request is valid and well-formed */
 
