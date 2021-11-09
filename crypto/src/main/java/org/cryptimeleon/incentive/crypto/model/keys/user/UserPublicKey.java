@@ -43,4 +43,9 @@ public class UserPublicKey implements Representable {
             return otherUserPublicKey.upk.equals(this.upk);
         }
     }
+
+    @Override
+    public String toString() {
+        return this.upk.toString();
+    }
 }

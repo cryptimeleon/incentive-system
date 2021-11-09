@@ -60,6 +60,6 @@ public class UserInfoEntry {
         // initialize entry object
         this.serializedUpkRepr = Util.computeSerializedRepresentation(uInfo.getUpk());
         this.serializedDsBlameRepr = Util.computeSerializedRepresentation(uInfo.getDsBlame());
-        this.serializedDsTraceRepr = Util.computeSerializedRepresentation(uInfo.getDsBlame());
+        this.serializedDsTraceRepr = Util.computeSerializedRepresentation(uInfo.getDsTrace());
     }
 }

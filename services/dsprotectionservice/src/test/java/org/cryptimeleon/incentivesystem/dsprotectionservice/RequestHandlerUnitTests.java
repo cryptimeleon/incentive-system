@@ -181,11 +181,11 @@ public class RequestHandlerUnitTests {
                 jsonConverter.deserialize(this.getUserInfo(dsid1, webClient)),
                 cryptoRepository.getPp()
         );
-        Assertions.assertTrue(retrievedUserInfo1.equals(uInfo1)); // TODO: fails, why?
         UserInfo retrievedUserInfo2 = new UserInfo(
                 jsonConverter.deserialize(this.getUserInfo(dsid2, webClient)),
                 cryptoRepository.getPp()
         );
+        Assertions.assertTrue(retrievedUserInfo1.equals(uInfo1));
         Assertions.assertTrue(retrievedUserInfo2.equals(uInfo2));
     }
 
@@ -195,8 +195,80 @@ public class RequestHandlerUnitTests {
      * whether consumed tokens/consuming transactions are returned correctly when queried.
      */
     @Test
-    public void edgeTest() {
-        // TODO: implement
+    public void edgeTest(@Autowired WebTestClient webClient) {
+        logger.info("Started edge test.");
+
+        // setup incentive system for the test (implicit, we only need public parameters)
+        logger.info("Setting up (implicit) incentive system for the test.");
+        IncentivePublicParameters pp = Setup.trustedSetup(512, Setup.BilinearGroupChoice.Debug);
+
+        // JSON converter needed for serializing transactions
+        logger.info("Generating JSON converter.");
+        JSONConverter jsonConverter = new JSONConverter();
+
+        logger.info("Setting up mocked repository for cryptographic assets.");
+        when(cryptoRepository.getPp()).thenReturn(pp);
+
+        logger.info("Setting up a double-spending graph instance.");
+        logger.info("Generating transactions and double-spending IDs.");
+        var usedG1 = cryptoRepository.getPp().getBg().getG1();
+        var ta1 = Helper.generateTransaction(cryptoRepository.getPp(), true);
+        var ta2 = Helper.generateTransaction(cryptoRepository.getPp(), true);
+        var ta3 = Helper.generateTransaction(cryptoRepository.getPp(), true);
+        var dsid1 = usedG1.getUniformlyRandomElement();
+        var dsid2 = usedG1.getUniformlyRandomElement();
+        logger.info("Adding transactions and double-spending IDs to the database.");
+        var addTa1Response = this.addTransactionNode(ta1, webClient);
+        logger.info("Received response from transaction adding endpoint: " + addTa1Response);
+        var addTa2Response = this.addTransactionNode(ta2, webClient);
+        logger.info("Received response from transaction adding endpoint: " + addTa2Response);
+        var addTa3Response = this.addTransactionNode(ta3, webClient);
+        logger.info("Received response from transaction adding endpoint: " + addTa3Response);
+        var addDsid1Response = this.addTokenNode(dsid1, webClient);
+        logger.info("Received response from double-spending ID adding endpoint: " + addDsid1Response);
+        var addDsid2Response = this.addTokenNode(dsid2, webClient);
+        logger.info("Received response from double-spending ID adding endpoint: " + addDsid2Response);
+        logger.info("Making edges.");
+        var makeTaTokenEdgeResponse1 = this.addTransactionTokenEdge(ta1.getTaIdentifier(), dsid1, webClient);
+        logger.info("Received response from edge adding endpoint: " + makeTaTokenEdgeResponse1);
+        var makeTaTokenEdgeResponse2 = this.addTransactionTokenEdge(ta2.getTaIdentifier(), dsid2, webClient);
+        logger.info("Received response from edge adding endpoint: " + makeTaTokenEdgeResponse2);
+        var makeTokenTaEdgeResponse1 = this.addTokenTransactionEdge(dsid1, ta2.getTaIdentifier(), webClient);
+        logger.info("Received response from edge adding endpoint: " + makeTokenTaEdgeResponse1);
+        var makeTokenTaEdgeResponse2 = this.addTokenTransactionEdge(dsid1, ta3.getTaIdentifier(), webClient);
+        logger.info("Received response from edge adding endpoint: " + makeTokenTaEdgeResponse2);
+
+        logger.info("Verifying correct connectivity of nodes.");
+        boolean containsTa1Dsid1Edge = this.containsTaTokenEdge(ta1.getTaIdentifier(), dsid1, webClient);
+        boolean containsTa1Dsid2Edge = this.containsTaTokenEdge(ta1.getTaIdentifier(), dsid2, webClient);
+        boolean containsTa2Dsid1Edge = this.containsTaTokenEdge(ta2.getTaIdentifier(), dsid1, webClient);
+        boolean containsTa2Dsid2Edge = this.containsTaTokenEdge(ta2.getTaIdentifier(), dsid2, webClient);
+        boolean containsTa3Dsid1Edge = this.containsTaTokenEdge(ta3.getTaIdentifier(), dsid1, webClient);
+        boolean containsTa3Dsid2Edge = this.containsTaTokenEdge(ta3.getTaIdentifier(), dsid2, webClient);
+
+        boolean containsDsid1Ta1Edge = this.containsTokenTaEdge(dsid1, ta1.getTaIdentifier(), webClient);
+        boolean containsDsid1Ta2Edge = this.containsTokenTaEdge(dsid1, ta2.getTaIdentifier(), webClient);
+        boolean containsDsid1Ta3Edge = this.containsTokenTaEdge(dsid1, ta3.getTaIdentifier(), webClient);
+        boolean containsDsid2Ta1Edge = this.containsTokenTaEdge(dsid2, ta1.getTaIdentifier(), webClient);
+        boolean containsDsid2Ta2Edge = this.containsTokenTaEdge(dsid2, ta2.getTaIdentifier(), webClient);
+        boolean containsDsid2Ta3Edge = this.containsTokenTaEdge(dsid2, ta3.getTaIdentifier(), webClient);
+
+        Assertions.assertTrue(containsTa1Dsid1Edge);
+        Assertions.assertTrue(!containsTa1Dsid2Edge);
+        Assertions.assertTrue(!containsTa2Dsid1Edge);
+        Assertions.assertTrue(containsTa2Dsid2Edge);
+        Assertions.assertTrue(!containsTa3Dsid1Edge);
+        Assertions.assertTrue(!containsTa3Dsid2Edge);
+
+        Assertions.assertTrue(!containsDsid1Ta1Edge);
+        Assertions.assertTrue(containsDsid1Ta2Edge);
+        Assertions.assertTrue(containsDsid1Ta3Edge);
+        Assertions.assertTrue(!containsDsid2Ta1Edge);
+        Assertions.assertTrue(!containsDsid2Ta2Edge);
+        Assertions.assertTrue(!containsDsid2Ta3Edge);
+        logger.info("Double-spending graph correctly created.");
+        
+        // TODO: test getConsumingTransactions() and getConsumedTokenDsid() from DsProtectionServiceController
     }
 
     /**
@@ -336,6 +408,90 @@ public class RequestHandlerUnitTests {
                 .expectStatus()
                 .isOk()
                 .expectBody(String.class)
+                .returnResult()
+                .getResponseBody();
+    }
+
+    /**
+     * Makes an edge from the transaction with the passed transaction identifier to the passed double-spending ID.
+     * @param webClient client for connection to double-spending service
+     * @return server response body content
+     */
+    public String addTransactionTokenEdge(TransactionIdentifier taId, GroupElement dsid, WebTestClient webClient) {
+        var serializedTaIdRepr = Util.computeSerializedRepresentation(taId);
+        var serializedDsidRepr = Util.computeSerializedRepresentation(dsid);
+
+        return webClient.post()
+                .uri(uriBuilder -> uriBuilder.path("/addtatokenedge").build())
+                .header("taid", serializedTaIdRepr)
+                .header("dsid", serializedDsidRepr)
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody(String.class)
+                .returnResult()
+                .getResponseBody();
+    }
+
+    /**
+     * Makes an edge from the the passed double-spending ID to the transaction with the passed transaction identifier.
+     * @param webClient client for connection to double-spending service
+     * @return server response body content
+     */
+    public String addTokenTransactionEdge(GroupElement dsid, TransactionIdentifier taId, WebTestClient webClient) {
+        var serializedDsidRepr = Util.computeSerializedRepresentation(dsid);
+        var serializedTaIdRepr = Util.computeSerializedRepresentation(taId);
+
+        return webClient.post()
+                .uri(uriBuilder -> uriBuilder.path("/addtokentaedge").build())
+                .header("dsid", serializedDsidRepr)
+                .header("taid", serializedTaIdRepr)
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody(String.class)
+                .returnResult()
+                .getResponseBody();
+    }
+
+    /**
+     * Checks the database for containment of an edge from the transaction with the passed identifier to the passed double-spending ID.
+     * @param webClient client for connection to the double-spending service
+     * @return boolean
+     */
+    public boolean containsTaTokenEdge(TransactionIdentifier taId, GroupElement dsid, WebTestClient webClient) {
+        var serializedTaIdRepr = Util.computeSerializedRepresentation(taId);
+        var serializedDsidRepr = Util.computeSerializedRepresentation(dsid);
+
+        return webClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/containstatokenedge").build())
+                .header("taid", serializedTaIdRepr)
+                .header("dsid", serializedDsidRepr)
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody(boolean.class)
+                .returnResult()
+                .getResponseBody();
+    }
+
+    /**
+     * Checks the database for containment of an edge from the passed double-spending ID to the transaction with the passed identifier.
+     * @param webClient client for connection to the double-spending service
+     * @return boolean
+     */
+    public boolean containsTokenTaEdge(GroupElement dsid, TransactionIdentifier taId, WebTestClient webClient) {
+        var serializedDsidRepr = Util.computeSerializedRepresentation(dsid);
+        var serializedTaIdRepr = Util.computeSerializedRepresentation(taId);
+
+        return webClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/containstokentaedge").build())
+                .header("taid", serializedTaIdRepr)
+                .header("dsid", serializedDsidRepr)
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody(boolean.class)
                 .returnResult()
                 .getResponseBody();
     }

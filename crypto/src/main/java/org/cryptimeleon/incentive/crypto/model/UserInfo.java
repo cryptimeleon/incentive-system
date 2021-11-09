@@ -53,12 +53,18 @@ public class UserInfo implements Representable {
             return false;
         }
         else {
-            System.out.println("comparing user info entry by entry");
             UserInfo otherUserInfo = (UserInfo) o;
-            return otherUserInfo.upk.equals(this.upk)
-                    && otherUserInfo.dsBlame.equals(this.dsBlame)
-                    && otherUserInfo.dsTrace.equals(this.dsTrace);
+            return otherUserInfo.dsBlame.equals(this.dsBlame)
+                    && otherUserInfo.dsTrace.equals(this.dsTrace)
+                    && otherUserInfo.upk.equals(this.upk);
         }
+    }
+
+    @Override
+    public String toString() {
+        return this.upk.toString() + " "
+                + this.dsBlame.toString() + " "
+                + this.dsTrace.toString();
     }
 
 }

@@ -65,28 +65,18 @@ public class DsprotectionserviceController {
             @RequestHeader(value = "ta") String serializedTaRepr,
             @RequestBody String serializedDsTagRepr
     ) {
-        logger.info("Received add transaction request");
-
-        logger.info("Demarshalling data");
-
         // create transaction entry object
         TransactionEntry taEntry = new TransactionEntry(serializedTaRepr, cryptoRepository.getPp());
 
         // create double-spending tag entry object
         DsTagEntry dsTagEntry = new DsTagEntry(serializedDsTagRepr, cryptoRepository.getPp());
 
-        logger.info("Saving double-spending tag");
-
         // add double spending tag entry to database
         doubleSpendingTagRepository.save(dsTagEntry);
-
-        logger.info("Linking double-spending tag to transaction");
 
         // link newly added dstag to transaction
         long dsTagEntryId = dsTagEntry.getId();
         taEntry.setDsTagEntryId(dsTagEntryId);
-
-        logger.info("Saving transaction");
 
         // add transaction entry object (with linked dstag) to database
         transactionRepository.save(taEntry);
@@ -283,7 +273,7 @@ public class DsprotectionserviceController {
      * @param serializedDsIdRepr serialized double-spending ID representation
      * @return HTTP response with result
      */
-    @GetMapping(name = "/containstatokenedge")
+    @GetMapping("/containstatokenedge")
     public ResponseEntity<Boolean> containsTransactionTokenEdge(
             @RequestHeader("taid") String serializedTaIdRepr,
             @RequestHeader("dsid") String serializedDsIdRepr
