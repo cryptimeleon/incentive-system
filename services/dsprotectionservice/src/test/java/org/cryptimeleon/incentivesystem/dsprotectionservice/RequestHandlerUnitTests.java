@@ -8,6 +8,7 @@ import org.cryptimeleon.incentive.crypto.model.TransactionIdentifier;
 import org.cryptimeleon.incentive.crypto.model.UserInfo;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.groups.GroupElement;
+import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -18,6 +19,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.mockito.Mockito.when;
 
@@ -57,6 +60,11 @@ public class RequestHandlerUnitTests {
     public void addTransactionTest(@Autowired WebTestClient webClient) {
         logger.info("Started transaction adding test.");
 
+        // clearing database is necessary since service is not always restarted between consecutive tests
+        logger.info("Sending request to clear database.");
+        String clearDbResponse = this.clearDatabase(webClient);
+        logger.info("Received response from database endpoint: " + clearDbResponse);
+
         // setup incentive system for the test (implicit, we only need public parameters)
         logger.info("Setting up (implicit) incentive system for the test.");
         IncentivePublicParameters pp = Setup.trustedSetup(512, Setup.BilinearGroupChoice.Debug);
@@ -94,6 +102,8 @@ public class RequestHandlerUnitTests {
                 .returnResult()
                 .getResponseBody();
 
+        logger.info(String.valueOf(serializedTransactionList.size()));
+
         Assertions.assertTrue(serializedTransactionList.size() == 2);
 
         logger.info("Checking whether DB contains both individual transactions.");
@@ -129,6 +139,8 @@ public class RequestHandlerUnitTests {
         logger.info("Checking whether original second transaction was retrieved correctly");
 
         Assertions.assertTrue(ta2.equals(retrievedTa2));
+
+        logger.info("Finished transaction adding test.");
     }
 
     /**
@@ -138,6 +150,11 @@ public class RequestHandlerUnitTests {
     public void addTokenTest(@Autowired WebTestClient webClient)
     {
         logger.info("Started token adding test.");
+
+        // clearing database is necessary since service is not always restarted between consecutive tests
+        logger.info("Sending request to clear database.");
+        String clearDbResponse = this.clearDatabase(webClient);
+        logger.info("Received response from database endpoint: " + clearDbResponse);
 
         // setup incentive system for the test (implicit, we only need public parameters)
         logger.info("Setting up (implicit) incentive system for the test.");
@@ -187,6 +204,8 @@ public class RequestHandlerUnitTests {
         );
         Assertions.assertTrue(retrievedUserInfo1.equals(uInfo1));
         Assertions.assertTrue(retrievedUserInfo2.equals(uInfo2));
+
+        logger.info("Finished token adding test.");
     }
 
     /**
@@ -197,6 +216,11 @@ public class RequestHandlerUnitTests {
     @Test
     public void edgeTest(@Autowired WebTestClient webClient) {
         logger.info("Started edge test.");
+
+        // clearing database is necessary since service is not always restarted between consecutive tests
+        logger.info("Sending request to clear database.");
+        String clearDbResponse = this.clearDatabase(webClient);
+        logger.info("Received response from database endpoint: " + clearDbResponse);
 
         // setup incentive system for the test (implicit, we only need public parameters)
         logger.info("Setting up (implicit) incentive system for the test.");
@@ -267,8 +291,64 @@ public class RequestHandlerUnitTests {
         Assertions.assertTrue(!containsDsid2Ta2Edge);
         Assertions.assertTrue(!containsDsid2Ta3Edge);
         logger.info("Double-spending graph correctly created.");
-        
-        // TODO: test getConsumingTransactions() and getConsumedTokenDsid() from DsProtectionServiceController
+
+        logger.info("Checking consuming transactions of an example token for correctness.");
+        String serializedDsid1Repr = Util.computeSerializedRepresentation(dsid1);
+        ArrayList<String> consumingTransactionsDsid1 = webClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/getconsumingta").build())
+                .header("dsid", serializedDsid1Repr)
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody(ArrayList.class)
+                .returnResult()
+                .getResponseBody();
+
+        Set<String> consumingTransactionsReprSet = new HashSet<String>(consumingTransactionsDsid1);
+        Set<Transaction> consumingTransactionSet = new HashSet<Transaction>();
+        consumingTransactionsReprSet.forEach(
+                taRepr -> {
+                    consumingTransactionSet.add(
+                            new Transaction(
+                                    jsonConverter.deserialize(taRepr),
+                                    cryptoRepository.getPp()
+                            )
+                    );
+                }
+        );
+        Set<Transaction> expectedConsumingTransactionSet = new HashSet<Transaction>();
+        expectedConsumingTransactionSet.add(ta2);
+        expectedConsumingTransactionSet.add(ta3);
+        Assertions.assertTrue(consumingTransactionSet.size() == 2);
+        // cumbersome way of comparing elements of two sets since the equals method of java.util.HashSet does not seem to use the equals method of the set's content type to compare elements...
+        boolean setsContainSameTransactions = false;
+        for(Transaction eTa:expectedConsumingTransactionSet) {
+            setsContainSameTransactions = false;
+            for(Transaction aTa:consumingTransactionSet){
+                if(eTa.equals(aTa)) {
+                    setsContainSameTransactions = true;
+                }
+            }
+        }
+        Assertions.assertTrue(setsContainSameTransactions);
+
+        logger.info("Checking consumed token of an example transaction for correctness.");
+        String serializedTa3IdRepr = Util.computeSerializedRepresentation(ta3.getTaIdentifier());
+        String serializedConsumedTokenRepr = webClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/getconsumedtoken").build())
+                .header("taid", serializedTa3IdRepr)
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody(String.class)
+                .returnResult()
+                .getResponseBody();
+        GroupElement consumedToken = cryptoRepository.getPp().getBg().getG1().restoreElement(
+                jsonConverter.deserialize(serializedConsumedTokenRepr)
+        );
+        Assertions.assertTrue(consumedToken.equals(dsid1));
+
+        logger.info("Finished edge test.");
     }
 
     /**
@@ -276,8 +356,62 @@ public class RequestHandlerUnitTests {
      * Checks whether transaction is still invalid in the end.
      */
     @Test
-    public void invalidateTaTest() {
-        // TODO: implement
+    public void invalidateTaTest(@Autowired WebTestClient webClient) {
+        logger.info("Started invalidation test.");
+
+        // clearing database is necessary since service is not always restarted between consecutive tests
+        logger.info("Sending request to clear database.");
+        String clearDbResponse = this.clearDatabase(webClient);
+        logger.info("Received response from database endpoint: " + clearDbResponse);
+
+        // setup incentive system for the test (implicit, we only need public parameters)
+        logger.info("Setting up (implicit) incentive system for the test.");
+        IncentivePublicParameters pp = Setup.trustedSetup(512, Setup.BilinearGroupChoice.Debug);
+
+        // JSON converter needed for serializing transactions
+        logger.info("Generating JSON converter.");
+        JSONConverter jsonConverter = new JSONConverter();
+
+        logger.info("Setting up mocked repository for cryptographic assets.");
+        when(cryptoRepository.getPp()).thenReturn(pp);
+
+        logger.info("Generating valid random transaction and add it to the database.");
+        Transaction ta1 = Helper.generateTransaction(cryptoRepository.getPp(), true);
+        String addTransactionResponse = this.addTransactionNode(ta1, webClient);
+        logger.info("Received response from transaction adding endpoint: " + addTransactionResponse);
+
+        logger.info("Sending invalidation request for added transaction.");
+        String serializedTaId1Repr = Util.computeSerializedRepresentation(ta1.getTaIdentifier());
+        String invalidationResponse = webClient.post()
+                .uri(uriBuilder -> uriBuilder.path("/invalidateta").build())
+                .header("taidgamma", serializedTaId1Repr)
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody(String.class)
+                .returnResult()
+                .getResponseBody();
+        logger.info("Received response from invalidation endpoint: " + invalidationResponse);
+
+        logger.info("Retrieving modified transaction.");
+        String serializedModifiedTa1 = webClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/gettransaction").build())
+                .header("taid", serializedTaId1Repr)
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody(String.class)
+                .returnResult()
+                .getResponseBody();
+        Transaction modifiedTa1 = new Transaction(
+                jsonConverter.deserialize(serializedModifiedTa1),
+                cryptoRepository.getPp()
+        );
+
+        logger.info("Verifying that retrieved transaction is invalid.");
+        Assertions.assertTrue(!modifiedTa1.getIsValid());
+
+        logger.info("Finished invalidation test.");
     }
 
 
@@ -492,6 +626,20 @@ public class RequestHandlerUnitTests {
                 .expectStatus()
                 .isOk()
                 .expectBody(boolean.class)
+                .returnResult()
+                .getResponseBody();
+    }
+
+    /**
+     * Clears the double-spending database using a POST request.
+     */
+    public String clearDatabase(WebTestClient webClient) {
+        return webClient.post()
+                .uri(uriBuilder -> uriBuilder.path("/cleardb").build())
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody(String.class)
                 .returnResult()
                 .getResponseBody();
     }

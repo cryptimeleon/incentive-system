@@ -108,6 +108,6 @@ public class Transaction implements Representable {
         return this.isValid.toString() + " "
                 + this.transactionID.toString() + " "
                 + this.k.toString() + " "
-                + this.dsTag.toString();
+                + this.dsTag.toString() + " ";
     }
 }

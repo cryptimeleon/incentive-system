@@ -65,6 +65,8 @@ public class DsprotectionserviceController {
             @RequestHeader(value = "ta") String serializedTaRepr,
             @RequestBody String serializedDsTagRepr
     ) {
+        logger.info("Number of transactions in database: " + String.valueOf(transactionRepository.count()));
+
         // create transaction entry object
         TransactionEntry taEntry = new TransactionEntry(serializedTaRepr, cryptoRepository.getPp());
 
@@ -80,6 +82,7 @@ public class DsprotectionserviceController {
 
         // add transaction entry object (with linked dstag) to database
         transactionRepository.save(taEntry);
+        logger.info("Saved transaction entry.");
 
         // return status
         return new ResponseEntity<String>("Successfully added transaction.", HttpStatus.OK);
@@ -485,6 +488,21 @@ public class DsprotectionserviceController {
         );
     }
 
+    /**
+     * Clears all tables of the double-spending database.
+     * Needed for test runs where different test scenarios are created without restarting the double-spending protection service after each test.
+     * @return HTTP response body content
+     */
+    @PostMapping("/cleardb")
+    public ResponseEntity<String> clearDatabase() {
+        this.transactionRepository.deleteAll();
+        this.dsidRepository.deleteAll();
+        this.doubleSpendingTagRepository.deleteAll();
+        this.userInfoRepository.deleteAll();
+
+        return new ResponseEntity<String>("All tables cleared. Double-spending protection service still running.", HttpStatus.OK);
+    }
+
 
 
 
@@ -630,49 +648,15 @@ public class DsprotectionserviceController {
         return resultList;
     }
 
-
-    /**
-     * Retrieves transaction info for the transaction entry with the passed object ID from the database
-     * @param id
-     * @return transaction object
-     */
-    @GetMapping("/retrieveta")
-    public ResponseEntity<String> retrieveTransaction(
-            @RequestHeader(value = "id") long id
-    )
-    {
-        // query transaction entry by ID
-        TransactionEntry taEntry = null;
-        try {
-            taEntry = transactionRepository.findById(id).get();
-        }
-        // return empty response with error code if not found
-        catch (NoSuchElementException e) {
-            return new ResponseEntity<>("", HttpStatus.NOT_FOUND);
-        }
-
-        // convert transaction entry object (dsprotectionservice) to transaction object (crypto)
-        Transaction ta = convertTransactionEntry(taEntry);
-
-        // serialize transaction as string
-        JSONConverter jsonConverter = new JSONConverter();
-        String serializedTa = jsonConverter.serialize(ta.getRepresentation());
-
-        // return transaction and status
-        return new ResponseEntity<String>(serializedTa, HttpStatus.OK);
-    }
-
     /**
      * Retrieves transaction info for all transactions in the database.
      * @return list of transaction objects
      */
     @GetMapping("/retrieveallta")
     public ResponseEntity<ArrayList<String>> retrieveAllTransactions() {
-        logger.info("Querying all transaction entries from database.");
         // query all transaction entries from database
         ArrayList<TransactionEntry> taEntryList = (ArrayList<TransactionEntry>) transactionRepository.findAll();
 
-        logger.info("Converting entries to crypto objects.");
         // convert all of them to (crypto) transaction objects whose serialized representations aggregated in a list
         ArrayList<String> serializedTaRepresentationsList = new ArrayList<String>();
         JSONConverter jsonConverter = new JSONConverter();
