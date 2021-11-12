@@ -10,6 +10,7 @@ import org.cryptimeleon.incentive.crypto.model.messages.JoinRequest;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse;
 import org.cryptimeleon.incentive.crypto.proof.spend.SpendHelper;
 import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenUpdateLeaf;
+import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
 import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellformednessProtocol;
 import org.cryptimeleon.math.structures.cartesian.Vector;
@@ -162,7 +163,7 @@ public class IncentiveSystemTest {
                 i -> finalUpdatedToken.getPoints().get(i).asInteger().subtract(newPointsAmount3.get(i)),
                 newPointsAmount3.length()
         );
-        var spendDeductTestZkp = SpendHelper.generateSimpleTestSpendDeductZkp(incSys.pp, promotionParameters, pkp.getPk(), spendAmount);
+        SpendDeductTree spendDeductTestZkp = SpendHelper.generateSimpleTestSpendDeductTree(incSys.pp, promotionParameters, pkp.getPk(), spendAmount);
 
         // user generates spend request
         SpendRequest spendRequest3 = incSys.generateSpendRequest(promotionParameters, updatedToken, pkp.getPk(), newPointsAmount3, ukp, tid3, spendDeductTestZkp);
