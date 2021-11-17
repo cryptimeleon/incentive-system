@@ -2,16 +2,11 @@ package org.cryptimeleon.incentivesystem.dsprotectionservice;
 
 import lombok.Getter;
 import org.cryptimeleon.incentive.client.InfoClient;
-import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
-import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
-import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderSecretKey;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
@@ -25,12 +20,12 @@ import java.time.Duration;
 public class CryptoRepository {
     public static final int MAX_TRIES = 5; // number of tries that the repo should reconnect to the info service for querying the assets
 
-    private Logger logger = LoggerFactory.getLogger(CryptoRepository.class);
+    private final Logger logger = LoggerFactory.getLogger(CryptoRepository.class);
 
     @Getter
     private IncentivePublicParameters pp;
 
-    private InfoClient infoClient; // reference to the object handling the queries to the info service, set via dependency injection ("autowired") mechanism of Spring Boot
+    private final InfoClient infoClient; // reference to the object handling the queries to the info service, set via dependency injection ("autowired") mechanism of Spring Boot
 
     /**
      * Default constructor to be executed when an object of this class is used as a Spring Bean.

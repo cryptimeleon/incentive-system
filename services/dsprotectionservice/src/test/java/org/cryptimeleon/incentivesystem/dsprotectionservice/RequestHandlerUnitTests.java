@@ -8,7 +8,6 @@ import org.cryptimeleon.incentive.crypto.model.TransactionIdentifier;
 import org.cryptimeleon.incentive.crypto.model.UserInfo;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.groups.GroupElement;
-import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -30,7 +29,7 @@ import static org.mockito.Mockito.when;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class RequestHandlerUnitTests {
-    private Logger logger = LoggerFactory.getLogger(RequestHandlerUnitTests.class);
+    private final Logger logger = LoggerFactory.getLogger(RequestHandlerUnitTests.class);
 
     @MockBean
     private CryptoRepository cryptoRepository;
@@ -68,10 +67,6 @@ public class RequestHandlerUnitTests {
         // setup incentive system for the test (implicit, we only need public parameters)
         logger.info("Setting up (implicit) incentive system for the test.");
         IncentivePublicParameters pp = Setup.trustedSetup(512, Setup.BilinearGroupChoice.Debug);
-
-        // JSON converter needed for serializing transactions
-        logger.info("Generating JSON converter.");
-        JSONConverter jsonConverter = new JSONConverter();
 
         logger.info("Setting up mocked repository for cryptographic assets.");
         when(cryptoRepository.getPp()).thenReturn(pp);

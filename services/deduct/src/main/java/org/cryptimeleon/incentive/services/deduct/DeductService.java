@@ -42,7 +42,7 @@ public class DeductService {
      * @param basketID id of the users basket. Needed to deduct previously collected points from token.
      * @return the serialized spend response
      */
-    // TODO: add a promotion identifier as parameter (needed to find out which reward item to add to the basket if any)
+    // TODO: add a promotion identifier or something similar as parameter (need to find out which reward item to add to the basket if any)
     public String runDeduct(String serializedSpendRequest, UUID basketID) {
         // TODO: add all basket-related logic (querying k and tid from basket server using basketID); requires implementation of new endpoints in basket service
         // retrieve serialized crypto assets from the crypto repository

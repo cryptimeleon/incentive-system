@@ -2,7 +2,6 @@ package org.cryptimeleon.incentivesystem.dsprotectionservice.storage;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.cryptimeleon.math.structures.groups.GroupElement;
 
 import javax.persistence.*;
 
