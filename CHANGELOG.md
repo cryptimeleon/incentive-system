@@ -25,6 +25,16 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
   ...) [#11](https://github.com/upbcuk/incentive-services/pull/11)
 - Add data classes for token, keys and public parameters and change structure of crypto package [#16](https://github.com/upbcuk/incentive-services/pull/18)
 - Write integration test for all three cryptographic protocols (Issue-Join, Credit-Earn, Spend-Deduct) [#35](https://github.com/cryptimeleon/incentive-system/pull/35)
+- implemented version 1 of double-spending protection service according to 2020 incentive system paper
+    - handlers on DB side for
+       - adding nodes to the database (transaction, token), associating the nodes with double-spending tags or user info, respectively
+       - adding edges to the database (transaction->token, token->transactionn)
+       - checking for containment of all node/edge types
+       - invalidating transactions
+       - retrieve transactions consuming a given token, retrieve token that was consumed by a given transaction
+    - client-side request methods for the above functionality
+    - dbSync algorithm
+- implemented deduct service
 
 ## [0.4.0] - 2021-02-03
 
