@@ -59,16 +59,16 @@ public class IncentiveSystem {
         return Setup.trustedSetup(securityParameter, bilinearGroupChoice);
     }
 
+    public static PromotionParameters generatePromotionParameters(int pointsVectorSize) {
+        return new PromotionParameters(BigInteger.valueOf(RandomGenerator.getRandomNumber(Long.MIN_VALUE, Long.MAX_VALUE)), pointsVectorSize);
+    }
+
     public ProviderKeyPair generateProviderKeys() {
         return Setup.providerKeyGen(this.pp);
     }
 
     public UserKeyPair generateUserKeys() {
         return Setup.userKeyGen(this.pp);
-    }
-
-    public PromotionParameters generatePromotionParameters(int pointsVectorSize) {
-        return new PromotionParameters(BigInteger.valueOf(RandomGenerator.getRandomNumber(Long.MIN_VALUE, Long.MAX_VALUE)), pointsVectorSize);
     }
 
     @Deprecated
