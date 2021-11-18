@@ -12,6 +12,7 @@ import org.cryptimeleon.incentive.promotion.model.BasketItem;
 import org.cryptimeleon.incentive.promotion.model.EarnPointsChoice;
 import org.cryptimeleon.incentive.promotion.model.RewardChoice;
 import org.cryptimeleon.incentive.promotion.promotions.NutellaPromotion;
+import org.cryptimeleon.incentive.promotion.reward.NutellaReward;
 import org.cryptimeleon.incentive.promotion.reward.Reward;
 import org.cryptimeleon.incentive.promotion.reward.RewardSideEffect;
 import org.cryptimeleon.math.structures.cartesian.Vector;
@@ -35,7 +36,8 @@ class PromotionManagerTest {
         ProviderKeyPair providerKeyPair = Setup.providerKeyGen(publicParameters);
 
         PromotionManager promotionManager = new PromotionManager(incentiveSystem);
-        NutellaPromotion nutellaPromotion = new NutellaPromotion(incentiveSystem);
+        List<Reward> rewards = List.of(new NutellaReward(4, UUID.randomUUID(), new RewardSideEffect("Free Nutella")));
+        NutellaPromotion nutellaPromotion = new NutellaPromotion(NutellaPromotion.generatePromotionParameters(), rewards);
         Basket basket = new Basket(UUID.randomUUID(), List.of(
                 new BasketItem(UUID.randomUUID(), "Nutella", 400, 2),
                 new BasketItem(UUID.randomUUID(), "Potatoes", 50, 1)
@@ -63,7 +65,8 @@ class PromotionManagerTest {
         ProviderKeyPair providerKeyPair = Setup.providerKeyGen(publicParameters);
 
         PromotionManager promotionManager = new PromotionManager(incentiveSystem);
-        NutellaPromotion nutellaPromotion = new NutellaPromotion(incentiveSystem);
+        List<Reward> rewards = List.of(new NutellaReward(4, UUID.randomUUID(), new RewardSideEffect("Free Nutella")));
+        NutellaPromotion nutellaPromotion = new NutellaPromotion(NutellaPromotion.generatePromotionParameters(), rewards);
         Basket basket = new Basket(UUID.randomUUID(), List.of(
                 new BasketItem(UUID.randomUUID(), "Nutella", 400, 2),
                 new BasketItem(UUID.randomUUID(), "Potatoes", 50, 1)
