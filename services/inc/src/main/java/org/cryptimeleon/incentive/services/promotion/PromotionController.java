@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigInteger;
+import java.util.UUID;
 
 @RestController
 @AllArgsConstructor
@@ -38,6 +39,26 @@ public class PromotionController {
             @RequestHeader(name = "user-public-key") String serializedUserPublicKey
     ) {
         return new ResponseEntity<>(promotionService.joinPromotion(promotionId, serializedJoinRequest, serializedUserPublicKey), HttpStatus.OK);
+    }
+
+
+    @PostMapping("/earn")
+    public ResponseEntity<String> earnPoints(
+            @RequestHeader(name = "promotion-id") BigInteger promotionId,
+            @RequestHeader(name = "earn-request") String serializedEarnRequest,
+            @RequestHeader(name = "basket-id") UUID basketId
+    ) {
+        return new ResponseEntity<>(promotionService.handleEarnRequest(promotionId, serializedEarnRequest, basketId), HttpStatus.OK);
+    }
+
+    @PostMapping("/spend")
+    public ResponseEntity<String> spendPoints(
+            @RequestHeader(name = "promotion-id") BigInteger promotionId,
+            @RequestHeader(name = "spend-request") String serializedSpendRequest,
+            @RequestHeader(name = "basket-id") UUID basketId,
+            @RequestHeader(name = "reward-id") UUID rewardId
+    ) {
+        return new ResponseEntity<>(promotionService.handleSpendRequest(promotionId, basketId, rewardId, serializedSpendRequest), HttpStatus.OK);
     }
 
     @ResponseStatus(HttpStatus.FORBIDDEN)

@@ -54,6 +54,11 @@ public class NutellaPromotion extends Promotion {
     }
 
     @Override
+    public List<Reward> getRewards() {
+        return rewards;
+    }
+
+    @Override
     public Representation getRepresentation() {
         ObjectRepresentation objectRepresentation = new ObjectRepresentation();
         objectRepresentation.put("super", super.getRepresentation());

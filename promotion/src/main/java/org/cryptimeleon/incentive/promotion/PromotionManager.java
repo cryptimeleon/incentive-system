@@ -16,6 +16,8 @@ import org.cryptimeleon.math.structures.cartesian.Vector;
 import java.math.BigInteger;
 import java.util.List;
 
+// TODO remove this wrapper, not really that useful
+@Deprecated
 public class PromotionManager {
 
     final IncentiveSystem incentiveSystem;

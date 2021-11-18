@@ -32,6 +32,8 @@ public abstract class Promotion implements Representable {
 
     public abstract List<Reward> computeRewardsForPoints(Vector<BigInteger> tokenPoints, Vector<BigInteger> basketPoints);
 
+    public abstract List<Reward> getRewards();
+
     @Override
     public Representation getRepresentation() {
         return promotionParameters.getRepresentation();

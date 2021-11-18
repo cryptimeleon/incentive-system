@@ -49,13 +49,13 @@ public class NutellaReward implements Reward {
                 Vector.of(BigInteger.ZERO),
                 Vector.of((BigInteger) null),
                 Vector.of(BigInteger.ONE),
-                Vector.of(basketPoints.get(0).subtract(BigInteger.valueOf(4)))
+                Vector.of(basketPoints.get(0).subtract(BigInteger.valueOf(rewardCost)))
         );
     }
 
     @Override
     public Optional<Vector<BigInteger>> computeSatisfyingNewPointsVector(Vector<BigInteger> tokenPoints, Vector<BigInteger> basketPoints) {
-        var newPoints = tokenPoints.get(0).add(basketPoints.get(0)).subtract(BigInteger.valueOf(4));
+        var newPoints = tokenPoints.get(0).add(basketPoints.get(0)).subtract(BigInteger.valueOf(rewardCost));
         return newPoints.compareTo(BigInteger.ZERO) >= 0 ? Optional.of(Vector.of(newPoints)) : Optional.empty();
     }
 
