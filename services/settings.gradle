@@ -1,8 +1,10 @@
 rootProject.name = 'incentive-services'
 
 includeBuild '../crypto'
+includeBuild '../promotion'
 include ':basket'
 include ':client'
 include ':credit'
 include ':info'
 include ':issue'
+include ':inc'

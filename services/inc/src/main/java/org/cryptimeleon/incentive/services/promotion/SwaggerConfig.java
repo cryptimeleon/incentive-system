@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.services.issue;
+package org.cryptimeleon.incentive.services.promotion;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
