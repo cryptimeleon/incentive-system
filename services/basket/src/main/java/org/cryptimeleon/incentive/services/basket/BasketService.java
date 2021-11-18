@@ -20,32 +20,37 @@ public class BasketService {
 
     private final HashMap<UUID, Basket> basketMap;
     private final ArrayList<Item> items;
-    private final Map<UUID, Item> itemMap;
+    private final Map<String, Item> itemMap;
 
-    /*
+    /**
      * Initialize basket service with some shopping items
      */
     BasketService() {
         basketMap = new HashMap<>();
         items = new ArrayList<>(
                 Arrays.asList(
-                        new Item(UUID.fromString("01876c81-8877-482e-9c3b-feca6f8f4d2e"),
+                        new Item(
+                                "3941288190038",
                                 "Sweetened hazelnut cocoa spread",
                                 199),
-                        new Item(UUID.fromString("b363b7fa-14b9-402b-98b2-6e7370d62595"),
+                        new Item(
+                                "1022525418053",
                                 "Tomato",
                                 30),
                         new Item(
-                                UUID.fromString("1f360b5f-f458-4f42-af93-50fbe8a68846"),
+                                "4621006331880",
                                 "Apple",
                                 50),
-                        new Item(UUID.fromString("a785cdb7-eac4-4b28-908b-2ba18944a79e"),
+                        new Item(
+                                "4536852654932",
                                 "Peach",
                                 30),
-                        new Item(UUID.fromString("c237b2bc-9f71-4673-bb8f-09fb477e71ba"),
+                        new Item(
+                                "2936746557615",
                                 "Potatoes",
                                 150),
-                        new Item(UUID.fromString("06e64293-acd0-43fc-824d-7600bb6a1fa7"),
+                        new Item(
+                                "0680818152421",
                                 "Mango",
                                 90)
                 ));
@@ -72,7 +77,7 @@ public class BasketService {
         basketMap.remove(basketId);
     }
 
-    public void setItemInBasket(UUID basketId, UUID itemId, int count) throws BasketServiceException {
+    public void setItemInBasket(UUID basketId, String itemId, int count) throws BasketServiceException {
         assert count > 0;
 
         var basket = getBasketById(basketId);
@@ -83,7 +88,7 @@ public class BasketService {
         basket.getItems().put(itemId, count);
     }
 
-    public void deleteItemFromBasket(UUID basketId, UUID itemId) throws BasketServiceException {
+    public void deleteItemFromBasket(UUID basketId, String itemId) throws BasketServiceException {
         var basket = getBasketById(basketId);
 
         if (isBasketImmutable(basket)) throw new BasketPaidException();
@@ -137,9 +142,12 @@ public class BasketService {
                 .map((e) -> new BasketItem(itemMap.get(e.getKey()), e.getValue()));
     }
 
-    private boolean hasItem(UUID itemId) {
+    private boolean hasItem(String itemId) {
         return itemMap.containsKey(itemId);
     }
 
+    public Item getItem(String id) {
+        return itemMap.get(id);
+    }
 }
 

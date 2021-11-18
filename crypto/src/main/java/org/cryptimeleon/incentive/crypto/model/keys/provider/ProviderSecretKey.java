@@ -2,10 +2,12 @@ package org.cryptimeleon.incentive.crypto.model.keys.provider;
 
 import lombok.Value;
 import lombok.experimental.NonFinal;
-import org.cryptimeleon.math.prf.PrfKey;
-import org.cryptimeleon.math.prf.zn.HashThenPrfToZn;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignatureScheme;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSigningKey;
+import org.cryptimeleon.incentive.crypto.Setup;
+import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
+import org.cryptimeleon.math.prf.PrfKey;
+import org.cryptimeleon.math.prf.zn.HashThenPrfToZn;
 import org.cryptimeleon.math.serialization.Representable;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.annotations.ReprUtil;
@@ -27,12 +29,7 @@ public class ProviderSecretKey implements Representable {
     @Represented(restorer = "longAes")
     PrfKey betaProv; // Prf Key for PrfToZn
 
-    public ProviderSecretKey(SPSEQSigningKey skSpsEq, RingElementVector q, PrfKey betaProv) throws IllegalArgumentException {
-        // assert that correct number of Zn exponents is passed ()
-        if (q.length() != 6) {
-            throw new IllegalArgumentException("q is required to consist of 6 group elements, found: " + q.length());
-        }
-
+    public ProviderSecretKey(SPSEQSigningKey skSpsEq, RingElementVector q, PrfKey betaProv) {
         this.skSpsEq = skSpsEq;
         this.q = q;
         this.betaProv = betaProv;
@@ -44,6 +41,18 @@ public class ProviderSecretKey implements Representable {
                 .register(zn, "Zn")
                 .register(prfToZn.getLongAesPseudoRandomFunction()::restoreKey, "longAes")
                 .deserialize(repr);
+    }
+
+    /**
+     * Returns the DLOGs (Q in the paper) of the H vector that is used to store the points vector in the token. Depends on the promotion
+     * parameters since the vector size can vary between promotions.
+     *
+     * @param promotionParameters the promotion parameters
+     * @return the vector of DLOGS
+     */
+    public RingElementVector getTokenPointsQ(PromotionParameters promotionParameters) {
+        // the -1 is because we do not know the DLOG q7 to h7 from the paper
+        return RingElementVector.fromStream(getQ().stream().skip(Setup.H_SIZE_WITHOUT_POINTS - 1)).truncate(promotionParameters.getPointsVectorSize());
     }
 
     @Override

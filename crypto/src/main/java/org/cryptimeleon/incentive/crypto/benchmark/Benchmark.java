@@ -12,6 +12,8 @@ import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserSecretKey;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinRequest;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse;
+import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
+import org.cryptimeleon.math.structures.cartesian.Vector;
 
 import java.math.BigInteger;
 import java.time.Duration;
@@ -26,7 +28,7 @@ public class Benchmark {
     /**
      * Increase/decrease used for earn/spend in benchmark
      */
-    private static final BigInteger EARN_SPEND_AMOUNT = BigInteger.TEN;
+    private static final Vector<BigInteger> EARN_SPEND_AMOUNT = Vector.of(BigInteger.valueOf(10L), BigInteger.valueOf(10L));
 
     /**
      * Run a benchmark with the given benchmarkConfig
@@ -80,6 +82,12 @@ public class Benchmark {
         ProviderSecretKey psk = benchmarkConfig.psk;
         UserPublicKey upk = benchmarkConfig.upk;
         UserSecretKey usk = benchmarkConfig.usk;
+        PromotionParameters promotionParameters = incentiveSystem.generatePromotionParameters(EARN_SPEND_AMOUNT.length());
+        SpendDeductBooleanZkp spendDeductZkp = BenchmarkSpendDeductZkp.getBenchmarkSpendDeductZkp(
+                pp,
+                promotionParameters,
+                ppk,
+                EARN_SPEND_AMOUNT);
 
         var userKeyPair = new UserKeyPair(upk, usk);
         var providerKeyPair = new ProviderKeyPair(psk, ppk);
@@ -97,6 +105,7 @@ public class Benchmark {
             start = Instant.now();
             joinResponse =
                     incentiveSystem.generateJoinRequestResponse(
+                            promotionParameters,
                             providerKeyPair,
                             upk.getUpk(),
                             joinRequest
@@ -105,6 +114,7 @@ public class Benchmark {
             tJoinResponse[i] = Duration.between(start, finish).toNanos();
             start = Instant.now();
             token = incentiveSystem.handleJoinRequestResponse(
+                    promotionParameters,
                     ppk,
                     userKeyPair,
                     joinRequest,
@@ -126,6 +136,7 @@ public class Benchmark {
             tEarnRequest[i] = Duration.between(start, finish).toNanos();
             start = Instant.now();
             earnResponse = incentiveSystem.generateEarnRequestResponse(
+                    promotionParameters,
                     earnRequest,
                     EARN_SPEND_AMOUNT,
                     providerKeyPair
@@ -134,6 +145,7 @@ public class Benchmark {
             tEarnResponse[i] = Duration.between(start, finish).toNanos();
             start = Instant.now();
             token = incentiveSystem.handleEarnRequestResponse(
+                    promotionParameters,
                     earnRequest,
                     earnResponse,
                     EARN_SPEND_AMOUNT,
@@ -150,31 +162,36 @@ public class Benchmark {
             var tid = incentiveSystem.getPp().getBg().getZn().getUniformlyRandomElement();
             start = Instant.now();
             assert token != null;
+            var newPoints = Vector.fromStreamPlain(token.getPoints().stream().map(p -> p.asInteger().subtract(EARN_SPEND_AMOUNT.get(0))));
             spendRequest = incentiveSystem.generateSpendRequest(
+                    promotionParameters,
                     token,
                     ppk,
-                    EARN_SPEND_AMOUNT,
+                    newPoints,
                     userKeyPair,
-                    tid
+                    tid,
+                    spendDeductZkp
             );
 
             finish = Instant.now();
             tSpendRequest[i] = Duration.between(start, finish).toNanos();
             start = Instant.now();
             spendResponseTuple = incentiveSystem.generateSpendRequestResponse(
+                    promotionParameters,
                     spendRequest,
                     providerKeyPair,
-                    EARN_SPEND_AMOUNT,
-                    tid
+                    tid,
+                    spendDeductZkp
             );
             finish = Instant.now();
             tSpendResponse[i] = Duration.between(start, finish).toNanos();
             start = Instant.now();
             token = incentiveSystem.handleSpendRequestResponse(
+                    promotionParameters,
                     spendResponseTuple.getSpendResponse(),
                     spendRequest,
                     token,
-                    EARN_SPEND_AMOUNT,
+                    newPoints,
                     ppk,
                     userKeyPair
             );

@@ -38,17 +38,18 @@ import java.util.stream.LongStream;
 public class Setup {
     // Which AES version to use for the PRF-to-ZN
     public static final int HASH_THEN_PRF_AES_KEY_LENGTH = 256;
-
+    // The size of the metadata base vector of a token
+    public static final int H_SIZE_WITHOUT_POINTS = 6;
     // (1/2)^OVERSUBSCRIPTION is a lower bound for probability of the PRF failing
     private static final int HASH_THEN_PRF_OVERSUBSCRIPTION = 128;
-
     // Base for esk decomposition. Requires as many signed digits in the provider's public key, but reduces digits and
     // hence verifications required in the Spend-Deduct protocol for the encryption secret key
     public static final long ESK_DEC_BASE = 256;
-
     // ESK_DEC_BASE^MAX_POINTS_BASE_POWER determines the maximum number of points a user can have.
     // This is due to the CCS range proof used for v>=k in Spend-Deduct
     private static final int MAX_POINTS_BASE_POWER = 6;
+    // Determines the maximum size of a promotion's points vector under a provider public key
+    private static final int MAX_POINTS_VECTOR_SIZE = 10;
 
     /**
      * Generates public parameters from security parameter
@@ -62,7 +63,7 @@ public class Setup {
         BilinearGroup bg;
         switch (bilinearGroupChoice) {
             case Debug:
-                bg = new DebugBilinearGroup(securityParameter, BilinearGroup.Type.TYPE_3);
+                bg = new DebugBilinearGroup(BilinearGroup.Type.TYPE_3);
                 break;
             case BarretoNaehrig:
                 bg = new BarretoNaehrigBilinearGroup(securityParameter);
@@ -137,17 +138,17 @@ public class Setup {
      * @return ProviderKeyPair
      */
     public static ProviderKeyPair providerKeyGen(IncentivePublicParameters pp) {
-        // draw the dlogs of the first 6 bases used in the Pedersen commitment in the token
-        RingElementVector q = pp.getBg().getZn().getUniformlyRandomElements(6);
+        // draw the dlogs of the bases used in the Pedersen commitment in the token
+        RingElementVector q = pp.getBg().getZn().getUniformlyRandomElements(6 + MAX_POINTS_VECTOR_SIZE);
 
-        // compute above first 6 bases
+        // compute above bases
         GroupElementVector h = pp.getG1Generator().pow(q).compute();
 
         // generate PRF key for provider
         PrfKey betaProv = pp.getPrfToZn().generateKey();
 
         // generate SPS-EQ key pair
-        SignatureKeyPair<SPSEQVerificationKey, SPSEQSigningKey> spsEqKeyPair = pp.getSpsEq().generateKeyPair(2);
+        SignatureKeyPair<SPSEQVerificationKey, SPSEQSigningKey> spsEqKeyPair = pp.getSpsEq().generateKeyPair(3);
         SPSEQVerificationKey spseqVerificationKey = spsEqKeyPair.getVerificationKey();
         SPSEQSigningKey spseqSigningKey = spsEqKeyPair.getSigningKey();
 

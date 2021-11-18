@@ -19,7 +19,7 @@ public class Basket {
     @ApiModelProperty(value = "${basketModel.basketID}")
     private UUID basketID;
     @ApiModelProperty(value = "${basketModel.items}")
-    private Map<UUID, Integer> items;
+    private Map<String, Integer> items;
     @ApiModelProperty(value = "${basketModel.paid}")
     private boolean paid;
     @ApiModelProperty(value = "${basketModel.redeemed}")

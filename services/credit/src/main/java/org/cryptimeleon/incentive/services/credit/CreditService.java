@@ -4,6 +4,7 @@ import org.cryptimeleon.incentive.crypto.model.EarnRequest;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.services.credit.exception.IncentiveException;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
+import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,12 +64,13 @@ public class CreditService {
         var providerPublicKey = cryptoRepository.getProviderPublicKey();
         var providerSecretKey = cryptoRepository.getProviderSecretKey();
         var incentiveSystem = cryptoRepository.getIncentiveSystem();
+        var promotionParameters = incentiveSystem.legacyPromotionParameters();
         var jsonConverter = new JSONConverter();
 
         // Run server part of protocol and serialize signature
         var earnRequest = new EarnRequest(jsonConverter.deserialize(serializedEarnRequest), pp);
         var providerKeyPair = new ProviderKeyPair(providerSecretKey, providerPublicKey);
-        var signature = incentiveSystem.generateEarnRequestResponse(earnRequest, k, providerKeyPair);
+        var signature = incentiveSystem.generateEarnRequestResponse(promotionParameters, earnRequest, Vector.of(k), providerKeyPair);
         return jsonConverter.serialize(signature.getRepresentation());
     }
 }

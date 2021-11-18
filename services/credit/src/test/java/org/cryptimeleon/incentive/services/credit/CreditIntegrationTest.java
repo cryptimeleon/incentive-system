@@ -5,9 +5,11 @@ import org.cryptimeleon.incentive.client.dto.BasketDto;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.Setup;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
+import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
+import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +45,7 @@ public class CreditIntegrationTest {
         IncentiveSystem incentiveSystem = new IncentiveSystem(pp);
         ProviderKeyPair pkp = Setup.providerKeyGen(pp);
         UserKeyPair ukp = Setup.userKeyGen(pp);
+        PromotionParameters promotionParameters = incentiveSystem.legacyPromotionParameters();
         JSONConverter jsonConverter = new JSONConverter();
 
         // Setup the mock of the crypto repository
@@ -54,7 +57,7 @@ public class CreditIntegrationTest {
         // Setup basket repository mock
         var earnAmount = 42;
         var testBasket = new BasketDto();
-        var items = Collections.singletonMap(UUID.randomUUID(), earnAmount);
+        var items = Collections.singletonMap("1234123412", earnAmount);
         testBasket.setBasketID(UUID.randomUUID());
         testBasket.setPaid(true);
         testBasket.setValue(earnAmount);
@@ -63,8 +66,8 @@ public class CreditIntegrationTest {
 
         // Generate token
         var joinRequest = incentiveSystem.generateJoinRequest(pkp.getPk(), ukp);
-        var joinResponse = incentiveSystem.generateJoinRequestResponse(pkp, ukp.getPk().getUpk(), joinRequest);
-        var token = incentiveSystem.handleJoinRequestResponse(pkp.getPk(), ukp, joinRequest, joinResponse);
+        var joinResponse = incentiveSystem.generateJoinRequestResponse(promotionParameters, pkp, ukp.getPk().getUpk(), joinRequest);
+        var token = incentiveSystem.handleJoinRequestResponse(promotionParameters, pkp.getPk(), ukp, joinRequest, joinResponse);
 
         // Generate request
         var earnRequest = incentiveSystem.generateEarnRequest(token, pkp.getPk(), ukp);
@@ -81,9 +84,9 @@ public class CreditIntegrationTest {
                 .returnResult()
                 .getResponseBody();
         var signature = new SPSEQSignature(jsonConverter.deserialize(serializedSignature), pp.getBg().getG1(), pp.getBg().getG2());
-        var newToken = incentiveSystem.handleEarnRequestResponse(earnRequest, signature, BigInteger.valueOf(earnAmount), token, pkp.getPk(), ukp);
+        var newToken = incentiveSystem.handleEarnRequestResponse(promotionParameters, earnRequest, signature, Vector.of(BigInteger.valueOf(earnAmount)), token, pkp.getPk(), ukp);
 
-        Assertions.assertEquals(newToken.getPoints().asInteger(), token.getPoints().asInteger().add(BigInteger.valueOf(earnAmount)));
+        Assertions.assertEquals(newToken.getPoints().get(0).asInteger(), token.getPoints().get(0).asInteger().add(BigInteger.valueOf(earnAmount)));
     }
 
     /**
@@ -94,7 +97,7 @@ public class CreditIntegrationTest {
         // Construct unpaid basket and add to mock
         var earnAmount = 42;
         var testBasket = new BasketDto();
-        var items = Collections.singletonMap(UUID.randomUUID(), earnAmount);
+        var items = Collections.singletonMap("1234123412", earnAmount);
         testBasket.setBasketID(UUID.randomUUID());
         testBasket.setPaid(false);  // Unpaid baskets cannot be redeemed
         testBasket.setValue(earnAmount);

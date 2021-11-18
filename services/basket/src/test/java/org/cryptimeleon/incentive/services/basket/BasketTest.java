@@ -1,6 +1,7 @@
 package org.cryptimeleon.incentive.services.basket;
 
 import org.assertj.core.api.Assertions;
+import org.cryptimeleon.incentive.services.basket.model.Item;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,9 +82,27 @@ public class BasketTest {
         var firstTestItem = items[0];
         var secondTestItem = items[1];
 
+        logger.info("Query existing item");
+        var firstItemOtherUri = webTestClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/items/{id}").build(firstTestItem.getId()))
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody(Item.class)
+                .returnResult()
+                .getResponseBody();
+        assertThat(firstItemOtherUri).isEqualTo(firstTestItem);
+
+        // Check that correct error handling is used
+        webTestClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/items/{id}").build("12341234123"))
+                .exchange()
+                .expectStatus()
+                .isEqualTo(HttpStatus.NOT_FOUND);
+
         logger.info("Try adding invalid items");
         putItem(webTestClient, basketId, firstTestItem.getId(), -2, HttpStatus.UNPROCESSABLE_ENTITY);
-        putItem(webTestClient, basketId, UUID.randomUUID(), 2, HttpStatus.NOT_FOUND);
+        putItem(webTestClient, basketId, "1234123412", 2, HttpStatus.NOT_FOUND);
         var basket = queryBasket(webTestClient, basketId).getResponseBody();
         assertThat(basket.getItems()).isEmpty();
 

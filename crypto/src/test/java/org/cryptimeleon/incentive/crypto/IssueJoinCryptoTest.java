@@ -4,7 +4,7 @@ import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSyst
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignatureScheme;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinRequest;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse;
-import org.cryptimeleon.incentive.crypto.model.proofs.CommitmentWellformednessProtocol;
+import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellformednessProtocol;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -55,7 +55,7 @@ public class IssueJoinCryptoTest
         logger.info("Generating a join response.");
 
         // pass join request to issue logic, generate join response
-        var testResponse = incSys.generateJoinRequestResponse(pkp, ukp.getPk().getUpk(), deserializedRequest);
+        var testResponse = incSys.generateJoinRequestResponse(incSys.legacyPromotionParameters(), pkp, ukp.getPk().getUpk(), deserializedRequest);
 
         logger.info("Testing join response serialization.");
 
@@ -66,13 +66,13 @@ public class IssueJoinCryptoTest
         logger.info("Handling join request and updating token.");
 
         // pass join response to second part of join logic, generate join output
-        var testOutput = incSys.handleJoinRequestResponse(pkp.getPk(), ukp, testRequest, deserializedResponse);
+        var testOutput = incSys.handleJoinRequestResponse(incSys.legacyPromotionParameters(), pkp.getPk(), ukp, testRequest, deserializedResponse);
 
         logger.info("Checking integrity of token.");
 
         // check output token for sanity (certficate valid, zero points)
         SPSEQSignatureScheme usedSpsEq = incSys.getPp().getSpsEq();
         Assertions.assertTrue(usedSpsEq.verify(pkp.getPk().getPkSpsEq(), testOutput.getSignature(), testOutput.getCommitment0(), testOutput.getCommitment1()));
-        Assertions.assertEquals(testOutput.getPoints().asInteger().compareTo(BigInteger.ZERO), 0);
+        Assertions.assertEquals(testOutput.getPoints().get(0).asInteger().compareTo(BigInteger.ZERO), 0);
     }
 }

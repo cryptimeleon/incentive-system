@@ -67,6 +67,18 @@ public class BasketController {
     }
 
     /**
+     * Query shopping item by id, e.g. EAN13
+     */
+    @GetMapping("/items/{id}")
+    ResponseEntity<Item> getBasketItemById(@PathVariable String id) {
+        var item = basketService.getItem(id);
+        if (item != null) {
+            return new ResponseEntity<>(item, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    /**
      * Create a new basket
      */
     @GetMapping("/basket/new")
@@ -111,19 +123,27 @@ public class BasketController {
      * Removes an item from the basket.
      */
     @DeleteMapping("/basket/items")
-    void deleteItem(@RequestHeader UUID basketId, @RequestParam UUID itemId) throws BasketServiceException {
+    void deleteItem(@RequestHeader UUID basketId, @RequestParam String itemId) throws BasketServiceException {
         basketService.deleteItemFromBasket(basketId, itemId);
     }
 
     /**
      * Sets a basket to paid.
-     * TODO add hashcode for integrity?
+     * TODO add hashcode for integrity? At which state was the basket payed? (Avoid race condition between payment add adding 'free' items to basket.
      */
     @PostMapping("/basket/pay")
     void payBasket(@RequestHeader("pay-secret") String clientPaySecret, @RequestBody PayBasketRequest payBasketRequest) throws BasketServiceException {
         if (!clientPaySecret.equals(paymentSecret)) {
             throw new BasketUnauthorizedException("You are not authorized to access '/basket/pay'!");
         }
+        basketService.payBasket(payBasketRequest.getBasketId(), payBasketRequest.getValue());
+    }
+
+    /**
+     * Sets a basket to paid, TODO for development only.
+     */
+    @PostMapping("/basket/pay-dev")
+    void payBasket(@RequestBody PayBasketRequest payBasketRequest) throws BasketServiceException {
         basketService.payBasket(payBasketRequest.getBasketId(), payBasketRequest.getValue());
     }
 

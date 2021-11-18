@@ -57,7 +57,7 @@ public class ClientHelper {
                 .returnResult();
     }
 
-    public static void putItem(WebTestClient webTestClient, UUID basketId, UUID itemId, int count, HttpStatus expectedStatus) {
+    public static void putItem(WebTestClient webTestClient, UUID basketId, String itemId, int count, HttpStatus expectedStatus) {
         var putRequest = new PutItemRequest(basketId, itemId, count);
         putItem(webTestClient, putRequest, expectedStatus);
     }
@@ -71,7 +71,7 @@ public class ClientHelper {
                 .isEqualTo(expectedStatus);
     }
 
-    static void deleteBasketItem(WebTestClient webTestClient, UUID basketId, UUID itemId, HttpStatus expectedStatus) {
+    static void deleteBasketItem(WebTestClient webTestClient, UUID basketId, String itemId, HttpStatus expectedStatus) {
         webTestClient.delete()
                 .uri(uriBuilder -> uriBuilder.path("/basket/items")
                         .queryParam("itemId", itemId)

@@ -6,9 +6,12 @@ import org.cryptimeleon.incentive.client.DSProtectionClient;
 import org.cryptimeleon.incentive.crypto.model.DeductOutput;
 import org.cryptimeleon.incentive.crypto.model.SpendRequest;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
-import org.cryptimeleon.incentive.crypto.proof.SpendDeductZkp;
+import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenUpdateLeaf;
+import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
+import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
+import org.cryptimeleon.incentive.crypto.proof.spend.zkp.TokenPointsZkp;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
-import org.cryptimeleon.math.structures.rings.zn.Zn;
+import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +29,10 @@ public class DeductService {
     private DSProtectionClient dsProtectionClient; // reference to the object making the queries to the double-spending protection service, set via dependency injection ("autowired") mechanism of Spring Boot
 
     private BasketClient basketClient; // reference to the object making the queries to the basket service, set via dependency injection mechanism ("autowired") mechanism of Spring Boot
+
+    // TODO: hard-coded values, obtain actual amounts from promotion api once its done
+    private final BigInteger POINTS_REQUIRED = new BigInteger("231");
+    private final BigInteger TRANSACTION_ID = new BigInteger("445");
 
     /**
      * Default constructor to be executed when an object of this class is used as a Spring bean.
@@ -54,21 +61,42 @@ public class DeductService {
 
         // deserializing assets and wrapping up parameters for processing the request
         JSONConverter jsonConverter = new JSONConverter();
-        FiatShamirProofSystem spendDeductZkpProofSystem = new FiatShamirProofSystem( // proof system needed for constructing the spend request from a representation
-                new SpendDeductZkp(pp, providerPublicKey)
+        SpendDeductTree legacyLeaf = new TokenUpdateLeaf(
+                "legacyLeaf",
+                new Vector<BigInteger>(POINTS_REQUIRED),
+                null,
+                new Vector<BigInteger>(BigInteger.ONE),
+                new Vector<BigInteger>(BigInteger.ZERO)
         );
-        BigInteger spendAmount = new BigInteger("231"); // TODO: 231 is hard-coded wip value. Where to get spend amount from? Need another endpoint on the basket server for that, see discord #questions 27.8.2021. Hard-coded spend amount first, to prevent feature creep on feature/dsprotection
-        Zn.ZnElement transactionId = pp.getBg().getZn().getOneElement(); // TODO: same as for the spend amount
+        FiatShamirProofSystem spendDeductZkpProofSystem = new FiatShamirProofSystem( // proof system needed for constructing the spend request from a representation
+                new TokenPointsZkp(
+                        pp,
+                        new Vector<BigInteger>(POINTS_REQUIRED),
+                        null,
+                        providerPublicKey,
+                        incentiveSystem.legacyPromotionParameters()
+                )
+        );
         SpendRequest spendRequest = new SpendRequest(
                 jsonConverter.deserialize(serializedSpendRequest),
                 pp,
                 spendDeductZkpProofSystem,
-                spendAmount,
-                transactionId
+                pp.getBg().getZn().createZnElement(TRANSACTION_ID)
         );
 
         // executing Deduct (i.e. processing the spend request)
-        DeductOutput deductOutput = incentiveSystem.generateSpendRequestResponse(spendRequest, providerKeyPair, spendAmount, transactionId);
+        DeductOutput deductOutput = incentiveSystem.generateSpendRequestResponse(
+                incentiveSystem.legacyPromotionParameters(),
+                spendRequest,
+                providerKeyPair,
+                pp.getBg().getZn().createZnElement(TRANSACTION_ID),
+                new SpendDeductBooleanZkp(
+                        legacyLeaf,
+                        pp,
+                        incentiveSystem.legacyPromotionParameters(),
+                        providerPublicKey
+                )
+        );
 
         // adding the generated transaction data to the double-spending database
         /**incentiveSystem.dbSync(

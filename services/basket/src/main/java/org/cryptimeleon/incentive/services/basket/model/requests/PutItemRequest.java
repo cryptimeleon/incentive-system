@@ -14,6 +14,6 @@ import java.util.UUID;
 @Data
 public class PutItemRequest {
     UUID basketId;
-    UUID itemId;
+    String itemId;
     int count;
 }

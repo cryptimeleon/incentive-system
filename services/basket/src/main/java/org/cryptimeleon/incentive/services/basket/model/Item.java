@@ -5,8 +5,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.UUID;
-
 /**
  * Dataclass representing items that be purchased in a basket.
  */
@@ -15,7 +13,7 @@ import java.util.UUID;
 @NoArgsConstructor
 public class Item {
     @ApiModelProperty(value = "${item.id}")
-    UUID id;
+    String id;
     @ApiModelProperty(value = "${item.title}")
     String title;
     @ApiModelProperty(value = "${item.price}")
