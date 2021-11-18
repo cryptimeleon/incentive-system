@@ -23,6 +23,7 @@ import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellform
 import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellformednessProtocol;
 import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellformednessWitness;
 import org.cryptimeleon.math.hash.impl.ByteArrayAccumulator;
+import org.cryptimeleon.math.random.RandomGenerator;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.RingElement;
@@ -67,12 +68,12 @@ public class IncentiveSystem {
     }
 
     public PromotionParameters generatePromotionParameters(int pointsVectorSize) {
-        return new PromotionParameters(this.pp.getBg().getZn().getUniformlyRandomElement(), pointsVectorSize);
+        return new PromotionParameters(BigInteger.valueOf(RandomGenerator.getRandomNumber(Long.MIN_VALUE, Long.MAX_VALUE)), pointsVectorSize);
     }
 
     @Deprecated
     public PromotionParameters legacyPromotionParameters() {
-        return new PromotionParameters(this.pp.getBg().getZn().getOneElement(), 1);
+        return new PromotionParameters(BigInteger.ONE, 1);
     }
 
     /*

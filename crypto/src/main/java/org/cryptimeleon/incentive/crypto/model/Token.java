@@ -15,6 +15,8 @@ import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
 import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
 
+import java.math.BigInteger;
+
 /**
  * Data holding class representing a token from a mathematical point of view (meaning: as a bunch of group elements and exponents).
  */
@@ -24,51 +26,41 @@ public class Token implements Representable, UniqueByteRepresentable {
 
     @NonFinal
     @Represented(restorer = "G1")
-    @UniqueByteRepresented
     GroupElement commitment0; // the first part of the Pedersen commitment computed from the bases and the exponents, representing the actual token
 
     @NonFinal
     @Represented(restorer = "G1")
-    @UniqueByteRepresented
     GroupElement commitment1; // the second part of the Pedersen commitment computed from the bases and the exponents, representing the actual token
 
     @NonFinal
     @Represented(restorer = "Zn")
-    @UniqueByteRepresented
     ZnElement encryptionSecretKey; // secret key used for the ElGamal encryption in the Spend algorithm
 
     @NonFinal
     @Represented(restorer = "Zn")
-    @UniqueByteRepresented
     ZnElement doubleSpendRandomness0; // randomness used for the first challenge generation in double spending protection
 
     @NonFinal
     @Represented(restorer = "Zn")
-    @UniqueByteRepresented
     ZnElement doubleSpendRandomness1; // randomness used for the second challenge generation in double spending protection
 
     @NonFinal
     @Represented(restorer = "Zn")
-    @UniqueByteRepresented
     ZnElement z; // first value for blinding the token group element
 
     @NonFinal
     @Represented(restorer = "Zn")
-    @UniqueByteRepresented
     ZnElement t; // second value for blinding the token group element (needed for sophisticated proof reasons)
 
     @NonFinal
-    @Represented(restorer = "Zn")
-    @UniqueByteRepresented
-    ZnElement promotionId;
+    @Represented
+    BigInteger promotionId;
 
     @NonFinal
     @Represented(restorer = "Zn")
-    @UniqueByteRepresented
     RingElementVector points; // number of points that the token currently stores (initially 0), v in the 2020 paper
 
     @NonFinal
-    @UniqueByteRepresented
     @Represented(restorer = "SPSEQ")
     SPSEQSignature signature; // the SPS-EQ certifying the commitment as well-formed and valid
 
@@ -94,7 +86,7 @@ public class Token implements Representable, UniqueByteRepresentable {
         accumulator.escapeAndSeparate(this.doubleSpendRandomness1.getUniqueByteRepresentation());
         accumulator.escapeAndSeparate(this.encryptionSecretKey.getUniqueByteRepresentation());
         accumulator.escapeAndSeparate(this.signature.getUniqueByteRepresentation());
-        accumulator.escapeAndSeparate(this.promotionId.getUniqueByteRepresentation());
+        accumulator.escapeAndSeparate(this.promotionId.toByteArray());
         accumulator.escapeAndSeparate(this.z.getUniqueByteRepresentation());
         accumulator.escapeAndSeparate(this.t.getUniqueByteRepresentation());
         return accumulator;
