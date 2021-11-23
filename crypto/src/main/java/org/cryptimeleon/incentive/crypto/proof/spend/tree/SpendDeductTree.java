@@ -1,6 +1,8 @@
 package org.cryptimeleon.incentive.crypto.proof.spend.tree;
 
-import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
+import org.cryptimeleon.math.structures.cartesian.Vector;
+
+import java.math.BigInteger;
 
 /**
  * Interface for building a tree structure for boolean statements.
@@ -14,5 +16,5 @@ public interface SpendDeductTree {
      * @param newPointsVector vector containing the points the users want for their new token
      * @return whether the point vectors satisfy the ZKP relation
      */
-    boolean isValidForPoints(RingElementVector pointsVector, RingElementVector newPointsVector);
+    boolean isValidForPoints(Vector<BigInteger> pointsVector, Vector<BigInteger> newPointsVector);
 }

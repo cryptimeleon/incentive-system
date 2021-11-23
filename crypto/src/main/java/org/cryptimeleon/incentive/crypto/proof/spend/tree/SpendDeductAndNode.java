@@ -1,6 +1,8 @@
 package org.cryptimeleon.incentive.crypto.proof.spend.tree;
 
-import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
+import org.cryptimeleon.math.structures.cartesian.Vector;
+
+import java.math.BigInteger;
 
 public class SpendDeductAndNode implements SpendDeductTree {
 
@@ -12,7 +14,7 @@ public class SpendDeductAndNode implements SpendDeductTree {
     }
 
     @Override
-    public boolean isValidForPoints(RingElementVector pointsVector, RingElementVector newPointsVector) {
+    public boolean isValidForPoints(Vector<BigInteger> pointsVector, Vector<BigInteger> newPointsVector) {
         return left.isValidForPoints(pointsVector, newPointsVector) && right.isValidForPoints(pointsVector, newPointsVector);
     }
 }
