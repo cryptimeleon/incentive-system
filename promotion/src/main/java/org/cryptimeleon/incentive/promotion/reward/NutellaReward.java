@@ -1,9 +1,10 @@
 package org.cryptimeleon.incentive.promotion.reward;
 
-import lombok.EqualsAndHashCode;
+import lombok.AllArgsConstructor;
+import lombok.Value;
+import lombok.experimental.NonFinal;
 import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenUpdateLeaf;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
-import org.cryptimeleon.math.serialization.ObjectRepresentation;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.annotations.ReprUtil;
 import org.cryptimeleon.math.serialization.annotations.Represented;
@@ -14,30 +15,26 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Get one free nutella for 4 points
+ * Get one free nutella for rewardCost points
  */
-@EqualsAndHashCode
+@Value
+@AllArgsConstructor
 public class NutellaReward implements Reward {
 
     @Represented
-    public Integer rewardCost;
+    @NonFinal
+    Integer rewardCost;
 
     @Represented
-    public UUID rewardId;
+    @NonFinal
+    UUID rewardId;
 
-    public RewardSideEffect rewardSideEffect;
-
-
-    public NutellaReward(int rewardCost, UUID rewardId, RewardSideEffect rewardSideEffect) {
-        this.rewardCost = rewardCost;
-        this.rewardId = rewardId;
-        this.rewardSideEffect = rewardSideEffect;
-    }
+    @Represented
+    @NonFinal
+    RewardSideEffect rewardSideEffect;
 
     public NutellaReward(Representation representation) {
-        ObjectRepresentation objectRepresentation = (ObjectRepresentation) representation;
-        ReprUtil.deserialize(this, objectRepresentation.get("reprUtil"));
-        this.rewardSideEffect = new RewardSideEffect(objectRepresentation.get("rewardSideEffect"));
+        ReprUtil.deserialize(this, representation);
     }
 
     @Override
@@ -71,9 +68,6 @@ public class NutellaReward implements Reward {
 
     @Override
     public Representation getRepresentation() {
-        ObjectRepresentation objectRepresentation = new ObjectRepresentation();
-        objectRepresentation.put("reprUtil", ReprUtil.serialize(this));
-        objectRepresentation.put("rewardSideEffect", rewardSideEffect.getRepresentation());
-        return objectRepresentation;
+        return ReprUtil.serialize(this);
     }
 }

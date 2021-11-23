@@ -35,6 +35,6 @@ public class PromotionRepository {
     }
 
     public Optional<Promotion> getPromotion(BigInteger promotionId) {
-        return promotions.stream().filter(p -> p.promotionParameters.getPromotionId().equals(promotionId)).findAny();
+        return promotions.stream().filter(p -> p.getPromotionParameters().getPromotionId().equals(promotionId)).findAny();
     }
 }

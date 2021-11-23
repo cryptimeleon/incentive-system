@@ -93,7 +93,7 @@ public class PromotionServiceTest {
                         .build())
                 .header("user-public-key", jsonConverter.serialize(ukp.getPk().getRepresentation()))
                 .header("join-request", jsonConverter.serialize(joinRequest.getRepresentation()))
-                .header("promotion-id", String.valueOf(promotionToJoin.promotionParameters.getPromotionId()))
+                .header("promotion-id", String.valueOf(promotionToJoin.getPromotionParameters().getPromotionId()))
                 .exchange()
                 .expectStatus()
                 .isOk()
@@ -101,7 +101,7 @@ public class PromotionServiceTest {
                 .returnResult().getResponseBody();
 
         var joinResponse = new JoinResponse(jsonConverter.deserialize(serializedJoinResponse), pp);
-        Token initialToken = incentiveSystem.handleJoinRequestResponse(promotionToJoin.promotionParameters, pkp.getPk(), ukp, joinRequest, joinResponse);
+        Token initialToken = incentiveSystem.handleJoinRequestResponse(promotionToJoin.getPromotionParameters(), pkp.getPk(), ukp, joinRequest, joinResponse);
 
         // Attempt joining a non-existing promotion id
         webClient.post()
@@ -120,7 +120,7 @@ public class PromotionServiceTest {
         var earnRequest = incentiveSystem.generateEarnRequest(initialToken, pkp.getPk(), ukp);
         var serializedEarnResponse = webClient.post()
                 .uri(uriBuilder -> uriBuilder.path("/earn").build())
-                .header("promotion-id", String.valueOf(promotionToJoin.promotionParameters.getPromotionId()))
+                .header("promotion-id", String.valueOf(promotionToJoin.getPromotionParameters().getPromotionId()))
                 .header("earn-request", jsonConverter.serialize(earnRequest.getRepresentation()))
                 .header("basket-id", testBasketId.toString())
                 .exchange()
@@ -131,12 +131,12 @@ public class PromotionServiceTest {
 
         SPSEQSignature spseqSignature = new SPSEQSignature(jsonConverter.deserialize(serializedEarnResponse), pp.getBg().getG1(), pp.getBg().getG2());
 
-        Token earnedToken = incentiveSystem.handleEarnRequestResponse(promotionToJoin.promotionParameters, earnRequest, spseqSignature, pointsToEarn, initialToken, pkp.getPk(), ukp);
+        Token earnedToken = incentiveSystem.handleEarnRequestResponse(promotionToJoin.getPromotionParameters(), earnRequest, spseqSignature, pointsToEarn, initialToken, pkp.getPk(), ukp);
 
         // Earn for non-existing basket
         webClient.post()
                 .uri(uriBuilder -> uriBuilder.path("/earn").build())
-                .header("promotion-id", String.valueOf(promotionToJoin.promotionParameters.getPromotionId()))
+                .header("promotion-id", String.valueOf(promotionToJoin.getPromotionParameters().getPromotionId()))
                 .header("earn-request", jsonConverter.serialize(earnRequest.getRepresentation()))
                 .header("basket-id", String.valueOf(UUID.randomUUID()))
                 .exchange()
@@ -164,11 +164,11 @@ public class PromotionServiceTest {
         var spendDeductTree = chosenReward.generateRelationTree(basketPoints);
         var tid = testBasket.getBasketId(pp.getBg().getZn());
 
-        SpendRequest spendRequest = incentiveSystem.generateSpendRequest(promotionToJoin.promotionParameters, earnedToken, pkp.getPk(), pointsAfterSpend, ukp, tid, spendDeductTree);
+        SpendRequest spendRequest = incentiveSystem.generateSpendRequest(promotionToJoin.getPromotionParameters(), earnedToken, pkp.getPk(), pointsAfterSpend, ukp, tid, spendDeductTree);
 
         String serializedSpendResponse = webClient.post()
                 .uri(uriBuilder -> uriBuilder.path("/spend").build())
-                .header("promotion-id", String.valueOf(promotionToJoin.promotionParameters.getPromotionId()))
+                .header("promotion-id", String.valueOf(promotionToJoin.getPromotionParameters().getPromotionId()))
                 .header("spend-request", jsonConverter.serialize(spendRequest.getRepresentation()))
                 .header("basket-id", testBasketId.toString())
                 .header("reward-id", String.valueOf(chosenReward.getRewardId()))
@@ -179,7 +179,7 @@ public class PromotionServiceTest {
                 .returnResult().getResponseBody();
 
         SpendResponse spendResponse = new SpendResponse(jsonConverter.deserialize(serializedSpendResponse), pp.getBg().getZn(), pp.getSpsEq());
-        Token spentToken = incentiveSystem.handleSpendRequestResponse(promotionToJoin.promotionParameters, spendResponse, spendRequest, earnedToken, pointsAfterSpend, pkp.getPk(), ukp);
+        Token spentToken = incentiveSystem.handleSpendRequestResponse(promotionToJoin.getPromotionParameters(), spendResponse, spendRequest, earnedToken, pointsAfterSpend, pkp.getPk(), ukp);
 
         // Some invalid spend requests just to make sure
         // invalid promotion id
@@ -196,7 +196,7 @@ public class PromotionServiceTest {
         // invalid basket id
         webClient.post()
                 .uri(uriBuilder -> uriBuilder.path("/spend").build())
-                .header("promotion-id", String.valueOf(promotionToJoin.promotionParameters.getPromotionId()))
+                .header("promotion-id", String.valueOf(promotionToJoin.getPromotionParameters().getPromotionId()))
                 .header("spend-request", jsonConverter.serialize(spendRequest.getRepresentation()))
                 .header("basket-id", UUID.randomUUID().toString())
                 .header("reward-id", String.valueOf(chosenReward.getRewardId()))
@@ -207,7 +207,7 @@ public class PromotionServiceTest {
         // invalid reward id
         webClient.post()
                 .uri(uriBuilder -> uriBuilder.path("/spend").build())
-                .header("promotion-id", String.valueOf(promotionToJoin.promotionParameters.getPromotionId()))
+                .header("promotion-id", String.valueOf(promotionToJoin.getPromotionParameters().getPromotionId()))
                 .header("spend-request", jsonConverter.serialize(spendRequest.getRepresentation()))
                 .header("basket-id", testBasketId.toString())
                 .header("reward-id", String.valueOf(UUID.randomUUID()))

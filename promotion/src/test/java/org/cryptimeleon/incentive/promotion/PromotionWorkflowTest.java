@@ -1,18 +1,13 @@
 package org.cryptimeleon.incentive.promotion;
 
-import org.cryptimeleon.incentive.crypto.model.SpendProviderOutput;
-import org.cryptimeleon.incentive.crypto.model.SpendRequest;
-import org.cryptimeleon.incentive.crypto.model.Token;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.incentive.promotion.model.Basket;
 import org.cryptimeleon.incentive.promotion.model.BasketItem;
-import org.cryptimeleon.incentive.promotion.model.RewardChoice;
 import org.cryptimeleon.incentive.promotion.promotions.NutellaPromotion;
 import org.cryptimeleon.incentive.promotion.reward.NutellaReward;
 import org.cryptimeleon.incentive.promotion.reward.Reward;
 import org.cryptimeleon.incentive.promotion.reward.RewardSideEffect;
 import org.cryptimeleon.math.structures.cartesian.Vector;
-import org.cryptimeleon.math.structures.rings.RingElement;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
@@ -23,7 +18,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class PromotionManagerTest {
+class PromotionWorkflowTest {
 
     @Test
     void testManagerEarnWithNutellaPromotion() {
@@ -42,16 +37,14 @@ class PromotionManagerTest {
 
     @Test
     void testManagerRewardWithNutellaPromotion() {
-
         List<Reward> rewards = List.of(new NutellaReward(4, UUID.randomUUID(), new RewardSideEffect("Free Nutella")));
         NutellaPromotion nutellaPromotion = new NutellaPromotion(NutellaPromotion.generatePromotionParameters(), rewards);
         Basket basket = new Basket(UUID.randomUUID(), List.of(
                 new BasketItem(UUID.randomUUID(), "Nutella", 400, 2),
                 new BasketItem(UUID.randomUUID(), "Potatoes", 50, 1)
         ));
-        Vector<BigInteger> tokenPoints = Vector.of(BigInteger.ZERO);
+        Vector<BigInteger> tokenPoints = Vector.of(BigInteger.valueOf(3));
 
-        // This happens on user side
         // Compute value of basket
         Vector<BigInteger> basketPoints = nutellaPromotion.computeEarningsForBasket(basket);
         // Compute list of qualified rewards
@@ -69,4 +62,5 @@ class PromotionManagerTest {
         assertEquals(1, newPoints.get(0).intValue());
         assertEquals(new RewardSideEffect("Free Nutella"), chosenReward.getSideEffect());
     }
+    // TODO rename file
 }

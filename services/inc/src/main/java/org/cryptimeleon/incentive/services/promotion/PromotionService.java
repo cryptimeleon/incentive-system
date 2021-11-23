@@ -73,7 +73,7 @@ public class PromotionService {
         FiatShamirProofSystem cwfProofSystem = new FiatShamirProofSystem(new CommitmentWellformednessProtocol(pp, providerPublicKey));
         JoinRequest joinRequest = new JoinRequest(jsonConverter.deserialize(serializedJoinRequest), pp, userPublicKey, cwfProofSystem);
         ProviderKeyPair providerKeyPair = new ProviderKeyPair(providerSecretKey, providerPublicKey);
-        JoinResponse joinResponse = incentiveSystem.generateJoinRequestResponse(promotion.promotionParameters, providerKeyPair, userPublicKey.getUpk(), joinRequest);
+        JoinResponse joinResponse = incentiveSystem.generateJoinRequestResponse(promotion.getPromotionParameters(), providerKeyPair, userPublicKey.getUpk(), joinRequest);
         return jsonConverter.serialize(joinResponse.getRepresentation());
     }
 
@@ -109,7 +109,7 @@ public class PromotionService {
         // Run server part of protocol and serialize signature
         var earnRequest = new EarnRequest(jsonConverter.deserialize(serializedEarnRequest), pp);
         var providerKeyPair = new ProviderKeyPair(providerSecretKey, providerPublicKey);
-        var signature = incentiveSystem.generateEarnRequestResponse(promotion.promotionParameters, earnRequest, pointsToEarn, providerKeyPair);
+        var signature = incentiveSystem.generateEarnRequestResponse(promotion.getPromotionParameters(), earnRequest, pointsToEarn, providerKeyPair);
 
         // TODO: send this to basket server via back channel and return success
 
@@ -137,12 +137,12 @@ public class PromotionService {
         var spendDeductTree = reward.generateRelationTree(basketPoints);
         var tid = basket.getBasketId(pp.getBg().getZn());
         FiatShamirProofSystem spendDeductProofSystem = new FiatShamirProofSystem(
-                new SpendDeductBooleanZkp(spendDeductTree, pp, promotion.promotionParameters, providerPublicKey)
+                new SpendDeductBooleanZkp(spendDeductTree, pp, promotion.getPromotionParameters(), providerPublicKey)
         );
         var spendRequest = new SpendRequest(jsonConverter.deserialize(serializedSpendRequest), pp, spendDeductProofSystem, tid);
 
         // Run deduct
-        SpendProviderOutput spendProviderOutput = incentiveSystem.generateSpendRequestResponse(promotion.promotionParameters, spendRequest, new ProviderKeyPair(providerSecretKey, providerPublicKey), tid, spendDeductTree);
+        SpendProviderOutput spendProviderOutput = incentiveSystem.generateSpendRequestResponse(promotion.getPromotionParameters(), spendRequest, new ProviderKeyPair(providerSecretKey, providerPublicKey), tid, spendDeductTree);
 
         // TODO process provider output
         // TODO send result to basket such that it is locked until payment
