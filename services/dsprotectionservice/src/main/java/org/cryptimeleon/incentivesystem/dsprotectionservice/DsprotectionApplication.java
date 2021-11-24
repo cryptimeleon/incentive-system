@@ -7,12 +7,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
-public class DsprotectionserviceApplication {
+public class DsprotectionApplication {
 	@Value("${info-service.url}")
 	private String infoServiceUrl = ""; // URL of info service
 
 	public static void main(String[] args) {
-		SpringApplication.run(DsprotectionserviceApplication.class, args);
+		SpringApplication.run(DsprotectionApplication.class, args);
 	}
 
 	/**

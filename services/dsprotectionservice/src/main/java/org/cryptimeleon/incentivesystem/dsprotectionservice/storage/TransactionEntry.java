@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.Transaction;
+import org.cryptimeleon.incentivesystem.dsprotectionservice.Util;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 
@@ -71,6 +72,15 @@ public class TransactionEntry {
         this.dsTagEntryId = dsTagEntryId;
         this.procucedDsidEntryId = producedDsidEntryID;
         this.consumedDsidEntryId = consumedDsidEntryId;
+    }
+
+    /**
+     * Auto-generates the entry for a transaction, links to consuming/consumed dsids as well as double-spending tags are not set.
+     */
+    public TransactionEntry(Transaction ta) {
+        this.isValid = ta.getIsValid();
+        this.serializedTransactionIDRepr = Util.computeSerializedRepresentation(ta.getTransactionID());
+        this.k = ta.getK().toString();
     }
 
     /**

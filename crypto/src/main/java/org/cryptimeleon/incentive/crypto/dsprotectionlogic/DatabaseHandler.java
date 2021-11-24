@@ -31,19 +31,18 @@ public interface DatabaseHandler
     /**
      * Adds a new transaction node to the database.
      * @param ta transaction to add
-     * @return result information e.g. HTTP response, ...
      */
-    public String addTransactionNode(Transaction ta);
+    public void addTransactionNode(Transaction ta);
 
-    public Transaction getTransactionNode(ZnElement tid, ZnElement gamma, IncentivePublicParameters pp);
+    public Transaction getTransactionNode(TransactionIdentifier taId);
 
-    public String addTokenNode(GroupElement dsid);
+    public void addTokenNode(GroupElement dsid);
 
     // for making an edge from a transaction to a token node
-    public String addTransactionTokenEdge(ZnElement tid, ZnElement gamma, GroupElement dsid);
+    public void addTransactionTokenEdge(ZnElement tid, ZnElement gamma, GroupElement dsid);
 
     // for making an edge from a token to a transaction node
-    public String addTokenTransactionEdge(GroupElement dsid, ZnElement tid, ZnElement gamma);
+    public void addTokenTransactionEdge(GroupElement dsid, ZnElement tid, ZnElement gamma);
 
 
 
@@ -57,7 +56,7 @@ public interface DatabaseHandler
 
 
 
-    public boolean containsTransactionNode(ZnElement tid, ZnElement gamma);
+    public boolean containsTransactionNode(TransactionIdentifier taIdentifier);
 
     public boolean containsTokenNode(GroupElement dsid);
 
@@ -81,12 +80,10 @@ public interface DatabaseHandler
 
     /**
      * Adds info about the user that spent a specific token to said token.
-     * @param upk public key of user
-     * @param dsBlame dsBlame info for the transaction
-     * @param dsTrace dsTrace info for the transaction
+     * @param userInfo user info
      * @param dsid double-spending ID identifying the token
      */
-    public String addAndLinkUserInfo(UserPublicKey upk, Zn.ZnElement dsBlame, Zn.ZnElement dsTrace, GroupElement dsid);
+    public void addAndLinkUserInfo(UserInfo userInfo, GroupElement dsid);
 
     /**
      * Retrieves the user info associated to the passed double-spending ID.
@@ -114,5 +111,5 @@ public interface DatabaseHandler
     /**
      * Marks the transaction specified by the passed ID and challenge generator as invalid.
      */
-    public String invalidateTransaction(ZnElement tid, ZnElement gamma);
+    public void invalidateTransaction(TransactionIdentifier taIdentifier);
 }

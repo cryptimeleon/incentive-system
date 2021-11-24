@@ -683,7 +683,9 @@ public class IncentiveSystem {
      * @param dbHandler reference to the object handling the database connectivity
      */
     public void dbSync(ZnElement tid, GroupElement dsid, DoubleSpendingTag dsTag, BigInteger spendAmount, DatabaseHandler dbHandler) {
-        ZnElement gamma = dsTag.getGamma(); // shorthand for readability
+        // shorthands for readability
+        ZnElement gamma = dsTag.getGamma();
+        TransactionIdentifier taId = new TransactionIdentifier(tid, gamma);
 
         // make list for keeping track of identifiers of transactions that are invalidated over the course of the method
         ArrayList<TransactionIdentifier> invalidatedTasIdentifiers = new ArrayList<TransactionIdentifier>();
@@ -691,7 +693,7 @@ public class IncentiveSystem {
         // first part of DBSync from 2020 incentive system paper: adding a new transaction
 
         // if transaction is not yet in the database
-        if(!dbHandler.containsTransactionNode(tid, gamma)) {
+        if(!dbHandler.containsTransactionNode(taId)) {
             // add a corresponding transaction node to DB (which also contains the dstag)
             Transaction ta = new Transaction(true, tid, spendAmount, dsTag);
             dbHandler.addTransactionNode(ta);
@@ -721,9 +723,7 @@ public class IncentiveSystem {
                     DoubleSpendingTag secondTaTag = consumingTaList.get(1).getDsTag();
                     UserInfo uInfo = this.link(this.pp, firstTaTag, secondTaTag);
                     dbHandler.addAndLinkUserInfo(
-                            uInfo.getUpk(),
-                            uInfo.getDsBlame(),
-                            uInfo.getDsTrace(),
+                            uInfo,
                             dsid
                     );
                 }
@@ -735,7 +735,7 @@ public class IncentiveSystem {
 
 
             // invalidate transaction
-            dbHandler.invalidateTransaction(tid, gamma);
+            dbHandler.invalidateTransaction(taId);
             invalidatedTasIdentifiers.add(new TransactionIdentifier(tid, gamma));
         }
 
@@ -746,7 +746,7 @@ public class IncentiveSystem {
             TransactionIdentifier currentTaId = invalidatedTasIdentifiers.remove(0);
 
             // retrieve transaction
-            Transaction ta = dbHandler.getTransactionNode(currentTaId.getTid(), currentTaId.getGamma(), this.pp);
+            Transaction ta = dbHandler.getTransactionNode(currentTaId);
 
             // retrieve double-spending ID of token consumed by transaction and the corresponding user info
             GroupElement consumedDsid = dbHandler.getConsumedTokenDsid(currentTaId, this.pp);
@@ -762,10 +762,12 @@ public class IncentiveSystem {
             }
 
             // associate corresponding user info with remainder token dsid
-            dbHandler.addAndLinkUserInfo(
+            UserInfo correspondingUserInfo = new UserInfo(
                     consumedDsidUserInfo.getUpk(),
                     consumedDsidUserInfo.getDsBlame(),
-                    traceOutput.getDsTraceStar(),
+                    traceOutput.getDsTraceStar());
+            dbHandler.addAndLinkUserInfo(
+                    correspondingUserInfo,
                     dsidStar
             );
 
@@ -776,8 +778,7 @@ public class IncentiveSystem {
             ArrayList<Transaction> followingTransactions = dbHandler.getConsumingTransactions(dsidStar);
             followingTransactions.forEach(currentTa -> {
                 dbHandler.invalidateTransaction(
-                        currentTa.getTransactionID(),
-                        currentTa.getDsTag().getGamma()
+                        currentTa.getTaIdentifier()
                 );
             });
         }

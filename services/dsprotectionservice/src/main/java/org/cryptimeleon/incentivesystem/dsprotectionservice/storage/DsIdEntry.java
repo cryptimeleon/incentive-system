@@ -2,6 +2,8 @@ package org.cryptimeleon.incentivesystem.dsprotectionservice.storage;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.cryptimeleon.incentivesystem.dsprotectionservice.Util;
+import org.cryptimeleon.math.structures.groups.GroupElement;
 
 import javax.persistence.*;
 
@@ -32,6 +34,13 @@ public class DsIdEntry {
 
     public DsIdEntry(String serializedDsidRepr) {
         this.serializedDsidRepr = serializedDsidRepr;
+    }
+
+    /**
+     * Standard constructor, does not associate user info to this token.
+     */
+    public DsIdEntry(GroupElement dsid) {
+        this.serializedDsidRepr = Util.computeSerializedRepresentation(dsid);
     }
 
     public DsIdEntry(long id, String serializedDsidRepr, long associatedUserInfoId) {

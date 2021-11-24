@@ -46,6 +46,15 @@ public class UserInfoEntry {
     }
 
     /**
+     * Converts a user info (crypto) object to a user info entry.
+     */
+    public UserInfoEntry(UserInfo userInfo){
+        this.serializedUpkRepr = Util.computeSerializedRepresentation(userInfo.getUpk());
+        this.serializedDsBlameRepr = Util.computeSerializedRepresentation(userInfo.getDsBlame());
+        this.serializedDsTraceRepr = Util.computeSerializedRepresentation(userInfo.getDsTrace());
+    }
+
+    /**
      * Constructs a user info entry from a serialized user info representation (crypto object).
      * @param serializedUserInfoRepr serialized representation a user info object
      * @param pp public parameters of the respective incentive system instance

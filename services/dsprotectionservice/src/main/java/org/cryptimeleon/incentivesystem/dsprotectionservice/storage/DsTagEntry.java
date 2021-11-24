@@ -46,6 +46,18 @@ public class DsTagEntry {
     @Lob
     private String serializedCTrace1Repr;
 
+    /**
+     * Auto-generates the entry for a double-spending tag.
+     */
+    public DsTagEntry(DoubleSpendingTag dsTag) {
+        this.serializedC0Repr = Util.computeSerializedRepresentation(dsTag.getC0());
+        this.serializedC1Repr = Util.computeSerializedRepresentation(dsTag.getC1());
+        this.serializedGammaRepr = Util.computeSerializedRepresentation(dsTag.getGamma());
+        this.serializedEskStarProvRepr = Util.computeSerializedRepresentation(dsTag.getEskStarProv());
+        this.serializedCTrace0Repr = Util.computeSerializedRepresentation(dsTag.getCtrace0());
+        this.serializedCTrace1Repr = Util.computeSerializedRepresentation(dsTag.getCtrace1());
+    }
+
     public DsTagEntry(String c0, String c1, String gamma, String eskStarProv, String ctrace0, String ctrace1) {
         this.serializedC0Repr = c0;
         this.serializedC1Repr = c1;
