@@ -35,7 +35,7 @@ public class TransactionEntry {
 
     private long dsTagEntryId; // ID of the entry for the double-spending tag of the transaction (data associated to a spend transaction that is required to trace double-spending)
 
-    private long procucedDsidEntryId; // ID of the entry of the double-spending ID of the token produced in this transaction (realizes a transaction-token edge in the bipartite double-spending graph)
+    private long producedDsidEntryId; // ID of the entry of the double-spending ID of the token produced in this transaction (realizes a transaction-token edge in the bipartite double-spending graph)
 
     private long consumedDsidEntryId; // ID of the entry of the double-spending ID of the token consumed in this transaction (realizes a token-transaction edge in the bipartite double-spending protection graph)
 
@@ -70,7 +70,7 @@ public class TransactionEntry {
         this.serializedTransactionIDRepr = tid;
         this.k = k;
         this.dsTagEntryId = dsTagEntryId;
-        this.procucedDsidEntryId = producedDsidEntryID;
+        this.producedDsidEntryId = producedDsidEntryID;
         this.consumedDsidEntryId = consumedDsidEntryId;
     }
 

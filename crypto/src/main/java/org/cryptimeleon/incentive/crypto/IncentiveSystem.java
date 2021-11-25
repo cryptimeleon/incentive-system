@@ -704,15 +704,15 @@ public class IncentiveSystem {
             // add a corresponding token node to DB
             dbHandler.addTokenNode(dsid);
             // and make edge from dsid's token node to the node of the passed transaction
-            dbHandler.addTokenTransactionEdge(dsid, tid, gamma);
+            dbHandler.addTokenTransactionEdge(dsid, taId);
         }
         // if dsid is already in DB -> double-spending attempt detected!
         else {
             // make edge from dsid's token node to the node of the passed transaction
-            dbHandler.addTokenTransactionEdge(dsid, tid, gamma);
+            dbHandler.addTokenTransactionEdge(dsid, taId);
 
             // if the token node has no user info associated with it
-            UserInfo associatedUserInfo = dbHandler.getUserInfo(dsid, this.pp);
+            UserInfo associatedUserInfo = dbHandler.getUserInfo(dsid);
             if(associatedUserInfo == null) {
                 // retrieve all transaction that consumed the dsid
                 ArrayList<Transaction> consumingTaList = dbHandler.getConsumingTransactions(dsid);
@@ -750,7 +750,7 @@ public class IncentiveSystem {
 
             // retrieve double-spending ID of token consumed by transaction and the corresponding user info
             GroupElement consumedDsid = dbHandler.getConsumedTokenDsid(currentTaId, this.pp);
-            UserInfo consumedDsidUserInfo = dbHandler.getUserInfo(consumedDsid, this.pp);
+            UserInfo consumedDsidUserInfo = dbHandler.getUserInfo(consumedDsid);
 
             // use Trace to compute remainder token's dsid (remainder token: token that resulted from the currently considered transaction)
             TraceOutput traceOutput = this.trace(this.pp, consumedDsidUserInfo.getDsTrace(), ta.getDsTag());
@@ -772,7 +772,7 @@ public class IncentiveSystem {
             );
 
             // link current transaction with remainder token in database
-            dbHandler.addTransactionTokenEdge(currentTaId.getTid(), currentTaId.getGamma(), dsidStar);
+            dbHandler.addTransactionTokenEdge(currentTaId, dsidStar);
 
             // invalidate all transactions that consumed the remainder token or followed from a transaction consuming it
             ArrayList<Transaction> followingTransactions = dbHandler.getConsumingTransactions(dsidStar);

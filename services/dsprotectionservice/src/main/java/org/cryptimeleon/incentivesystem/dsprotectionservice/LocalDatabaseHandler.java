@@ -14,8 +14,6 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 
 import java.util.ArrayList;
 
@@ -25,6 +23,7 @@ import java.util.ArrayList;
 public class LocalDatabaseHandler implements DatabaseHandler {
     private Logger logger = LoggerFactory.getLogger(LocalDatabaseHandler.class);
 
+    // TODO: does this annotation work here?
     @Autowired
     CryptoRepository cryptoRepository;
 
@@ -81,14 +80,60 @@ public class LocalDatabaseHandler implements DatabaseHandler {
         dsidRepository.save(dsIdEntry);
     }
 
+    /**
+     * Makes an edge from the passed transaction to the passed double-spending ID, if nodes for both exist.
+     * Semantics of this edge: the passed transaction produced the token with the passed double-spending ID
+     */
     @Override
-    public void addTransactionTokenEdge(Zn.ZnElement tid, Zn.ZnElement gamma, GroupElement dsid) {
+    public void addTransactionTokenEdge(TransactionIdentifier taId, GroupElement dsid) {
+        // retrieve entries for respective transaction and dsID
+        TransactionEntry taEntry = findTransactionEntryWithTaIdentifier(taId);
+        DsIdEntry dsIdEntry = findDsidEntry(dsid);
 
+        // make edge (i.e. update field of ta entry that holds ID of produced token's dsid) if both nodes exist
+        if(taEntry != null && dsIdEntry != null) {
+            transactionRepository.delete(taEntry);
+            taEntry.setProducedDsidEntryId(dsIdEntry.getId());
+            transactionRepository.save(taEntry);
+        }
+        // error report if either transaction or dsid was not found in the database
+        else {
+            if (taEntry == null) {
+                throw new RuntimeException("No transaction corresponding to the queried identifier was found in database.");
+            }
+            if (dsIdEntry == null) {
+                throw new RuntimeException("Queried double-spending ID not found in database.");
+            }
+            throw new RuntimeException("An unknown error occurred while adding transaction-token edge. Aborting, no write operations performed on database.");
+        }
     }
 
+    /**
+     * Makes an edge from the passed double-spending ID to the passed transaction (if both nodes exist).
+     * Semantics of this edge: the token with the passed double-spending ID was consumed in the passed transaction
+     */
     @Override
-    public void addTokenTransactionEdge(GroupElement dsid, Zn.ZnElement tid, Zn.ZnElement gamma) {
+    public void addTokenTransactionEdge(GroupElement dsid, TransactionIdentifier taId) {
+        // retrieve entries for respective transaction and dsID
+        TransactionEntry taEntry = findTransactionEntryWithTaIdentifier(taId);
+        DsIdEntry dsIdEntry = findDsidEntry(dsid);
 
+        // make edge (i.e. update field of transaction entry that holds ID of consumed dsid's entry) if both nodes exist
+        if(taEntry != null && dsIdEntry != null) {
+            transactionRepository.delete(taEntry);
+            taEntry.setConsumedDsidEntryId(dsIdEntry.getId());
+            transactionRepository.save(taEntry);
+        }
+        // error report if either transaction or dsid was not found in the database
+        else {
+            if (taEntry == null) {
+                throw new RuntimeException("No transaction corresponding to the queried identifier was found in database.");
+            }
+            if (dsIdEntry == null) {
+                throw new RuntimeException("Queried double-spending ID not found in database.");
+            }
+            throw new RuntimeException("An unknown error occurred while adding token-transaction edge. Aborting, no write operations performed on database.");
+        }
     }
 
     /**
@@ -107,14 +152,40 @@ public class LocalDatabaseHandler implements DatabaseHandler {
         return findDsidEntry(dsid) != null;
     }
 
+    /**
+     * Checks the database for a connection from passed transaction to token with passed double-spending ID.
+     * So this method checks whether said transaction produced said token.
+     * Result is returned as HTTP response object.
+     */
     @Override
-    public boolean containsTransactionTokenEdge(Zn.ZnElement tid, Zn.ZnElement gamma, GroupElement dsid) {
-        return false;
+    public boolean containsTransactionTokenEdge(TransactionIdentifier taId, GroupElement dsid) {
+        // retrieve entries for respective transaction and dsID
+        TransactionEntry taEntry = findTransactionEntryWithTaIdentifier(taId);
+        DsIdEntry dsIdEntry = findDsidEntry(dsid);
+
+        boolean edgeExists = taEntry != null &&
+                dsIdEntry != null &&
+                taEntry.getProducedDsidEntryId() == dsIdEntry.getId();
+
+        return edgeExists;
     }
 
+    /**
+     * Checks the database for a connection from token with passed double-spending ID to passed transaction.
+     * So this method checks whether said token was consumed in said transaction.
+     */
     @Override
-    public boolean containsTokenTransactionEdge(GroupElement dsid, Zn.ZnElement tid, Zn.ZnElement gamma) {
-        return false;
+    public boolean containsTokenTransactionEdge(GroupElement dsid, TransactionIdentifier taId) {
+        // retrieve entries for respective transaction and dsID
+        TransactionEntry taEntry = findTransactionEntryWithTaIdentifier(taId);
+        DsIdEntry dsIdEntry = findDsidEntry(dsid);
+
+        // check for existence of edge
+        boolean edgeExists = taEntry != null &&
+                dsIdEntry != null &&
+                dsIdEntry.getId() == taEntry.getConsumedDsidEntryId();
+
+        return edgeExists;
     }
 
     /**
@@ -135,19 +206,60 @@ public class LocalDatabaseHandler implements DatabaseHandler {
         }
     }
 
+    /**
+     * Retrieves the (anonymized) user info associated to the token identified by the passed dsid.
+     */
     @Override
-    public UserInfo getUserInfo(GroupElement dsid, IncentivePublicParameters pp) {
-        return null;
+    public UserInfo getUserInfo(GroupElement dsid) {
+        // query user info from database
+        DsIdEntry dside = findDsidEntry(dsid);
+        long uieId = dside.getAssociatedUserInfoId();
+        UserInfoEntry uie = userInfoRepository.findById(uieId).get();
+
+        // convert user info entry to user info
+        UserInfo uInfo = convertUserInfoEntry(uie);
+
+        return uInfo;
     }
 
+    /**
+     * Retrieves all transactions that consumed the token with the passed dsid.
+     */
     @Override
     public ArrayList<Transaction> getConsumingTransactions(GroupElement dsid) {
-        return null;
+        // query respective entries
+        ArrayList<TransactionEntry> taeList = getConsumingTransactionEntries(
+                findDsidEntry(dsid).getId()
+        );
+
+        ArrayList<Transaction> taList = new ArrayList<>();
+
+        taeList.forEach(tae -> {
+            Transaction ta = convertTransactionEntry(tae);
+            taList.add(ta);
+        });
+
+        return taList;
     }
 
+    /**
+     * Retrieves the double-spending ID of the token that was consumed in the transaction with the passed identifier.
+     */
     @Override
     public GroupElement getConsumedTokenDsid(TransactionIdentifier taId, IncentivePublicParameters pp) {
-        return null;
+        // find transaction entry
+        TransactionEntry taEntry = findTransactionEntryWithTaIdentifier(taId);
+
+        // find dsid entry of consumed token's double-spending ID
+        DsIdEntry consumedDsidEntry = dsidRepository.findById(taEntry.getConsumedDsidEntryId()).get();
+
+        String serializedConsumedDsidRepr = consumedDsidEntry.getSerializedDsidRepr();
+
+        // deserializing and restoring
+        JSONConverter jsonConverter = new JSONConverter();
+        return pp.getBg().getG1().restoreElement(
+                jsonConverter.deserialize(serializedConsumedDsidRepr)
+        );
     }
 
     /**
@@ -303,5 +415,16 @@ public class LocalDatabaseHandler implements DatabaseHandler {
         }
 
         return resultList;
+    }
+
+    /**
+     * Clears all tables of the double-spending database.
+     * Needed for sequences of independent tests where double-spending protection service is not restarted in between.
+     */
+    public void clearDatabase() {
+        this.transactionRepository.deleteAll();
+        this.dsidRepository.deleteAll();
+        this.doubleSpendingTagRepository.deleteAll();
+        this.userInfoRepository.deleteAll();
     }
 }

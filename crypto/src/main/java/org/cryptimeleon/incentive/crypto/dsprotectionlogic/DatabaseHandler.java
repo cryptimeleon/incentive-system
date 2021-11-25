@@ -39,10 +39,10 @@ public interface DatabaseHandler
     public void addTokenNode(GroupElement dsid);
 
     // for making an edge from a transaction to a token node
-    public void addTransactionTokenEdge(ZnElement tid, ZnElement gamma, GroupElement dsid);
+    public void addTransactionTokenEdge(TransactionIdentifier taId, GroupElement dsid);
 
     // for making an edge from a token to a transaction node
-    public void addTokenTransactionEdge(GroupElement dsid, ZnElement tid, ZnElement gamma);
+    public void addTokenTransactionEdge(GroupElement dsid, TransactionIdentifier taId);
 
 
 
@@ -60,9 +60,9 @@ public interface DatabaseHandler
 
     public boolean containsTokenNode(GroupElement dsid);
 
-    public boolean containsTransactionTokenEdge(ZnElement tid, ZnElement gamma, GroupElement dsid);
+    public boolean containsTransactionTokenEdge(TransactionIdentifier taId, GroupElement dsid);
 
-    public boolean containsTokenTransactionEdge(GroupElement dsid, ZnElement tid, ZnElement gamma);
+    public boolean containsTokenTransactionEdge(GroupElement dsid, TransactionIdentifier taId);
 
 
 
@@ -88,7 +88,7 @@ public interface DatabaseHandler
     /**
      * Retrieves the user info associated to the passed double-spending ID.
      */
-    public UserInfo getUserInfo(GroupElement dsid, IncentivePublicParameters pp);
+    public UserInfo getUserInfo(GroupElement dsid);
 
 
 
