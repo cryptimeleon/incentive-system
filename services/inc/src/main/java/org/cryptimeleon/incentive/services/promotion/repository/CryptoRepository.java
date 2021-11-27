@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.services.promotion;
+package org.cryptimeleon.incentive.services.promotion.repository;
 
 import lombok.Getter;
 import org.cryptimeleon.incentive.client.InfoClient;

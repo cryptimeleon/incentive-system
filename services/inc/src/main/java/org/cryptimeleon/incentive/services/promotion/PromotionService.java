@@ -13,6 +13,9 @@ import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellform
 import org.cryptimeleon.incentive.promotion.model.Basket;
 import org.cryptimeleon.incentive.promotion.promotions.Promotion;
 import org.cryptimeleon.incentive.promotion.reward.Reward;
+import org.cryptimeleon.incentive.services.promotion.repository.BasketRepository;
+import org.cryptimeleon.incentive.services.promotion.repository.CryptoRepository;
+import org.cryptimeleon.incentive.services.promotion.repository.PromotionRepository;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.slf4j.Logger;

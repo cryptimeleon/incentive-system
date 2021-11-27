@@ -12,5 +12,4 @@ class RewardSideEffectTest {
         RewardSideEffect deserializedRewardSideEffect = new RewardSideEffect(rewardSideEffect.getRepresentation());
         assertEquals(rewardSideEffect, deserializedRewardSideEffect);
     }
-
 }

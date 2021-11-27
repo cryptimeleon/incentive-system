@@ -14,6 +14,8 @@ import org.cryptimeleon.incentive.promotion.model.Basket;
 import org.cryptimeleon.incentive.promotion.model.BasketItem;
 import org.cryptimeleon.incentive.promotion.promotions.NutellaPromotion;
 import org.cryptimeleon.incentive.promotion.promotions.Promotion;
+import org.cryptimeleon.incentive.services.promotion.repository.BasketRepository;
+import org.cryptimeleon.incentive.services.promotion.repository.CryptoRepository;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.rings.RingElement;

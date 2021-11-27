@@ -62,5 +62,4 @@ class PromotionWorkflowTest {
         assertEquals(1, newPoints.get(0).intValue());
         assertEquals(new RewardSideEffect("Free Nutella"), chosenReward.getSideEffect());
     }
-    // TODO rename file
 }

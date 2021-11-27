@@ -87,7 +87,6 @@ public class IncentiveSystemTest {
         /*
          * transaction 1: user tries to spend points with an empty token
 
-        * TODO uncomment and replace with statements about old token
         logger.info("Testing spend transaction with empty token.");
 
         // generate a fresh ID for the spend transaction
@@ -96,10 +95,11 @@ public class IncentiveSystemTest {
         var spendAmount1 = Vector.of(BigInteger.ONE, BigInteger.ZERO);
 
         // ensure exception is thrown when user tries to generate spend request
-        Assertions.assertThrows(IllegalArgumentException.class, () -> incSys.generateSpendRequest(promotionParameters, initialToken, pkp.getPk(), spendAmount1, ukp, tid1));
-         */
+        Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> incSys.generateSpendRequest(promotionParameters, initialToken, pkp.getPk(), spendAmount1, ukp, tid1)
+        );
 
-        /*
          * transaction 2: user earns 20 points
          */
 

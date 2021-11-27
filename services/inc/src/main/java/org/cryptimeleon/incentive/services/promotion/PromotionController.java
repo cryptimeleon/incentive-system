@@ -9,6 +9,9 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigInteger;
 import java.util.UUID;
 
+/**
+ * The controller of this service that defines all REST endpoints.
+ */
 @RestController
 @AllArgsConstructor
 public class PromotionController {

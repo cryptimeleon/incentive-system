@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.services.promotion;
+package org.cryptimeleon.incentive.services.promotion.repository;
 
 import org.cryptimeleon.incentive.client.BasketClient;
 import org.cryptimeleon.incentive.client.dto.BasketDto;
@@ -36,7 +36,6 @@ public class BasketRepository {
     }
 
     public Basket getBasket(UUID basketId) {
-
         BasketDto basketDto = basketClient.getBasket(basketId).block(Duration.ofSeconds(1));
         BasketItemDto[] items = basketClient.getItems().block(Duration.ofSeconds(1));
 

@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.services.promotion;
+package org.cryptimeleon.incentive.services.promotion.repository;
 
 import org.cryptimeleon.incentive.promotion.promotions.NutellaPromotion;
 import org.cryptimeleon.incentive.promotion.promotions.Promotion;
@@ -11,6 +11,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * This repository manages all promotions.
+ */
 @Repository
 public class PromotionRepository {
     private List<Promotion> promotions = List.of(

@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
 public class PromotionApplication {
+
     @Value("${info-service.url}")
     private String infoServiceUrl;
 

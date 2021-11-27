@@ -8,6 +8,9 @@ import org.cryptimeleon.math.serialization.StandaloneRepresentable;
 import org.cryptimeleon.math.serialization.annotations.ReprUtil;
 import org.cryptimeleon.math.serialization.annotations.Represented;
 
+/**
+ * Class that represents side effects on baskets, e.g. a reward that is added to the basket, a discount, ...
+ */
 @Value
 @AllArgsConstructor
 public class RewardSideEffect implements StandaloneRepresentable {
