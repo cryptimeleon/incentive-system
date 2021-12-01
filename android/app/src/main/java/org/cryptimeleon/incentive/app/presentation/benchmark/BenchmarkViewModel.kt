@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.app.benchmark
+package org.cryptimeleon.incentive.app.presentation.benchmark
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -194,7 +194,7 @@ data class BenchmarkState(
         handleResponse: Double
     ): String {
         return "Total: ${total.format(2)}\nRequest: ${request.format(2)}\nResponse: ${
-        response.format(2)
+            response.format(2)
         }\nHandle Response: ${handleResponse.format(2)}"
     }
 

@@ -11,6 +11,7 @@ import org.cryptimeleon.incentive.app.data.database.crypto.CryptoUtil
 import org.cryptimeleon.incentive.app.data.network.CreditEarnApiService
 import org.cryptimeleon.incentive.app.data.network.InfoApiService
 import org.cryptimeleon.incentive.app.data.network.IssueJoinApiService
+import org.cryptimeleon.incentive.app.domain.ICryptoRepository
 import org.cryptimeleon.incentive.crypto.IncentiveSystem
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey
@@ -19,7 +20,7 @@ import org.cryptimeleon.math.serialization.converter.JSONConverter
 import org.cryptimeleon.math.structures.cartesian.Vector
 import timber.log.Timber
 import java.math.BigInteger
-import java.util.UUID
+import java.util.*
 
 /**
  * Repository that handles the crypto database, provides cached deserialized crypto objects and
@@ -32,12 +33,10 @@ class CryptoRepository(
     private val infoApiService: InfoApiService,
     private val issueJoinApiService: IssueJoinApiService,
     private val cryptoDao: CryptoDao,
-) {
+) : ICryptoRepository {
     private val jsonConverter = JSONConverter()
 
-    // Tokens change
-    // TODO Make sure pp (cryptoMaterial.first()) are valid when token changes
-    val token: Flow<CryptoToken?> = cryptoDao.observeToken().map {
+    override val token: Flow<CryptoToken?> = cryptoDao.observeToken().map {
         val cryptoMaterial = observeCryptoMaterial().first()
         if (cryptoMaterial == null || it == null) {
             null
@@ -46,15 +45,16 @@ class CryptoRepository(
         }
     }
 
-    fun observeCryptoMaterial(): Flow<CryptoMaterial?> = cryptoDao.observeCryptoMaterial().map {
-        if (it == null) {
-            null
-        } else {
-            CryptoUtil.fromSerializedCryptoAsset(it)
+    override fun observeCryptoMaterial(): Flow<CryptoMaterial?> =
+        cryptoDao.observeCryptoMaterial().map {
+            if (it == null) {
+                null
+            } else {
+                CryptoUtil.fromSerializedCryptoAsset(it)
+            }
         }
-    }
 
-    suspend fun runIssueJoin(dummy: Boolean = false) {
+    override suspend fun runIssueJoin(dummy: Boolean) {
         val cryptoMaterial = observeCryptoMaterial().first()!!
         val pp = cryptoMaterial.pp
         val incentiveSystem = cryptoMaterial.incentiveSystem
@@ -84,7 +84,7 @@ class CryptoRepository(
         }
     }
 
-    suspend fun runCreditEarn(basketId: UUID, basketValue: Int) {
+    override suspend fun runCreditEarn(basketId: UUID, basketValue: Int) {
         val cryptoMaterial = observeCryptoMaterial().first()!!
         val cryptoToken = token.first()!!
         val token = cryptoToken.token
@@ -133,13 +133,7 @@ class CryptoRepository(
         Timber.i("Added new token $newToken to database")
     }
 
-    /**
-     * Refresh the crypto material by querying the info service. Deletes all old tokens if crypto
-     * material has changed.
-     *
-     * @return true if crypto material has changed
-     */
-    suspend fun refreshCryptoMaterial(): Boolean {
+    override suspend fun refreshCryptoMaterial(): Boolean {
         val oldSerializedCryptoAsset = cryptoDao.observeSerializedCryptoMaterial().first()
 
         val ppResponse = infoApiService.getPublicParameters()

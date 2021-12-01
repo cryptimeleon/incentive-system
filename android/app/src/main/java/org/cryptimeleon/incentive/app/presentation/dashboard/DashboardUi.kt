@@ -1,18 +1,8 @@
-package org.cryptimeleon.incentive.app.dashboard
+package org.cryptimeleon.incentive.app.presentation.dashboard
 
 import android.content.res.Configuration
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredSize
-import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.material.Card
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Redeem
 import androidx.compose.runtime.Composable
@@ -24,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import org.cryptimeleon.incentive.app.common.DefaultTopAppBar
+import org.cryptimeleon.incentive.app.presentation.common.DefaultTopAppBar
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 
 @Composable

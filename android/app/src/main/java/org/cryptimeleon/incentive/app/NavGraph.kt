@@ -15,12 +15,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import org.cryptimeleon.incentive.app.basket.Basket
-import org.cryptimeleon.incentive.app.benchmark.BenchmarkUi
-import org.cryptimeleon.incentive.app.dashboard.Dashboard
-import org.cryptimeleon.incentive.app.scan.ScanScreen
-import org.cryptimeleon.incentive.app.settings.Settings
-import org.cryptimeleon.incentive.app.setup.SetupUi
+import org.cryptimeleon.incentive.app.presentation.basket.BasketUi
+import org.cryptimeleon.incentive.app.presentation.benchmark.BenchmarkUi
+import org.cryptimeleon.incentive.app.presentation.dashboard.Dashboard
+import org.cryptimeleon.incentive.app.presentation.scan.ScanScreen
+import org.cryptimeleon.incentive.app.presentation.settings.Settings
+import org.cryptimeleon.incentive.app.presentation.setup.SetupUi
 
 object MainDestination {
     const val LOADING_ROUTE = "loading"
@@ -77,7 +77,7 @@ fun NavGraph(
             )
         }
         composable(MainDestination.BASKET_ROUTE) {
-            Basket(
+            BasketUi(
                 actions.openSettings,
                 actions.openBenchmark
             )

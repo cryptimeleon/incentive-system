@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.app.setup
+package org.cryptimeleon.incentive.app.presentation.setup
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
@@ -6,11 +6,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import org.cryptimeleon.incentive.app.data.BasketRepository
 import org.cryptimeleon.incentive.app.data.CryptoRepository
 import timber.log.Timber

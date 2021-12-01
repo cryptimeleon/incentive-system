@@ -9,12 +9,10 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import org.cryptimeleon.incentive.app.data.BasketRepository
 import org.cryptimeleon.incentive.app.data.CryptoRepository
+import org.cryptimeleon.incentive.app.data.PromotionRepository
 import org.cryptimeleon.incentive.app.data.database.basket.BasketDatabase
 import org.cryptimeleon.incentive.app.data.database.crypto.CryptoDatabase
-import org.cryptimeleon.incentive.app.data.network.BasketApiService
-import org.cryptimeleon.incentive.app.data.network.CreditEarnApiService
-import org.cryptimeleon.incentive.app.data.network.InfoApiService
-import org.cryptimeleon.incentive.app.data.network.IssueJoinApiService
+import org.cryptimeleon.incentive.app.data.network.*
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
@@ -24,6 +22,7 @@ private const val BASKET_BASE_URL = "https://incentives.cs.upb.de/basket/"
 private const val INFO_BASE_URL = "https://incentives.cs.upb.de/info/"
 private const val ISSUE_BASE_URL = "https://incentives.cs.upb.de/issue/"
 private const val CREDIT_BASE_URL = "https://incentives.cs.upb.de/credit/"
+private const val PROMOTION_BASE_URL = "https://incentives.cs.upb.de/promotion/"
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -64,6 +63,15 @@ class HiltApiModule {
             .baseUrl(ISSUE_BASE_URL)
             .build()
             .create(IssueJoinApiService::class.java)
+
+    @Singleton
+    @Provides
+    fun providePromotionApiService(): PromotionApiService =
+        Retrofit.Builder()
+            .addConverterFactory(ScalarsConverterFactory.create())
+            .baseUrl(PROMOTION_BASE_URL)
+            .build()
+            .create(PromotionApiService::class.java)
 }
 
 @Module
@@ -115,5 +123,14 @@ class HiltRepositoryModule {
         BasketRepository(
             basketApiService,
             basketDatabase.basketDatabaseDao()
+        )
+
+    @Singleton
+    @Provides
+    fun providePromotionRepository(
+        promotionApiService: PromotionApiService,
+    ): PromotionRepository =
+        PromotionRepository(
+            promotionApiService
         )
 }

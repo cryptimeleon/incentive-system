@@ -1,7 +1,7 @@
 package org.cryptimeleon.incentive.app.data.database
 
 import androidx.room.TypeConverter
-import java.util.UUID
+import java.util.*
 
 class UUIDConverter {
 

@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.app.scan
+package org.cryptimeleon.incentive.app.presentation.scan
 
 import android.content.res.Configuration
 import android.widget.NumberPicker
@@ -11,19 +11,8 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedButton
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -43,8 +32,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionRequired
 import com.google.accompanist.permissions.rememberPermissionState
-import org.cryptimeleon.incentive.app.common.DefaultTopAppBar
-import org.cryptimeleon.incentive.app.data.network.Item
+import org.cryptimeleon.incentive.app.domain.model.ShoppingItem
+import org.cryptimeleon.incentive.app.presentation.common.DefaultTopAppBar
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import androidx.camera.core.Preview as CameraPreview
 
@@ -110,7 +99,7 @@ private fun ScannedItemCard(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                text = state.item.title,
+                text = state.shoppingItem.title,
                 style = MaterialTheme.typography.h5
             )
             Row(
@@ -231,7 +220,7 @@ private fun Scanner(onScanBarcode: (String) -> Unit) {
 fun ScannedItemPreview() {
     CryptimeleonTheme {
         ScannedItemCard(
-            state = ScanState(Item("ADJFKLJLKSD", 999, "Apple"), 3),
+            state = ScanState(ShoppingItem("ADJFKLJLKSD", 999, "Apple"), 3),
             setCount = {},
             add = {},
             discard = {}

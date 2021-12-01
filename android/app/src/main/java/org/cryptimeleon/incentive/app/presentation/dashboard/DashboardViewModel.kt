@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.app.dashboard
+package org.cryptimeleon.incentive.app.presentation.dashboard
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel

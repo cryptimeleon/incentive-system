@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.app.scan
+package org.cryptimeleon.incentive.app.presentation.scan
 
 import android.app.Application
 import android.widget.Toast
@@ -11,10 +11,10 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.cryptimeleon.incentive.app.data.BasketRepository
-import org.cryptimeleon.incentive.app.data.network.Item
+import org.cryptimeleon.incentive.app.domain.model.ShoppingItem
 import timber.log.Timber
 import java.text.NumberFormat
-import java.util.Locale
+import java.util.*
 import javax.inject.Inject
 
 /**
@@ -96,21 +96,21 @@ class ScanViewModel @Inject constructor(
                 state.value?.let {
                     val putItemSuccessful =
                         basketRepository.putItemIntoCurrentBasket(
-                            it.count,
-                            it.item.id
+                            it.shoppingItem.id,
+                            it.count
                         )
 
                     withContext(Dispatchers.Main) {
                         if (putItemSuccessful) {
                             Toast.makeText(
                                 getApplication(),
-                                "Successfully put ${it.item.id} to basket.",
+                                "Successfully put ${it.shoppingItem.id} to basket.",
                                 Toast.LENGTH_SHORT
                             ).show()
                         } else {
                             Toast.makeText(
                                 getApplication(),
-                                "An error occured when trying to put ${it.item.id} to basket.",
+                                "An error occured when trying to put ${it.shoppingItem.id} to basket.",
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
@@ -127,7 +127,7 @@ class ScanViewModel @Inject constructor(
 private val locale = Locale.GERMANY
 private val currencyFormat = NumberFormat.getCurrencyInstance(locale)
 
-data class ScanState(val item: Item, val count: Int) {
-    val priceSingle: String = currencyFormat.format(item.price / 100.0)
-    val priceTotal: String = currencyFormat.format(item.price * count / 100.0)
+data class ScanState(val shoppingItem: ShoppingItem, val count: Int) {
+    val priceSingle: String = currencyFormat.format(shoppingItem.price / 100.0)
+    val priceTotal: String = currencyFormat.format(shoppingItem.price * count / 100.0)
 }
