@@ -39,7 +39,6 @@ public class NutellaReward implements Reward {
 
     @Override
     public SpendDeductTree generateRelationTree(Vector<BigInteger> basketPoints) {
-        // newPoints = 1 * oldPoints + (basketPoints - 4)
         // && newPoints >= 0
         return new TokenUpdateLeaf(
                 "nutella-leaf",
