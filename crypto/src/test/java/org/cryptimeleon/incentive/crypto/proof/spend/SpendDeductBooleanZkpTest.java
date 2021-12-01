@@ -90,10 +90,7 @@ class SpendDeductBooleanZkpTest {
     void testRangeProofLeaf() {
         var proofTree = new TokenPointsLeaf("RangeProof", lowerLimits, upperLimits);
 
-        assertTrue(proofTree.isValidForPoints(
-                new RingElementVector(Vector.fromStreamPlain(points.stream().map(this.zn::getElement))),
-                new RingElementVector(Vector.fromStreamPlain(newPoints.stream().map(this.zn::getElement)))
-        ));
+        assertTrue(proofTree.isValidForPoints(points, newPoints));
 
         SpendDeductBooleanZkp sigmaProtocol = new SpendDeductBooleanZkp(proofTree, pp, promotion, providerKey.getPk());
 
@@ -141,10 +138,10 @@ class SpendDeductBooleanZkpTest {
         var secondInvalidLeaf = new TokenPointsLeaf("RangeProofInvalid2", lowerLimits, invalidUpperLimits);
 
         // Check isValidForPoints works correctly
-        assertTrue(firstValidLeaf.isValidForPoints(pointsREV, newPointsREV));
-        assertTrue(secondValidLeaf.isValidForPoints(pointsREV, newPointsREV));
-        assertFalse(firstInvalidLeaf.isValidForPoints(pointsREV, newPointsREV));
-        assertFalse(secondInvalidLeaf.isValidForPoints(pointsREV, newPointsREV));
+        assertTrue(firstValidLeaf.isValidForPoints(points, newPoints));
+        assertTrue(secondValidLeaf.isValidForPoints(points, newPoints));
+        assertFalse(firstInvalidLeaf.isValidForPoints(points, newPoints));
+        assertFalse(secondInvalidLeaf.isValidForPoints(points, newPoints));
 
         SpendDeductBooleanZkp sigmaProtocol = new SpendDeductBooleanZkp(new SpendDeductOrNode(firstValidLeaf, secondValidLeaf), pp, promotion, providerKey.getPk());
         FiatShamirProofSystem fiatShamirProofSystem = new FiatShamirProofSystem(sigmaProtocol);
