@@ -17,27 +17,10 @@ buildscript {
     }
 }
 
-plugins {
-    id 'com.diffplug.spotless' version '5.14.2'
-}
-
 allprojects {
     repositories {
         google()
         mavenCentral()
         mavenLocal()
-    }
-}
-
-subprojects {
-    apply plugin: 'com.diffplug.spotless'
-    spotless {
-        kotlin {
-            target '**/*.kt'
-            targetExclude("$buildDir/**/*.kt")
-            targetExclude('bin/**/*.kt')
-
-            ktlint("0.42.1")
-        }
     }
 }
