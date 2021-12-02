@@ -3,10 +3,11 @@ package org.cryptimeleon.incentive.app.domain
 import kotlinx.coroutines.flow.Flow
 import org.cryptimeleon.incentive.app.domain.model.Basket
 import org.cryptimeleon.incentive.app.domain.model.ShoppingItem
+import org.cryptimeleon.incentive.app.util.SLE
 
 interface IBasketRepository {
 
-    val basket: Flow<Basket>
+    val basket: Flow<Basket?>
     val shoppingItems: Flow<List<ShoppingItem>>
 
     /**

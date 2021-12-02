@@ -68,6 +68,11 @@ class CryptoRepository(
             jsonConverter.serialize(userKeyPair.pk.representation)
         )
 
+        if (!joinResponse.isSuccessful) {
+            throw RuntimeException("Join Response not successful!")
+        }
+
+
         val token = incentiveSystem.handleJoinRequestResponse(
             promotionParameters,
             providerPublicKey,

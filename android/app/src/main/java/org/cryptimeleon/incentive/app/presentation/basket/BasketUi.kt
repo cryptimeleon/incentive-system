@@ -30,7 +30,7 @@ import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import org.cryptimeleon.incentive.app.util.SLE
 import java.util.*
 
-val wrongUUID: UUID = UUID.randomUUID() // This uuid will never be the id of a basket item
+val wrongId: String= UUID.randomUUID().toString() // This uuid will never be the id of a basket item
 val currencyFormat: NumberFormat = NumberFormat.getCurrencyInstance(Locale.GERMANY)
 
 fun formatCents(valueCents: Int): String = currencyFormat.format(valueCents.toDouble() / 100)
@@ -53,13 +53,13 @@ fun BasketUi(openSettings: () -> Unit, openBenchmark: () -> Unit) {
 @Composable
 private fun BasketUi(
     basketSle: SLE<Basket>,
-    setItemCount: (UUID, Int) -> Unit,
+    setItemCount: (String, Int) -> Unit,
     pay: () -> Unit,
     discard: () -> Unit,
     openSettings: () -> Unit = {},
     openBenchmark: () -> Unit = {}
 ) {
-    var expandedBasketItem by remember { mutableStateOf<UUID>(wrongUUID) }
+    var expandedBasketItem by remember { mutableStateOf(wrongId) }
     val lazyListState = rememberLazyListState()
 
     Scaffold(topBar = {
@@ -108,7 +108,7 @@ private fun BasketUi(
                                 expanded = expandedBasketItem == item.itemId,
                                 onClick = {
                                     expandedBasketItem =
-                                        if (expandedBasketItem == item.itemId) wrongUUID else item.itemId
+                                        if (expandedBasketItem == item.itemId) wrongId else item.itemId
                                 }
                             ) { count ->
                                 setItemCount(item.itemId, count)
@@ -266,13 +266,13 @@ private fun BasketItem(
 val testBasketItemList =
     listOf(
         BasketItem(
-            UUID.randomUUID(),
+            UUID.randomUUID().toString(),
             "Apple",
             199,
             8
         ),
         BasketItem(
-            UUID.randomUUID(),
+            UUID.randomUUID().toString(),
             "Ipad with a really, really long title !!!!!!!!!!",
             89999,
             1

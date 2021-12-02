@@ -28,7 +28,11 @@ class BasketViewModel @Inject constructor(
 ) : AndroidViewModel(application) {
 
     val basket = basketRepository.basket.map {
-        SLE.Success(it)
+        if (it != null) {
+            SLE.Success(it)
+        } else {
+            SLE.Error()
+        }
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
@@ -36,10 +40,10 @@ class BasketViewModel @Inject constructor(
     )
 
 
-    fun setItemCount(itemId: UUID, count: Int) {
+    fun setItemCount(itemId: String, count: Int) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                if (!basketRepository.setBasketItemCount(itemId, count)) {
+                if (!basketRepository.putItemIntoCurrentBasket(itemId, count)) {
                     withContext(Dispatchers.Main) {
                         Toast.makeText(
                             getApplication(),

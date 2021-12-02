@@ -1,22 +1,46 @@
 package org.cryptimeleon.incentive.app.data.database.basket
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
-import java.util.*
+import androidx.room.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import org.cryptimeleon.incentive.app.domain.model.Basket
+import org.cryptimeleon.incentive.app.domain.model.BasketItem
 
 @Dao
 interface BasketDao {
-    @Query("SELECT basketId FROM baskets WHERE active=1 LIMIT 1")
-    suspend fun getActiveBasketId(): UUID?
+    @Query("SELECT * FROM baskets LIMIT 1")
+    fun observeBasketEntity(): Flow<BasketEntity?>
+
+    @Query("SELECT * FROM `shopping-items`")
+    fun observeBasketItemEntities(): Flow<List<BasketItemEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertBasket(basketEntity: BasketEntity)
+    suspend fun setBasketEntity(basketEntity: BasketEntity)
 
-    @Query("UPDATE baskets SET active=:active WHERE basketId = :id")
-    fun setActive(active: Boolean, id: UUID)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun putBasketItem(basketItemEntity: BasketItemEntity)
 
-    @Query("UPDATE baskets SET active=0")
-    fun setAllInactive()
+    @Delete
+    suspend fun removeBasketItem(basketItemEntity: BasketItemEntity)
+
+    fun observeBasket(): Flow<Basket?> =
+        observeBasketEntity().combine(observeBasketItemEntities()) { a: BasketEntity?, b: List<BasketItemEntity> ->
+            if (a!= null) {
+                Basket(
+                    basketId = a.basketId,
+                    paid = a.paid,
+                    redeemed = a.redeemed,
+                    value = a.value,
+                    items = b.map {
+                        BasketItem(
+                            itemId = it.shoppingItemId,
+                            count = it.count,
+                            price = it.price,
+                            title = it.title
+                        )
+                    })
+            } else {
+                null
+            }
+        }
 }
