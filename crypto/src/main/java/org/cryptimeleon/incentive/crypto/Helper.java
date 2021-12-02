@@ -5,6 +5,8 @@ import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
+import org.cryptimeleon.math.serialization.Representable;
+import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.groups.Group;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
@@ -107,6 +109,16 @@ public class Helper {
                 new UserPublicKey(usedG1.getUniformlyRandomElement()),
                 usedZn.getUniformlyRandomElement(),
                 usedZn.getUniformlyRandomElement()
+        );
+    }
+
+    /**
+     * Helper method to shorten code, returns a serialized representation of the passed representable.
+     */
+    public static String computeSerializedRepresentation(Representable r) {
+        JSONConverter jsonConverter = new JSONConverter();
+        return jsonConverter.serialize(
+                r.getRepresentation()
         );
     }
 

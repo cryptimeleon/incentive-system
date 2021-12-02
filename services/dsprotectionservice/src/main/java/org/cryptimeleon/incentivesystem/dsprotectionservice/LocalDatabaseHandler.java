@@ -1,5 +1,6 @@
 package org.cryptimeleon.incentivesystem.dsprotectionservice;
 
+import org.cryptimeleon.incentive.client.WebClientHelper;
 import org.cryptimeleon.incentive.crypto.dsprotectionlogic.DatabaseHandler;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.Transaction;
@@ -14,6 +15,7 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.ArrayList;
 
@@ -23,10 +25,11 @@ import java.util.ArrayList;
 public class LocalDatabaseHandler implements DatabaseHandler {
     private Logger logger = LoggerFactory.getLogger(LocalDatabaseHandler.class);
 
-    // TODO: does this annotation work here?
-    @Autowired
-    CryptoRepository cryptoRepository;
+    private WebClient dsProtectionClient;
 
+    private IncentivePublicParameters pp;
+
+    // TODO: does this annotation work here?
     @Autowired
     DsidRepository dsidRepository;
 
@@ -38,6 +41,10 @@ public class LocalDatabaseHandler implements DatabaseHandler {
 
     @Autowired
     UserInfoRepository userInfoRepository;
+
+    public LocalDatabaseHandler(IncentivePublicParameters pp) {
+        this.pp = pp;
+    }
 
     /**
      * Adds an entry for the passed spend transaction to the database.
@@ -296,7 +303,7 @@ public class LocalDatabaseHandler implements DatabaseHandler {
     private Transaction convertTransactionEntry(TransactionEntry taEntry) {
         DsTagEntry taDsTagEntry = doubleSpendingTagRepository.findById(taEntry.getDsTagEntryId()).get();
         return new Transaction(
-                this.cryptoRepository.getPp(),
+                this.pp,
                 taEntry.isValid(),
                 taEntry.getSerializedTransactionIDRepr(),
                 taEntry.getK(),
@@ -318,12 +325,12 @@ public class LocalDatabaseHandler implements DatabaseHandler {
     private UserInfo convertUserInfoEntry(UserInfoEntry uiEntry) {
         // create JSON converter and shorthand for the ring Zn used in the system
         JSONConverter jsonConverter = new JSONConverter();
-        Zn usedZn = cryptoRepository.getPp().getBg().getZn();
+        Zn usedZn = this.pp.getBg().getZn();
 
         // restore fields from representations
         UserPublicKey upk = new UserPublicKey(
                 jsonConverter.deserialize(uiEntry.getSerializedUpkRepr()),
-                cryptoRepository.getPp().getBg().getG1()
+                this.pp.getBg().getG1()
         );
         Zn.ZnElement dsBlame = usedZn.restoreElement(
                 jsonConverter.deserialize(uiEntry.getSerializedDsBlameRepr())
@@ -347,7 +354,7 @@ public class LocalDatabaseHandler implements DatabaseHandler {
 
 
         JSONConverter jsonConverter = new JSONConverter(); // need a JSON converter for deserializing tids and gammas of transaction entries (required for comparison)
-        Zn usedZn = cryptoRepository.getPp().getBg().getZn();// store used ZN to shorten code
+        Zn usedZn = this.pp.getBg().getZn();// store used ZN to shorten code
 
         // look for one with fitting tid and gamma and return it
         for (TransactionEntry tae : taEntryList) {
@@ -380,7 +387,7 @@ public class LocalDatabaseHandler implements DatabaseHandler {
 
         // create a JSON converter + store first group from used bilinear group (to shorten code)
         JSONConverter jsonConverter = new JSONConverter();
-        Group groupG1 = cryptoRepository.getPp().getBg().getG1();
+        Group groupG1 = this.pp.getBg().getG1();
 
         // look for one with fitting value and return it
         for(DsIdEntry dside : dsidEntryList) {

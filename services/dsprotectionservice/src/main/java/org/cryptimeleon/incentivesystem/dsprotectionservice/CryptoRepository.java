@@ -2,6 +2,7 @@ package org.cryptimeleon.incentivesystem.dsprotectionservice;
 
 import lombok.Getter;
 import org.cryptimeleon.incentive.client.InfoClient;
+import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.slf4j.Logger;
@@ -14,7 +15,7 @@ import java.time.Duration;
 
 /**
  * Encapsulates all cryptographic assets/objects that the double-spending protection service needs.
- * This includes the public parameters of the underlying incentive system.
+ * This includes the underlying incentive system and its public parameters.
  */
 @Repository
 public class CryptoRepository {
@@ -24,6 +25,9 @@ public class CryptoRepository {
 
     @Getter
     private IncentivePublicParameters pp;
+
+    @Getter
+    private IncentiveSystem incSys;
 
     private final InfoClient infoClient; // reference to the object handling the queries to the info service, set via dependency injection ("autowired") mechanism of Spring Boot
 

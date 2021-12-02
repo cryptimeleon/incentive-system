@@ -12,6 +12,7 @@ import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.TokenPointsZkp;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.cartesian.Vector;
+import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -59,11 +60,15 @@ public class DeductService {
         var providerKeyPair = new ProviderKeyPair(providerSecretKey, providerPublicKey);
         var incentiveSystem = cryptoRepository.getIncentiveSystem();
 
+        // creating hard-coded transactionId and spend amount TODO: remove once basket server endpoints are implemented
+        Zn.ZnElement transactionId = pp.getBg().getZn().createZnElement(TRANSACTION_ID);
+        BigInteger spendAmount = new BigInteger(POINTS_REQUIRED.toString());
+
         // deserializing assets and wrapping up parameters for processing the request
         JSONConverter jsonConverter = new JSONConverter();
         SpendDeductTree legacyLeaf = new TokenUpdateLeaf(
                 "legacyLeaf",
-                new Vector<BigInteger>(POINTS_REQUIRED),
+                new Vector<BigInteger>(spendAmount),
                 null,
                 new Vector<BigInteger>(BigInteger.ONE),
                 new Vector<BigInteger>(BigInteger.ZERO)
@@ -71,7 +76,7 @@ public class DeductService {
         FiatShamirProofSystem spendDeductZkpProofSystem = new FiatShamirProofSystem( // proof system needed for constructing the spend request from a representation
                 new TokenPointsZkp(
                         pp,
-                        new Vector<BigInteger>(POINTS_REQUIRED),
+                        new Vector<BigInteger>(spendAmount),
                         null,
                         providerPublicKey,
                         incentiveSystem.legacyPromotionParameters()
@@ -81,7 +86,7 @@ public class DeductService {
                 jsonConverter.deserialize(serializedSpendRequest),
                 pp,
                 spendDeductZkpProofSystem,
-                pp.getBg().getZn().createZnElement(TRANSACTION_ID)
+                transactionId
         );
 
         // executing Deduct (i.e. processing the spend request)
@@ -89,7 +94,7 @@ public class DeductService {
                 incentiveSystem.legacyPromotionParameters(),
                 spendRequest,
                 providerKeyPair,
-                pp.getBg().getZn().createZnElement(TRANSACTION_ID),
+                transactionId,
                 new SpendDeductBooleanZkp(
                         legacyLeaf,
                         pp,
@@ -99,13 +104,12 @@ public class DeductService {
         );
 
         // adding the generated transaction data to the double-spending database
-        /**incentiveSystem.dbSync(
-                    transactionId,
-                    spendRequest.getDsid(),
-                    deductOutput.getDstag(),
-                    spendAmount,
-                    dsProtectionClient
-                );*/ // TODO: uncomment for production and system test
+        /** this.dsProtectionClient.dbSync(
+                transactionId,
+                spendRequest.getDsid(),
+                deductOutput.getDstag(),
+                spendAmount
+        ); */ // TODO: uncomment for production and system test
 
         // TODO: need to cache parameter tuple and only periodically send tuples over to dsprot. via dbsync
 
