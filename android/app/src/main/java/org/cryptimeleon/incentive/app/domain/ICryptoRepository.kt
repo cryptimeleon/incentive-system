@@ -3,6 +3,7 @@ package org.cryptimeleon.incentive.app.domain
 import kotlinx.coroutines.flow.Flow
 import org.cryptimeleon.incentive.app.data.database.crypto.CryptoMaterial
 import org.cryptimeleon.incentive.app.data.database.crypto.CryptoToken
+import org.cryptimeleon.incentive.crypto.model.PromotionParameters
 import java.util.*
 
 interface ICryptoRepository {
@@ -11,7 +12,7 @@ interface ICryptoRepository {
     val token: Flow<CryptoToken?>
     fun observeCryptoMaterial(): Flow<CryptoMaterial?>
 
-    suspend fun runIssueJoin(dummy: Boolean = false)
+    suspend fun runIssueJoin(promotionParameters: PromotionParameters, dummy: Boolean = false)
 
     suspend fun runCreditEarn(basketId: UUID, basketValue: Int)
 

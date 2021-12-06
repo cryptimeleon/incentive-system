@@ -1,6 +1,7 @@
 package org.cryptimeleon.incentive.app.data.database.basket
 
-import androidx.room.*
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import java.util.*
 
 @Entity(tableName = "baskets")
@@ -12,18 +13,3 @@ data class BasketEntity(
     val value: Int,
 )
 
-// Only store the shopping items for current basket since room does not really support nested relationships
-@Entity(tableName = "basket-items")
-data class BasketItemEntity(
-    @PrimaryKey val itemId: String,
-    val price: Int,
-    val title: String,
-    val count: Int
-)
-
-@Entity(tableName = "shopping-items")
-data class ShoppingItemEntity(
-    @PrimaryKey val itemId: String,
-    val price: Int,
-    val title: String,
-)

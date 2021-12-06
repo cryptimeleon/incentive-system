@@ -7,13 +7,12 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
 import org.cryptimeleon.incentive.app.data.BasketRepository
 import org.cryptimeleon.incentive.app.data.CryptoRepository
 import org.cryptimeleon.incentive.app.data.PromotionRepository
 import org.cryptimeleon.incentive.app.data.database.basket.BasketDatabase
 import org.cryptimeleon.incentive.app.data.database.crypto.CryptoDatabase
+import org.cryptimeleon.incentive.app.data.database.promotion.PromotionDatabase
 import org.cryptimeleon.incentive.app.data.network.*
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -22,8 +21,6 @@ import javax.inject.Singleton
 
 private const val BASKET_BASE_URL = "https://incentives.cs.upb.de/basket/"
 private const val INFO_BASE_URL = "https://incentives.cs.upb.de/info/"
-private const val ISSUE_BASE_URL = "https://incentives.cs.upb.de/issue/"
-private const val CREDIT_BASE_URL = "https://incentives.cs.upb.de/credit/"
 private const val PROMOTION_BASE_URL = "https://incentives.cs.upb.de/promotion/"
 
 @Module
@@ -41,15 +38,6 @@ class HiltApiModule {
 
     @Singleton
     @Provides
-    fun provideCreditApiService(): CreditEarnApiService =
-        Retrofit.Builder()
-            .addConverterFactory(ScalarsConverterFactory.create())
-            .baseUrl(CREDIT_BASE_URL)
-            .build()
-            .create(CreditEarnApiService::class.java)
-
-    @Singleton
-    @Provides
     fun provideInfoApiService(): InfoApiService =
         Retrofit.Builder()
             .addConverterFactory(ScalarsConverterFactory.create())
@@ -59,18 +47,10 @@ class HiltApiModule {
 
     @Singleton
     @Provides
-    fun provideIssueJoinApiService(): IssueJoinApiService =
-        Retrofit.Builder()
-            .addConverterFactory(ScalarsConverterFactory.create())
-            .baseUrl(ISSUE_BASE_URL)
-            .build()
-            .create(IssueJoinApiService::class.java)
-
-    @Singleton
-    @Provides
     fun providePromotionApiService(): PromotionApiService =
         Retrofit.Builder()
             .addConverterFactory(ScalarsConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create())
             .baseUrl(PROMOTION_BASE_URL)
             .build()
             .create(PromotionApiService::class.java)
@@ -95,6 +75,14 @@ class HiltDatabaseModule {
             context,
             BasketDatabase::class.java, "basket.db"
         ).build()
+
+    @Singleton
+    @Provides
+    fun providePromotionDatabase(@ApplicationContext context: Context): PromotionDatabase =
+        Room.databaseBuilder(
+            context,
+            PromotionDatabase::class.java, "promotion.db"
+        ).build()
 }
 
 @Module
@@ -104,15 +92,13 @@ class HiltRepositoryModule {
     @Singleton
     @Provides
     fun provideCryptoRepository(
-        creditEarnApiService: CreditEarnApiService,
         infoApiService: InfoApiService,
-        issueJoinApiService: IssueJoinApiService,
+        promotionApiService: PromotionApiService,
         cryptoDatabase: CryptoDatabase,
     ): CryptoRepository =
         CryptoRepository(
-            creditEarnApiService,
             infoApiService,
-            issueJoinApiService,
+            promotionApiService,
             cryptoDatabase.cryptoDatabaseDao(),
         )
 
@@ -131,8 +117,10 @@ class HiltRepositoryModule {
     @Provides
     fun providePromotionRepository(
         promotionApiService: PromotionApiService,
+        promotionDatabase: PromotionDatabase
     ): PromotionRepository =
         PromotionRepository(
-            promotionApiService
+            promotionApiService,
+            promotionDatabase.promotionDatabaseDao()
         )
 }

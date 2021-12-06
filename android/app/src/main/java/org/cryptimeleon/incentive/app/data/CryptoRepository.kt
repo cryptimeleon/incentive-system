@@ -8,12 +8,12 @@ import org.cryptimeleon.incentive.app.data.database.crypto.CryptoDao
 import org.cryptimeleon.incentive.app.data.database.crypto.CryptoMaterial
 import org.cryptimeleon.incentive.app.data.database.crypto.CryptoToken
 import org.cryptimeleon.incentive.app.data.database.crypto.CryptoUtil
-import org.cryptimeleon.incentive.app.data.network.CreditEarnApiService
 import org.cryptimeleon.incentive.app.data.network.InfoApiService
-import org.cryptimeleon.incentive.app.data.network.IssueJoinApiService
+import org.cryptimeleon.incentive.app.data.network.PromotionApiService
 import org.cryptimeleon.incentive.app.domain.ICryptoRepository
 import org.cryptimeleon.incentive.crypto.IncentiveSystem
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters
+import org.cryptimeleon.incentive.crypto.model.PromotionParameters
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey
 import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse
 import org.cryptimeleon.math.serialization.converter.JSONConverter
@@ -29,9 +29,8 @@ import java.util.*
  * TODO add caching (e.g. by hashing the serialized assets and putting the deserialized object into a hashmap)
  */
 class CryptoRepository(
-    private val creditEarnApiService: CreditEarnApiService,
     private val infoApiService: InfoApiService,
-    private val issueJoinApiService: IssueJoinApiService,
+    private val promotionApiService: PromotionApiService,
     private val cryptoDao: CryptoDao,
 ) : ICryptoRepository {
     private val jsonConverter = JSONConverter()
@@ -54,22 +53,25 @@ class CryptoRepository(
             }
         }
 
-    override suspend fun runIssueJoin(dummy: Boolean) {
+    override suspend fun runIssueJoin(promotionParameters: PromotionParameters, dummy: Boolean) {
         val cryptoMaterial = observeCryptoMaterial().first()!!
         val pp = cryptoMaterial.pp
         val incentiveSystem = cryptoMaterial.incentiveSystem
         val providerPublicKey = cryptoMaterial.ppk
         val userKeyPair = cryptoMaterial.ukp
-        val promotionParameters = incentiveSystem.legacyPromotionParameters()
 
         val joinRequest = incentiveSystem.generateJoinRequest(providerPublicKey, userKeyPair)
-        val joinResponse = issueJoinApiService.runIssueJoin(
+        val joinResponse = promotionApiService.runIssueJoin(
             jsonConverter.serialize(joinRequest.representation),
+            promotionParameters.promotionId.toString(),
             jsonConverter.serialize(userKeyPair.pk.representation)
         )
 
         if (!joinResponse.isSuccessful) {
-            throw RuntimeException("Join Response not successful!")
+            throw RuntimeException(
+                "Join Response not successful: " + joinResponse.code() + "\n" + joinResponse.errorBody()!!
+                    .string()
+            )
         }
 
 
@@ -101,8 +103,9 @@ class CryptoRepository(
 
         val earnRequest =
             incentiveSystem.generateEarnRequest(token, providerPublicKey, userKeyPair)
-        val earnResponse = creditEarnApiService.runCreditEarn(
+        val earnResponse = promotionApiService.runCreditEarn(
             basketId,
+            promotionParameters.promotionId.toInt(),
             jsonConverter.serialize(earnRequest.representation)
         )
 

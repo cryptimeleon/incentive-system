@@ -23,7 +23,7 @@ docker build \
   -f services/Dockerfile .
 
 # promotion service
-DEPENDENCY_PATH=services/promotion/build/dependency
+DEPENDENCY_PATH=services/inc/build/dependency
 mkdir -p $DEPENDENCY_PATH && (cd $DEPENDENCY_PATH; jar -xf ../libs/*.jar)
 docker build \
   --build-arg DEPENDENCY=$DEPENDENCY_PATH \

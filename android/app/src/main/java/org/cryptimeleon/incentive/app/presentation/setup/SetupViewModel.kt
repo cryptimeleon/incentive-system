@@ -7,8 +7,10 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Transformations
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.first
 import org.cryptimeleon.incentive.app.data.BasketRepository
 import org.cryptimeleon.incentive.app.data.CryptoRepository
+import org.cryptimeleon.incentive.app.data.PromotionRepository
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -24,6 +26,7 @@ enum class SetupState {
 class SetupViewModel @Inject constructor(
     private val cryptoRepository: CryptoRepository,
     private val basketRepository: BasketRepository,
+    private val promotionRepository: PromotionRepository,
     application: Application,
 ) : AndroidViewModel(application) {
     private val viewModelJob = Job()
@@ -56,6 +59,10 @@ class SetupViewModel @Inject constructor(
     fun startSetup() {
         uiScope.launch {
             withContext(Dispatchers.IO) {
+                // Load promotions TODO make this more efficient
+                promotionRepository.reloadPromotions()
+                val promotions = promotionRepository.promotions.first()
+
                 // Load pp and provider keys
                 Timber.i("Load crypto material and generate keys if needed")
                 _setupState.postValue(SetupState.LOADING_CRYPTO_MATERIAL)
@@ -64,7 +71,9 @@ class SetupViewModel @Inject constructor(
                 // Load (dummy-) token
                 Timber.i("Run issue-join protocol for new (dummy-) token, setup crypto repository")
                 _setupState.postValue(SetupState.ISSUE_JOIN)
-                cryptoRepository.runIssueJoin(storeDummy)
+                promotions.forEach {
+                    cryptoRepository.runIssueJoin(it.promotionParameters, storeDummy)
+                }
 
                 // Ensure there is an active basket
                 Timber.i("Setup basket")
