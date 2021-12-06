@@ -9,27 +9,17 @@ services:
     networks:
       - provider
     hostname: infoservice
-  issueservice:
-    image: cryptimeleon/incentive-service-issue:0.5.0
+  promotionservice:
+    image: cryptimeleon/incentive-service-promotion:0.5.0
     ports:
-      - "8001:8001"
-    environment:
-      - SPRING_PROFILES_ACTIVE=production
-      - PROVIDER_SHARED_SECRET=${SHARED_SECRET}
-    networks:
-      - provider
-    hostname: issueservice
-  creditservice:
-    image: cryptimeleon/incentive-service-credit:0.5.0
-    ports:
-      - "8002:8002"
+      - "8012:8012"
     environment:
       - SPRING_PROFILES_ACTIVE=production
       - BASKET_SERVICE_REDEEM_SECRET=${BASKET_REDEEM_SECRET}
       - PROVIDER_SHARED_SECRET=${SHARED_SECRET}
     networks:
       - provider
-    hostname: creditservice
+    hostname: promotionservice
   basketservice:
     image: cryptimeleon/incentive-service-basket:0.5.0
     ports:
