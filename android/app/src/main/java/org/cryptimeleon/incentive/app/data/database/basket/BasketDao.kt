@@ -11,36 +11,27 @@ interface BasketDao {
     @Query("SELECT * FROM baskets LIMIT 1")
     fun observeBasketEntity(): Flow<BasketEntity?>
 
-    @Query("SELECT * FROM `shopping-items`")
-    fun observeBasketItemEntities(): Flow<List<BasketItemEntity>>
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun setBasketEntity(basketEntity: BasketEntity)
 
+    @Query("SELECT * FROM `basket-items`")
+    fun observeBasketItemEntities(): Flow<List<BasketItemEntity>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun putBasketItem(basketItemEntity: BasketItemEntity)
+    suspend fun insertBasketItems(basketItemsEntity: List<BasketItemEntity>)
 
     @Delete
     suspend fun removeBasketItem(basketItemEntity: BasketItemEntity)
 
-    fun observeBasket(): Flow<Basket?> =
-        observeBasketEntity().combine(observeBasketItemEntities()) { a: BasketEntity?, b: List<BasketItemEntity> ->
-            if (a!= null) {
-                Basket(
-                    basketId = a.basketId,
-                    paid = a.paid,
-                    redeemed = a.redeemed,
-                    value = a.value,
-                    items = b.map {
-                        BasketItem(
-                            itemId = it.shoppingItemId,
-                            count = it.count,
-                            price = it.price,
-                            title = it.title
-                        )
-                    })
-            } else {
-                null
-            }
-        }
+    @Query("DELETE FROM `basket-items`")
+    suspend fun deleteAllBasketItems()
+
+    @Query("SELECT * FROM `shopping-items`")
+    fun observeShoppingItems(): Flow<List<ShoppingItemEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertShoppingItems(shoppingItemsEntity: List<ShoppingItemEntity>)
+
+    @Query("DELETE FROM `shopping-items`")
+    suspend fun deleteAllShoppingItems()
 }

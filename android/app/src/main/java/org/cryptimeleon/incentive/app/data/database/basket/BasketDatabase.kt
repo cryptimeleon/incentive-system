@@ -6,7 +6,7 @@ import androidx.room.TypeConverters
 
 // Annotates class to be a Room Database with a table (entity) of the Word class
 @Database(
-    entities = [BasketEntity::class, BasketItemEntity::class],
+    entities = [BasketEntity::class, BasketItemEntity::class, ShoppingItemEntity::class],
     version = 1,
     exportSchema = false
 )

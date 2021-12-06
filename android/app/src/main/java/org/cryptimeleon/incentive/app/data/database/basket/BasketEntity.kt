@@ -13,10 +13,17 @@ data class BasketEntity(
 )
 
 // Only store the shopping items for current basket since room does not really support nested relationships
-@Entity(tableName = "shopping-items")
+@Entity(tableName = "basket-items")
 data class BasketItemEntity(
-    @PrimaryKey val shoppingItemId: String,
+    @PrimaryKey val itemId: String,
     val price: Int,
     val title: String,
     val count: Int
+)
+
+@Entity(tableName = "shopping-items")
+data class ShoppingItemEntity(
+    @PrimaryKey val itemId: String,
+    val price: Int,
+    val title: String,
 )

@@ -32,49 +32,79 @@ class BasketDatabaseTest {
         db.close()
     }
 
+    val basket = BasketEntity(
+        basketId = UUID.randomUUID(),
+        value = 10,
+        redeemed = false,
+        paid = false,
+    )
+
     @Test
     @Throws(Exception::class)
     fun testBasket() = runBlocking {
-        val basketFlow = basketDao.observeBasket()
+        val basketFlow = basketDao.observeBasketEntity()
         Assert.assertNull(basketFlow.first())
-
-        val basket = BasketEntity(
-            basketId = UUID.randomUUID(),
-            value = 10,
-            redeemed = false,
-            paid = false,
-        )
         basketDao.setBasketEntity(basket)
-        Assert.assertNotNull(basketFlow.first())
+        Assert.assertEquals(basket, basketFlow.first())
+    }
 
-        val firstBasketItemEntity = BasketItemEntity(
-            "first-item",
-            199,
-            "Chocolate",
-            4
-        )
-        val secondBasketItemEntity = BasketItemEntity(
-            "second-item",
-            99,
-            "Banana",
-            2
-        )
-        basketDao.putBasketItem(firstBasketItemEntity)
-        Assert.assertEquals(1, basketFlow.first()!!.items.size)
+    val firstBasketItemEntity = BasketItemEntity(
+        "first-item",
+        199,
+        "Chocolate",
+        4
+    )
 
-        basketDao.putBasketItem(secondBasketItemEntity)
-        Assert.assertEquals(2, basketFlow.first()!!.items.size)
+    val secondBasketItemEntity = BasketItemEntity(
+        "second-item",
+        99,
+        "Banana",
+        2
+    )
 
-        basketDao.putBasketItem(firstBasketItemEntity.copy(count = 5))
+    @Test
+    @Throws(Exception::class)
+    fun testBasketItems() = runBlocking {
+        val basketItemsFlow = basketDao.observeBasketItemEntities()
+        Assert.assertEquals(0, basketItemsFlow.first().size)
+        basketDao.insertBasketItems(listOf(firstBasketItemEntity, secondBasketItemEntity))
+        Assert.assertEquals(2, basketItemsFlow.first().size)
+        basketDao.insertBasketItems(listOf(firstBasketItemEntity.copy(count = 5)))
         Assert.assertEquals(
             5,
-            basketFlow.first()!!.items.find { it.itemId == firstBasketItemEntity.shoppingItemId }!!.count
+            basketItemsFlow.first().find { it.itemId == firstBasketItemEntity.itemId }!!.count
         )
 
         basketDao.removeBasketItem(firstBasketItemEntity)
+        Assert.assertEquals(1, basketItemsFlow.first().size)
+        Assert.assertEquals(secondBasketItemEntity, basketItemsFlow.first()[0])
+        basketDao.deleteAllBasketItems()
+        Assert.assertEquals(0, basketItemsFlow.first().size)
+    }
+
+
+    val firstShoppingItemEntity = ShoppingItemEntity(
+        "first", 199, "Potato"
+    )
+    val secondShoppingItemEntity = ShoppingItemEntity(
+        "second", 499, "Chocolate Cake"
+    )
+
+    @Test
+    @Throws(Exception::class)
+    fun testShoppingItems() = runBlocking {
+        val shoppingItemsFlow= basketDao.observeShoppingItems()
+        Assert.assertEquals(0, shoppingItemsFlow.first().size)
+        basketDao.insertShoppingItems(listOf(firstShoppingItemEntity, secondShoppingItemEntity))
+        Assert.assertEquals(2, shoppingItemsFlow.first().size)
+        basketDao.insertShoppingItems(listOf(firstShoppingItemEntity.copy(price = 149)))
         Assert.assertEquals(
-            1,
-            basketFlow.first()!!.items.size
+            149,
+            shoppingItemsFlow.first().find { it.itemId == firstShoppingItemEntity.itemId }!!.price
         )
+
+        basketDao.deleteAllShoppingItems()
+        basketDao.deleteAllBasketItems()
+        Assert.assertEquals(0, shoppingItemsFlow.first().size)
     }
 }
