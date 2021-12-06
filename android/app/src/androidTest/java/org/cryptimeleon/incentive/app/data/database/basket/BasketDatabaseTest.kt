@@ -32,7 +32,7 @@ class BasketDatabaseTest {
         db.close()
     }
 
-    val basket = BasketEntity(
+    private val basket = BasketEntity(
         basketId = UUID.randomUUID(),
         value = 10,
         redeemed = false,
@@ -48,14 +48,14 @@ class BasketDatabaseTest {
         Assert.assertEquals(basket, basketFlow.first())
     }
 
-    val firstBasketItemEntity = BasketItemEntity(
+    private val firstBasketItemEntity = BasketItemEntity(
         "first-item",
         199,
         "Chocolate",
         4
     )
 
-    val secondBasketItemEntity = BasketItemEntity(
+    private val secondBasketItemEntity = BasketItemEntity(
         "second-item",
         99,
         "Banana",
@@ -83,10 +83,10 @@ class BasketDatabaseTest {
     }
 
 
-    val firstShoppingItemEntity = ShoppingItemEntity(
+    private val firstShoppingItemEntity = ShoppingItemEntity(
         "first", 199, "Potato"
     )
-    val secondShoppingItemEntity = ShoppingItemEntity(
+    private val secondShoppingItemEntity = ShoppingItemEntity(
         "second", 499, "Chocolate Cake"
     )
 

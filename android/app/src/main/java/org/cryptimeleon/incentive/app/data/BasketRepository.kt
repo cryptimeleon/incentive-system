@@ -22,7 +22,7 @@ class BasketRepository(
     private val basketDao: BasketDao,
 ) : IBasketRepository {
 
-    override val basket = basketDao.observeBasketEntity()
+    override val basket: Flow<Basket?> = basketDao.observeBasketEntity()
         .combine(basketDao.observeBasketItemEntities()) { a: BasketEntity?, b: List<BasketItemEntity> ->
             if (a != null) basketEntityToBasket(a, b.map { basketItemEntityToItem(it) }) else null
         }

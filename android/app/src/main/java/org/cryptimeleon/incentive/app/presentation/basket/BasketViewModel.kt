@@ -103,15 +103,3 @@ class BasketViewModel @Inject constructor(
         }
     }
 }
-
-/**
- * Simple class for data binding
- */
-class BasketListItem(basketItem: BasketItem, var count: Int) {
-    private val locale = Locale.GERMANY
-    private val currencyFormat = NumberFormat.getCurrencyInstance(locale)
-
-    val priceSingle: String = currencyFormat.format(basketItem.price / 100.0)
-    val priceTotal: String = currencyFormat.format(basketItem.price * count / 100.0)
-    val countStr: String = count.toString()
-}
