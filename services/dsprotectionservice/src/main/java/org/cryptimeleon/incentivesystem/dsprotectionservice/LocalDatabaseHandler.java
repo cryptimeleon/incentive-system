@@ -29,17 +29,12 @@ public class LocalDatabaseHandler implements DatabaseHandler {
 
     private IncentivePublicParameters pp;
 
-    // TODO: does this annotation work here?
-    @Autowired
     DsidRepository dsidRepository;
 
-    @Autowired
     TransactionEntryRepository transactionRepository;
 
-    @Autowired
     DsTagEntryRepository doubleSpendingTagRepository;
 
-    @Autowired
     UserInfoRepository userInfoRepository;
 
     public LocalDatabaseHandler(IncentivePublicParameters pp) {

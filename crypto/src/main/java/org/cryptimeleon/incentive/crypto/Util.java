@@ -77,8 +77,18 @@ public class Util {
      * @return whether are relations are satisfied
      */
     public static boolean arePointsInRange(RingElementVector pointsVector, Vector<BigInteger> lowerLimits, Vector<BigInteger> upperLimits) {
-        boolean isValid = lowerLimits.zipReduce(pointsVector, (lowerLimit, points) -> lowerLimit == null || lowerLimit.compareTo(points.asInteger()) <= 0, (a, b) -> a && b);
-        isValid &= upperLimits.zipReduce(pointsVector, (upperLimit, points) -> upperLimit == null || upperLimit.compareTo(points.asInteger()) >= 0, (a, b) -> a && b);
+        boolean isValid = true;
+
+        // check for adherence to lower limits, if such are passed
+        if(lowerLimits != null) {
+            isValid &= lowerLimits.zipReduce(pointsVector, (lowerLimit, points) -> lowerLimit == null || lowerLimit.compareTo(points.asInteger()) <= 0, (a, b) -> a && b);
+        }
+
+        // check for adherence to upper limits, if such are passed
+        if(upperLimits != null) {
+            isValid &= upperLimits.zipReduce(pointsVector, (upperLimit, points) -> upperLimit == null || upperLimit.compareTo(points.asInteger()) >= 0, (a, b) -> a && b);
+        }
+
         return isValid;
     }
 }

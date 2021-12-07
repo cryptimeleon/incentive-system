@@ -6,7 +6,11 @@ import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.SpendResponse;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
+import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenUpdateLeaf;
+import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
+import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
+import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -99,20 +103,68 @@ public class DeductIntegrationTest {
         // generate token by simulating Issue-Join
         logger.info("Generating token with " + points.toString() + " points.");
         var joinRequest = incentiveSystem.generateJoinRequest(pkp.getPk(), ukp);
-        var joinResponse = incentiveSystem.generateJoinRequestResponse(pkp, ukp.getPk().getUpk(), joinRequest);
-        var token = incentiveSystem.handleJoinRequestResponse(pkp.getPk(), ukp, joinRequest, joinResponse);
+        var joinResponse = incentiveSystem.generateJoinRequestResponse(
+                incentiveSystem.legacyPromotionParameters(),
+                pkp,
+                ukp.getPk().getUpk(),
+                joinRequest
+        );
+        var token = incentiveSystem.handleJoinRequestResponse(
+                incentiveSystem.legacyPromotionParameters(),
+                pkp.getPk(),
+                ukp,
+                joinRequest,
+                joinResponse
+        );
 
         // add points to token by simulating Credit-Earn
         var earnRequest = incentiveSystem.generateEarnRequest(token, pkp.getPk(), ukp);
-        var signatureResponse = incentiveSystem.generateEarnRequestResponse(earnRequest, points, pkp);
-        token = incentiveSystem.handleEarnRequestResponse(earnRequest, signatureResponse, points, token, pkp.getPk(), ukp);
+        var signatureResponse = incentiveSystem.generateEarnRequestResponse(
+                incentiveSystem.legacyPromotionParameters(),
+                earnRequest,
+                new Vector<BigInteger>(points),
+                pkp
+        );
+        token = incentiveSystem.handleEarnRequestResponse(
+                incentiveSystem.legacyPromotionParameters(),
+                earnRequest,
+                signatureResponse,
+                new Vector<BigInteger>(points),
+                token,
+                pkp.getPk(),
+                ukp
+        );
 
         try{
             // generate and serialize spend request
             logger.info("Preparing to spend " + spendAmount.toString() + " points.");
             Zn.ZnElement transactionID = pp.getBg().getZn().getOneElement(); // TODO: remove this hard-coded tid once basket service endpoint works, other transaction IDs than oneElement won't work until then since tid is hard-coded in DeductService.runDeduct
             UUID basketID = UUID.randomUUID();
-            var spendRequest = incentiveSystem.generateSpendRequest(token, pkp.getPk(), spendAmount, ukp, transactionID);
+            SpendDeductTree legacyLeaf = new TokenUpdateLeaf(
+                    "legacyLeaf",
+                    new Vector<BigInteger>(spendAmount),
+                    null,
+                    new Vector<BigInteger>(BigInteger.ONE),
+                    new Vector<BigInteger>(BigInteger.ZERO)
+            );
+            var spendRequest = incentiveSystem.generateSpendRequest(
+                    incentiveSystem.legacyPromotionParameters(),
+                    token,
+                    pkp.getPk(),
+                    new Vector<BigInteger>(
+                            token.getPoints().get(0).sub(
+                                    pp.getBg().getZn().createZnElement(spendAmount)
+                            ).asInteger()
+                    ),
+                    ukp,
+                    transactionID,
+                    new SpendDeductBooleanZkp(
+                            legacyLeaf,
+                            pp,
+                            incentiveSystem.legacyPromotionParameters(),
+                            pkp.getPk()
+                    )
+            );
             var serializedSpendRequest = jsonConverter.serialize(spendRequest.getRepresentation());
 
             // send a request to the Deduct service to spend some points, receive and deserialize spend response
@@ -124,7 +176,7 @@ public class DeductIntegrationTest {
                     .uri(uriBuilder -> uriBuilder.path("/deduct").build())
                     .header("basket-id", basketID.toString())
                     .bodyValue(serializedSpendRequest) // spend request must be sent in the body since too large for header
-                    .exchange() // TODO: is this wrong, does exchange without request body?
+                    .exchange()
                     .expectStatus()
                     .isOk()
                     .expectBody(String.class)
@@ -141,11 +193,23 @@ public class DeductIntegrationTest {
 
             // handle spend response
             logger.info("Updating token.");
-            token = incentiveSystem.handleSpendRequestResponse(spendResponse, spendRequest, token, spendAmount, pkp.getPk(), ukp);
+            token = incentiveSystem.handleSpendRequestResponse(
+                    incentiveSystem.legacyPromotionParameters(),
+                    spendResponse,
+                    spendRequest,
+                    token,
+                    new Vector<BigInteger>(
+                            token.getPoints().get(0).sub(
+                                    pp.getBg().getZn().createZnElement(spendAmount)
+                            ).asInteger()
+                    ),
+                    pkp.getPk(),
+                    ukp
+            );
 
             // check for outcome correctness
             logger.info("Verifying token point count.");
-            Assertions.assertEquals(token.getPoints().getInteger(), points.subtract(spendAmount));
+            Assertions.assertEquals(token.getPoints().get(0).asInteger(), points.subtract(spendAmount));
         }
         // cover case that token does not contain enough points
         catch(IllegalArgumentException e) {
