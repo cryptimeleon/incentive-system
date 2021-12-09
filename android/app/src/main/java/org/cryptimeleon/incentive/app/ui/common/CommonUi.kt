@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.app.presentation.common
+package org.cryptimeleon.incentive.app.ui.common
 
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons

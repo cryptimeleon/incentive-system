@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.app.presentation.scan
+package org.cryptimeleon.incentive.app.ui.scan
 
 import android.annotation.SuppressLint
 import androidx.camera.core.ImageAnalysis

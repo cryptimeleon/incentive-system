@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.app.presentation.dashboard
+package org.cryptimeleon.incentive.app.ui.dashboard
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.*
@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import org.cryptimeleon.incentive.app.presentation.common.DefaultTopAppBar
+import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 
 @Composable

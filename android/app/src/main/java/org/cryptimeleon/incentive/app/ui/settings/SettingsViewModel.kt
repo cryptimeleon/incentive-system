@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.app.presentation.settings
+package org.cryptimeleon.incentive.app.ui.settings
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel

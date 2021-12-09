@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.app.presentation.setup
+package org.cryptimeleon.incentive.app.ui.setup
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.*

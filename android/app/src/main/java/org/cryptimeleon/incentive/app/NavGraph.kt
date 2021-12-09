@@ -15,12 +15,12 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import org.cryptimeleon.incentive.app.presentation.basket.BasketUi
-import org.cryptimeleon.incentive.app.presentation.benchmark.BenchmarkUi
-import org.cryptimeleon.incentive.app.presentation.dashboard.Dashboard
-import org.cryptimeleon.incentive.app.presentation.scan.ScanScreen
-import org.cryptimeleon.incentive.app.presentation.settings.Settings
-import org.cryptimeleon.incentive.app.presentation.setup.SetupUi
+import org.cryptimeleon.incentive.app.ui.basket.BasketUi
+import org.cryptimeleon.incentive.app.ui.benchmark.BenchmarkUi
+import org.cryptimeleon.incentive.app.ui.dashboard.Dashboard
+import org.cryptimeleon.incentive.app.ui.scan.ScanScreen
+import org.cryptimeleon.incentive.app.ui.settings.Settings
+import org.cryptimeleon.incentive.app.ui.setup.SetupUi
 
 object MainDestination {
     const val LOADING_ROUTE = "loading"

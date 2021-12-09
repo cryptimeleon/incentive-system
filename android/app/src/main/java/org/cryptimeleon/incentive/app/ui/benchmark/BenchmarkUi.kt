@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.app.presentation.benchmark
+package org.cryptimeleon.incentive.app.ui.benchmark
 
 import android.content.Intent
 import androidx.compose.foundation.layout.*

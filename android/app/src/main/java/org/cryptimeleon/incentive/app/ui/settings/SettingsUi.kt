@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.app.presentation.settings
+package org.cryptimeleon.incentive.app.ui.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

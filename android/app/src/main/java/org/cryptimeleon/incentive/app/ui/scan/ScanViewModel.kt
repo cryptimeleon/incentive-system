@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.app.presentation.scan
+package org.cryptimeleon.incentive.app.ui.scan
 
 import android.app.Application
 import android.widget.Toast

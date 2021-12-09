@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.app.presentation.basket
+package org.cryptimeleon.incentive.app.ui.basket
 
 import android.app.Application
 import android.widget.Toast
