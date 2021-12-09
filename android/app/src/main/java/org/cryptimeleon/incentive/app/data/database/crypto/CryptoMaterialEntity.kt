@@ -5,7 +5,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 
 @Entity(tableName = "crypto_material")
-data class SerializedCryptoMaterial(
+data class CryptoMaterialEntity(
     @ColumnInfo(name = "public_parameters") val serializedPublicParameters: String,
     @ColumnInfo(name = "provider_public_key") val serializedProviderPublicKey: String,
     @ColumnInfo(name = "user_secret_key") val serializedUserPublicKey: String,

@@ -93,7 +93,7 @@ class BasketDatabaseTest {
     @Test
     @Throws(Exception::class)
     fun testShoppingItems() = runBlocking {
-        val shoppingItemsFlow= basketDao.observeShoppingItems()
+        val shoppingItemsFlow = basketDao.observeShoppingItems()
         Assert.assertEquals(0, shoppingItemsFlow.first().size)
         basketDao.insertShoppingItems(listOf(firstShoppingItemEntity, secondShoppingItemEntity))
         Assert.assertEquals(2, shoppingItemsFlow.first().size)

@@ -8,23 +8,15 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface CryptoDao {
-    // TODO to handle more than one promotions, remove the LIKE 0 condition
-
-    @Query("SELECT * FROM crypto_material WHERE id LIKE 1 LIMIT 1")
-    fun observeSerializedCryptoMaterial(): Flow<SerializedCryptoMaterial?>
-
-    @Query("SELECT * FROM crypto_material WHERE id LIKE 1 LIMIT 1")
-    fun observeCryptoMaterial(): Flow<SerializedCryptoMaterial?>
+    @Query("SELECT * FROM crypto_material WHERE id LIKE 1")
+    fun observeCryptoMaterial(): Flow<CryptoMaterialEntity?>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertAsset(serializedCryptoMaterial: SerializedCryptoMaterial?)
+    suspend fun insertCryptoMaterial(cryptoMaterialEntity: CryptoMaterialEntity)
 
-    @Query("SELECT * FROM tokens WHERE crypto_material_id LIKE 1 LIMIT 1")
-    fun observeToken(): Flow<SerializedCryptoToken?>
+    @Query("SELECT * FROM tokens")
+    fun observeTokens(): Flow<List<CryptoTokenEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertToken(serializedCryptoToken: SerializedCryptoToken)
-
-    @Query("DELETE FROM tokens")
-    fun deleteAllTokens()
+    suspend fun insertToken(cryptoTokenEntity: CryptoTokenEntity)
 }

@@ -1,26 +1,28 @@
 package org.cryptimeleon.incentive.app.domain
 
 import kotlinx.coroutines.flow.Flow
-import org.cryptimeleon.incentive.app.data.database.crypto.CryptoMaterial
-import org.cryptimeleon.incentive.app.data.database.crypto.CryptoToken
+import org.cryptimeleon.incentive.app.domain.model.CryptoMaterial
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters
+import org.cryptimeleon.incentive.crypto.model.Token
 import java.util.*
 
 interface ICryptoRepository {
-    // Tokens change
-    // TODO Make sure pp (cryptoMaterial.first()) are valid when token changes
-    val token: Flow<CryptoToken?>
-    fun observeCryptoMaterial(): Flow<CryptoMaterial?>
+    // Flow of a list of all tokens. Can be identified by their promotion id.
+    val tokens: Flow<List<Token>>
 
-    suspend fun runIssueJoin(promotionParameters: PromotionParameters, dummy: Boolean = false)
-
-    suspend fun runCreditEarn(basketId: UUID, basketValue: Int)
+    // Flow of the crypto material
+    val cryptoMaterial: Flow<CryptoMaterial?>
 
     /**
-     * Refresh the crypto material by querying the info service. Deletes all old tokens if crypto
-     * material has changed.
+     * Refresh the crypto material by querying the info service.
      *
      * @return true if crypto material has changed
      */
     suspend fun refreshCryptoMaterial(): Boolean
+    suspend fun runIssueJoin(promotionParameters: PromotionParameters, dummy: Boolean = false)
+    suspend fun runCreditEarn(
+        basketId: UUID,
+        promotionParameters: PromotionParameters,
+        basketValue: Int
+    )
 }

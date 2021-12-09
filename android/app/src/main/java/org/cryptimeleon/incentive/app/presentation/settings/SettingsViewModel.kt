@@ -13,20 +13,20 @@ class SettingsViewModel @Inject constructor(
     cryptoRepository: CryptoRepository,
     application: Application,
 ) : AndroidViewModel(application) {
-    val publicParameter = cryptoRepository.observeCryptoMaterial().asLiveData().map {
+    val publicParameter = cryptoRepository.cryptoMaterial.asLiveData().map {
         it!!.pp.toString()
     }
-    val userSecretKey = cryptoRepository.observeCryptoMaterial().asLiveData().map {
+    val userSecretKey = cryptoRepository.cryptoMaterial.asLiveData().map {
         it!!.ukp.sk.toString()
     }
-    val userPublicKey = cryptoRepository.observeCryptoMaterial().asLiveData().map {
+    val userPublicKey = cryptoRepository.cryptoMaterial.asLiveData().map {
         it!!.ukp.pk.toString()
     }
-    val providerPublicKey = cryptoRepository.observeCryptoMaterial().asLiveData().map {
+    val providerPublicKey = cryptoRepository.cryptoMaterial.asLiveData().map {
         it!!.ppk.toString()
     }
 
-    val token = cryptoRepository.token.asLiveData().map {
-        it!!.toString()
+    val tokens = cryptoRepository.tokens.asLiveData().map { tokens ->
+        tokens.map { token -> token.toString() }
     }
 }

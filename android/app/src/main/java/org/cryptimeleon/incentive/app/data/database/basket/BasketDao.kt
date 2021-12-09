@@ -2,9 +2,6 @@ package org.cryptimeleon.incentive.app.data.database.basket
 
 import androidx.room.*
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
-import org.cryptimeleon.incentive.app.domain.model.Basket
-import org.cryptimeleon.incentive.app.domain.model.BasketItem
 
 @Dao
 interface BasketDao {

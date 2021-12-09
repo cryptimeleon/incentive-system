@@ -1,6 +1,5 @@
-package org.cryptimeleon.incentive.app.data.database.crypto
+package org.cryptimeleon.incentive.app.domain.model
 
-import org.cryptimeleon.incentive.crypto.IncentiveSystem
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair
@@ -12,6 +11,4 @@ data class CryptoMaterial(
     val pp: IncentivePublicParameters,
     val ppk: ProviderPublicKey,
     val ukp: UserKeyPair,
-    val incentiveSystem: IncentiveSystem,
-    val id: Int
 )

@@ -13,7 +13,10 @@ import org.cryptimeleon.incentive.app.data.PromotionRepository
 import org.cryptimeleon.incentive.app.data.database.basket.BasketDatabase
 import org.cryptimeleon.incentive.app.data.database.crypto.CryptoDatabase
 import org.cryptimeleon.incentive.app.data.database.promotion.PromotionDatabase
-import org.cryptimeleon.incentive.app.data.network.*
+import org.cryptimeleon.incentive.app.data.network.BasketApiService
+import org.cryptimeleon.incentive.app.data.network.CryptoApiService
+import org.cryptimeleon.incentive.app.data.network.InfoApiService
+import org.cryptimeleon.incentive.app.data.network.PromotionApiService
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
@@ -54,6 +57,16 @@ class HiltApiModule {
             .baseUrl(PROMOTION_BASE_URL)
             .build()
             .create(PromotionApiService::class.java)
+
+    @Singleton
+    @Provides
+    fun provideCryptoApiService(): CryptoApiService =
+        Retrofit.Builder()
+            .addConverterFactory(ScalarsConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create())
+            .baseUrl(PROMOTION_BASE_URL)
+            .build()
+            .create(CryptoApiService::class.java)
 }
 
 @Module
@@ -93,12 +106,12 @@ class HiltRepositoryModule {
     @Provides
     fun provideCryptoRepository(
         infoApiService: InfoApiService,
-        promotionApiService: PromotionApiService,
+        cryptoApiService: CryptoApiService,
         cryptoDatabase: CryptoDatabase,
     ): CryptoRepository =
         CryptoRepository(
             infoApiService,
-            promotionApiService,
+            cryptoApiService,
             cryptoDatabase.cryptoDatabaseDao(),
         )
 

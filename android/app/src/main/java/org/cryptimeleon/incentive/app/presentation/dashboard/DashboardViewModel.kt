@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.cryptimeleon.incentive.app.data.CryptoRepository
 import org.cryptimeleon.incentive.app.data.PromotionRepository
-import org.cryptimeleon.incentive.app.data.database.crypto.CryptoToken
+import org.cryptimeleon.incentive.crypto.model.Token
 import org.cryptimeleon.incentive.promotion.promotions.Promotion
 import javax.inject.Inject
 
@@ -34,14 +34,16 @@ class DashboardViewModel @Inject constructor(
     }
 
     val state: StateFlow<DashboardState> = promotionRepository.promotions
-        .combine(cryptoRepository.token) { a: List<Promotion>, b: CryptoToken? ->
+        .combine(cryptoRepository.tokens) { promotions: List<Promotion>, tokens: List<Token> ->
             DashboardState(
-                a.map {
+                promotions.map { promotion ->
+                    val token =
+                        tokens.find { promotion.promotionParameters.promotionId == it.promotionId }
                     PromotionState(
-                        title = it.promotionParameters.promotionId.toString(),
-                        description = it.rewards.toString(),
-                        count = if (b != null && b.promotionId == it.promotionParameters.promotionId.toInt()
-                        ) b.token.points.get(0).asInteger().toInt() else 0
+                        title = promotion.promotionParameters.promotionId.toString(),
+                        description = promotion.rewards.toString(),
+                        // TODO make this a vector
+                        count = token?.points?.get(0)?.asInteger()?.toInt() ?: 0
                     )
                 }
             )

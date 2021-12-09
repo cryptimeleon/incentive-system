@@ -1,7 +1,6 @@
 package org.cryptimeleon.incentive.app.presentation.basket
 
 import android.app.Application
-import android.icu.text.NumberFormat
 import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -15,9 +14,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.cryptimeleon.incentive.app.data.BasketRepository
 import org.cryptimeleon.incentive.app.data.CryptoRepository
-import org.cryptimeleon.incentive.app.domain.model.BasketItem
 import org.cryptimeleon.incentive.app.util.SLE
-import java.util.*
+import org.cryptimeleon.incentive.crypto.model.PromotionParameters
+import java.math.BigInteger
 import javax.inject.Inject
 
 @HiltViewModel
@@ -78,6 +77,8 @@ class BasketViewModel @Inject constructor(
                                 // Redeem basket
                                 cryptoRepository.runCreditEarn(
                                     basket.basketId,
+                                    // TODO this needs to be adapted!
+                                    PromotionParameters(BigInteger.ONE, 1),
                                     basket.value
                                 )
 

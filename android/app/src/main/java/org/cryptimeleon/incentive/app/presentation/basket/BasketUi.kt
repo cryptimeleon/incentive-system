@@ -30,7 +30,8 @@ import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import org.cryptimeleon.incentive.app.util.SLE
 import java.util.*
 
-val wrongId: String= UUID.randomUUID().toString() // This uuid will never be the id of a basket item
+val wrongId: String =
+    UUID.randomUUID().toString() // This uuid will never be the id of a basket item
 val currencyFormat: NumberFormat = NumberFormat.getCurrencyInstance(Locale.GERMANY)
 
 fun formatCents(valueCents: Int): String = currencyFormat.format(valueCents.toDouble() / 100)

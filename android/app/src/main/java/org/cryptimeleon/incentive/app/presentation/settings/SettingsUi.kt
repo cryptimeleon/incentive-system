@@ -22,7 +22,7 @@ fun Settings(onUpClicked: () -> Unit) {
     val ppk by viewModel.providerPublicKey.observeAsState("")
     val usk by viewModel.userSecretKey.observeAsState("")
     val upk by viewModel.userPublicKey.observeAsState("")
-    val token by viewModel.token.observeAsState("")
+    val tokens by viewModel.tokens.observeAsState(emptyList())
 
     Scaffold(
         topBar = {
@@ -58,10 +58,12 @@ fun Settings(onUpClicked: () -> Unit) {
                 "User Secret Key",
                 usk,
             )
-            CryptoItem(
-                "Token",
-                token,
-            )
+            tokens.forEachIndexed { index, token ->
+                CryptoItem(
+                    "Token ${index + 1}",
+                    token,
+                )
+            }
         }
     }
 }
