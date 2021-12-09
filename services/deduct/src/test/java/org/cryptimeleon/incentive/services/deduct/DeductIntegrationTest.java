@@ -143,7 +143,7 @@ public class DeductIntegrationTest {
             SpendDeductTree legacyLeaf = new TokenUpdateLeaf(
                     "legacyLeaf",
                     new Vector<BigInteger>(spendAmount),
-                    null,
+                    Vector.of((BigInteger) null), // TODO: maybe make this vector of maxvalue to fix null pointer exception
                     new Vector<BigInteger>(BigInteger.ONE),
                     new Vector<BigInteger>(BigInteger.ZERO)
             );
