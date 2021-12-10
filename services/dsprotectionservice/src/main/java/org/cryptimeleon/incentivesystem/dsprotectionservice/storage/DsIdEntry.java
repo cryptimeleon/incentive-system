@@ -48,4 +48,17 @@ public class DsIdEntry {
         this.serializedDsidRepr = serializedDsidRepr;
         this.associatedUserInfoId = associatedUserInfoId;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if(!o.getClass().equals(DsIdEntry.class)) {
+            return false;
+        }
+        else {
+            DsIdEntry otherDsId = (DsIdEntry) o;
+            return this.id == otherDsId.getId()
+                    && this.serializedDsidRepr.equals(otherDsId.getSerializedDsidRepr())
+                    && this.associatedUserInfoId == otherDsId.getAssociatedUserInfoId();
+        }
+    }
 }

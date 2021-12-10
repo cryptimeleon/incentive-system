@@ -5,6 +5,7 @@ import org.cryptimeleon.incentivesystem.dsprotectionservice.storage.TransactionE
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Optional;
 
 public class MockTransactionEntryRepository implements TransactionEntryRepository {
     private HashMap<Long, TransactionEntry> transactionEntries; // stores entries for all transactions in the repo
@@ -27,7 +28,7 @@ public class MockTransactionEntryRepository implements TransactionEntryRepositor
     /**
      * Stores all transaction entries from a passed list in the DB, returns the said list.
      */
-    public Iterable<TransactionEntry> saveAll(ArrayList<TransactionEntry> taEntries) {
+    public <S extends TransactionEntry> Iterable<S> saveAll(Iterable<S> taEntries) {
         for(TransactionEntry tae:taEntries) {
             transactionEntries.put(nextId, tae);
             nextId++;
@@ -38,14 +39,14 @@ public class MockTransactionEntryRepository implements TransactionEntryRepositor
     /**
      * Returns the entry with the specified id.
      */
-    public TransactionEntry findById(long id) {
-        return transactionEntries.get(id);
+    public Optional<TransactionEntry> findById(Long id) {
+        return Optional.ofNullable(transactionEntries.get(id));
     }
 
     /**
      * Returns true if and only if an entry with the passed id exists in the DB.
      */
-    public boolean existsById(long id) {
+    public boolean existsById(Long id) {
         return findById(id) != null;
     }
 
@@ -67,11 +68,11 @@ public class MockTransactionEntryRepository implements TransactionEntryRepositor
      * Retrieves the entries with the passed ids.
      * @return ArrayList of transaction entry objects
      */
-    public ArrayList<TransactionEntry> findAllById(ArrayList<Long> ids) {
+    public ArrayList<TransactionEntry> findAllById(Iterable<Long> ids) {
         ArrayList<TransactionEntry> results = new ArrayList<TransactionEntry>();
 
         for(long id:ids) {
-            TransactionEntry tae = findById(id);
+            TransactionEntry tae = findById(id).get();
             if(tae!=null) {
                 results.add(tae);
             }
@@ -90,13 +91,36 @@ public class MockTransactionEntryRepository implements TransactionEntryRepositor
     /**
      * Deletes the entry with the passed id from the database.
      */
-    public void deleteById(long id) {
+    public void deleteById(Long id) {
         transactionEntries.remove(id);
     }
 
-    public void delete(TransactionEntry tae) {
-        // TODO implement this, requires transaction entry to have an equals method
+    /**
+     * Deletes the passed transaction entry from the database if contained.
+     */
+    public void delete(TransactionEntry taEntry) {
+        for(long l: transactionEntries.keySet()) {
+            if(transactionEntries.get(l).equals(taEntry)) {
+                transactionEntries.remove(l);
+                return;
+            }
+        }
     }
 
-    // TODO: implement remaining methods of Spring's CRUD repo interface
+    /**
+     * Deletes all entries from the passed iterable from the database (if an entry is not contained in the database, it is skipped).
+     * @param taEntries
+     */
+    public void deleteAll(Iterable<? extends TransactionEntry> taEntries) {
+        for(TransactionEntry tae:taEntries) {
+            this.delete(tae);
+        }
+    }
+
+    /**
+     * Clears the database.
+     */
+    public void deleteAll() {
+        this.transactionEntries = new HashMap<Long, TransactionEntry>();
+    }
 }

@@ -70,4 +70,18 @@ public class UserInfoEntry {
         this.serializedDsBlameRepr = Util.computeSerializedRepresentation(uInfo.getDsBlame());
         this.serializedDsTraceRepr = Util.computeSerializedRepresentation(uInfo.getDsTrace());
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if(!o.getClass().equals(UserInfoEntry.class)) {
+            return false;
+        }
+        else {
+            UserInfoEntry otherUInfoEntry = (UserInfoEntry) o;
+            return this.id == otherUInfoEntry.getId()
+                    && this.serializedUpkRepr.equals(otherUInfoEntry.getSerializedUpkRepr())
+                    && this.serializedDsTraceRepr.equals(otherUInfoEntry.getSerializedDsTraceRepr())
+                    && this.serializedDsBlameRepr.equals(otherUInfoEntry.getSerializedDsBlameRepr());
+        }
+    }
 }

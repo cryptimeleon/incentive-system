@@ -42,6 +42,23 @@ public class LocalDatabaseHandler implements DatabaseHandler {
     }
 
     /**
+     * Additional constructor for testing, allows to instantiate repository fields with hash map based mock repositories.
+     */
+    public LocalDatabaseHandler(
+            IncentivePublicParameters pp,
+            DsidRepository dsidRepo,
+            TransactionEntryRepository taRepo,
+            DsTagEntryRepository dsTagRepo,
+            UserInfoRepository uinfoRepo
+    ) {
+        this.pp = pp;
+        this.dsidRepository = dsidRepo;
+        this.transactionRepository = taRepo;
+        this.doubleSpendingTagRepository = dsTagRepo;
+        this.userInfoRepository = uinfoRepo;
+    }
+
+    /**
      * Adds an entry for the passed spend transaction to the database.
      */
     @Override

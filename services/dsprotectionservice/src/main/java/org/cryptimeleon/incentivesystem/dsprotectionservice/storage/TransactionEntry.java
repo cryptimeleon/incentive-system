@@ -99,4 +99,21 @@ public class TransactionEntry {
     public void invalidate() {
         this.isValid = false;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if(!o.getClass().equals(TransactionEntry.class)) {
+            return false;
+        }
+        else {
+            TransactionEntry otherTae = (TransactionEntry) o;
+            return this.id == otherTae.getId()
+                    && this.isValid == otherTae.isValid()
+                    && this.serializedTransactionIDRepr.equals(otherTae.getSerializedTransactionIDRepr())
+                    && this.k.equals(otherTae.getK())
+                    && this.dsTagEntryId == otherTae.getDsTagEntryId()
+                    && this.producedDsidEntryId == otherTae.getProducedDsidEntryId()
+                    && this.consumedDsidEntryId == otherTae.getConsumedDsidEntryId();
+        }
+    }
 }
