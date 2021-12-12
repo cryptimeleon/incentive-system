@@ -22,12 +22,9 @@ class CryptoRepositoryTest : BaseCryptoRepositoryTest() {
 
     override fun before() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<Context>()
-        db = Room.inMemoryDatabaseBuilder(
-            context, CryptoDatabase::class.java
-        ).build()
+        db = Room.inMemoryDatabaseBuilder(context, CryptoDatabase::class.java).build()
         cryptoDao = db.cryptoDatabaseDao()
-        cryptoRepository =
-            CryptoRepository(fakeInfoApiService, fakeCryptoApiService, cryptoDao)
+        cryptoRepository = CryptoRepository(fakeInfoApiService, fakeCryptoApiService, cryptoDao)
     }
 
     override fun after() {

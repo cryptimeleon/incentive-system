@@ -5,4 +5,5 @@ import org.cryptimeleon.incentive.promotion.promotions.Promotion
 
 interface IPromotionRepository {
     val promotions: Flow<List<Promotion>>
+    suspend fun reloadPromotions()
 }

@@ -33,8 +33,8 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionRequired
 import com.google.accompanist.permissions.rememberPermissionState
 import org.cryptimeleon.incentive.app.domain.model.ShoppingItem
-import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
+import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 import androidx.camera.core.Preview as CameraPreview
 
 @ExperimentalAnimationApi

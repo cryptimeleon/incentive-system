@@ -24,7 +24,7 @@ class PromotionRepository(
             }
         }
 
-    suspend fun reloadPromotions() {
+    override suspend fun reloadPromotions() {
         val promotionsResponse = promotionApiService.getPromotions()
         if (promotionsResponse.isSuccessful) {
             val promotionEntities = promotionsResponse.body()!!.map { promotionString ->

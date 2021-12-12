@@ -14,8 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
+import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 
 @Composable
 fun Dashboard(openSettings: () -> Unit, openBenchmark: () -> Unit) {
