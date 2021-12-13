@@ -16,20 +16,26 @@ import java.util.UUID;
  */
 @Repository
 public class PromotionRepository {
-    private List<Promotion> promotions = List.of(
+    private final List<Promotion> promotions = List.of(
             new NutellaPromotion(
                     NutellaPromotion.generatePromotionParameters(),
+                    "Nutella Promotion",
+                    "Earn one point for every jar of Nutella purchased!",
                     List.of(
-                            new NutellaReward(4, UUID.randomUUID(), new RewardSideEffect("Free Nutella")),
-                            new NutellaReward(9, UUID.randomUUID(), new RewardSideEffect("Free Big nutella"))
-                    )
+                            new NutellaReward(4, "Get a free Nutella for 4 points!", UUID.randomUUID(), new RewardSideEffect("Free Nutella")),
+                            new NutellaReward(9, "Get a free Big Nutella for 9 points!", UUID.randomUUID(), new RewardSideEffect("Free Big nutella"))
+                    ),
+                    "nutella"
             ),
             new NutellaPromotion(
                     NutellaPromotion.generatePromotionParameters(),
+                    "General Promotion",
+                    "Earn one point item purchased!",
                     List.of(
-                            new NutellaReward(9, UUID.randomUUID(), new RewardSideEffect("Free Teddy")),
-                            new NutellaReward(6, UUID.randomUUID(), new RewardSideEffect("Free Pan"))
-                    )
+                            new NutellaReward(9, "Get a free Teddy for 9 points!", UUID.randomUUID(), new RewardSideEffect("Free Teddy")),
+                            new NutellaReward(6, "Get a free Pan for 6 points!", UUID.randomUUID(), new RewardSideEffect("Free Pan"))
+                    ),
+                    ""
             )
     );
 
