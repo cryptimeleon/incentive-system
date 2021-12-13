@@ -41,6 +41,8 @@ class DashboardViewModel @Inject constructor(
                     val token =
                         tokens.find { promotion.promotionParameters.promotionId == it.promotionId }
                     PromotionState(
+                        title = promotion.promotionName,
+                        description = promotion.promotionDescription,
                         rewards = promotion.rewards.map { "" },
                         count = token?.points?.stream()?.collect(Collectors.toList())
                             ?.map { it.asInteger().toInt() } ?: emptyList()
@@ -58,8 +60,8 @@ class DashboardViewModel @Inject constructor(
 data class DashboardState(val promotionStates: List<PromotionState>)
 
 data class PromotionState(
-    val title: String = "Main Promotion",
-    val description: String = "Earn 1 point for every cent spent.",
+    val title: String,
+    val description: String,
     val rewards: List<String>,
-    val count: List<Int> = emptyList()
+    val count: List<Int>,
 )
