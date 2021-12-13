@@ -39,7 +39,7 @@ fun formatCents(valueCents: Int): String = currencyFormat.format(valueCents.toDo
 @Composable
 fun BasketUi(openSettings: () -> Unit, openBenchmark: () -> Unit) {
     val basketViewModel = hiltViewModel<BasketViewModel>()
-    val basket by basketViewModel.basket.collectAsState()
+    val basket: SLE<Basket> by basketViewModel.basket.collectAsState(initial = SLE.Loading())
 
     BasketUi(
         basketSle = basket,
@@ -69,7 +69,6 @@ private fun BasketUi(
             onOpenBenchmark = openBenchmark
         )
     }) {
-
         when (basketSle) {
             is SLE.Error -> TODO()
             is SLE.Loading -> Column(
@@ -93,10 +92,13 @@ private fun BasketUi(
                 modifier = Modifier
                     .fillMaxHeight(),
             ) {
-                val basket = remember {
-                    basketSle.data!!
-                }
+                val basket = basketSle.data!!
                 if (basket.items.isNotEmpty()) {
+                    Text(
+                        text = "${basket.items.size} Item${if (basket.items.size > 1) "s" else ""} in your cart",
+                        modifier = Modifier.padding(16.dp),
+                        style = MaterialTheme.typography.subtitle1
+                    )
                     LazyColumn(
                         modifier = Modifier
                             .weight(1f)
@@ -172,6 +174,7 @@ private fun BasketUi(
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun BasketItem(
     item: BasketItem,
@@ -179,80 +182,75 @@ private fun BasketItem(
     onClick: () -> Unit,
     setCount: (Int) -> Unit
 ) {
-    Card(
+    ListItem(
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight()
             .animateContentSize()
-            .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)
             .clickable(onClick = onClick),
-        elevation = 4.dp,
     ) {
         Column(
-            modifier = Modifier
-                .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Column(
-                modifier = Modifier.fillMaxWidth()
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Text(
                     item.title,
-                    style = MaterialTheme.typography.h5
+                    style = MaterialTheme.typography.h6,
+                    modifier = Modifier.weight(1f)
                 )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    Column {
-                        Text(
-                            text = "${item.count} x ${formatCents(item.price)}",
-                            style = MaterialTheme.typography.subtitle1,
-                            modifier = Modifier.alpha(0.6f)
-                        )
-                    }
+                Column {
                     Text(
                         text = formatCents(item.price * item.count),
-                        style = MaterialTheme.typography.subtitle1
+                        style = MaterialTheme.typography.h6,
+                        textAlign = TextAlign.Right
+                    )
+                    Text(
+                        text = "${item.count} x ${formatCents(item.price)}",
+                        style = MaterialTheme.typography.body2,
+                        textAlign = TextAlign.Right,
+                        modifier = Modifier.alpha(0.8f)
                     )
                 }
             }
-            if (expanded) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+        }
+        if (expanded) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                IconButton(
+                    onClick = { setCount(0) },
                 ) {
-                    IconButton(
-                        onClick = { setCount(0) },
+                    Icon(Icons.Outlined.Delete, "Delete")
+                }
+                Box(
+                    modifier = Modifier
+                        .wrapContentWidth()
+                        .border(
+                            1.dp,
+                            color = MaterialTheme.colors.onBackground,
+                            shape = RoundedCornerShape(16.dp)
+                        ),
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Outlined.Delete, "Delete")
-                    }
-                    Box(
-                        modifier = Modifier
-                            .wrapContentWidth()
-                            .border(
-                                1.dp,
-                                color = MaterialTheme.colors.onBackground,
-                                shape = RoundedCornerShape(16.dp)
-                            ),
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
+                        IconButton(
+                            onClick = { setCount(item.count - 1) },
                         ) {
-                            IconButton(
-                                onClick = { setCount(item.count - 1) },
-                            ) {
-                                Icon(Icons.Outlined.Remove, "Subtract")
-                            }
-                            Text(
-                                text = "${item.count}",
-                                style = MaterialTheme.typography.subtitle1
-                            )
-                            IconButton(
-                                onClick = { setCount(item.count + 1) },
-                            ) {
-                                Icon(Icons.Outlined.Add, "Add")
-                            }
+                            Icon(Icons.Outlined.Remove, "Subtract")
+                        }
+                        Text(
+                            text = "${item.count}",
+                            style = MaterialTheme.typography.subtitle1
+                        )
+                        IconButton(
+                            onClick = { setCount(item.count + 1) },
+                        ) {
+                            Icon(Icons.Outlined.Add, "Add")
                         }
                     }
                 }

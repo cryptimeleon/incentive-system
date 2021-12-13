@@ -42,8 +42,31 @@ import androidx.camera.core.Preview as CameraPreview
 @Composable
 fun ScanScreen(openSettings: () -> Unit, openBenchmark: () -> Unit) {
     val viewModel = hiltViewModel<ScanViewModel>()
-    val state by viewModel.state.observeAsState()
+    val state by viewModel.state.observeAsState(ScanEmptyState)
 
+    ScannerScreen(
+        openBenchmark,
+        openSettings,
+        viewModel::onAmountChange,
+        viewModel::onAddToBasket,
+        viewModel::onDiscardItem,
+        viewModel::setBarcode,
+        state
+    )
+}
+
+@ExperimentalAnimationApi
+@ExperimentalPermissionsApi
+@Composable
+private fun ScannerScreen(
+    openBenchmark: () -> Unit,
+    openSettings: () -> Unit,
+    onAmountChange: (Int) -> Unit,
+    onAddToBasket: () -> Unit,
+    onDiscard: () -> Unit,
+    setBarcode: (String) -> Unit,
+    state: ScanState
+) {
     Scaffold(topBar = {
         DefaultTopAppBar(
             onOpenSettings = openSettings,
@@ -55,11 +78,11 @@ fun ScanScreen(openSettings: () -> Unit, openBenchmark: () -> Unit) {
                 .fillMaxSize()
         ) {
             CameraPermission {
-                Scanner(viewModel::setBarcode)
+                Scanner(setBarcode)
             }
 
             AnimatedVisibility(
-                visible = state != null,
+                visible = state != ScanEmptyState,
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
@@ -70,14 +93,16 @@ fun ScanScreen(openSettings: () -> Unit, openBenchmark: () -> Unit) {
                         .background(Color.Black)
                 )
             }
-            state?.let {
-                ScannedItemCard(
-                    it,
-                    { amount -> viewModel.onAmountChange(amount) },
-                    { viewModel.onAddToBasket() },
-                    { viewModel.onDiscardItem() },
+            when (state) {
+                is ScanResultState -> ScannedItemCard(
+                    state,
+                    onAmountChange,
+                    onAddToBasket,
+                    onDiscard,
                     Modifier.align(Alignment.BottomCenter),
                 )
+                is ScanLoadingState -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                else -> {}
             }
         }
     }
@@ -85,7 +110,7 @@ fun ScanScreen(openSettings: () -> Unit, openBenchmark: () -> Unit) {
 
 @Composable
 private fun ScannedItemCard(
-    state: ScanState,
+    state: ScanResultState,
     setCount: (Int) -> Unit,
     add: () -> Unit,
     discard: () -> Unit,
@@ -220,7 +245,7 @@ private fun Scanner(onScanBarcode: (String) -> Unit) {
 fun ScannedItemPreview() {
     CryptimeleonTheme {
         ScannedItemCard(
-            state = ScanState(ShoppingItem("ADJFKLJLKSD", 999, "Apple"), 3),
+            state = ScanResultState(ShoppingItem("ADJFKLJLKSD", 999, "Apple"), 3),
             setCount = {},
             add = {},
             discard = {}

@@ -14,14 +14,14 @@ import org.cryptimeleon.incentive.app.domain.IBasketRepository
 import org.cryptimeleon.incentive.app.domain.model.Basket
 import org.cryptimeleon.incentive.app.domain.model.BasketItem
 import org.cryptimeleon.incentive.app.domain.model.ShoppingItem
+import timber.log.Timber
 
 class BasketRepository(
     private val basketApiService: BasketApiService,
     private val basketDao: BasketDao,
 ) : IBasketRepository {
 
-    override val basket: Flow<Basket?>
-        get() = basketDao.observeBasketEntity()
+    override val basket: Flow<Basket?> = basketDao.observeBasketEntity()
             .combine(basketDao.observeBasketItemEntities())
             { a: BasketEntity?, b: List<BasketItemEntity> ->
                 if (a != null) basketEntityToBasket(

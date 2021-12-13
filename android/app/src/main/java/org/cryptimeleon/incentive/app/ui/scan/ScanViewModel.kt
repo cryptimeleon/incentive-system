@@ -29,8 +29,7 @@ class ScanViewModel @Inject constructor(
     application: Application
 ) :
     AndroidViewModel(application) {
-    val state = MutableLiveData<ScanState?>(null)
-    var allowScan = true
+    val state = MutableLiveData<ScanState>(ScanEmptyState)
 
     init {
         Timber.i("ScanViewModel created")
@@ -47,25 +46,41 @@ class ScanViewModel @Inject constructor(
      */
     fun setBarcode(barcode: String) {
         // Check if barcode already registered or being displayed
-        if (!allowScan || barcode == "" || state.value != null) {
-            return
-        }
+        if (state.value == ScanEmptyState) {
+            state.value = ScanLoadingState(barcode)
 
-        Timber.i(barcode)
+            Timber.i(barcode)
 
-        // query basket item from basket service and check if it exists
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                // Query item
-                val basketItem = basketRepository.getBasketItem(barcode) ?: return@withContext
+            // query basket item from basket service and check if it exists
+            viewModelScope.launch {
+                withContext(Dispatchers.IO) {
+                    // Query item
+                    val basketItem = basketRepository.getBasketItem(barcode)
 
-                Timber.i("Item: $basketItem")
-                if (state.value == null) {
-                    state.postValue(ScanState(basketItem, 1))
-                    allowScan = false
+                    if (basketItem != null) {
+                        Timber.i("Item: $basketItem")
+                        if (state.value == ScanLoadingState(barcode)) {
+                            state.postValue(ScanResultState(basketItem, 1))
+                        }
+                    } else {
+                        basketRepository.refreshShoppingItems()
+                        val reloadedBasketItem = basketRepository.getBasketItem(barcode)
+
+                        if (reloadedBasketItem != null) {
+                            Timber.i("Item: $reloadedBasketItem")
+                            if (state.value == ScanLoadingState(barcode)) {
+                                state.postValue(ScanResultState(reloadedBasketItem, 1))
+                            } else {
+                                Timber.e("Error loading item '$barcode'")
+                                if (state.value == ScanLoadingState(barcode)) {
+                                    state.postValue(ScanEmptyState)
+                                }
+                            }
+                        }
+                    }
                 }
+                // check if promotions apply or can be applied by adding some more of this item
             }
-            // check if promotions apply or can be applied by adding some more of this item
         }
     }
 
@@ -75,15 +90,17 @@ class ScanViewModel @Inject constructor(
      * @param newAmount the new amount
      */
     fun onAmountChange(newAmount: Int) {
-        state.value?.let {
-            if (newAmount != it.count)
-                state.postValue(it.copy(count = newAmount))
+        when (val scanState = state.value) {
+            is ScanResultState -> {
+                if (newAmount != scanState.count)
+                    state.postValue(scanState.copy(count = newAmount))
+            }
+            else -> {}
         }
     }
 
     fun onDiscardItem() {
-        state.postValue(null)
-        allowScan = true
+        state.postValue(ScanEmptyState)
     }
 
     /**
@@ -91,35 +108,38 @@ class ScanViewModel @Inject constructor(
      * Add amount many of the item to the basket.
      */
     fun onAddToBasket() {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                state.value?.let {
-                    val putItemSuccessful =
-                        basketRepository.putItemIntoCurrentBasket(
-                            it.shoppingItem.id,
-                            it.count
-                        )
+        when (val scanState = state.value) {
+            is ScanResultState -> {
+                viewModelScope.launch {
+                    withContext(Dispatchers.IO) {
+                        val putItemSuccessful =
+                            basketRepository.putItemIntoCurrentBasket(
+                                scanState.shoppingItem.id,
+                                scanState.count
+                            )
 
-                    withContext(Dispatchers.Main) {
-                        if (putItemSuccessful) {
-                            Toast.makeText(
-                                getApplication(),
-                                "Successfully put ${it.shoppingItem.id} to basket.",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        } else {
-                            Toast.makeText(
-                                getApplication(),
-                                "An error occured when trying to put ${it.shoppingItem.id} to basket.",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                        withContext(Dispatchers.Main) {
+                            if (putItemSuccessful) {
+                                Toast.makeText(
+                                    getApplication(),
+                                    "Successfully put ${scanState.shoppingItem.id} to basket.",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            } else {
+                                Toast.makeText(
+                                    getApplication(),
+                                    "An error occured when trying to put ${scanState.shoppingItem.id} to basket.",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
                         }
+                        state.postValue(ScanBlockedState)
+                        delay(1000)
+                        state.postValue(ScanEmptyState)
                     }
-                    state.postValue(null)
-                    delay(1000L)
-                    allowScan = true
                 }
             }
+            else -> {}
         }
     }
 }
@@ -127,7 +147,11 @@ class ScanViewModel @Inject constructor(
 private val locale = Locale.GERMANY
 private val currencyFormat = NumberFormat.getCurrencyInstance(locale)
 
-data class ScanState(val shoppingItem: ShoppingItem, val count: Int) {
+sealed interface ScanState
+object ScanEmptyState : ScanState
+object ScanBlockedState : ScanState // To avoid direct re-scan
+data class ScanLoadingState(val shoppingItemId: String) : ScanState
+data class ScanResultState(val shoppingItem: ShoppingItem, val count: Int) : ScanState {
     val priceSingle: String = currencyFormat.format(shoppingItem.price / 100.0)
     val priceTotal: String = currencyFormat.format(shoppingItem.price * count / 100.0)
 }
