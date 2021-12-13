@@ -15,6 +15,7 @@ import org.cryptimeleon.incentive.app.data.CryptoRepository
 import org.cryptimeleon.incentive.app.data.PromotionRepository
 import org.cryptimeleon.incentive.crypto.model.Token
 import org.cryptimeleon.incentive.promotion.promotions.Promotion
+import java.util.stream.Collectors
 import javax.inject.Inject
 
 @HiltViewModel
@@ -40,10 +41,9 @@ class DashboardViewModel @Inject constructor(
                     val token =
                         tokens.find { promotion.promotionParameters.promotionId == it.promotionId }
                     PromotionState(
-                        title = promotion.promotionParameters.promotionId.toString(),
-                        description = promotion.rewards.toString(),
-                        // TODO make this a vector
-                        count = token?.points?.get(0)?.asInteger()?.toInt() ?: 0
+                        rewards = promotion.rewards.map { "" },
+                        count = token?.points?.stream()?.collect(Collectors.toList())
+                            ?.map { it.asInteger().toInt() } ?: emptyList()
                     )
                 }
             )
@@ -60,5 +60,6 @@ data class DashboardState(val promotionStates: List<PromotionState>)
 data class PromotionState(
     val title: String = "Main Promotion",
     val description: String = "Earn 1 point for every cent spent.",
-    val count: Int = 0
+    val rewards: List<String>,
+    val count: List<Int> = emptyList()
 )

@@ -11,6 +11,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -47,43 +50,57 @@ fun Dashboard(
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun TokenCard(promotionState: PromotionState) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight(),
-        elevation = 4.dp
+        elevation = 8.dp
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .padding(16.dp)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
+                .fillMaxWidth()
         ) {
-            Column(
-                modifier = Modifier.weight(1f) // Unweighted components are measured first
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                Icon(
+                    Icons.Outlined.Redeem,
+                    contentDescription = "Promotion Icon",
+                    tint = MaterialTheme.colors.primary,
+                    modifier = Modifier
+                        .requiredSize(32.dp)
+                        .padding(end = 8.dp)
+                )
                 Text(
                     text = promotionState.title,
-                    style = MaterialTheme.typography.h5,
-                )
-                Text(
-                    text = promotionState.description,
-                    style = MaterialTheme.typography.body1,
-                )
-                Text(
-                    text = "${promotionState.count} Points",
-                    style = MaterialTheme.typography.body2,
+                    style = MaterialTheme.typography.h6,
+                    modifier = Modifier.weight(1f)
                 )
             }
-            Icon(
-                Icons.Outlined.Redeem,
-                contentDescription = "Promotion Icon",
-                modifier = Modifier
-                    .requiredSize(64.dp)
-                    .padding(start = 8.dp)
+            Text(
+                style = MaterialTheme.typography.body2,
+                text = buildAnnotatedString {
+                    append("Points: ")
+                    withStyle(style = SpanStyle(color = MaterialTheme.colors.primary)) {
+                        append(
+                            promotionState.count.joinToString(
+                                prefix = "(",
+                                separator = ", ",
+                                postfix = ")",
+                            ) { point -> "$point" },
+                        )
+                    }
+                }
+            )
+            Spacer(modifier = Modifier.size(8.dp))
+            Text(
+                text = promotionState.description,
+                style = MaterialTheme.typography.body1,
             )
         }
     }
@@ -95,11 +112,17 @@ fun DashboardPreview() {
         val dashboardState = remember {
             DashboardState(
                 listOf(
-                    PromotionState(count = 7),
+                    PromotionState(
+                        title = "First Promotion",
+                        description = "Get free nutella for buying nutella",
+                        rewards = listOf("Nutella", "Big Nutella"),
+                        listOf(3)
+                    ),
                     PromotionState(
                         title = "Other Promotion",
                         description = "You can win a pan if you're really really really lucky",
-                        20
+                        rewards = listOf("Pan", "Wok"),
+                        listOf(2, 0, 3)
                     )
                 )
             )

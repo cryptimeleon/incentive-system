@@ -24,21 +24,31 @@ abstract class BasePromotionRepositoryTest {
     val promotions = listOf<Promotion>(
         NutellaPromotion(
             NutellaPromotion.generatePromotionParameters(),
+            "First test promotion",
+            "Description of first test promotion",
             listOf<Reward>(
                 NutellaReward(
-                    3, UUID.randomUUID(),
+                    3,
+                    "Earn a free teddy bear!",
+                    UUID.randomUUID(),
                     RewardSideEffect("Free Teddy")
                 )
-            )
+            ),
+        "nutella"
         ),
         NutellaPromotion(
             NutellaPromotion.generatePromotionParameters(),
+            "Second test promotion",
+            "Description of second test promotion",
             listOf<Reward>(
                 NutellaReward(
-                    7, UUID.randomUUID(),
+                    7,
+                    "Earn a free pan!",
+                    UUID.randomUUID(),
                     RewardSideEffect("Free Pan")
                 )
-            )
+            ),
+            "nutella"
         )
     )
 
