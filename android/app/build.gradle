@@ -146,6 +146,11 @@ dependencies {
     // Permissions
     implementation "com.google.accompanist:accompanist-permissions:0.16.1"
 
+    // accompanist
+    implementation "com.google.accompanist:accompanist-insets:0.20.3"
+    implementation "com.google.accompanist:accompanist-insets-ui:0.20.3"
+    implementation "com.google.accompanist:accompanist-systemuicontroller:0.20.3"
+
 
     // Testing
     testImplementation 'junit:junit:4.13.2'

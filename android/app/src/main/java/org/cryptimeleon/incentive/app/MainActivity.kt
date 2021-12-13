@@ -5,22 +5,34 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.StringRes
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.material.*
+import androidx.compose.material.BottomNavigationItem
+import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.ShoppingBasket
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.core.view.WindowCompat
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.google.accompanist.insets.LocalWindowInsets
+import com.google.accompanist.insets.ProvideWindowInsets
+import com.google.accompanist.insets.rememberInsetsPaddingValues
+import com.google.accompanist.insets.ui.BottomNavigation
+import com.google.accompanist.insets.ui.Scaffold
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import dagger.hilt.android.AndroidEntryPoint
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import timber.log.Timber
@@ -39,19 +51,33 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
         setContent {
+            // Update the system bars to be translucent
+            val systemUiController = rememberSystemUiController()
+            val useDarkIcons = MaterialTheme.colors.isLight
+            SideEffect {
+                systemUiController.setSystemBarsColor(
+                    Color.Transparent,
+                    darkIcons = false // depends on what background color is used
+                )
+            }
+
             CryptimeleonTheme {
-                val navController = rememberNavController()
-                Scaffold(
-                    bottomBar = {
-                        CryptimeleonBottomBar(navController)
+                ProvideWindowInsets {
+                    val navController = rememberNavController()
+                    Scaffold(
+                        bottomBar = {
+                            CryptimeleonBottomBar(navController)
+                        }
+                    ) { innerPadding ->
+                        NavGraph(
+                            navController = navController,
+                            finishActivity = { finish() },
+                            innerPadding = innerPadding
+                        )
                     }
-                ) { innerPadding ->
-                    NavGraph(
-                        navController = navController,
-                        finishActivity = { finish() },
-                        innerPadding = innerPadding
-                    )
                 }
             }
         }
@@ -76,7 +102,11 @@ class MainActivity : ComponentActivity() {
 
         // Only display bottom navigation on mainNavigation Routes
         if (currentRoute in mainNavigationRoutes) {
-            BottomNavigation {
+            BottomNavigation(
+                contentPadding = rememberInsetsPaddingValues(
+                    LocalWindowInsets.current.navigationBars
+                ),
+            ) {
                 val currentDestination = navBackStackEntry?.destination
                 mainNavigationScreens.forEach { screen ->
                     BottomNavigationItem(

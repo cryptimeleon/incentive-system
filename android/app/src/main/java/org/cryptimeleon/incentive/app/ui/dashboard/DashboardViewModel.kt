@@ -27,7 +27,7 @@ class DashboardViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            withContext(Dispatchers.Default) {
+            withContext(Dispatchers.IO) {
                 promotionRepository.reloadPromotions()
             }
         }

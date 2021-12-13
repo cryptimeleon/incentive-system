@@ -49,7 +49,6 @@ class BenchmarkViewModel @Inject constructor(application: Application) :
      * Runs the benchmark in a Coroutine
      */
     fun runBenchmark() {
-
         viewModelScope.launch {
             withContext(Dispatchers.Default) {
                 Timber.i("Generating public parameters")

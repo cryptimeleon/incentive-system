@@ -1,9 +1,7 @@
 package org.cryptimeleon.incentive.app.data
 
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.*
 import org.cryptimeleon.incentive.app.data.database.basket.BasketDao
 import org.cryptimeleon.incentive.app.data.database.basket.BasketEntity
 import org.cryptimeleon.incentive.app.data.database.basket.BasketItemEntity
@@ -22,14 +20,19 @@ class BasketRepository(
     private val basketDao: BasketDao,
 ) : IBasketRepository {
 
-    override val basket: Flow<Basket?> = basketDao.observeBasketEntity()
-        .combine(basketDao.observeBasketItemEntities()) { a: BasketEntity?, b: List<BasketItemEntity> ->
-            if (a != null) basketEntityToBasket(a, b.map { basketItemEntityToItem(it) }) else null
-        }
+    override val basket: Flow<Basket?>
+        get() = basketDao.observeBasketEntity()
+            .combine(basketDao.observeBasketItemEntities())
+            { a: BasketEntity?, b: List<BasketItemEntity> ->
+                if (a != null) basketEntityToBasket(
+                    a,
+                    b.map { basketItemEntityToItem(it) }) else null
+            }.flowOn(Dispatchers.Default)
 
-    override val shoppingItems: Flow<List<ShoppingItem>> =
-        basketDao.observeShoppingItems()
+    override val shoppingItems: Flow<List<ShoppingItem>>
+        get() = basketDao.observeShoppingItems()
             .map { items: List<ShoppingItemEntity> -> items.map { shoppingItemEntityToItem(it) } }
+            .flowOn(Dispatchers.Default)
 
     override suspend fun refreshShoppingItems() {
         basketDao.insertShoppingItems(

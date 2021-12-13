@@ -1,6 +1,8 @@
 package org.cryptimeleon.incentive.app.data;
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import org.cryptimeleon.incentive.app.data.database.promotion.PromotionDao
 import org.cryptimeleon.incentive.app.data.database.promotion.PromotionEntity
@@ -22,7 +24,7 @@ class PromotionRepository(
             promotionList.map { promotionEntity: PromotionEntity ->
                 NutellaPromotion(jsonConverter.deserialize(promotionEntity.promotionRepresentation))
             }
-        }
+        }.flowOn(Dispatchers.IO)
 
     override suspend fun reloadPromotions() {
         val promotionsResponse = promotionApiService.getPromotions()

@@ -16,6 +16,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.google.accompanist.insets.navigationBarsHeight
+import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 
 @Composable
 fun BenchmarkUi(onUpClicked: () -> Unit) {
@@ -30,93 +32,107 @@ fun BenchmarkUi(onUpClicked: () -> Unit) {
     )
 
     Scaffold(
+        bottomBar = {
+            Spacer(
+                Modifier
+                    .navigationBarsHeight()
+                    .fillMaxWidth()
+            )
+        },
         topBar = {
-            TopAppBar(
+            DefaultTopAppBar(
                 title = { Text("Benchmark") },
                 navigationIcon = {
                     IconButton(onClick = onUpClicked) {
                         Icon(Icons.Filled.ArrowBack, "Up Icon")
                     }
-                }
+                },
+                menuEnabled = false,
             )
         }
-    ) {
-        when (state.state) {
-            BenchmarkViewState.NOT_STARTED -> {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Bottom
-                ) {
-                    Button(
-                        onClick = { viewModel.runBenchmark() },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(text = "Start Benchmark")
-                    }
-                }
-            }
-            BenchmarkViewState.FINISHED -> {
-                state.benchmarkResult?.let {
-                    val sendIntent: Intent = Intent().apply {
-                        action = Intent.ACTION_SEND
-                        putExtra(Intent.EXTRA_SUBJECT, "Cryptimeleon Benchmark Result")
-                        putExtra(Intent.EXTRA_TEXT, state.shareData())
-                        type = "text/plain"
-                    }
-                    val shareIntent = Intent.createChooser(sendIntent, null)
-                    val context = LocalContext.current
-
-                    Box(
+    ) { contentPadding ->
+        // We apply the contentPadding passed to us from the Scaffold
+        Box(Modifier.padding(contentPadding)) {
+            when (state.state) {
+                BenchmarkViewState.NOT_STARTED -> {
+                    Column(
                         modifier = Modifier
-                            .padding(16.dp)
                             .fillMaxSize()
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Bottom
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .verticalScroll(rememberScrollState()),
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        Button(
+                            onClick = { viewModel.runBenchmark() },
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("Benchmark Results", style = MaterialTheme.typography.h4)
-                            BenchmarkResultItem(
-                                title = "Issue-Join",
-                                description = state.joinText ?: ""
-                            )
-                            BenchmarkResultItem(
-                                title = "Credit-Earn",
-                                description = state.earnText ?: ""
-                            )
-                            BenchmarkResultItem(
-                                title = "Spend-Deduct",
-                                description = state.spendText ?: ""
-                            )
-                            BenchmarkResultItem(
-                                title = "Total",
-                                description = state.totalText ?: ""
-                            )
-                        }
-                        FloatingActionButton(
-                            onClick = { context.startActivity(shareIntent) },
-                            modifier = Modifier.align(
-                                Alignment.BottomEnd
-                            )
-                        ) {
-                            Icon(Icons.Filled.Share, contentDescription = "Share Benchmark Results")
+                            Text(text = "Start Benchmark")
                         }
                     }
                 }
-            }
-            else -> {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    CircularProgressIndicator()
-                    Spacer(modifier = Modifier.size(8.dp))
-                    Text(text = state.stateText)
+                BenchmarkViewState.FINISHED -> {
+                    state.benchmarkResult?.let {
+                        val sendIntent: Intent = Intent().apply {
+                            action = Intent.ACTION_SEND
+                            putExtra(Intent.EXTRA_SUBJECT, "Cryptimeleon Benchmark Result")
+                            putExtra(Intent.EXTRA_TEXT, state.shareData())
+                            type = "text/plain"
+                        }
+                        val shareIntent = Intent.createChooser(sendIntent, null)
+                        val context = LocalContext.current
+
+                        Box(
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .fillMaxSize()
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .verticalScroll(rememberScrollState()),
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                Text("Benchmark Results", style = MaterialTheme.typography.h4)
+                                BenchmarkResultItem(
+                                    title = "Issue-Join",
+                                    description = state.joinText ?: ""
+                                )
+                                BenchmarkResultItem(
+                                    title = "Credit-Earn",
+                                    description = state.earnText ?: ""
+                                )
+                                BenchmarkResultItem(
+                                    title = "Spend-Deduct",
+                                    description = state.spendText ?: ""
+                                )
+                                BenchmarkResultItem(
+                                    title = "Total",
+                                    description = state.totalText ?: ""
+                                )
+                            }
+                            FloatingActionButton(
+                                onClick = { context.startActivity(shareIntent) },
+                                modifier = Modifier.align(
+                                    Alignment.BottomEnd
+                                )
+                            ) {
+                                Icon(
+                                    Icons.Filled.Share,
+                                    contentDescription = "Share Benchmark Results"
+                                )
+                            }
+                        }
+                    }
+                }
+                else -> {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        CircularProgressIndicator()
+                        Spacer(modifier = Modifier.size(8.dp))
+                        Text(text = state.stateText)
+                    }
                 }
             }
         }

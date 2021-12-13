@@ -1,7 +1,9 @@
 package org.cryptimeleon.incentive.app.data
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature
 import org.cryptimeleon.incentive.app.data.database.crypto.CryptoDao
@@ -37,18 +39,20 @@ class CryptoRepository(
 ) : ICryptoRepository {
     private val jsonConverter = JSONConverter()
 
-    override val tokens: Flow<List<Token>> = cryptoDao.observeTokens().map {
-        val cryptoMaterial = cryptoMaterial.first()
-        if (cryptoMaterial != null) {
-            it.map { cryptoTokenEntity -> toCryptoToken(cryptoTokenEntity, cryptoMaterial.pp) }
-        } else {
-            emptyList()
-        }
-    }
+    override val tokens: Flow<List<Token>>
+        get() = cryptoDao.observeTokens().map {
+            val cryptoMaterial = cryptoMaterial.first()
+            if (cryptoMaterial != null) {
+                it.map { cryptoTokenEntity -> toCryptoToken(cryptoTokenEntity, cryptoMaterial.pp) }
+            } else {
+                emptyList()
+            }
+        }.flowOn(Dispatchers.Default)
 
-    override val cryptoMaterial: Flow<CryptoMaterial?> = cryptoDao.observeCryptoMaterial().map {
-        it?.let { it1 -> toCryptoMaterial(it1) }
-    }
+    override val cryptoMaterial: Flow<CryptoMaterial?>
+        get() = cryptoDao.observeCryptoMaterial().map {
+            it?.let { it1 -> toCryptoMaterial(it1) }
+        }.flowOn(Dispatchers.Default)
 
 
     override suspend fun runIssueJoin(promotionParameters: PromotionParameters, dummy: Boolean) {
