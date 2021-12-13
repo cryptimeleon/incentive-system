@@ -1,5 +1,6 @@
 package org.cryptimeleon.incentive.services.promotion;
 
+import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.incentive.crypto.model.EarnRequest;
 import org.cryptimeleon.incentive.crypto.model.SpendProviderOutput;
@@ -18,8 +19,6 @@ import org.cryptimeleon.incentive.services.promotion.repository.CryptoRepository
 import org.cryptimeleon.incentive.services.promotion.repository.PromotionRepository;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.cartesian.Vector;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,11 +29,11 @@ import java.util.UUID;
 /**
  * This service processes the requests and contains all the business.
  */
+@Slf4j
 @Service
 public class PromotionService {
 
     private final JSONConverter jsonConverter = new JSONConverter();
-    private Logger logger = LoggerFactory.getLogger(PromotionService.class);
 
     private CryptoRepository cryptoRepository;
     private PromotionRepository promotionRepository;
@@ -90,13 +89,13 @@ public class PromotionService {
      * @return serialized signature
      */
     public String handleEarnRequest(BigInteger promotionId, String serializedEarnRequest, UUID basketId) {
-        logger.info("EarnRequest:" + serializedEarnRequest);
+        log.info("EarnRequest:" + serializedEarnRequest);
 
         Promotion promotion = promotionRepository.getPromotion(promotionId).orElseThrow(() -> new RuntimeException(String.format("promotionId %d not found", promotionId)));
 
         // Validations
         Basket basket = basketRepository.getBasket(basketId);
-        logger.info("Queried user basket " + basket.toString());
+        log.info("Queried user basket " + basket.toString());
 
         // TODO this basket api will change, how about storing a hash of the request only?
         // TODO sanity checks on basket, wait for new api
@@ -120,7 +119,7 @@ public class PromotionService {
     }
 
     public String handleSpendRequest(BigInteger promotionId, UUID basketId, UUID rewardId, String serializedSpendRequest) {
-        logger.info("SpendRequest:" + serializedSpendRequest);
+        log.info("SpendRequest:" + serializedSpendRequest);
 
         Promotion promotion = promotionRepository.getPromotion(promotionId).orElseThrow(() -> new RuntimeException(String.format("promotionId %d not found", promotionId)));
         Reward reward = promotion.getRewards().stream().filter(reward1 -> reward1.getRewardId().equals(rewardId)).findAny().orElseThrow(() -> new RuntimeException("Reward id not found"));
@@ -132,7 +131,7 @@ public class PromotionService {
         var incentiveSystem = cryptoRepository.getIncentiveSystem();
 
         Basket basket = basketRepository.getBasket(basketId);
-        logger.info("Queried user basket " + basket.toString());
+        log.info("Queried user basket " + basket.toString());
         // TODO some sanity checks on basket, wait for new basket service api
 
         // Prepare zkp

@@ -1,12 +1,11 @@
 package org.cryptimeleon.incentive.services.credit;
 
+import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.incentive.crypto.model.EarnRequest;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.services.credit.exception.IncentiveException;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.cartesian.Vector;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,10 +15,10 @@ import java.util.UUID;
 /**
  * This service contains the business logic of the credit-earn protocol.
  */
+@Slf4j
 @Service
 public class CreditService {
 
-    private Logger logger = LoggerFactory.getLogger(CreditService.class);
     private BasketRepository basketRepository;
     private CryptoRepository cryptoRepository;
 
@@ -38,11 +37,11 @@ public class CreditService {
      * @return serialized signature
      */
     public String handleEarnRequest(String serializedEarnRequest, UUID basketId) {
-        logger.info("EarnRequest:" + serializedEarnRequest);
+        log.info("EarnRequest:" + serializedEarnRequest);
 
         // Validations
         var basket = basketRepository.getBasket(basketId);
-        logger.info("Queried basket:" + basket);
+        log.info("Queried basket:" + basket);
         if (!basket.isPaid()) {
             throw new IncentiveException("Basket not paid");
         }
