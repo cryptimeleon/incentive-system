@@ -71,33 +71,18 @@ private fun BasketUi(
     }) {
         when (basketSle) {
             is SLE.Error -> TODO()
-            is SLE.Loading -> Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight(),
-                verticalArrangement = Arrangement.Center
-            ) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
-                )
-                Text(
-                    text = "Loading basket...",
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.subtitle1,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                )
-            }
+            is SLE.Loading -> LoadingSpinner()
             is SLE.Success -> Column(
                 modifier = Modifier
                     .fillMaxHeight(),
             ) {
                 val basket = basketSle.data!!
                 if (basket.items.isNotEmpty()) {
+                    val basketItemsCount = basket.items.map { it.count }.sum()
                     Text(
-                        text = "${basket.items.size} Item${if (basket.items.size > 1) "s" else ""} in your cart",
+                        text = "$basketItemsCount Item${if (basketItemsCount > 1) "s" else ""} in your cart",
                         modifier = Modifier.padding(16.dp),
-                        style = MaterialTheme.typography.subtitle1
+                        style = MaterialTheme.typography.body1
                     )
                     LazyColumn(
                         modifier = Modifier
@@ -174,6 +159,27 @@ private fun BasketUi(
     }
 }
 
+@Composable
+private fun LoadingSpinner() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight(),
+        verticalArrangement = Arrangement.Center
+    ) {
+        CircularProgressIndicator(
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        )
+        Text(
+            text = "Loading basket...",
+            textAlign = TextAlign.Center,
+            style = MaterialTheme.typography.subtitle1,
+            modifier = Modifier
+                .fillMaxWidth()
+        )
+    }
+}
+
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun BasketItem(
@@ -198,61 +204,70 @@ private fun BasketItem(
             ) {
                 Text(
                     item.title,
-                    style = MaterialTheme.typography.h6,
+                    style = MaterialTheme.typography.body1,
                     modifier = Modifier.weight(1f)
                 )
                 Column {
                     Text(
                         text = formatCents(item.price * item.count),
-                        style = MaterialTheme.typography.h6,
-                        textAlign = TextAlign.Right
+                        style = MaterialTheme.typography.body1,
+                        modifier = Modifier.align(Alignment.End)
                     )
                     Text(
                         text = "${item.count} x ${formatCents(item.price)}",
                         style = MaterialTheme.typography.body2,
-                        textAlign = TextAlign.Right,
-                        modifier = Modifier.alpha(0.8f)
+                        modifier = Modifier
+                            .alpha(0.8f)
+                            .align(Alignment.End)
                     )
                 }
             }
+            if (expanded) {
+                BasketItemControlRow(setCount, item.count)
+            }
         }
-        if (expanded) {
+    }
+}
+
+@Composable
+private fun BasketItemControlRow(
+    setCount: (Int) -> Unit,
+    count: Int
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        IconButton(
+            onClick = { setCount(0) },
+        ) {
+            Icon(Icons.Outlined.Delete, "Delete")
+        }
+        Box(
+            modifier = Modifier
+                .wrapContentWidth()
+                .border(
+                    1.dp,
+                    color = MaterialTheme.colors.onBackground,
+                    shape = RoundedCornerShape(16.dp)
+                ),
+        ) {
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
-                    onClick = { setCount(0) },
+                    onClick = { setCount(count - 1) },
                 ) {
-                    Icon(Icons.Outlined.Delete, "Delete")
+                    Icon(Icons.Outlined.Remove, "Subtract")
                 }
-                Box(
-                    modifier = Modifier
-                        .wrapContentWidth()
-                        .border(
-                            1.dp,
-                            color = MaterialTheme.colors.onBackground,
-                            shape = RoundedCornerShape(16.dp)
-                        ),
+                Text(
+                    text = "$count",
+                    style = MaterialTheme.typography.subtitle1
+                )
+                IconButton(
+                    onClick = { setCount(count + 1) },
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        IconButton(
-                            onClick = { setCount(item.count - 1) },
-                        ) {
-                            Icon(Icons.Outlined.Remove, "Subtract")
-                        }
-                        Text(
-                            text = "${item.count}",
-                            style = MaterialTheme.typography.subtitle1
-                        )
-                        IconButton(
-                            onClick = { setCount(item.count + 1) },
-                        ) {
-                            Icon(Icons.Outlined.Add, "Add")
-                        }
-                    }
+                    Icon(Icons.Outlined.Add, "Add")
                 }
             }
         }

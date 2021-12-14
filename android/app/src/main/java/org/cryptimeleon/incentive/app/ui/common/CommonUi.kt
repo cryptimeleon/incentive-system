@@ -2,7 +2,7 @@ package org.cryptimeleon.incentive.app.ui.common
 
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.*
 import com.google.accompanist.insets.LocalWindowInsets
 import com.google.accompanist.insets.rememberInsetsPaddingValues
@@ -28,7 +28,7 @@ fun DefaultTopAppBar(
         actions = {
             if (menuEnabled) {
                 IconButton(onClick = { showMenu = !showMenu }) {
-                    Icon(Icons.Default.MoreVert, "Menu Icon")
+                    Icon(Icons.Default.Settings, "Menu Icon")
                 }
                 DropdownMenu(
                     expanded = showMenu,
