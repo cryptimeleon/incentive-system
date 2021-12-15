@@ -215,6 +215,9 @@ public class LocalDatabaseHandler implements DatabaseHandler {
         // creating user info entry object
         UserInfoEntry uie = new UserInfoEntry(userInfo);
 
+        // add user info entry to database
+        this.userInfoRepository.save(uie);
+
         // update dsid entry if existent
         long uInfoEntryId = uie.getId();
         DsIdEntry dside = findDsidEntry(dsid);

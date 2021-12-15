@@ -1,6 +1,7 @@
 package org.cryptimeleon.incentivesystem.dsprotectionservice.storage;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.cryptimeleon.incentive.crypto.model.DoubleSpendingTag;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.Util;
@@ -18,6 +19,7 @@ import javax.persistence.*;
  * can only marshall objects that have primitive datatype fields only.
  */
 @Entity
+@Setter
 @Getter
 @Table(name="dstags")
 public class DsTagEntry {

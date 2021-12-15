@@ -1,6 +1,7 @@
 package org.cryptimeleon.incentivesystem.dsprotectionservice.storage;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.UserInfo;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.Util;
@@ -16,6 +17,7 @@ import javax.persistence.*;
  */
 
 @Getter
+@Setter
 @Entity
 @Table(name="userInfo")
 public class UserInfoEntry {
