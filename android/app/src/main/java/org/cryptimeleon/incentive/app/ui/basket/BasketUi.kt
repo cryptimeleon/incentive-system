@@ -2,7 +2,9 @@ package org.cryptimeleon.incentive.app.ui.basket
 
 import android.content.res.Configuration
 import android.icu.text.NumberFormat
-import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.*
+import androidx.compose.animation.core.animateDp
+import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -51,6 +53,7 @@ fun BasketUi(openSettings: () -> Unit, openBenchmark: () -> Unit) {
     )
 }
 
+@OptIn(ExperimentalAnimationApi::class, ExperimentalMaterialApi::class)
 @Composable
 private fun BasketUi(
     basketSle: SLE<Basket>,
@@ -79,11 +82,28 @@ private fun BasketUi(
                 val basket = basketSle.data!!
                 if (basket.items.isNotEmpty()) {
                     val basketItemsCount = basket.items.map { it.count }.sum()
-                    Text(
-                        text = "$basketItemsCount Item${if (basketItemsCount > 1) "s" else ""} in your cart",
-                        modifier = Modifier.padding(16.dp),
-                        style = MaterialTheme.typography.body1
-                    )
+                    Row(modifier = Modifier.padding(16.dp)) {
+                        AnimatedContent(targetState = basketItemsCount, transitionSpec = {
+                            if (targetState > initialState) {
+                                slideInVertically { height -> height } + fadeIn() with
+                                        slideOutVertically { height -> -height } + fadeOut()
+                            } else {
+                                slideInVertically { height -> -height } + fadeIn() with
+                                        slideOutVertically { height -> height } + fadeOut()
+                            }.using(
+                                SizeTransform(clip = false)
+                            )
+                        }) { targetItem ->
+                            Text(
+                                text = "$targetItem",
+                                style = MaterialTheme.typography.body1
+                            )
+                        }
+                        Text(
+                            text = " Item${if (basketItemsCount > 1) "s" else ""} in your cart",
+                            style = MaterialTheme.typography.body1
+                        )
+                    }
                     LazyColumn(
                         modifier = Modifier
                             .weight(1f)
@@ -180,7 +200,7 @@ private fun LoadingSpinner() {
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalAnimationApi::class, ExperimentalMaterialApi::class)
 @Composable
 private fun BasketItem(
     item: BasketItem,
@@ -188,15 +208,24 @@ private fun BasketItem(
     onClick: () -> Unit,
     setCount: (Int) -> Unit
 ) {
-    ListItem(
+    val transition = updateTransition(expanded, label = "expandedTransition")
+    val elevation by transition.animateDp {
+        if (it) 8.dp else 0.dp
+    }
+
+    Card(
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight()
             .animateContentSize()
-            .clickable(onClick = onClick),
-    ) {
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        elevation = elevation
+    )
+    {
         Column(
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier.padding(8.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -207,11 +236,12 @@ private fun BasketItem(
                     style = MaterialTheme.typography.body1,
                     modifier = Modifier.weight(1f)
                 )
-                Column {
+                Column(horizontalAlignment = Alignment.End) {
                     Text(
                         text = formatCents(item.price * item.count),
                         style = MaterialTheme.typography.body1,
-                        modifier = Modifier.align(Alignment.End)
+                        modifier = Modifier
+                            .align(Alignment.End)
                     )
                     Text(
                         text = "${item.count} x ${formatCents(item.price)}",
@@ -228,6 +258,7 @@ private fun BasketItem(
         }
     }
 }
+
 
 @Composable
 private fun BasketItemControlRow(
@@ -306,6 +337,8 @@ val emptyTestBasket = Basket(
 )
 const val previewUiMode = Configuration.UI_MODE_NIGHT_YES
 
+@ExperimentalMaterialApi
+@ExperimentalAnimationApi
 @Composable
 @Preview(
     uiMode = previewUiMode,
@@ -318,6 +351,8 @@ private fun BasketPreview() {
     }
 }
 
+@ExperimentalMaterialApi
+@ExperimentalAnimationApi
 @Composable
 @Preview(
     uiMode = previewUiMode,
@@ -330,6 +365,8 @@ private fun BasketPreviewLoading() {
     }
 }
 
+@ExperimentalMaterialApi
+@ExperimentalAnimationApi
 @Composable
 @Preview(
     uiMode = previewUiMode,
@@ -342,6 +379,8 @@ private fun BasketPreviewEmpty() {
     }
 }
 
+@ExperimentalAnimationApi
+@ExperimentalMaterialApi
 @Composable
 private fun BasketItemPreview(expanded: Boolean) {
     CryptimeleonTheme {
@@ -349,6 +388,8 @@ private fun BasketItemPreview(expanded: Boolean) {
     }
 }
 
+@ExperimentalMaterialApi
+@ExperimentalAnimationApi
 @Composable
 @Preview(
     uiMode = previewUiMode,
@@ -359,6 +400,8 @@ fun BasketItemPreview() {
     BasketItemPreview(false)
 }
 
+@ExperimentalMaterialApi
+@ExperimentalAnimationApi
 @Composable
 @Preview(
     uiMode = previewUiMode,

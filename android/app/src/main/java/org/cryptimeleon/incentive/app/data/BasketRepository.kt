@@ -14,7 +14,6 @@ import org.cryptimeleon.incentive.app.domain.IBasketRepository
 import org.cryptimeleon.incentive.app.domain.model.Basket
 import org.cryptimeleon.incentive.app.domain.model.BasketItem
 import org.cryptimeleon.incentive.app.domain.model.ShoppingItem
-import timber.log.Timber
 
 class BasketRepository(
     private val basketApiService: BasketApiService,
@@ -22,12 +21,12 @@ class BasketRepository(
 ) : IBasketRepository {
 
     override val basket: Flow<Basket?> = basketDao.observeBasketEntity()
-            .combine(basketDao.observeBasketItemEntities())
-            { a: BasketEntity?, b: List<BasketItemEntity> ->
-                if (a != null) basketEntityToBasket(
-                    a,
-                    b.map { basketItemEntityToItem(it) }) else null
-            }.flowOn(Dispatchers.Default)
+        .combine(basketDao.observeBasketItemEntities())
+        { a: BasketEntity?, b: List<BasketItemEntity> ->
+            if (a != null) basketEntityToBasket(
+                a,
+                b.map { basketItemEntityToItem(it) }) else null
+        }.flowOn(Dispatchers.Default)
 
     override val shoppingItems: Flow<List<ShoppingItem>>
         get() = basketDao.observeShoppingItems()
@@ -60,7 +59,6 @@ class BasketRepository(
             basketId = networkBasket.basketId,
             paid = networkBasket.paid,
             redeemed = networkBasket.redeemed,
-            value = networkBasket.value,
         )
         basketDao.setBasketEntity(updatedBasket)
         basketDao.deleteAllBasketItems()
@@ -186,7 +184,6 @@ class BasketRepository(
                 basketId = basket.basketId,
                 paid = basket.paid,
                 redeemed = basket.redeemed,
-                value = basket.value
             )
 
         fun basketEntityToBasket(
@@ -196,7 +193,7 @@ class BasketRepository(
             Basket(
                 basketId = basketEntity.basketId,
                 paid = basketEntity.paid,
-                value = basketEntity.value,
+                value = basketItems.map { it.count * it.price }.sum(),
                 redeemed = basketEntity.redeemed,
                 items = basketItems
             )

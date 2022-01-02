@@ -50,7 +50,6 @@ fun Dashboard(
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun TokenCard(promotionState: PromotionState) {
     Card(

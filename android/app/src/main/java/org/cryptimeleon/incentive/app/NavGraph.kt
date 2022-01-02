@@ -1,7 +1,6 @@
 package org.cryptimeleon.incentive.app
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -14,7 +13,6 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import org.cryptimeleon.incentive.app.ui.basket.BasketUi
 import org.cryptimeleon.incentive.app.ui.benchmark.BenchmarkUi
 import org.cryptimeleon.incentive.app.ui.dashboard.Dashboard
@@ -31,8 +29,6 @@ object MainDestination {
     const val BENCHMARK_ROUTE = "benchmark"
 }
 
-@ExperimentalPermissionsApi
-@ExperimentalAnimationApi
 @Composable
 fun NavGraph(
     navController: NavHostController,

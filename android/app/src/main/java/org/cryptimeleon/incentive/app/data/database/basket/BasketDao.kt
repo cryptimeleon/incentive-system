@@ -11,7 +11,7 @@ interface BasketDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun setBasketEntity(basketEntity: BasketEntity)
 
-    @Query("SELECT * FROM `basket-items`")
+    @Query("SELECT * FROM `basket-items` ORDER BY itemId ASC")
     fun observeBasketItemEntities(): Flow<List<BasketItemEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

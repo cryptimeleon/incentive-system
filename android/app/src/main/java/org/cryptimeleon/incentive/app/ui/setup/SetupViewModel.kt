@@ -84,7 +84,7 @@ class SetupViewModel @Inject constructor(
                     _setupState.postValue(SetupState.ERROR)
                 }
 
-                Thread.sleep(200)
+                delay(200)
                 _navigateToInfo.postValue(true)
             }
         }

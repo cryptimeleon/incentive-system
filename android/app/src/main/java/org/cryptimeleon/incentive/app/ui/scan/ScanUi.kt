@@ -7,7 +7,6 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
@@ -37,8 +36,6 @@ import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 import androidx.camera.core.Preview as CameraPreview
 
-@ExperimentalAnimationApi
-@ExperimentalPermissionsApi
 @Composable
 fun ScanScreen(openSettings: () -> Unit, openBenchmark: () -> Unit) {
     val viewModel = hiltViewModel<ScanViewModel>()
@@ -55,8 +52,6 @@ fun ScanScreen(openSettings: () -> Unit, openBenchmark: () -> Unit) {
     )
 }
 
-@ExperimentalAnimationApi
-@ExperimentalPermissionsApi
 @Composable
 private fun ScannerScreen(
     openBenchmark: () -> Unit,
@@ -179,7 +174,7 @@ private fun ScannedItemCard(
     }
 }
 
-@ExperimentalPermissionsApi
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 private fun CameraPermission(content: @Composable (() -> Unit)) {
 

@@ -10,6 +10,4 @@ data class BasketEntity(
     val basketId: UUID,
     val paid: Boolean,
     val redeemed: Boolean,
-    val value: Int,
 )
-

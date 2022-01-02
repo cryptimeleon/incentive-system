@@ -3,6 +3,7 @@ package org.cryptimeleon.incentive.app.ui.scan
 import android.app.Application
 import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -29,7 +30,9 @@ class ScanViewModel @Inject constructor(
     application: Application
 ) :
     AndroidViewModel(application) {
-    val state = MutableLiveData<ScanState>(ScanEmptyState)
+    private val _state = MutableLiveData<ScanState>(ScanEmptyState)
+    val state: LiveData<ScanState>
+        get() = _state
 
     init {
         Timber.i("ScanViewModel created")
@@ -45,41 +48,39 @@ class ScanViewModel @Inject constructor(
      *  @param barcode the scanned barcode
      */
     fun setBarcode(barcode: String) {
-        // Check if barcode already registered or being displayed
-        if (state.value == ScanEmptyState) {
-            state.value = ScanLoadingState(barcode)
+        // do this on main dispatcher!
+        if (_state.value == ScanEmptyState) {
+            _state.value = ScanLoadingState(barcode)
+        } else {
+            return
+        }
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                // Check if barcode already registered or being displayed
+                _state.postValue(ScanLoadingState(barcode))
+                Timber.i("Loading item with code $barcode")
+                delay(100)
 
-            Timber.i(barcode)
+                // TODO! trailing zeros in barcode?
 
-            // query basket item from basket service and check if it exists
-            viewModelScope.launch {
-                withContext(Dispatchers.IO) {
-                    // Query item
-                    val basketItem = basketRepository.getBasketItem(barcode)
-
-                    if (basketItem != null) {
-                        Timber.i("Item: $basketItem")
-                        if (state.value == ScanLoadingState(barcode)) {
-                            state.postValue(ScanResultState(basketItem, 1))
-                        }
-                    } else {
-                        basketRepository.refreshShoppingItems()
-                        val reloadedBasketItem = basketRepository.getBasketItem(barcode)
-
-                        if (reloadedBasketItem != null) {
-                            Timber.i("Item: $reloadedBasketItem")
-                            if (state.value == ScanLoadingState(barcode)) {
-                                state.postValue(ScanResultState(reloadedBasketItem, 1))
-                            } else {
-                                Timber.e("Error loading item '$barcode'")
-                                if (state.value == ScanLoadingState(barcode)) {
-                                    state.postValue(ScanEmptyState)
-                                }
-                            }
-                        }
-                    }
+                // Search for item, first locally and then by reloading
+                var shoppingItem: ShoppingItem? = null
+                shoppingItem = basketRepository.getBasketItem(barcode)
+                if (shoppingItem == null) {
+                    // Try refreshing shoppingItems
+                    basketRepository.refreshShoppingItems()
+                    shoppingItem = basketRepository.getBasketItem(barcode)
                 }
-                // check if promotions apply or can be applied by adding some more of this item
+
+                Timber.i("Found item $shoppingItem for barcode $barcode")
+
+                if (shoppingItem != null) {
+                    _state.postValue(ScanResultState(shoppingItem, 1))
+                } else {
+                    _state.postValue(ScanBlockedState)
+                    delay(300)
+                    _state.postValue(ScanEmptyState)
+                }
             }
         }
     }
@@ -93,14 +94,14 @@ class ScanViewModel @Inject constructor(
         when (val scanState = state.value) {
             is ScanResultState -> {
                 if (newAmount != scanState.count)
-                    state.postValue(scanState.copy(count = newAmount))
+                    _state.postValue(scanState.copy(count = newAmount))
             }
             else -> {}
         }
     }
 
     fun onDiscardItem() {
-        state.postValue(ScanEmptyState)
+        _state.postValue(ScanEmptyState)
     }
 
     /**
@@ -133,9 +134,9 @@ class ScanViewModel @Inject constructor(
                                 ).show()
                             }
                         }
-                        state.postValue(ScanBlockedState)
+                        _state.postValue(ScanBlockedState)
                         delay(1000)
-                        state.postValue(ScanEmptyState)
+                        _state.postValue(ScanEmptyState)
                     }
                 }
             }

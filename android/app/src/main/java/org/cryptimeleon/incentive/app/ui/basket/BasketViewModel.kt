@@ -28,13 +28,13 @@ class BasketViewModel @Inject constructor(
 ) : AndroidViewModel(application) {
 
     val basket: Flow<SLE<Basket>> = basketRepository.basket.map {
-            Timber.i("Basket $it!!")
-            if (it == null) {
-                SLE.Error("Basket is null!")
-            } else {
-                SLE.Success(it)
-            }
+        Timber.i("Basket ${it}, ${it?.items}")
+        if (it == null) {
+            SLE.Error("Basket is null!")
+        } else {
+            SLE.Success(it)
         }
+    }
 
     fun setItemCount(itemId: String, count: Int) {
         viewModelScope.launch {
