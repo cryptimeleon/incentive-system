@@ -3,7 +3,6 @@ package org.cryptimeleon.incentive.app.ui.basket
 import android.content.res.Configuration
 import android.icu.text.NumberFormat
 import androidx.compose.animation.*
-import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -111,6 +110,7 @@ private fun BasketUi(
                         state = lazyListState
                     ) {
                         items(basket.items) { item ->
+                            Divider()
                             BasketItem(
                                 item = item,
                                 expanded = expandedBasketItem == item.itemId,
@@ -209,23 +209,26 @@ private fun BasketItem(
     setCount: (Int) -> Unit
 ) {
     val transition = updateTransition(expanded, label = "expandedTransition")
-    val elevation by transition.animateDp {
-        if (it) 8.dp else 0.dp
+    val backgroundColor by transition.animateColor() {
+        if (it) MaterialTheme.colors.secondary else MaterialTheme.colors.surface
+    }
+    val contentColor by transition.animateColor() {
+        if (it) MaterialTheme.colors.onSecondary else MaterialTheme.colors.onSurface
     }
 
-    Card(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight()
             .animateContentSize()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        elevation = elevation
+            .clickable(onClick = onClick),
+        color = backgroundColor,
+        contentColor = contentColor,
     )
     {
         Column(
             verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.padding(8.dp),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -279,7 +282,7 @@ private fun BasketItemControlRow(
                 .wrapContentWidth()
                 .border(
                     1.dp,
-                    color = MaterialTheme.colors.onBackground,
+                    color = MaterialTheme.colors.contentColorFor(MaterialTheme.colors.secondary),
                     shape = RoundedCornerShape(16.dp)
                 ),
         ) {
@@ -335,7 +338,7 @@ val emptyTestBasket = Basket(
     redeemed = false,
     value = 91591
 )
-const val previewUiMode = Configuration.UI_MODE_NIGHT_YES
+const val previewUiMode = Configuration.UI_MODE_NIGHT_NO
 
 @ExperimentalMaterialApi
 @ExperimentalAnimationApi
