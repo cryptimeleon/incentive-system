@@ -3,7 +3,6 @@ package org.cryptimeleon.incentive.app.ui.basket
 import android.content.res.Configuration
 import android.icu.text.NumberFormat
 import androidx.compose.animation.*
-import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -19,10 +18,11 @@ import androidx.compose.material.icons.outlined.Remove
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import org.cryptimeleon.incentive.app.domain.model.Basket
 import org.cryptimeleon.incentive.app.domain.model.BasketItem
@@ -76,12 +76,13 @@ private fun BasketUi(
             is SLE.Loading -> LoadingSpinner()
             is SLE.Success -> Column(
                 modifier = Modifier
+                    .padding(16.dp)
                     .fillMaxHeight(),
             ) {
                 val basket = basketSle.data!!
                 if (basket.items.isNotEmpty()) {
                     val basketItemsCount = basket.items.map { it.count }.sum()
-                    Row(modifier = Modifier.padding(16.dp)) {
+                    Row() {
                         AnimatedContent(targetState = basketItemsCount, transitionSpec = {
                             if (targetState > initialState) {
                                 slideInVertically { height -> height } + fadeIn() with
@@ -95,18 +96,19 @@ private fun BasketUi(
                         }) { targetItem ->
                             Text(
                                 text = "$targetItem",
-                                style = MaterialTheme.typography.body1
+                                style = MaterialTheme.typography.overline,
+                                fontSize = 14.sp
                             )
                         }
                         Text(
-                            text = " Item${if (basketItemsCount > 1) "s" else ""} in your cart",
-                            style = MaterialTheme.typography.body1
+                            text = " Item${if (basketItemsCount > 1) "s" else ""} in your cart:",
+                            style = MaterialTheme.typography.overline,
+                            fontSize = 14.sp
                         )
                     }
                     LazyColumn(
                         modifier = Modifier
-                            .weight(1f)
-                            .padding(top = 8.dp, bottom = 8.dp),
+                            .padding(top = 8.dp),
                         state = lazyListState
                     ) {
                         items(basket.items) { item ->
@@ -117,25 +119,36 @@ private fun BasketUi(
                                 onClick = {
                                     expandedBasketItem =
                                         if (expandedBasketItem == item.itemId) wrongId else item.itemId
-                                }
-                            ) { count ->
-                                setItemCount(item.itemId, count)
-                            }
+                                },
+                                setCount = { count ->
+                                    setItemCount(item.itemId, count)
+                                },
+                                modifier = Modifier.padding(vertical = 8.dp),
+                            )
                         }
                     }
-
-                    Spacer(modifier = Modifier.size(16.dp))
-                    Text(
-                        text = "Total: ${formatCents(basket.value)}",
-                        textAlign = TextAlign.Center,
-                        style = MaterialTheme.typography.h6,
+                    Divider(thickness = 3.dp)
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp)
+                            .padding(vertical = 8.dp)
+                    ) {
+                        Text(
+                            text = "Total",
+                            style = MaterialTheme.typography.h5,
+                        )
+                        Text(
+                            text = "${formatCents(basket.value)}",
+                            style = MaterialTheme.typography.h5,
+                        )
+                    }
+                    Spacer(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .weight(1f)
                     )
-                    Spacer(modifier = Modifier.size(16.dp))
                     Row(
-                        modifier = Modifier.padding(16.dp),
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         OutlinedButton(
@@ -204,31 +217,21 @@ private fun LoadingSpinner() {
 @Composable
 private fun BasketItem(
     item: BasketItem,
-    expanded: Boolean = false,
+    expanded: Boolean,
     onClick: () -> Unit,
-    setCount: (Int) -> Unit
+    setCount: (Int) -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    val transition = updateTransition(expanded, label = "expandedTransition")
-    val backgroundColor by transition.animateColor() {
-        if (it) MaterialTheme.colors.secondary else MaterialTheme.colors.surface
-    }
-    val contentColor by transition.animateColor() {
-        if (it) MaterialTheme.colors.onSecondary else MaterialTheme.colors.onSurface
-    }
-
     Surface(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .wrapContentHeight()
             .animateContentSize()
             .clickable(onClick = onClick),
-        color = backgroundColor,
-        contentColor = contentColor,
     )
     {
         Column(
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -237,12 +240,14 @@ private fun BasketItem(
                 Text(
                     item.title,
                     style = MaterialTheme.typography.body1,
+                    fontWeight = FontWeight.Normal,
                     modifier = Modifier.weight(1f)
                 )
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         text = formatCents(item.price * item.count),
-                        style = MaterialTheme.typography.body1,
+                        style = MaterialTheme.typography.body2,
+                        fontWeight = FontWeight.Normal,
                         modifier = Modifier
                             .align(Alignment.End)
                     )
@@ -250,7 +255,6 @@ private fun BasketItem(
                         text = "${item.count} x ${formatCents(item.price)}",
                         style = MaterialTheme.typography.body2,
                         modifier = Modifier
-                            .alpha(0.8f)
                             .align(Alignment.End)
                     )
                 }
@@ -275,16 +279,20 @@ private fun BasketItemControlRow(
         IconButton(
             onClick = { setCount(0) },
         ) {
-            Icon(Icons.Outlined.Delete, "Delete")
+            Icon(
+                Icons.Outlined.Delete,
+                tint = MaterialTheme.colors.secondary,
+                contentDescription = "Delete"
+            )
         }
         Box(
             modifier = Modifier
-                .wrapContentWidth()
                 .border(
                     1.dp,
-                    color = MaterialTheme.colors.contentColorFor(MaterialTheme.colors.secondary),
+                    color = MaterialTheme.colors.secondary,
                     shape = RoundedCornerShape(16.dp)
-                ),
+                )
+                .wrapContentWidth()
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically
@@ -292,7 +300,11 @@ private fun BasketItemControlRow(
                 IconButton(
                     onClick = { setCount(count - 1) },
                 ) {
-                    Icon(Icons.Outlined.Remove, "Subtract")
+                    Icon(
+                        Icons.Outlined.Remove,
+                        tint = MaterialTheme.colors.secondary,
+                        contentDescription = "Subtract"
+                    )
                 }
                 Text(
                     text = "$count",
@@ -301,7 +313,11 @@ private fun BasketItemControlRow(
                 IconButton(
                     onClick = { setCount(count + 1) },
                 ) {
-                    Icon(Icons.Outlined.Add, "Add")
+                    Icon(
+                        Icons.Outlined.Add,
+                        tint = MaterialTheme.colors.secondary,
+                        contentDescription = "Add"
+                    )
                 }
             }
         }
@@ -387,7 +403,7 @@ private fun BasketPreviewEmpty() {
 @Composable
 private fun BasketItemPreview(expanded: Boolean) {
     CryptimeleonTheme {
-        BasketItem(testBasketItemList[0], expanded, {}) {}
+        BasketItem(testBasketItemList[0], expanded, {}, {})
     }
 }
 

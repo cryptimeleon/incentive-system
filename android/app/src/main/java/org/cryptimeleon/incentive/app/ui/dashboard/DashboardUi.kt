@@ -9,10 +9,10 @@ import androidx.compose.material.icons.outlined.Redeem
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
@@ -65,28 +65,31 @@ fun TokenCard(
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight(),
-        elevation = 8.dp,
+        elevation = 4.dp,
         onClick = { toggleExpanded(promotionState.id) },
     ) {
         Column(
             modifier = Modifier
-                .padding(16.dp)
+                .padding(horizontal = 16.dp)
+                .padding(bottom = 16.dp)
                 .fillMaxWidth()
                 .animateContentSize()
         ) {
-            Row{
+            Row {
                 Text(
                     text = promotionState.title,
-                    style = MaterialTheme.typography.h5,
-                    modifier = Modifier.weight(1f)
+                    style = MaterialTheme.typography.h4,
+                    modifier = Modifier
+                        .weight(1f)
+                        .paddingFromBaseline(36.sp)
                 )
                 when (promotionState) {
                     is NutellaPromotionState -> {
                         Text(
                             text = "${promotionState.count}",
-                            style = MaterialTheme.typography.h5,
-                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.h4,
                             color = MaterialTheme.colors.secondary,
+                            modifier = Modifier.paddingFromBaseline(36.sp)
                         )
                     }
                 }
@@ -95,11 +98,11 @@ fun TokenCard(
                 text = promotionState.description,
                 style = MaterialTheme.typography.body1,
             )
-            if (expandedPromotion == promotionState.id) {
-                Spacer(modifier = Modifier.size(8.dp))
+            if (true || expandedPromotion == promotionState.id) { // TODO decide on one option
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(bottom = 4.dp, top = 4.dp)
                 ) {
                     Icon(
                         Icons.Outlined.Redeem,
@@ -111,7 +114,7 @@ fun TokenCard(
                     )
                     Text(
                         text = "Rewards",
-                        style = MaterialTheme.typography.h6,
+                        style = MaterialTheme.typography.h5,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -126,6 +129,7 @@ fun TokenCard(
                             )
                             LinearProgressIndicator(
                                 progress = if (rewardState.current > rewardState.goal) 1f else rewardState.current / (rewardState.goal * 1.0f),
+                                color = MaterialTheme.colors.secondary,
                                 modifier = Modifier.fillMaxWidth()
                             )
                             Text(

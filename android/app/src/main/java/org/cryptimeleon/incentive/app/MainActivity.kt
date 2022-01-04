@@ -55,7 +55,7 @@ class MainActivity : ComponentActivity() {
             val useDarkIcons = MaterialTheme.colors.isLight
             SideEffect {
                 systemUiController.setSystemBarsColor(
-                    Color.Black.copy(alpha = 0.1f), // or transparent
+                    Color.Transparent,
                     darkIcons = false // depends on what background color is used
                 )
             }

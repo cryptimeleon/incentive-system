@@ -6,17 +6,11 @@ val Indigo400 = Color(0xff5c6bc0)
 val Amber300 = Color(0xffffd54f)
 
 
-val md_theme_light_primaryVariant = Color(0xFF93ffff)
-val md_theme_dark_primaryVariant = Color(0xFF93ffff)
-val md_theme_light_secondaryVariant = Color(0xffe4fdff)
-val md_theme_dark_secondaryVariant = Color(0xFF4895ab)
-
-
 val md_theme_light_primary = Color(0xFF00677c)
 val md_theme_light_onPrimary = Color(0xFFffffff)
 val md_theme_light_primaryContainer = Color(0xFFadecff)
 val md_theme_light_onPrimaryContainer = Color(0xFF001f27)
-val md_theme_light_secondary = Color(0xFF4b6269)
+val md_theme_light_secondary = Color(0xFFE30425)
 val md_theme_light_onSecondary = Color(0xFFffffff)
 val md_theme_light_secondaryContainer = Color(0xFFcee7f0)
 val md_theme_light_onSecondaryContainer = Color(0xFF061e25)
