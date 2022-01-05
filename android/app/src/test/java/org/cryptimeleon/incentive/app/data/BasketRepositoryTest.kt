@@ -28,7 +28,7 @@ class BasketRepositoryTest {
     private lateinit var basketApiService: BasketApiService
 
     private val testBasketEntity =
-        BasketEntity(basketId = UUID.randomUUID(), paid = false, redeemed = false, value = 199)
+        BasketEntity(basketId = UUID.randomUUID(), paid = false, redeemed = false)
     private val testBasketItemEntity = BasketItemEntity("some-item-id", 299, "some item", 5)
 
     /**
