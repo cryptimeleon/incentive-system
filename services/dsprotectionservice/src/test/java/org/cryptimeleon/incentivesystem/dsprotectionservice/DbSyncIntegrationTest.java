@@ -14,7 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Tests the DB Sync algorithm using dummy transactions.
+ * Tests for the DB Sync algorithm using dummy transactions.
  */
 public class DbSyncIntegrationTest {
     private Logger logger = LoggerFactory.getLogger(DbSyncIntegrationTest.class);
@@ -93,10 +93,102 @@ public class DbSyncIntegrationTest {
     }
 
     /**
-     * Syncing two transactions into the DB that spend the same token.
+     * Syncing transactions into the DB, some of which spend the same token.
+     * This should be detected as a double-spending attempt and result in cascading invalidations of transactions.
+     * We use the graph from section 6 of the 2019 Updatable Anonymous Credentials paper for testing.
+     *
+     * Double-spending IDs dsid4 and dsid5 are computed during the double-spending detection.
+     * This comes from the fact that until double-spending behaviour is detected,
+     * it is actually not interesting which transaction produced which token.
      */
     @Test
-    void doubleSpendingTest() {
+    void cascadingInvalidationsTest() {
+        logger.info("Starting cascading invalidations test.");
 
+        logger.info("Setup incentive system and database handler for the test.");
+        var pp = IncentiveSystem.setup(256, Setup.BilinearGroupChoice.Debug);
+        var incSys = new IncentiveSystem(pp);
+        var dbHandler = new LocalDatabaseHandler(
+                incSys.getPp(),
+                new MockDsidEntryRepository(),
+                new MockTransactionEntryRepository(),
+                new MockDsTagEntryRepository(),
+                new MockUserInfoEntryRepository()
+        );
+
+        logger.info("Generating random valid transactions and dsids.");
+        var usedG1 = incSys.getPp().getBg().getG1();
+        var t1 = Helper.generateTransaction(incSys.getPp(), true);
+        var t1Prime = Helper.generateTransaction(incSys.getPp(), true);
+        var t2 = Helper.generateTransaction(incSys.getPp(), true);
+        var t2Prime = Helper.generateTransaction(incSys.getPp(), true);
+        var t3 = Helper.generateTransaction(incSys.getPp(), true);
+        var dsid1 = usedG1.getUniformlyRandomElement();
+        var dsid2 = usedG1.getUniformlyRandomElement();
+        var dsid3 = usedG1.getUniformlyRandomElement();
+
+        logger.info("Syncing transactions and dsids to database.");
+        logger.info("Syncing t2Prime which spent dsid2");
+        incSys.dbSync( // t2Prime and dsid2
+                t2Prime.getTaIdentifier().getTid(),
+                dsid2,
+                t2Prime.getDsTag(),
+                t2Prime.getK(),
+                dbHandler
+        );
+        logger.info("Syncing t1 which spent dsid1");
+        incSys.dbSync( // t1 and dsid1
+                t1.getTaIdentifier().getTid(),
+                dsid1,
+                t1.getDsTag(),
+                t1.getK(),
+                dbHandler
+        );
+        logger.info("Syncing t3 which spent dsid3");
+        incSys.dbSync( // t3 and dsid3
+                t3.getTaIdentifier().getTid(),
+                dsid3,
+                t3.getDsTag(),
+                t3.getK(),
+                dbHandler
+        );
+        logger.info("Syncing t1Prime which spent dsid1");
+        incSys.dbSync( // t1Prime and dsid1
+                t1Prime.getTaIdentifier().getTid(),
+                dsid1,
+                t1Prime.getDsTag(),
+                t1.getK(),
+                dbHandler
+        );
+        logger.info("Syncing t2 which spent dsid2");
+        incSys.dbSync( // t2 and dsid2
+                t2.getTaIdentifier().getTid(),
+                dsid2,
+                t2.getDsTag(),
+                t2Prime.getK(),
+                dbHandler
+        );
+        logger.info("Done syncing transactions and dsids to database.");
+
+        logger.info("Checking whether double spending was correctly detected.");
+
+        logger.info("Checking token count.");
+        Assertions.assertEquals(dbHandler.getTokenCount(), 5);
+
+        logger.info("Checking validity of transactions.");
+        var retrievedT1 = dbHandler.getTransactionNode(t1.getTaIdentifier());
+        var retrievedT1Prime = dbHandler.getTransactionNode(t1Prime.getTaIdentifier());
+        var retrievedT2 = dbHandler.getTransactionNode(t2.getTaIdentifier());
+        var retrievedT2Prime = dbHandler.getTransactionNode(t2Prime.getTaIdentifier());
+        var retrievedT3 = dbHandler.getTransactionNode(t3.getTaIdentifier());
+        Assertions.assertTrue(retrievedT1.getIsValid());
+        Assertions.assertTrue(!retrievedT1Prime.getIsValid());
+        Assertions.assertTrue(!retrievedT2.getIsValid());
+        Assertions.assertTrue(!retrievedT2Prime.getIsValid());
+        Assertions.assertTrue(!retrievedT3.getIsValid());
+
+        logger.info("Double-spending was correctly detected.");
+
+        logger.info("Completed cascading invalidations test.");
     }
 }

@@ -112,4 +112,13 @@ public interface DatabaseHandler
      * Marks the transaction specified by the passed ID and challenge generator as invalid.
      */
     public void invalidateTransaction(TransactionIdentifier taIdentifier);
+
+    /**
+     * Helper methods providing info about the database state.
+     * Note that they are designed to not expose any information about the underlying database administration objects (like for example CRUDRepositories).
+     */
+    public long getTransactionCount();
+    public long getTokenCount();
+    public long getDsTagCount();
+    public long getUserInfoCount();
 }

@@ -34,6 +34,7 @@ import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.NoSuchElementException;
 
 
 /**
@@ -694,6 +695,7 @@ public class IncentiveSystem {
 
         // if transaction is not yet in the database
         if(!dbHandler.containsTransactionNode(taId)) {
+            System.out.println("Transaction not found in database, will be added.");
             // add a corresponding transaction node to DB (which also contains the dstag)
             Transaction ta = new Transaction(true, tid, spendAmount, dsTag);
             dbHandler.addTransactionNode(ta);
@@ -701,6 +703,7 @@ public class IncentiveSystem {
 
         // if dsid of used token is not yet in DB
         if(!dbHandler.containsTokenNode(dsid)) {
+            System.out.println("Spent token not found in database, will be added.");
             // add a corresponding token node to DB
             dbHandler.addTokenNode(dsid);
             // and make edge from dsid's token node to the node of the passed transaction
@@ -708,17 +711,29 @@ public class IncentiveSystem {
         }
         // if dsid is already in DB -> double-spending attempt detected!
         else {
+            System.out.println("Spent token found in database, double-spending protection mechanism triggered.");
+
             // make edge from dsid's token node to the node of the passed transaction
             dbHandler.addTokenTransactionEdge(dsid, taId);
 
+            // attempt to retrieve user info associated to dsid
+            UserInfo associatedUserInfo = null;
+            try{
+                associatedUserInfo = dbHandler.getUserInfo(dsid);
+            }
+            catch (NoSuchElementException e) {
+                System.out.println("No user info associated with the spent token.");
+            }
+
             // if the token node has no user info associated with it
-            UserInfo associatedUserInfo = dbHandler.getUserInfo(dsid);
             if(associatedUserInfo == null) {
+                System.out.println("Retrieving all transactions that spent the passed token.");
                 // retrieve all transaction that consumed the dsid
                 ArrayList<Transaction> consumingTaList = dbHandler.getConsumingTransactions(dsid);
 
                 // use two of them to compute the user info for this token (i.e. link the double-spending to a user)
                 try {
+                    System.out.println("Attempting to compute user info for passed token.");
                     DoubleSpendingTag firstTaTag = consumingTaList.get(0).getDsTag();
                     DoubleSpendingTag secondTaTag = consumingTaList.get(1).getDsTag();
                     UserInfo uInfo = this.link(this.pp, firstTaTag, secondTaTag);
@@ -728,22 +743,27 @@ public class IncentiveSystem {
                     );
                 }
                 catch(Exception e) {
-                    System.out.println("Cannot compute user info for token: need at least 2 consuming transactions"); // TODO: use logger?
+                    System.out.println("Cannot compute user info for passed token: need at least 2 consuming transactions"); // TODO: use logger?
                 }
             }
 
 
 
             // invalidate transaction
+            System.out.println("Marking transaction invalid.");
             dbHandler.invalidateTransaction(taId);
             invalidatedTasIdentifiers.add(new TransactionIdentifier(tid, gamma));
         }
 
         // second part of DBSync: cascading invalidations
+        System.out.println("Started cascading invalidations.");
 
         // whenever a transaction is invalidated: invalidate all transactions that resulted from it (if any exist)
         while(!invalidatedTasIdentifiers.isEmpty()) {
             TransactionIdentifier currentTaId = invalidatedTasIdentifiers.remove(0);
+            System.out.println("Invalidated transaction " + currentTaId.toString() + " found.");
+
+            System.out.println("Retrieving transaction and token data (including user info for token) for " + currentTaId.toString() + " .");
 
             // retrieve transaction
             Transaction ta = dbHandler.getTransactionNode(currentTaId);
@@ -752,9 +772,13 @@ public class IncentiveSystem {
             GroupElement consumedDsid = dbHandler.getConsumedTokenDsid(currentTaId, this.pp);
             UserInfo consumedDsidUserInfo = dbHandler.getUserInfo(consumedDsid);
 
+            System.out.println("Tracing remainder token.");
+
             // use Trace to compute remainder token's dsid (remainder token: token that resulted from the currently considered transaction)
             TraceOutput traceOutput = this.trace(this.pp, consumedDsidUserInfo.getDsTrace(), ta.getDsTag());
             GroupElement dsidStar = traceOutput.getDsidStar();
+
+            System.out.println("Add remainder token and its user info.");
 
             // add remainder token dsid if not contained yet
             if(dbHandler.containsTokenNode(dsidStar)) {
@@ -771,8 +795,12 @@ public class IncentiveSystem {
                     dsidStar
             );
 
+            System.out.println("Making edge from " + currentTaId.toString() + " to traced remainder token.");
+
             // link current transaction with remainder token in database
             dbHandler.addTransactionTokenEdge(currentTaId, dsidStar);
+
+            System.out.println("Invalidating all transaction that (directly or indirectly) consumed the traced remainder token of " + currentTaId.toString() + ".");
 
             // invalidate all transactions that consumed the remainder token or followed from a transaction consuming it
             ArrayList<Transaction> followingTransactions = dbHandler.getConsumingTransactions(dsidStar);

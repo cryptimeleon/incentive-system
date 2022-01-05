@@ -449,4 +449,21 @@ public class LocalDatabaseHandler implements DatabaseHandler {
         this.doubleSpendingTagRepository.deleteAll();
         this.userInfoRepository.deleteAll();
     }
+
+    /**
+     * Helper methods providing info about the database state.
+     * Note that they are designed to not expose any information about the underlying database administration objects (like for example CRUDRepositories).
+     */
+    public long getTransactionCount() {
+        return transactionRepository.count();
+    }
+    public long getTokenCount(){
+        return dsidRepository.count();
+    }
+    public long getDsTagCount(){
+        return doubleSpendingTagRepository.count();
+    }
+    public long getUserInfoCount() {
+        return userInfoRepository.count();
+    }
 }
