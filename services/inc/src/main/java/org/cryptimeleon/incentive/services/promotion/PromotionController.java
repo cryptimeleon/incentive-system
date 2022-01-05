@@ -23,7 +23,7 @@ public class PromotionController {
      */
     @GetMapping("/")
     public ResponseEntity<String> test() {
-        return new ResponseEntity<>("Hello from Promotion service!", HttpStatus.OK);
+        return new ResponseEntity<>("Hello from incentive service!", HttpStatus.OK);
     }
 
     @GetMapping("/promotions")

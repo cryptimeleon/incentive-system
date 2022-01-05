@@ -5,21 +5,19 @@ import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
-
 /**
- * Client calls for credit service.
+ * Client calls for incentive service.
  * Can be used for testing and prototyping.
  */
-public class CreditClient {
+public class IncentiveClient {
 
     /**
-     * Webclient configured with the url of the credit service
+     * Webclient configured with the url of the issue service
      */
-    private WebClient creditClient;
+    private WebClient incentiveClient;
 
-
-    public CreditClient(String creditServiceUrl) {
-        this.creditClient = WebClientHelper.buildWebClient(creditServiceUrl);
+    public IncentiveClient(String incentiveServiceUrl) {
+        this.incentiveClient = WebClientHelper.buildWebClient(incentiveServiceUrl);
     }
 
     /**
@@ -27,8 +25,24 @@ public class CreditClient {
      * This can be used to test whether a service is alive and reachable under some url
      */
     public Mono<String> sendAliveRequest() {
-        return creditClient.get()
+        return incentiveClient.get()
                 .uri("/")
+                .retrieve()
+                .bodyToMono(String.class);
+    }
+
+    /**
+     * Creates a join request.
+     *
+     * @param serializedUserPublicKey the serialized public key of the user
+     * @param serializedJoinRequest   the serialized join request
+     * @return mono of the server's answer
+     */
+    public Mono<String> sendJoinRequest(String serializedJoinRequest, String serializedUserPublicKey) {
+        return incentiveClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/issue").build())
+                .header("public-key", serializedUserPublicKey)
+                .header("join-request", serializedJoinRequest)
                 .retrieve()
                 .bodyToMono(String.class);
     }
@@ -40,7 +54,7 @@ public class CreditClient {
      * @param basketId              the serialized basket id
      */
     public Mono<String> sendEarnRequest(String serializedEarnRequest, UUID basketId) {
-        return creditClient.get()
+        return incentiveClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/credit").build())
                 .header("earn-request", serializedEarnRequest)
                 .header("basket-id", basketId.toString())

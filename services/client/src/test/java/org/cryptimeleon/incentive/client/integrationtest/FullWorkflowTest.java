@@ -28,8 +28,7 @@ public class FullWorkflowTest extends IncentiveSystemIntegrationTest {
     @Test
     void runFullWorkflow() {
         var infoClient = new InfoClient(infoUrl);
-        var issueClient = new IssueClient(issueUrl);
-        var creditClient = new CreditClient(creditUrl);
+        var incentiveClient= new IncentiveClient(incentiveUrl);
         var basketClient = new BasketClient(basketUrl);
 
         log.info("Retrieve data from info service");
@@ -48,7 +47,7 @@ public class FullWorkflowTest extends IncentiveSystemIntegrationTest {
 
         log.info("Send join request to server and retrieve token");
         var joinRequest = incentiveSystem.generateJoinRequest(providerPublicKey, userKeyPair);
-        var serializedJoinResponse = issueClient.sendJoinRequest(
+        var serializedJoinResponse = incentiveClient.sendJoinRequest(
                 jsonConverter.serialize(joinRequest.getRepresentation()),
                 jsonConverter.serialize(userKeyPair.getPk().getRepresentation())
         ).block(Duration.ofSeconds(1));
@@ -60,14 +59,14 @@ public class FullWorkflowTest extends IncentiveSystemIntegrationTest {
 
         log.info("Test earn with unpaid basket should fail");
         assertThatExceptionOfType(RuntimeException.class).isThrownBy(() ->
-                creditClient.sendEarnRequest("Some request", basket.getBasketID()).block())
+                incentiveClient.sendEarnRequest("Some request", basket.getBasketID()).block())
                 .withCauseInstanceOf(IncentiveClientException.class);
         basketClient.payBasket(basket.getBasketID(), basket.getValue(), paySecret).block();
 
         log.info("Run valid credit earn protocol");
         var earnRequest = incentiveSystem.generateEarnRequest(token, providerPublicKey, userKeyPair);
         var serializedEarnRequest = jsonConverter.serialize(earnRequest.getRepresentation());
-        var serializedSignature = creditClient.sendEarnRequest(serializedEarnRequest, basket.getBasketID()).block();
+        var serializedSignature = incentiveClient.sendEarnRequest(serializedEarnRequest, basket.getBasketID()).block();
         var signature = new SPSEQSignature(jsonConverter.deserialize(serializedSignature), publicParameters.getBg().getG1(), publicParameters.getBg().getG2());
         var newToken = incentiveSystem.handleEarnRequestResponse(
                 promotionParameters,
@@ -80,17 +79,17 @@ public class FullWorkflowTest extends IncentiveSystemIntegrationTest {
         Assertions.assertEquals(newToken.getPoints().get(0).asInteger().longValueExact(), basket.getValue());
 
         log.info("Second earn with paid basket and same request should succeed");
-        creditClient.sendEarnRequest(serializedEarnRequest, basket.getBasketID()).block();
+        incentiveClient.sendEarnRequest(serializedEarnRequest, basket.getBasketID()).block();
 
         log.info("Test earn without valid basket should fail");
         assertThatExceptionOfType(RuntimeException.class).isThrownBy(() ->
-                creditClient.sendEarnRequest("Some request", UUID.randomUUID()).block())
+                incentiveClient.sendEarnRequest("Some request", UUID.randomUUID()).block())
                 .withCauseInstanceOf(IncentiveClientException.class);
 
         log.info("Second earn with paid basket and other request should fail");
         var otherEarnRequest = incentiveSystem.generateEarnRequest(token, providerPublicKey, userKeyPair);
         assertThatExceptionOfType(RuntimeException.class).isThrownBy(() ->
-                creditClient.sendEarnRequest(jsonConverter.serialize(otherEarnRequest.getRepresentation()), basket.getBasketID()).block())
+                incentiveClient.sendEarnRequest(jsonConverter.serialize(otherEarnRequest.getRepresentation()), basket.getBasketID()).block())
                 .withCauseInstanceOf(IncentiveClientException.class);
     }
 }

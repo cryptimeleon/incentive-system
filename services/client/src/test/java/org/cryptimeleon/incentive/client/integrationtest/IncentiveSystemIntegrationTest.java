@@ -14,11 +14,8 @@ public abstract class IncentiveSystemIntegrationTest {
     @Value("${info.url}")
     String infoUrl;
 
-    @Value("${issue.url}")
-    String issueUrl;
-
-    @Value("${credit.url}")
-    String creditUrl;
+    @Value("${incentive.url}")
+    String incentiveUrl;
 
     @Value("${basket.url}")
     String basketUrl;
