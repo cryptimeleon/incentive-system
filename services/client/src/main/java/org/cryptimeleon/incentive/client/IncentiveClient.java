@@ -1,9 +1,17 @@
 package org.cryptimeleon.incentive.client;
 
+import org.cryptimeleon.incentive.promotion.promotions.NutellaPromotion;
+import org.cryptimeleon.incentive.promotion.promotions.Promotion;
+import org.cryptimeleon.math.serialization.converter.JSONConverter;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.math.BigInteger;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Client calls for incentive service.
@@ -15,6 +23,7 @@ public class IncentiveClient {
      * Webclient configured with the url of the issue service
      */
     private WebClient incentiveClient;
+    private JSONConverter jsonConverter = new JSONConverter();
 
     public IncentiveClient(String incentiveServiceUrl) {
         this.incentiveClient = WebClientHelper.buildWebClient(incentiveServiceUrl);
@@ -38,10 +47,11 @@ public class IncentiveClient {
      * @param serializedJoinRequest   the serialized join request
      * @return mono of the server's answer
      */
-    public Mono<String> sendJoinRequest(String serializedJoinRequest, String serializedUserPublicKey) {
-        return incentiveClient.get()
-                .uri(uriBuilder -> uriBuilder.path("/issue").build())
-                .header("public-key", serializedUserPublicKey)
+    public Mono<String> sendJoinRequest(String serializedJoinRequest, String serializedUserPublicKey, BigInteger promotionId) {
+        return incentiveClient.post()
+                .uri(uriBuilder -> uriBuilder.path("/join-promotion").build())
+                .header("promotion-id", String.valueOf(promotionId))
+                .header("user-public-key", serializedUserPublicKey)
                 .header("join-request", serializedJoinRequest)
                 .retrieve()
                 .bodyToMono(String.class);
@@ -54,11 +64,31 @@ public class IncentiveClient {
      * @param basketId              the serialized basket id
      */
     public Mono<String> sendEarnRequest(String serializedEarnRequest, UUID basketId) {
-        return incentiveClient.get()
-                .uri(uriBuilder -> uriBuilder.path("/credit").build())
+        return incentiveClient.post()
+                .uri(uriBuilder -> uriBuilder.path("/earn").build())
                 .header("earn-request", serializedEarnRequest)
                 .header("basket-id", basketId.toString())
                 .retrieve()
                 .bodyToMono(String.class);
+    }
+
+    public Mono<List<Promotion>> queryPromotions() {
+        return incentiveClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/promotions").build())
+                .retrieve()
+                .toEntityList(String.class)
+                .map(s ->
+                        s.getBody().stream().map(it ->
+                                new NutellaPromotion(jsonConverter.deserialize(it))
+                        ).collect(Collectors.toList())
+                );
+    }
+
+    public Mono<ResponseEntity<Void>> addPromotions(List<Promotion> promotions) {
+        return incentiveClient.post()
+                .uri(uriBuilder -> uriBuilder.path("/promotions").build())
+                .body(BodyInserters.fromValue(promotions.stream().map(p -> jsonConverter.serialize(p.getRepresentation())).collect(Collectors.toList())))
+                .retrieve()
+                .toBodilessEntity();
     }
 }

@@ -1,22 +1,23 @@
 package org.cryptimeleon.incentive.client.integrationtest;
 
 import lombok.extern.slf4j.Slf4j;
-import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
-import org.cryptimeleon.incentive.client.*;
+import org.cryptimeleon.incentive.client.BasketClient;
+import org.cryptimeleon.incentive.client.IncentiveClient;
+import org.cryptimeleon.incentive.client.InfoClient;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse;
+import org.cryptimeleon.incentive.promotion.promotions.NutellaPromotion;
+import org.cryptimeleon.incentive.promotion.promotions.Promotion;
+import org.cryptimeleon.incentive.promotion.reward.NutellaReward;
+import org.cryptimeleon.incentive.promotion.reward.RewardSideEffect;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
-import org.cryptimeleon.math.structures.cartesian.Vector;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.math.BigInteger;
 import java.time.Duration;
+import java.util.List;
 import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 /**
  * Test a full (correct) protocol flow.
@@ -24,11 +25,16 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 @Slf4j
 public class FullWorkflowTest extends IncentiveSystemIntegrationTest {
 
+    Promotion testPromotion = new NutellaPromotion(NutellaPromotion.generatePromotionParameters(),
+            "Test Promotion",
+            "Some Test Promotion",
+            List.of(new NutellaReward(2, "This is a test reward", UUID.randomUUID(), new RewardSideEffect("Test Reward Sideffect"))),
+            "Apple");
 
     @Test
     void runFullWorkflow() {
         var infoClient = new InfoClient(infoUrl);
-        var incentiveClient= new IncentiveClient(incentiveUrl);
+        var incentiveClient = new IncentiveClient(incentiveUrl);
         var basketClient = new BasketClient(basketUrl);
 
         log.info("Retrieve data from info service");
@@ -42,21 +48,25 @@ public class FullWorkflowTest extends IncentiveSystemIntegrationTest {
                 publicParameters.getSpsEq(),
                 publicParameters.getBg().getG1());
         var incentiveSystem = new IncentiveSystem(publicParameters);
-        var promotionParameters = incentiveSystem.legacyPromotionParameters();
+        incentiveClient.addPromotions(List.of(testPromotion)).block(Duration.ofSeconds(1)).getStatusCode().is2xxSuccessful();
+
         var userKeyPair = incentiveSystem.generateUserKeys();
 
         log.info("Send join request to server and retrieve token");
         var joinRequest = incentiveSystem.generateJoinRequest(providerPublicKey, userKeyPair);
         var serializedJoinResponse = incentiveClient.sendJoinRequest(
                 jsonConverter.serialize(joinRequest.getRepresentation()),
-                jsonConverter.serialize(userKeyPair.getPk().getRepresentation())
+                jsonConverter.serialize(userKeyPair.getPk().getRepresentation()),
+                testPromotion.getPromotionParameters().getPromotionId()
         ).block(Duration.ofSeconds(1));
         var joinResponse = new JoinResponse(jsonConverter.deserialize(serializedJoinResponse), publicParameters);
-        var token = incentiveSystem.handleJoinRequestResponse(promotionParameters, providerPublicKey, userKeyPair, joinRequest, joinResponse);
+        var token = incentiveSystem.handleJoinRequestResponse(testPromotion.getPromotionParameters(), providerPublicKey, userKeyPair, joinRequest, joinResponse);
 
         log.info("Create basket for testing credit-earn");
         var basket = TestHelper.createBasketWithItems(basketUrl);
 
+        /*
+         * These test cases will be rewritten alongside their implementation in the app
         log.info("Test earn with unpaid basket should fail");
         assertThatExceptionOfType(RuntimeException.class).isThrownBy(() ->
                 incentiveClient.sendEarnRequest("Some request", basket.getBasketID()).block())
@@ -69,7 +79,7 @@ public class FullWorkflowTest extends IncentiveSystemIntegrationTest {
         var serializedSignature = incentiveClient.sendEarnRequest(serializedEarnRequest, basket.getBasketID()).block();
         var signature = new SPSEQSignature(jsonConverter.deserialize(serializedSignature), publicParameters.getBg().getG1(), publicParameters.getBg().getG2());
         var newToken = incentiveSystem.handleEarnRequestResponse(
-                promotionParameters,
+                testPromotion.getPromotionParameters(),
                 earnRequest,
                 signature,
                 Vector.of(BigInteger.valueOf(basket.getValue())),
@@ -91,5 +101,6 @@ public class FullWorkflowTest extends IncentiveSystemIntegrationTest {
         assertThatExceptionOfType(RuntimeException.class).isThrownBy(() ->
                 incentiveClient.sendEarnRequest(jsonConverter.serialize(otherEarnRequest.getRepresentation()), basket.getBasketID()).block())
                 .withCauseInstanceOf(IncentiveClientException.class);
+         */
     }
 }

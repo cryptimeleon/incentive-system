@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigInteger;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -34,6 +35,14 @@ public class PromotionController {
                 HttpStatus.OK
         );
     }
+
+    @PostMapping("/promotions")
+    @ApiOperation(value = "Add new Promotions")
+    public void addPromotions(@RequestBody List<String> serializedPromotions) {
+        // TODO authenticated endpoint
+        promotionService.addPromotions(serializedPromotions);
+    }
+
 
     @PostMapping("/join-promotion")
     public ResponseEntity<String> joinPromotion(
@@ -64,9 +73,9 @@ public class PromotionController {
         return new ResponseEntity<>(promotionService.handleSpendRequest(promotionId, basketId, rewardId, serializedSpendRequest), HttpStatus.OK);
     }
 
-    @ResponseStatus(HttpStatus.FORBIDDEN)
-    @ExceptionHandler(RuntimeException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(IncentiveServiceException.class)
     public String handleIncentiveException(RuntimeException ex) {
-        return "An exception occurred!";
+        return "An exception occurred!\n" + ex.getMessage();
     }
 }

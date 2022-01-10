@@ -11,6 +11,7 @@ dependencies {
     testImplementation 'io.projectreactor:reactor-test'
 
     implementation 'org.cryptimeleon.incentive:crypto'
+    implementation 'org.cryptimeleon.incentive:promotion'
 }
 
 bootJar {

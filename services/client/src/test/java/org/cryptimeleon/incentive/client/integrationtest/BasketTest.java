@@ -2,7 +2,6 @@ package org.cryptimeleon.incentive.client.integrationtest;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.incentive.client.BasketClient;
-import org.cryptimeleon.incentive.client.IncentiveClientException;
 import org.cryptimeleon.incentive.client.dto.PostRedeemBasketDto;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,8 +26,7 @@ public class BasketTest extends IncentiveSystemIntegrationTest {
 
         log.info("Testing getBasket for not existing basket");
         var wrongBasketId = UUID.randomUUID();
-        assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> basketClient.getBasket(wrongBasketId).block())
-                .withCauseInstanceOf(IncentiveClientException.class);
+        assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> basketClient.getBasket(wrongBasketId).block());
 
         log.info("Testing getBasket for existing basket");
         var basketId = basketClient.createBasket().block();
@@ -55,8 +53,7 @@ public class BasketTest extends IncentiveSystemIntegrationTest {
         log.info("Redeeming not paid basket throws exception");
         var redeemRequest = new PostRedeemBasketDto(basketId, "Some request", basket.getValue());
         assertThatExceptionOfType(RuntimeException.class).isThrownBy(() ->
-                basketClient.redeemBasket(redeemRequest, redeemSecret).block())
-                .withCauseInstanceOf(IncentiveClientException.class);
+                basketClient.redeemBasket(redeemRequest, redeemSecret).block());
 
 
         basketClient.payBasket(basketId, basket.getValue(), paymentSecret).block();
