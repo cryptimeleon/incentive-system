@@ -34,7 +34,6 @@ class BasketDatabaseTest {
 
     private val basket = BasketEntity(
         basketId = UUID.randomUUID(),
-        value = 10,
         redeemed = false,
         paid = false,
     )

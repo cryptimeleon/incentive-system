@@ -18,8 +18,8 @@ abstract class BasePromotionRepositoryTest {
 
     lateinit var promotionRepository: IPromotionRepository
 
-    abstract fun before(): Unit
-    abstract fun after(): Unit
+    abstract fun before()
+    abstract fun after()
 
     val promotions = listOf<Promotion>(
         NutellaPromotion(
@@ -34,7 +34,7 @@ abstract class BasePromotionRepositoryTest {
                     RewardSideEffect("Free Teddy")
                 )
             ),
-        "nutella"
+            "nutella"
         ),
         NutellaPromotion(
             NutellaPromotion.generatePromotionParameters(),

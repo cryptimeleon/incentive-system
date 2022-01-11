@@ -28,8 +28,8 @@ abstract class BaseCryptoRepositoryTest {
     val secondPromotionParameters: PromotionParameters =
         IncentiveSystem.generatePromotionParameters(2)
 
-    abstract fun before(): Unit
-    abstract fun after(): Unit
+    abstract fun before()
+    abstract fun after()
 
     @Before
     fun setUp() {

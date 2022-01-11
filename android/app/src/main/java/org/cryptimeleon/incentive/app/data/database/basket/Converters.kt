@@ -14,6 +14,4 @@ class Converters {
     fun uuidFromString(string: String): UUID {
         return UUID.fromString(string)
     }
-
-
 }
