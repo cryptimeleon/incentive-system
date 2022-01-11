@@ -7,6 +7,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Next Release
 
+- Integrate promotions to app, ui updates, and project refactoring [#70](https://github.com/cryptimeleon/incentive-system/pull/70)
 - Add v1 of service that integrates promotion and the crypto protocols [#65](https://github.com/cryptimeleon/incentive-system/pull/65)
 - Adapt SpendDeductZkp to a PartialProofOfKnowledge [#62](https://github.com/cryptimeleon/incentive-system/pull/62)
 - Add promotion id to tokens and change token's single value to a vector. [#63](https://github.com/cryptimeleon/incentive-system/pull/63)
