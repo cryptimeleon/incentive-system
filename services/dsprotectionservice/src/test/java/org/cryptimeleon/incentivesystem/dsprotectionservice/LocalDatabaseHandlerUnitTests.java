@@ -139,9 +139,11 @@ public class LocalDatabaseHandlerUnitTests {
         Assertions.assertTrue(
                 uInfo1.equals(retrievedUserInfo1)
         );
+        logger.info("User info for first transaction was retrieved correctly");
         Assertions.assertTrue(
                 uInfo2.equals(retrievedUserInfo2)
         );
+        logger.info("User info for second transaction was retrieved correctly");
 
         logger.info("Completed token adding test.");
     }

@@ -8,10 +8,14 @@ import org.cryptimeleon.incentivesystem.dsprotectionservice.mock.MockDsTagEntryR
 import org.cryptimeleon.incentivesystem.dsprotectionservice.mock.MockDsidEntryRepository;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.mock.MockTransactionEntryRepository;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.mock.MockUserInfoEntryRepository;
+import org.cryptimeleon.incentivesystem.dsprotectionservice.storage.TransactionEntry;
+import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
 
 /**
  * Tests for the DB Sync algorithm using dummy transactions.
@@ -35,6 +39,14 @@ public class DbSyncIntegrationTest {
                 new MockTransactionEntryRepository(),
                 new MockDsTagEntryRepository(),
                 new MockUserInfoEntryRepository()
+        );
+
+        logger.info("Clear database."); // needed if this is not the first test in a sequence of tests
+        dbHandler.clearDatabase();
+        Assertions.assertTrue(
+                ((ArrayList<TransactionEntry>)
+                        dbHandler.transactionRepository.findAll()
+                ).size() == 0
         );
 
         logger.info("Generating random valid transactions and dsids.");
@@ -116,6 +128,14 @@ public class DbSyncIntegrationTest {
                 new MockUserInfoEntryRepository()
         );
 
+        logger.info("Clear database."); // needed if this is not the first test in a sequence of tests
+        dbHandler.clearDatabase();
+        Assertions.assertTrue(
+                ((ArrayList<TransactionEntry>)
+                        dbHandler.transactionRepository.findAll()
+                ).size() == 0
+        );
+
         logger.info("Generating random valid transactions and dsids.");
         var usedG1 = incSys.getPp().getBg().getG1();
         var t1 = Helper.generateTransaction(incSys.getPp(), true);
@@ -124,10 +144,11 @@ public class DbSyncIntegrationTest {
         var t2Prime = Helper.generateTransaction(incSys.getPp(), true);
         var t3 = Helper.generateTransaction(incSys.getPp(), true);
         var dsid1 = usedG1.getUniformlyRandomElement();
-        var dsid2 = usedG1.getUniformlyRandomElement();
-        var dsid3 = usedG1.getUniformlyRandomElement();
+        var dsid2 = usedG1.getUniformlyRandomElement(); // we want dsid2 to be the successor of t1Prime, as in the graph from the paper
+        var dsid3 = usedG1.getUniformlyRandomElement(); // we want dsid3 to be the successor of t2, as in the graph from the paper
 
         logger.info("Syncing transactions and dsids to database.");
+        logger.info("Syncing some honest spend transactions.");
         logger.info("Syncing t2Prime which spent dsid2");
         incSys.dbSync( // t2Prime and dsid2
                 t2Prime.getTaIdentifier().getTid(),
@@ -152,6 +173,22 @@ public class DbSyncIntegrationTest {
                 t3.getK(),
                 dbHandler
         );
+        logger.info("Done syncing honest transactions.");
+
+        logger.info("Checking integrity conditions.");
+
+        Assertions.assertEquals(3, dbHandler.getTransactionCount(), 3);
+        logger.info("All honest transactions contained.");
+        Assertions.assertEquals(3, dbHandler.getTokenCount());
+        logger.info("All corresponding double-spending IDs contained.");
+        Assertions.assertEquals(3, dbHandler.getDsTagCount());
+        logger.info("All double-spending tags for honest transactions contained.");
+        Assertions.assertEquals(0, dbHandler.getUserInfoCount());
+        logger.info("No user info contained yet.");
+        logger.info("Note: this is due to the fact that user info is only computed when double-spending attempts are detected.");
+
+        logger.info("Done checking integrity conditions.");
+
         logger.info("Syncing t1Prime which spent dsid1");
         incSys.dbSync( // t1Prime and dsid1
                 t1Prime.getTaIdentifier().getTid(),

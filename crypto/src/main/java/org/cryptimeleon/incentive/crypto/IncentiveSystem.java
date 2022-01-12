@@ -684,6 +684,7 @@ public class IncentiveSystem {
      * @param dbHandler reference to the object handling the database connectivity
      */
     public void dbSync(ZnElement tid, GroupElement dsid, DoubleSpendingTag dsTag, BigInteger spendAmount, DatabaseHandler dbHandler) {
+        System.out.println("Started database synchronization process.");
         // shorthands for readability
         ZnElement gamma = dsTag.getGamma();
         TransactionIdentifier taId = new TransactionIdentifier(tid, gamma);
@@ -743,7 +744,7 @@ public class IncentiveSystem {
                     );
                 }
                 catch(Exception e) {
-                    System.out.println("Cannot compute user info for passed token: need at least 2 consuming transactions"); // TODO: use logger?
+                    System.out.println("Cannot compute user info for passed token: need at least 2 consuming transactions");
                 }
             }
 
@@ -752,21 +753,25 @@ public class IncentiveSystem {
             // invalidate transaction
             System.out.println("Marking transaction invalid.");
             dbHandler.invalidateTransaction(taId);
-            invalidatedTasIdentifiers.add(new TransactionIdentifier(tid, gamma));
+            invalidatedTasIdentifiers.add(taId);
         }
 
         // second part of DBSync: cascading invalidations
-        System.out.println("Started cascading invalidations.");
+        System.out.println("Starting cascading invalidations.");
 
         // whenever a transaction is invalidated: invalidate all transactions that resulted from it (if any exist)
         while(!invalidatedTasIdentifiers.isEmpty()) {
+            System.out.println("Processing invalidated transaction. " + invalidatedTasIdentifiers.size() + " pending.");
+
             TransactionIdentifier currentTaId = invalidatedTasIdentifiers.remove(0);
             System.out.println("Invalidated transaction " + currentTaId.toString() + " found.");
 
-            System.out.println("Retrieving transaction and token data (including user info for token) for " + currentTaId.toString() + " .");
+            System.out.println("Retrieving transaction data for " + currentTaId.toString() + " .");
 
             // retrieve transaction
             Transaction ta = dbHandler.getTransactionNode(currentTaId);
+
+            System.out.println("Retrieving consumed token data (including user info).");
 
             // retrieve double-spending ID of token consumed by transaction and the corresponding user info
             GroupElement consumedDsid = dbHandler.getConsumedTokenDsid(currentTaId, this.pp);
@@ -811,6 +816,9 @@ public class IncentiveSystem {
             });
         }
 
+        System.out.println("Cascading invalidations terminated.");
+
+        System.out.println("Finished database synchronization process.");
     }
 
     /**
