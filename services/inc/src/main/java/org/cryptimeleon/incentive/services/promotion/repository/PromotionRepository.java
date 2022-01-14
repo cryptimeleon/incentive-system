@@ -1,9 +1,9 @@
 package org.cryptimeleon.incentive.services.promotion.repository;
 
-import org.cryptimeleon.incentive.promotion.promotions.NutellaPromotion;
-import org.cryptimeleon.incentive.promotion.promotions.Promotion;
-import org.cryptimeleon.incentive.promotion.reward.NutellaReward;
-import org.cryptimeleon.incentive.promotion.reward.RewardSideEffect;
+import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion;
+import org.cryptimeleon.incentive.promotion.Promotion;
+import org.cryptimeleon.incentive.promotion.hazel.HazelReward;
+import org.cryptimeleon.incentive.promotion.RewardSideEffect;
 import org.cryptimeleon.incentive.services.promotion.IncentiveServiceException;
 import org.springframework.stereotype.Repository;
 
@@ -20,23 +20,23 @@ import java.util.UUID;
 public class PromotionRepository {
     private final List<Promotion> promotions = new ArrayList<>(
             List.of(
-                    new NutellaPromotion(
-                            NutellaPromotion.generatePromotionParameters(),
+                    new HazelPromotion(
+                            HazelPromotion.generatePromotionParameters(),
                             "Nutella Promotion",
                             "Earn one point for every jar of Nutella purchased!",
                             List.of(
-                                    new NutellaReward(4, "Get a free Nutella for 4 points!", UUID.randomUUID(), new RewardSideEffect("Free Nutella")),
-                                    new NutellaReward(9, "Get a free Big Nutella for 9 points!", UUID.randomUUID(), new RewardSideEffect("Free Big nutella"))
+                                    new HazelReward(4, "Get a free Nutella for 4 points!", UUID.randomUUID(), new RewardSideEffect("Free Nutella")),
+                                    new HazelReward(9, "Get a free Big Nutella for 9 points!", UUID.randomUUID(), new RewardSideEffect("Free Big nutella"))
                             ),
                             "nutella"
                     ),
-                    new NutellaPromotion(
-                            NutellaPromotion.generatePromotionParameters(),
+                    new HazelPromotion(
+                            HazelPromotion.generatePromotionParameters(),
                             "General Promotion",
                             "Earn one point item purchased!",
                             List.of(
-                                    new NutellaReward(9, "Get a free Teddy for 9 points!", UUID.randomUUID(), new RewardSideEffect("Free Teddy")),
-                                    new NutellaReward(6, "Get a free Pan for 6 points!", UUID.randomUUID(), new RewardSideEffect("Free Pan"))
+                                    new HazelReward(9, "Get a free Teddy for 9 points!", UUID.randomUUID(), new RewardSideEffect("Free Teddy")),
+                                    new HazelReward(6, "Get a free Pan for 6 points!", UUID.randomUUID(), new RewardSideEffect("Free Pan"))
                             ),
                             ""
                     )

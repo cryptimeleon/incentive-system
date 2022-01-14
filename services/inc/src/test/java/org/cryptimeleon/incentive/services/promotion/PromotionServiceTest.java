@@ -12,10 +12,10 @@ import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse;
 import org.cryptimeleon.incentive.promotion.model.Basket;
 import org.cryptimeleon.incentive.promotion.model.BasketItem;
-import org.cryptimeleon.incentive.promotion.promotions.NutellaPromotion;
-import org.cryptimeleon.incentive.promotion.promotions.Promotion;
-import org.cryptimeleon.incentive.promotion.reward.NutellaReward;
-import org.cryptimeleon.incentive.promotion.reward.RewardSideEffect;
+import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion;
+import org.cryptimeleon.incentive.promotion.Promotion;
+import org.cryptimeleon.incentive.promotion.hazel.HazelReward;
+import org.cryptimeleon.incentive.promotion.RewardSideEffect;
 import org.cryptimeleon.incentive.services.promotion.repository.BasketRepository;
 import org.cryptimeleon.incentive.services.promotion.repository.CryptoRepository;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
@@ -62,10 +62,10 @@ public class PromotionServiceTest {
     UserKeyPair ukp = Setup.userKeyGen(pp);
     JSONConverter jsonConverter = new JSONConverter();
 
-    Promotion promotionToAdd = new NutellaPromotion(NutellaPromotion.generatePromotionParameters(),
+    Promotion promotionToAdd = new HazelPromotion(HazelPromotion.generatePromotionParameters(),
             "Test Promotion",
             "Test Description",
-            List.of(new NutellaReward(2, "Reward", UUID.randomUUID(), new RewardSideEffect("Yay"))),
+            List.of(new HazelReward(2, "Reward", UUID.randomUUID(), new RewardSideEffect("Yay"))),
             "Test");
 
     @BeforeEach
@@ -113,7 +113,7 @@ public class PromotionServiceTest {
 
         assert newSerializedPromotions != null;
         return Arrays.stream(newSerializedPromotions)
-                .map(s -> new NutellaPromotion(jsonConverter.deserialize(s))).collect(Collectors.toList());
+                .map(s -> new HazelPromotion(jsonConverter.deserialize(s))).collect(Collectors.toList());
     }
 
     @Test

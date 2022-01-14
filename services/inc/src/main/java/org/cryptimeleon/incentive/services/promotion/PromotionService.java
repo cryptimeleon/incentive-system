@@ -12,9 +12,9 @@ import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
 import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellformednessProtocol;
 import org.cryptimeleon.incentive.promotion.model.Basket;
-import org.cryptimeleon.incentive.promotion.promotions.NutellaPromotion;
-import org.cryptimeleon.incentive.promotion.promotions.Promotion;
-import org.cryptimeleon.incentive.promotion.reward.Reward;
+import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion;
+import org.cryptimeleon.incentive.promotion.Promotion;
+import org.cryptimeleon.incentive.promotion.Reward;
 import org.cryptimeleon.incentive.services.promotion.repository.BasketRepository;
 import org.cryptimeleon.incentive.services.promotion.repository.CryptoRepository;
 import org.cryptimeleon.incentive.services.promotion.repository.PromotionRepository;
@@ -158,7 +158,7 @@ public class PromotionService {
 
     public void addPromotions(List<String> serializedPromotions) {
         for (String serializedPromotion : serializedPromotions) {
-            Promotion promotion = new NutellaPromotion(jsonConverter.deserialize(serializedPromotion));
+            Promotion promotion = new HazelPromotion(jsonConverter.deserialize(serializedPromotion));
             promotionRepository.addPromotion(promotion);
         }
     }
