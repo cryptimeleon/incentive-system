@@ -93,6 +93,14 @@ data class HazelPromotionState(
     val count: Int,
 ) : PromotionState()
 
+data class VipPromotionState(
+    override val id: String,
+    override val title: String,
+    override val description: String,
+    override val rewards: List<RewardState>,
+    val points: Int,
+    val status: VipStatus
+) : PromotionState()
 
 sealed class RewardState {
     abstract val description: String
@@ -105,3 +113,25 @@ data class HazelRewardState(
     val current: Int,
     val goal: Int
 ) : RewardState()
+
+data class VipRewardState(
+    override val description: String,
+    override val sideEffect: String,
+    val currentStatus: VipStatus,
+    val requiredStatus: VipStatus
+) : RewardState()
+
+data class UpgradeVipRewardState(
+    override val description: String,
+    override val sideEffect: String,
+    val currentPoints: Int,
+    val requiredPoints: Int,
+    val vipStatus: VipStatus,
+) : RewardState()
+
+enum class VipStatus(statusValue: Int) {
+    NONE(0),
+    BRONZE(1),
+    SILVER(2),
+    GOLD(3)
+}
