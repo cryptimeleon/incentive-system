@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.promotion.reward;
+package org.cryptimeleon.incentive.promotion;
 
 import lombok.AllArgsConstructor;
 import lombok.Value;

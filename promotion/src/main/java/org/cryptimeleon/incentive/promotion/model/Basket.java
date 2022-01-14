@@ -24,4 +24,8 @@ public class Basket {
     public Zn.ZnElement getBasketId(Zn zn) {
         return zn.createZnElement(new BigInteger(basketId.toString().replace("-", ""), 16));
     }
+
+    public int computeBasketValue() {
+        return basketItemList.stream().mapToInt(basketItem -> basketItem.getCount() * basketItem.getPrice()).sum();
+    }
 }

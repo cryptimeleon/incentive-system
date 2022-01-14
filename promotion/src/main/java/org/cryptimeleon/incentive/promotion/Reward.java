@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.promotion.reward;
+package org.cryptimeleon.incentive.promotion;
 
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.math.serialization.StandaloneRepresentable;

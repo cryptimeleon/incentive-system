@@ -1,8 +1,7 @@
-package org.cryptimeleon.incentive.promotion.promotions;
+package org.cryptimeleon.incentive.promotion;
 
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.promotion.model.Basket;
-import org.cryptimeleon.incentive.promotion.reward.Reward;
 import org.cryptimeleon.math.serialization.StandaloneRepresentable;
 import org.cryptimeleon.math.serialization.annotations.Represented;
 import org.cryptimeleon.math.structures.cartesian.Vector;
@@ -27,15 +26,6 @@ public abstract class Promotion implements StandaloneRepresentable {
     @Represented
     private List<Reward> rewards;
 
-    /**
-     * Hacky way of requiring a static function that generates promotion parameters for this promotion class.
-     *
-     * @return promotion parameters
-     */
-    public static PromotionParameters generatePromotionParameters() {
-        throw new RuntimeException("Not implemented");
-    }
-
     public Promotion() {
     }
 
@@ -46,6 +36,14 @@ public abstract class Promotion implements StandaloneRepresentable {
         this.rewards = rewards;
     }
 
+    /**
+     * Hacky way of requiring a static function that generates promotion parameters for this promotion class.
+     *
+     * @return promotion parameters
+     */
+    public static PromotionParameters generatePromotionParameters() {
+        throw new RuntimeException("Not implemented");
+    }
 
     /**
      * Computes how many points a basket is worth

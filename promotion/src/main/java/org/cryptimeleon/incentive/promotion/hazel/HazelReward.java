@@ -1,7 +1,9 @@
-package org.cryptimeleon.incentive.promotion.reward;
+package org.cryptimeleon.incentive.promotion.hazel;
 
 import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenUpdateLeaf;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
+import org.cryptimeleon.incentive.promotion.Reward;
+import org.cryptimeleon.incentive.promotion.RewardSideEffect;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.annotations.ReprUtil;
 import org.cryptimeleon.math.serialization.annotations.Represented;
@@ -12,18 +14,18 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Get one free nutella for rewardCost points
+ * Get some side-effect (e.g. free items) for rewardCost points
  */
-public class NutellaReward extends Reward {
+public class HazelReward extends Reward {
 
     @Represented
     private Integer rewardCost;
 
-    public NutellaReward(Representation representation) {
+    public HazelReward(Representation representation) {
         ReprUtil.deserialize(this, representation);
     }
 
-    public NutellaReward(Integer rewardCost, String rewardDescription, UUID rewardId, RewardSideEffect rewardSideEffect) {
+    public HazelReward(Integer rewardCost, String rewardDescription, UUID rewardId, RewardSideEffect rewardSideEffect) {
         super(rewardId, rewardDescription, rewardSideEffect);
         this.rewardCost = rewardCost;
     }
@@ -31,7 +33,7 @@ public class NutellaReward extends Reward {
     public SpendDeductTree generateRelationTree(Vector<BigInteger> basketPoints) {
         // && newPoints >= 0
         return new TokenUpdateLeaf(
-                "nutella-leaf",
+                "hazel-leaf",
                 Vector.of(BigInteger.ZERO),
                 Vector.of((BigInteger) null),
                 Vector.of(BigInteger.ONE),
@@ -55,8 +57,8 @@ public class NutellaReward extends Reward {
 
     public boolean equals(final Object o) {
         if (o == this) return true;
-        if (!(o instanceof NutellaReward)) return false;
-        final NutellaReward other = (NutellaReward) o;
+        if (!(o instanceof HazelReward)) return false;
+        final HazelReward other = (HazelReward) o;
         if (!other.canEqual((Object) this)) return false;
         if (!super.equals(o)) return false;
         final Object this$rewardCost = this.getRewardCost();
@@ -67,7 +69,7 @@ public class NutellaReward extends Reward {
     }
 
     protected boolean canEqual(final Object other) {
-        return other instanceof NutellaReward;
+        return other instanceof HazelReward;
     }
 
     public int hashCode() {
