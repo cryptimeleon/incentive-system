@@ -4,11 +4,11 @@ import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.cryptimeleon.incentive.app.domain.IPromotionRepository
-import org.cryptimeleon.incentive.promotion.promotions.NutellaPromotion
-import org.cryptimeleon.incentive.promotion.promotions.Promotion
-import org.cryptimeleon.incentive.promotion.reward.NutellaReward
-import org.cryptimeleon.incentive.promotion.reward.Reward
-import org.cryptimeleon.incentive.promotion.reward.RewardSideEffect
+import org.cryptimeleon.incentive.promotion.Promotion
+import org.cryptimeleon.incentive.promotion.Reward
+import org.cryptimeleon.incentive.promotion.RewardSideEffect
+import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion
+import org.cryptimeleon.incentive.promotion.hazel.HazelReward
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -22,33 +22,33 @@ abstract class BasePromotionRepositoryTest {
     abstract fun after()
 
     val promotions = listOf<Promotion>(
-        NutellaPromotion(
-            NutellaPromotion.generatePromotionParameters(),
+        HazelPromotion(
+            HazelPromotion.generatePromotionParameters(),
             "First test promotion",
             "Description of first test promotion",
             listOf<Reward>(
-                NutellaReward(
+                HazelReward(
                     3,
                     "Earn a free teddy bear!",
                     UUID.randomUUID(),
                     RewardSideEffect("Free Teddy")
                 )
             ),
-            "nutella"
+            "Hazel"
         ),
-        NutellaPromotion(
-            NutellaPromotion.generatePromotionParameters(),
+        HazelPromotion(
+            HazelPromotion.generatePromotionParameters(),
             "Second test promotion",
             "Description of second test promotion",
             listOf<Reward>(
-                NutellaReward(
+                HazelReward(
                     7,
                     "Earn a free pan!",
                     UUID.randomUUID(),
                     RewardSideEffect("Free Pan")
                 )
             ),
-            "nutella"
+            "Hazel"
         )
     )
 

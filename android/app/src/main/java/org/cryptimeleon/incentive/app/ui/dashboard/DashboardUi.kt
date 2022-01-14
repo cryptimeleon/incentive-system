@@ -103,7 +103,7 @@ fun TokenCard(
                         .paddingFromBaseline(36.sp)
                 )
                 when (promotionState) {
-                    is NutellaPromotionState -> {
+                    is HazelPromotionState -> {
                         Text(
                             text = "${promotionState.count}",
                             style = MaterialTheme.typography.h4,
@@ -141,7 +141,7 @@ fun TokenCard(
                 val rewardStateIterator: Iterator<RewardState> = promotionState.rewards.iterator()
                 while (rewardStateIterator.hasNext()) {
                     when (val rewardState = rewardStateIterator.next()) {
-                        is NutellaRewardState -> {
+                        is HazelRewardState -> {
                             Text(
                                 text = rewardState.sideEffect,
                                 style = MaterialTheme.typography.body1,
@@ -170,24 +170,24 @@ fun TokenCard(
 
 const val uiMode = Configuration.UI_MODE_NIGHT_NO
 val firstPromotionState =
-    NutellaPromotionState(
+    HazelPromotionState(
         id = "1",
         title = "First Promotion",
-        description = "Get free nutella for buying nutella",
+        description = "Get free Hazel for buying Hazel",
         count = 3,
         rewards = listOf(
-            NutellaRewardState("Description", "Nutella", 3, 5),
-            NutellaRewardState("Description", "Large Nutella", 3, 8),
+            HazelRewardState("Description", "Hazel", 3, 5),
+            HazelRewardState("Description", "Large Hazel", 3, 8),
         ),
     )
 val secondPromotionState =
-    NutellaPromotionState(
+    HazelPromotionState(
         id = "2",
         title = "Other Promotion",
         description = "You can win a pan if you're really really really lucky",
         count = 3,
         rewards = listOf(
-            NutellaRewardState("Description", "Pan", 3, 5)
+            HazelRewardState("Description", "Pan", 3, 5)
         ),
     )
 

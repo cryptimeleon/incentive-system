@@ -1,6 +1,6 @@
 package org.cryptimeleon.incentive.app.data.network
 
-import org.cryptimeleon.incentive.promotion.promotions.Promotion
+import org.cryptimeleon.incentive.promotion.Promotion
 import org.cryptimeleon.math.serialization.converter.JSONConverter
 import retrofit2.Response
 

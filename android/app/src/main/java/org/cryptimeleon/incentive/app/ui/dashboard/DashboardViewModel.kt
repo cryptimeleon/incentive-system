@@ -14,9 +14,9 @@ import kotlinx.coroutines.withContext
 import org.cryptimeleon.incentive.app.data.CryptoRepository
 import org.cryptimeleon.incentive.app.data.PromotionRepository
 import org.cryptimeleon.incentive.crypto.model.Token
-import org.cryptimeleon.incentive.promotion.promotions.NutellaPromotion
-import org.cryptimeleon.incentive.promotion.promotions.Promotion
-import org.cryptimeleon.incentive.promotion.reward.NutellaReward
+import org.cryptimeleon.incentive.promotion.Promotion
+import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion
+import org.cryptimeleon.incentive.promotion.hazel.HazelReward
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -42,15 +42,15 @@ class DashboardViewModel @Inject constructor(
                 promotions.mapNotNull { promotion ->
                     val token: Token =
                         tokens.find { promotion.promotionParameters.promotionId == it.promotionId }!!
-                    if (promotion is NutellaPromotion) {
+                    if (promotion is HazelPromotion) {
                         val count = token.points.get(0).asInteger().toInt()
-                        NutellaPromotionState(
+                        HazelPromotionState(
                             id = promotion.promotionParameters.promotionId.toString(),
                             title = promotion.promotionName,
                             description = promotion.promotionDescription,
                             rewards = promotion.rewards.mapNotNull {
-                                if (it is NutellaReward) {
-                                    NutellaRewardState(
+                                if (it is HazelReward) {
+                                    HazelRewardState(
                                         it.rewardDescription,
                                         it.rewardSideEffect.name,
                                         count,
@@ -85,7 +85,7 @@ sealed class PromotionState {
     abstract val rewards: List<RewardState>
 }
 
-data class NutellaPromotionState(
+data class HazelPromotionState(
     override val id: String,
     override val title: String,
     override val description: String,
@@ -99,7 +99,7 @@ sealed class RewardState {
     abstract val sideEffect: String
 }
 
-data class NutellaRewardState(
+data class HazelRewardState(
     override val description: String,
     override val sideEffect: String,
     val current: Int,
