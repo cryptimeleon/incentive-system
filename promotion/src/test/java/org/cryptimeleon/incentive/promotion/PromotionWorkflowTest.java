@@ -1,5 +1,8 @@
 package org.cryptimeleon.incentive.promotion;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.incentive.promotion.model.Basket;
 import org.cryptimeleon.incentive.promotion.model.BasketItem;
@@ -15,15 +18,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 class PromotionWorkflowTest {
 
     @Test
     void testManagerEarnWithNutellaPromotion() {
-        List<Reward> rewards = List.of(new NutellaReward(4, UUID.randomUUID(), new RewardSideEffect("Free Nutella")));
-        NutellaPromotion nutellaPromotion = new NutellaPromotion(NutellaPromotion.generatePromotionParameters(), rewards);
+        List<Reward> rewards = List.of(new NutellaReward(4, "", UUID.randomUUID(), new RewardSideEffect("Free Nutella")));
+        NutellaPromotion nutellaPromotion = new NutellaPromotion(NutellaPromotion.generatePromotionParameters(), "Test Promotion", "This is a Test Promotion", rewards, "nutella");
         Basket basket = new Basket(UUID.randomUUID(), List.of(
                 new BasketItem(UUID.randomUUID(), "Nutella", 400, 2),
                 new BasketItem(UUID.randomUUID(), "Potatoes", 50, 1)
@@ -37,8 +37,8 @@ class PromotionWorkflowTest {
 
     @Test
     void testManagerRewardWithNutellaPromotion() {
-        List<Reward> rewards = List.of(new NutellaReward(4, UUID.randomUUID(), new RewardSideEffect("Free Nutella")));
-        NutellaPromotion nutellaPromotion = new NutellaPromotion(NutellaPromotion.generatePromotionParameters(), rewards);
+        List<Reward> rewards = List.of(new NutellaReward(4, "", UUID.randomUUID(), new RewardSideEffect("Free Nutella")));
+        NutellaPromotion nutellaPromotion = new NutellaPromotion(NutellaPromotion.generatePromotionParameters(), "Test Promotion", "This is another Test Promotion", rewards, "nutella");
         Basket basket = new Basket(UUID.randomUUID(), List.of(
                 new BasketItem(UUID.randomUUID(), "Nutella", 400, 2),
                 new BasketItem(UUID.randomUUID(), "Potatoes", 50, 1)
@@ -60,6 +60,6 @@ class PromotionWorkflowTest {
         SpendDeductTree spendDeductTree = chosenReward.generateRelationTree(basketPoints);
         assertTrue(spendDeductTree.isValidForPoints(tokenPoints, newPoints));
         assertEquals(1, newPoints.get(0).intValue());
-        assertEquals(new RewardSideEffect("Free Nutella"), chosenReward.getSideEffect());
+        assertEquals(new RewardSideEffect("Free Nutella"), chosenReward.getRewardSideEffect());
     }
 }

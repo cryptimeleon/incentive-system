@@ -10,7 +10,7 @@ class NutellaRewardTest {
 
     @Test
     public void representationTest() {
-        NutellaReward nutellaReward = new NutellaReward(8, UUID.randomUUID(), new RewardSideEffect("Free Nutella"));
+        NutellaReward nutellaReward = new NutellaReward(8, "", UUID.randomUUID(), new RewardSideEffect("Free Nutella"));
         NutellaReward deserializedNutellaReward = new NutellaReward(nutellaReward.getRepresentation());
         assertEquals(nutellaReward, deserializedNutellaReward);
     }

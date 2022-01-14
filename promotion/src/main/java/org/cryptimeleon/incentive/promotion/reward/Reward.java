@@ -2,6 +2,7 @@ package org.cryptimeleon.incentive.promotion.reward;
 
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.math.serialization.StandaloneRepresentable;
+import org.cryptimeleon.math.serialization.annotations.Represented;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 
 import java.math.BigInteger;
@@ -11,7 +12,23 @@ import java.util.UUID;
 /**
  * A reward object identifies a reward and the conditions in the form of a ZKP relation.
  */
-public interface Reward extends StandaloneRepresentable {
+public abstract class Reward implements StandaloneRepresentable {
+
+    @Represented
+    private UUID rewardId;
+    @Represented
+    private String rewardDescription;
+    @Represented
+    private RewardSideEffect rewardSideEffect;
+
+    protected Reward() {
+    }
+
+    public Reward(UUID rewardId, String rewardDescription, RewardSideEffect rewardSideEffect) {
+        this.rewardId = rewardId;
+        this.rewardDescription = rewardDescription;
+        this.rewardSideEffect = rewardSideEffect;
+    }
 
     /**
      * Generate the tree that represent the partial proof of knowledge that is required to get the reward.
@@ -22,7 +39,7 @@ public interface Reward extends StandaloneRepresentable {
      * @param basketPoints a vector representing the points a user can earn for this basket
      * @return a spend-deduct tree from which the ZKP that the user must provide can be generated
      */
-    SpendDeductTree generateRelationTree(Vector<BigInteger> basketPoints);
+    public abstract SpendDeductTree generateRelationTree(Vector<BigInteger> basketPoints);
 
     /**
      * We use partial proofs of knowledge in the underlaying crypto api, with statements that could become quite
@@ -35,19 +52,53 @@ public interface Reward extends StandaloneRepresentable {
      * @param basketPoints the points that the basket is worth
      * @return and optional vector, which returns satisfying points vector, or empty if none was found
      */
-    Optional<Vector<BigInteger>> computeSatisfyingNewPointsVector(Vector<BigInteger> tokenPoints, Vector<BigInteger> basketPoints);
+    public abstract Optional<Vector<BigInteger>> computeSatisfyingNewPointsVector(Vector<BigInteger> tokenPoints, Vector<BigInteger> basketPoints);
 
-    /**
-     * This function returns a representation of the actual reward.
-     *
-     * @return a representation of the reward.
-     */
-    RewardSideEffect getSideEffect();
+    public UUID getRewardId() {
+        return this.rewardId;
+    }
 
-    /**
-     * Returns a random id that uniquely determines the reward.
-     *
-     * @return the reward id
-     */
-    UUID getRewardId();
+    public String getRewardDescription() {
+        return this.rewardDescription;
+    }
+
+    public RewardSideEffect getRewardSideEffect() {
+        return this.rewardSideEffect;
+    }
+
+    public boolean equals(final Object o) {
+        if (o == this) return true;
+        if (!(o instanceof Reward)) return false;
+        final Reward other = (Reward) o;
+        if (!other.canEqual((Object) this)) return false;
+        final Object this$rewardId = this.getRewardId();
+        final Object other$rewardId = other.getRewardId();
+        if (this$rewardId == null ? other$rewardId != null : !this$rewardId.equals(other$rewardId))
+            return false;
+        final Object this$rewardDescription = this.getRewardDescription();
+        final Object other$rewardDescription = other.getRewardDescription();
+        if (this$rewardDescription == null ? other$rewardDescription != null : !this$rewardDescription.equals(other$rewardDescription))
+            return false;
+        final Object this$rewardSideEffect = this.getRewardSideEffect();
+        final Object other$rewardSideEffect = other.getRewardSideEffect();
+        if (this$rewardSideEffect == null ? other$rewardSideEffect != null : !this$rewardSideEffect.equals(other$rewardSideEffect))
+            return false;
+        return true;
+    }
+
+    protected boolean canEqual(final Object other) {
+        return other instanceof Reward;
+    }
+
+    public int hashCode() {
+        final int PRIME = 59;
+        int result = 1;
+        final Object $rewardId = this.getRewardId();
+        result = result * PRIME + ($rewardId == null ? 43 : $rewardId.hashCode());
+        final Object $rewardDescription = this.getRewardDescription();
+        result = result * PRIME + ($rewardDescription == null ? 43 : $rewardDescription.hashCode());
+        final Object $rewardSideEffect = this.getRewardSideEffect();
+        result = result * PRIME + ($rewardSideEffect == null ? 43 : $rewardSideEffect.hashCode());
+        return result;
+    }
 }

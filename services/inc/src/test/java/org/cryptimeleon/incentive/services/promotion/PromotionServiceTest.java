@@ -14,17 +14,21 @@ import org.cryptimeleon.incentive.promotion.model.Basket;
 import org.cryptimeleon.incentive.promotion.model.BasketItem;
 import org.cryptimeleon.incentive.promotion.promotions.NutellaPromotion;
 import org.cryptimeleon.incentive.promotion.promotions.Promotion;
+import org.cryptimeleon.incentive.promotion.reward.NutellaReward;
+import org.cryptimeleon.incentive.promotion.reward.RewardSideEffect;
 import org.cryptimeleon.incentive.services.promotion.repository.BasketRepository;
 import org.cryptimeleon.incentive.services.promotion.repository.CryptoRepository;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.rings.RingElement;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.web.reactive.function.BodyInserters;
 
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -58,6 +62,12 @@ public class PromotionServiceTest {
     UserKeyPair ukp = Setup.userKeyGen(pp);
     JSONConverter jsonConverter = new JSONConverter();
 
+    Promotion promotionToAdd = new NutellaPromotion(NutellaPromotion.generatePromotionParameters(),
+            "Test Promotion",
+            "Test Description",
+            List.of(new NutellaReward(2, "Reward", UUID.randomUUID(), new RewardSideEffect("Yay"))),
+            "Test");
+
     @BeforeEach
     public void mock() {
         // Setup the mock to return the correct values
@@ -68,11 +78,32 @@ public class PromotionServiceTest {
         when(basketRepository.getBasket(testBasketId)).thenReturn(testBasket);
     }
 
-
     @Test
-    public void promotionServiceTest(@Autowired WebTestClient webClient) {
+    public void promotionEndpointTest(@Autowired WebTestClient webClient) {
+        List<Promotion> promotions = getPromotions(webClient);
 
-        String[] serializedPromotions = webClient
+        addPromotion(webClient, promotionToAdd);
+
+        List<Promotion> newPromotions = getPromotions(webClient);
+
+        Assertions.assertEquals(promotions.size() + 1, newPromotions.size());
+
+        // Double insertion fails
+        webClient.post()
+                .uri("/promotions")
+                .body(BodyInserters.fromValue(List.of(jsonConverter.serialize(promotionToAdd.getRepresentation()))))
+                .exchange().expectStatus().is4xxClientError();
+    }
+
+    private void addPromotion(WebTestClient webClient, Promotion promotionToAdd) {
+        webClient.post()
+                .uri(uriBuilder -> uriBuilder.path("/promotions").build())
+                .body(BodyInserters.fromValue(List.of(jsonConverter.serialize(promotionToAdd.getRepresentation()))))
+                .exchange().expectStatus().isOk();
+    }
+
+    private List<Promotion> getPromotions(@Autowired WebTestClient webClient) {
+        String[] newSerializedPromotions = webClient
                 .get()
                 .uri(uriBuilder -> uriBuilder.path("/promotions").build())
                 .exchange()
@@ -80,9 +111,15 @@ public class PromotionServiceTest {
                 .expectBody(String[].class)
                 .returnResult().getResponseBody();
 
-        assert serializedPromotions != null;
-        List<Promotion> promotions = Arrays.stream(serializedPromotions)
+        assert newSerializedPromotions != null;
+        return Arrays.stream(newSerializedPromotions)
                 .map(s -> new NutellaPromotion(jsonConverter.deserialize(s))).collect(Collectors.toList());
+    }
+
+    @Test
+    public void promotionServiceTest(@Autowired WebTestClient webClient) {
+
+        List<Promotion> promotions = getPromotions(webClient);
 
         Promotion promotionToJoin = promotions.get(0);
 
