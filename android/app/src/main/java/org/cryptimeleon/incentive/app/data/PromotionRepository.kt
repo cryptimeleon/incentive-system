@@ -9,7 +9,7 @@ import org.cryptimeleon.incentive.app.data.database.promotion.PromotionEntity
 import org.cryptimeleon.incentive.app.data.network.PromotionApiService
 import org.cryptimeleon.incentive.app.domain.IPromotionRepository
 import org.cryptimeleon.incentive.promotion.Promotion
-import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion
+import org.cryptimeleon.math.serialization.RepresentableRepresentation
 import org.cryptimeleon.math.serialization.converter.JSONConverter
 
 class PromotionRepository(
@@ -22,7 +22,8 @@ class PromotionRepository(
     override val promotions: Flow<List<Promotion>> =
         promotionDao.observePromotions().map { promotionList: List<PromotionEntity> ->
             promotionList.map { promotionEntity: PromotionEntity ->
-                HazelPromotion(jsonConverter.deserialize(promotionEntity.promotionRepresentation))
+                (jsonConverter.deserialize(promotionEntity.promotionRepresentation) as RepresentableRepresentation)
+                    .recreateRepresentable() as Promotion
             }
         }.flowOn(Dispatchers.IO)
 
@@ -30,7 +31,8 @@ class PromotionRepository(
         val promotionsResponse = promotionApiService.getPromotions()
         if (promotionsResponse.isSuccessful) {
             val promotionEntities = promotionsResponse.body()!!.map { promotionString ->
-                val promotion = HazelPromotion(jsonConverter.deserialize(promotionString))
+                val promotion =
+                    (jsonConverter.deserialize(promotionString) as RepresentableRepresentation).recreateRepresentable() as Promotion
                 PromotionEntity(
                     promotion.promotionParameters.promotionId.toInt(),
                     promotionString

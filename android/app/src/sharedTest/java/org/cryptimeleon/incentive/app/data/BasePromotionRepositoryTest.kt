@@ -4,11 +4,11 @@ import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.cryptimeleon.incentive.app.domain.IPromotionRepository
-import org.cryptimeleon.incentive.promotion.Promotion
 import org.cryptimeleon.incentive.promotion.Reward
 import org.cryptimeleon.incentive.promotion.RewardSideEffect
 import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion
 import org.cryptimeleon.incentive.promotion.hazel.HazelReward
+import org.cryptimeleon.incentive.promotion.vip.VipPromotion
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -21,7 +21,7 @@ abstract class BasePromotionRepositoryTest {
     abstract fun before()
     abstract fun after()
 
-    val promotions = listOf<Promotion>(
+    val promotions = listOf(
         HazelPromotion(
             HazelPromotion.generatePromotionParameters(),
             "First test promotion",
@@ -36,19 +36,16 @@ abstract class BasePromotionRepositoryTest {
             ),
             "Hazel"
         ),
-        HazelPromotion(
-            HazelPromotion.generatePromotionParameters(),
+        VipPromotion(
+            VipPromotion.generatePromotionParameters(),
             "Second test promotion",
-            "Description of second test promotion",
-            listOf<Reward>(
-                HazelReward(
-                    7,
-                    "Earn a free pan!",
-                    UUID.randomUUID(),
-                    RewardSideEffect("Free Pan")
-                )
-            ),
-            "Hazel"
+            "A VIP style promotion",
+            5,
+            10,
+            20,
+            RewardSideEffect("Bronze Advantages"),
+            RewardSideEffect("Silver Advantages"),
+            RewardSideEffect("Gold Advantages")
         )
     )
 
