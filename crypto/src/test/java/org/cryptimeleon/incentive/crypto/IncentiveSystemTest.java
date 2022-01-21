@@ -66,7 +66,8 @@ public class IncentiveSystemTest {
         // user generates join request
         var joinRequest = incSys.generateJoinRequest(
                 pkp.getPk(),
-                ukp
+                ukp,
+                promotionParameters
         );
 
         // serialize and deserialize join request to ensure serialization does not break anything
