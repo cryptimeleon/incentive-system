@@ -3,6 +3,8 @@ package org.cryptimeleon.incentive.promotion;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion;
 import org.cryptimeleon.incentive.promotion.hazel.HazelReward;
+import org.cryptimeleon.incentive.promotion.streak.StreakPromotion;
+import org.cryptimeleon.incentive.promotion.streak.StreakReward;
 import org.cryptimeleon.incentive.promotion.vip.UpgradeVipReward;
 import org.cryptimeleon.incentive.promotion.vip.VipPromotion;
 import org.cryptimeleon.incentive.promotion.vip.VipReward;
@@ -10,6 +12,7 @@ import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -51,6 +54,21 @@ public class RepresentationTests {
         VipPromotion deserializedVipPromotion = new VipPromotion(vipPromotion.getRepresentation());
 
         assertEquals(vipPromotion, deserializedVipPromotion);
+    }
+
+    @Test
+    void StreakPromotionTest() {
+        PromotionParameters promotionParameters = StreakPromotion.generatePromotionParameters();
+        StreakPromotion streakPromotion = new StreakPromotion(
+                promotionParameters,
+                "Test Promotion",
+                "This is some Test Promtion",
+                List.of(),
+                7
+        );
+        StreakPromotion deserializedStreakPromotion = new StreakPromotion(streakPromotion.getRepresentation());
+
+        assertEquals(streakPromotion, deserializedStreakPromotion);
     }
 
     @Test
