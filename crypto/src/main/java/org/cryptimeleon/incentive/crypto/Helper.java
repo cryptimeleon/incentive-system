@@ -5,6 +5,7 @@ import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
+import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
 import org.cryptimeleon.math.serialization.Representable;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.groups.Group;
@@ -18,7 +19,7 @@ import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
 import java.math.BigInteger;
 
 /**
- * Class that creates some random mathematic objects. Used to shorten tests.
+ * Class that creates some random mathematic objects. Used to shorten tests and sometimes system code.
  */
 public class Helper {
     public static Token generateToken(IncentivePublicParameters pp,
@@ -32,6 +33,9 @@ public class Helper {
                 Vector.iterate(BigInteger.valueOf(0), v -> v, promotionParameters.getPointsVectorSize()));
     }
 
+    /**
+     * Generates a valid user token, as output by a sound execution of the Issue-Join protocol.
+     */
     public static Token generateToken(IncentivePublicParameters pp,
                                       UserKeyPair userKeyPair,
                                       ProviderKeyPair providerKeyPair,
@@ -70,7 +74,41 @@ public class Helper {
                         c2.pow(promotionParameters.getPromotionId())
                 )
         );
+    }
 
+    /**
+     * Generates a sound transaction that spends the passed token.
+     * @return spend-deduct output, consisting of this transaction and the result token
+     */
+    public static SpendDeductOutput generateSoundTransaction(IncentiveSystem incSys,
+                                                       PromotionParameters promP,
+                                                       Token token,
+                                                       ProviderKeyPair pkp,
+                                                       UserKeyPair ukp,
+                                                       Vector<BigInteger> newPoints,
+                                                       Zn.ZnElement tid,
+                                                       SpendDeductBooleanZkp spendDeductBooleanZkp
+                                                       ) {
+        var spendRequest = incSys.generateSpendRequest(promP, token, pkp.getPk(), newPoints, ukp, tid, spendDeductBooleanZkp);
+
+        var deductOutput = incSys.generateSpendRequestResponse(promP, spendRequest, pkp, tid, spendDeductBooleanZkp);
+
+        var resultToken = incSys.handleSpendRequestResponse(promP, deductOutput.getSpendResponse(), spendRequest, token, newPoints, pkp.getPk(), ukp);
+
+        var occuredTransaction = new Transaction(
+                incSys.getPp(),
+                true,
+                computeSerializedRepresentation(tid),
+                token.getPoints().get(0).asInteger().subtract(newPoints.get(0)).toString(), // for v1: difference in 0-th component taken as spend amount TODO make transaction API able to handle vectors
+                computeSerializedRepresentation(deductOutput.getDstag().getC0()),
+                computeSerializedRepresentation(deductOutput.getDstag().getC1()),
+                computeSerializedRepresentation(deductOutput.getDstag().getGamma()),
+                computeSerializedRepresentation(deductOutput.getDstag().getEskStarProv()),
+                computeSerializedRepresentation(deductOutput.getDstag().getCtrace0()),
+                computeSerializedRepresentation(deductOutput.getDstag().getCtrace1())
+        );
+
+        return new SpendDeductOutput(resultToken, occuredTransaction);
     }
 
     /**
@@ -78,7 +116,7 @@ public class Helper {
      * @param valid whether the generated transaction shall be valid or not
      */
     // TODO: make spend amount random once basket server endpoint is implemented
-    public static Transaction generateTransaction(IncentivePublicParameters pp, boolean valid) {
+    public static Transaction generateRandomTransaction(IncentivePublicParameters pp, boolean valid) {
         Zn usedZn = pp.getBg().getZn();
         Group usedG1 = pp.getBg().getG1();
 
@@ -91,8 +129,8 @@ public class Helper {
                     usedZn.getUniformlyRandomElement(),
                     usedZn.getUniformlyRandomElement(),
                     usedZn.getUniformlyRandomElement(),
-                    usedG1.getUniformlyRandomElements(3),
-                    usedG1.getUniformlyRandomElements(3)
+                    usedG1.getUniformlyRandomElements(pp.getNumEskDigits()),
+                    usedG1.getUniformlyRandomElements(pp.getNumEskDigits())
             )
         );
     }
@@ -101,7 +139,7 @@ public class Helper {
      * Creates random user info.
      * @return UserInfo
      */
-    public static UserInfo generateUserInfo(IncentivePublicParameters pp) {
+    public static UserInfo generateRandomUserInfo(IncentivePublicParameters pp) {
         Zn usedZn = pp.getBg().getZn();
         Group usedG1 = pp.getBg().getG1();
 

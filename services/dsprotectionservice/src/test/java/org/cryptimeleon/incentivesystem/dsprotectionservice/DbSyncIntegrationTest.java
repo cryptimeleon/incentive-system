@@ -3,13 +3,11 @@ package org.cryptimeleon.incentivesystem.dsprotectionservice;
 import org.cryptimeleon.incentive.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.Setup;
-import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.mock.MockDsTagEntryRepository;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.mock.MockDsidEntryRepository;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.mock.MockTransactionEntryRepository;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.mock.MockUserInfoEntryRepository;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.storage.TransactionEntry;
-import org.junit.Assert;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -50,9 +48,9 @@ public class DbSyncIntegrationTest {
         );
 
         logger.info("Generating random valid transactions and dsids.");
-        var ta1 = Helper.generateTransaction(incSys.pp, true);
+        var ta1 = Helper.generateRandomTransaction(incSys.pp, true);
         var dsid1 = pp.getBg().getG1().getUniformlyRandomElement();
-        var ta2 = Helper.generateTransaction(incSys.pp, true);
+        var ta2 = Helper.generateRandomTransaction(incSys.pp, true);
         var dsid2 = pp.getBg().getG1().getUniformlyRandomElement();
 
         logger.info("Adding transactions to database.");
@@ -138,11 +136,11 @@ public class DbSyncIntegrationTest {
 
         logger.info("Generating random valid transactions and dsids.");
         var usedG1 = incSys.getPp().getBg().getG1();
-        var t1 = Helper.generateTransaction(incSys.getPp(), true);
-        var t1Prime = Helper.generateTransaction(incSys.getPp(), true);
-        var t2 = Helper.generateTransaction(incSys.getPp(), true);
-        var t2Prime = Helper.generateTransaction(incSys.getPp(), true);
-        var t3 = Helper.generateTransaction(incSys.getPp(), true);
+        var t1 = Helper.generateRandomTransaction(incSys.getPp(), true);
+        var t1Prime = Helper.generateRandomTransaction(incSys.getPp(), true);
+        var t2 = Helper.generateRandomTransaction(incSys.getPp(), true);
+        var t2Prime = Helper.generateRandomTransaction(incSys.getPp(), true);
+        var t3 = Helper.generateRandomTransaction(incSys.getPp(), true);
         var dsid1 = usedG1.getUniformlyRandomElement();
         var dsid2 = usedG1.getUniformlyRandomElement(); // we want dsid2 to be the successor of t1Prime, as in the graph from the paper
         var dsid3 = usedG1.getUniformlyRandomElement(); // we want dsid3 to be the successor of t2, as in the graph from the paper

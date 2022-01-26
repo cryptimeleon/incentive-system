@@ -642,13 +642,19 @@ public class IncentiveSystem {
 
         // compute user share of ElGamal encryption secret key esk
         ZnElement[] userEskShareDigits = new ZnElement[pp.getNumEskDigits()];
-        for (int i = 0; i < pp.getNumEskDigits(); i++) {
+        for (int i = 0; i < pp.getNumEskDigits(); i++) { // getNumEskDigits returns the number of digits the esk consists of (rho in the paper)
             for (int b = 0; b < Setup.ESK_DEC_BASE; b++) {
                 // search for DLOG (i-th digit of the user share of esk), beta from paper is b in code
-                if (w.pow(b) == ctrace1.get(i).pow(dsTrace.inv()).op(ctrace2.get(i))) {
+                if ( w.pow(b).equals( ctrace1.get(i).pow(dsTrace.neg()).op(ctrace2.get(i)) ) ) {
                     userEskShareDigits[i] = usedZn.valueOf(b);
                     break;
                 }
+            }
+        }
+
+        // check whether all bits could be computed
+        for(int i = 0; i < pp.getNumEskDigits(); i++) {
+            if(userEskShareDigits[i] == null) {
                 throw new RuntimeException("Could not find a fitting " + String.valueOf(i) + "-th digit for the user's share of esk.");
             }
         }
@@ -794,7 +800,8 @@ public class IncentiveSystem {
             UserInfo correspondingUserInfo = new UserInfo(
                     consumedDsidUserInfo.getUpk(),
                     consumedDsidUserInfo.getDsBlame(),
-                    traceOutput.getDsTraceStar());
+                    traceOutput.getDsTraceStar()
+            );
             dbHandler.addAndLinkUserInfo(
                     correspondingUserInfo,
                     dsidStar

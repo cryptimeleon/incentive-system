@@ -51,12 +51,12 @@ public class LocalDatabaseHandlerUnitTests {
         );
 
         logger.info("Generating valid random transaction with associated double-spending tag.");
-        var ta1 = Helper.generateTransaction(pp, true);
+        var ta1 = Helper.generateRandomTransaction(pp, true);
         logger.info("Adding generated transaction to the database.");
         dbHandler.addTransactionNode(ta1);
 
         logger.info("Generating invalid random transaction and associated double-spending tag.");
-        var ta2 = Helper.generateTransaction(pp, false);
+        var ta2 = Helper.generateRandomTransaction(pp, false);
         logger.info("Adding generated transaction to the database.");
         dbHandler.addTransactionNode(ta2);
 
@@ -121,8 +121,8 @@ public class LocalDatabaseHandlerUnitTests {
         Assertions.assertTrue(containsDsid2);
 
         logger.info("Generating random user info for stored double-spending IDs.");
-        UserInfo uInfo1 = Helper.generateUserInfo(pp);
-        UserInfo uInfo2 = Helper.generateUserInfo(pp);
+        UserInfo uInfo1 = Helper.generateRandomUserInfo(pp);
+        UserInfo uInfo2 = Helper.generateRandomUserInfo(pp);
 
         logger.info("Linking user info with stored double-spending IDs.");
         dbHandler.addAndLinkUserInfo(uInfo1, dsid1);
@@ -177,9 +177,9 @@ public class LocalDatabaseHandlerUnitTests {
         );
 
         logger.info("Generating and adding random valid transactions.");
-        Transaction ta1 = Helper.generateTransaction(pp, true);
-        Transaction ta2 = Helper.generateTransaction(pp, true);
-        Transaction ta3 = Helper.generateTransaction(pp, true);
+        Transaction ta1 = Helper.generateRandomTransaction(pp, true);
+        Transaction ta2 = Helper.generateRandomTransaction(pp, true);
+        Transaction ta3 = Helper.generateRandomTransaction(pp, true);
         dbHandler.addTransactionNode(ta1);
         dbHandler.addTransactionNode(ta2);
         dbHandler.addTransactionNode(ta3);
@@ -261,7 +261,7 @@ public class LocalDatabaseHandlerUnitTests {
         );
 
         logger.info("Generating valid random transaction with associated double-spending tag and add it to the database.");
-        var ta1 = Helper.generateTransaction(pp, true);
+        var ta1 = Helper.generateRandomTransaction(pp, true);
         logger.info("Adding generated transaction to the database.");
         dbHandler.addTransactionNode(ta1);
 

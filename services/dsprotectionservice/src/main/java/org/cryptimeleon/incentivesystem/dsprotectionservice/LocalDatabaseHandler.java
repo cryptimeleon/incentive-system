@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 /**
@@ -218,13 +219,30 @@ public class LocalDatabaseHandler implements DatabaseHandler {
         // add user info entry to database
         this.userInfoRepository.save(uie);
 
-        // update dsid entry if existent
+        // Update dsid entry if existent.
+        // This means deleting and adding the dsid entry again:
+        // this changes its id => need to update consuming and producing transactions!
         long uInfoEntryId = uie.getId();
         DsIdEntry dside = findDsidEntry(dsid);
+        long oldDsidEntryId = dside.getId();
+        long newDsidEntryId = 0;
         if(dside != null) {
             dsidRepository.delete(dside);
             dside.setAssociatedUserInfoId(uInfoEntryId);
             dsidRepository.save(dside);
+            newDsidEntryId = dside.getId();
+        }
+
+        // update consuming transactions
+        ArrayList<TransactionEntry> consumingTasEntries = this.getConsumingTransactionEntries(oldDsidEntryId);
+        for(TransactionEntry taEntry:consumingTasEntries) {
+            taEntry.setConsumedDsidEntryId(newDsidEntryId);
+        }
+
+        // update producing transactions
+        ArrayList<TransactionEntry> producingTasEntries = this.getProducingTransactionEntries(oldDsidEntryId);
+        for(TransactionEntry taEntry:producingTasEntries) {
+            taEntry.setProducedDsidEntryId(newDsidEntryId);
         }
     }
 
@@ -432,6 +450,27 @@ public class LocalDatabaseHandler implements DatabaseHandler {
         // filter by consumed dsid entry ID
         for(TransactionEntry tae : transactionEntryList) {
             if(tae.getConsumedDsidEntryId() == dsidEntryId) {
+                resultList.add(tae);
+            }
+        }
+
+        return resultList;
+    }
+
+    /**
+     * Retrieves and returns all transactions that have produced a Dsid whose corresponding database entry has the passed ID.
+     * @param dsidEntryId database entry ID
+     * @return list of transactions
+     */
+    public ArrayList<TransactionEntry> getProducingTransactionEntries(long dsidEntryId) {
+        ArrayList<TransactionEntry> resultList = new ArrayList<TransactionEntry>();
+
+        // query all transaction entries from database
+        ArrayList<TransactionEntry> transactionEntryList = (ArrayList<TransactionEntry>) transactionRepository.findAll();
+
+        // filter by produced dsid entry ID
+        for(TransactionEntry tae : transactionEntryList) {
+            if(tae.getProducedDsidEntryId() == dsidEntryId) {
                 resultList.add(tae);
             }
         }
