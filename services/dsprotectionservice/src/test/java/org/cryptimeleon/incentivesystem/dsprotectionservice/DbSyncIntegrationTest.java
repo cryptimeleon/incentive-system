@@ -3,16 +3,21 @@ package org.cryptimeleon.incentivesystem.dsprotectionservice;
 import org.cryptimeleon.incentive.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.Setup;
+import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
+import org.cryptimeleon.incentive.crypto.model.Token;
+import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.mock.MockDsTagEntryRepository;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.mock.MockDsidEntryRepository;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.mock.MockTransactionEntryRepository;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.mock.MockUserInfoEntryRepository;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.storage.TransactionEntry;
+import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 
 /**
@@ -115,9 +120,14 @@ public class DbSyncIntegrationTest {
     void cascadingInvalidationsTest() {
         logger.info("Starting cascading invalidations test.");
 
-        logger.info("Setup incentive system and database handler for the test.");
+        logger.info("Setup incentive system, provider and user key pair and database handler for the test.");
         var pp = IncentiveSystem.setup(256, Setup.BilinearGroupChoice.Debug);
         var incSys = new IncentiveSystem(pp);
+
+        var pkp = Setup.providerKeyGen(incSys.getPp());
+
+        var ukp = Setup.userKeyGen(incSys.getPp());
+
         var dbHandler = new LocalDatabaseHandler(
                 incSys.getPp(),
                 new MockDsidEntryRepository(),
@@ -134,16 +144,85 @@ public class DbSyncIntegrationTest {
                 ).size() == 0
         );
 
-        logger.info("Generating random valid transactions and dsids.");
-        var usedG1 = incSys.getPp().getBg().getG1();
-        var t1 = Helper.generateRandomTransaction(incSys.getPp(), true);
-        var t1Prime = Helper.generateRandomTransaction(incSys.getPp(), true);
-        var t2 = Helper.generateRandomTransaction(incSys.getPp(), true);
-        var t2Prime = Helper.generateRandomTransaction(incSys.getPp(), true);
-        var t3 = Helper.generateRandomTransaction(incSys.getPp(), true);
-        var dsid1 = usedG1.getUniformlyRandomElement();
-        var dsid2 = usedG1.getUniformlyRandomElement(); // we want dsid2 to be the successor of t1Prime, as in the graph from the paper
-        var dsid3 = usedG1.getUniformlyRandomElement(); // we want dsid3 to be the successor of t2, as in the graph from the paper
+        logger.info("Generating transactions and dsids by executing spend-deduct several times.");
+        PromotionParameters legacyPromotionParameters = incSys.legacyPromotionParameters(); // the promotion parameters to always use throughout this test
+        SpendDeductBooleanZkp legacyZkp = Helper.generateSimpleTestSpendDeductZkp( // the spend deduct zkp to include in the spend requests, legacy = just collecting and spending a single type of points
+                incSys.getPp(),
+                legacyPromotionParameters,
+                pkp.getPk(),
+                new Vector<BigInteger>(new BigInteger("1")) // subtract 1 point from token per spend, generate a token with 10 points
+        );
+        Token initialToken = Helper.generateToken( // the initial token that the user starts off with
+                incSys.getPp(),
+                ukp,
+                pkp,
+                legacyPromotionParameters,
+                new Vector<BigInteger>(new BigInteger("10")) // ten points are more than enough for this test, ensures that user always has enough points
+        );
+
+        var spendDeductOutputT1 = Helper.generateSoundTransaction(
+                incSys,
+                legacyPromotionParameters,
+                initialToken,
+                pkp,
+                ukp,
+                new Vector<BigInteger>(new BigInteger("9")), // initial token holds 10 points, we spend one in every transaction
+                incSys.getPp().getBg().getZn().getUniformlyRandomElement(),
+                legacyZkp
+        );
+
+        var spendDeductOutputT1Prime = Helper.generateSoundTransaction(
+                incSys,
+                legacyPromotionParameters,
+                initialToken,
+                pkp,
+                ukp,
+                new Vector<BigInteger>(new BigInteger("9")), // initial token holds 10 points, we spend one in every transaction
+                incSys.getPp().getBg().getZn().getUniformlyRandomElement(),
+                legacyZkp
+        );
+
+        var spendDeductOutputT2 = Helper.generateSoundTransaction(
+                incSys,
+                legacyPromotionParameters,
+                spendDeductOutputT1Prime.getResultToken(),
+                pkp,
+                ukp,
+                new Vector<BigInteger>(new BigInteger("8")), // initial token holds 10 points, we spend one in every transaction
+                incSys.getPp().getBg().getZn().getUniformlyRandomElement(),
+                legacyZkp
+        );
+
+        var spendDeductOutputT2Prime = Helper.generateSoundTransaction(
+                incSys,
+                legacyPromotionParameters,
+                spendDeductOutputT1Prime.getResultToken(),
+                pkp,
+                ukp,
+                new Vector<BigInteger>(new BigInteger("8")), // initial token holds 10 points, we spend one in every transaction
+                incSys.getPp().getBg().getZn().getUniformlyRandomElement(),
+                legacyZkp
+        );
+
+        var spendDeductOutputT3 = Helper.generateSoundTransaction(
+                incSys,
+                legacyPromotionParameters,
+                spendDeductOutputT2.getResultToken(),
+                pkp,
+                ukp,
+                new Vector<BigInteger>(new BigInteger("7")), // initial token holds 10 points, we spend one in every transaction
+                incSys.getPp().getBg().getZn().getUniformlyRandomElement(),
+                legacyZkp
+        );
+
+        var t1 = spendDeductOutputT1.getOccuredTransaction();
+        var t1Prime = spendDeductOutputT1Prime.getOccuredTransaction();
+        var t2 = spendDeductOutputT2.getOccuredTransaction();
+        var t2Prime = spendDeductOutputT2Prime.getOccuredTransaction();
+        var t3 = spendDeductOutputT3.getOccuredTransaction();
+        var dsid1 = initialToken.computeDsid(incSys.getPp());
+        var dsid2 = spendDeductOutputT1Prime.getResultToken().computeDsid(incSys.getPp()); // we want dsid2 to be the successor of t1Prime, as in the graph from the paper
+        var dsid3 = spendDeductOutputT2.getResultToken().computeDsid(incSys.getPp()); // we want dsid3 to be the successor of t2, as in the graph from the paper
 
         logger.info("Syncing transactions and dsids to database.");
         logger.info("Syncing some honest spend transactions.");
