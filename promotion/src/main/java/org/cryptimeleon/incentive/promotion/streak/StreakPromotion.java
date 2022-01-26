@@ -25,15 +25,6 @@ public class StreakPromotion extends Promotion {
     @Represented
     private Integer interval;
 
-    /**
-     * Generates PromotionParameters for a new StreakPromotion
-     *
-     * @return the PromotionParameters
-     */
-    public static PromotionParameters generatePromotionParameters() {
-        return IncentiveSystem.generatePromotionParameters(2);
-    }
-
     public StreakPromotion(PromotionParameters promotionParameters, String promotionName, String promotionDescription, List<Reward> rewards, int interval) {
         super(promotionParameters, promotionName, promotionDescription, rewards);
         this.interval = interval;
@@ -41,6 +32,15 @@ public class StreakPromotion extends Promotion {
 
     public StreakPromotion(Representation representation) {
         ReprUtil.deserialize(this, representation);
+    }
+
+    /**
+     * Generates PromotionParameters for a new StreakPromotion
+     *
+     * @return the PromotionParameters
+     */
+    public static PromotionParameters generatePromotionParameters() {
+        return IncentiveSystem.generatePromotionParameters(2);
     }
 
     @Override

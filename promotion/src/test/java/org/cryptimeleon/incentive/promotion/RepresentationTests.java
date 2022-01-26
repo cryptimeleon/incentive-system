@@ -12,12 +12,14 @@ import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+/**
+ * Test that all Representables serialize and deserialize as expected.
+ */
 public class RepresentationTests {
 
     JSONConverter jsonConverter = new JSONConverter();
@@ -57,7 +59,7 @@ public class RepresentationTests {
     }
 
     @Test
-    void StreakPromotionTest() {
+    void streakPromotionRepresentationTest() {
         PromotionParameters promotionParameters = StreakPromotion.generatePromotionParameters();
         StreakPromotion streakPromotion = new StreakPromotion(
                 promotionParameters,
@@ -88,12 +90,24 @@ public class RepresentationTests {
     }
 
     @Test
+    void streakRewardRepresentationTest() {
+        StreakReward streakReward = new StreakReward(UUID.randomUUID(), "Some Reward", new RewardSideEffect("Yay"), 7);
+        StreakReward deserializedStreakReward = new StreakReward(streakReward.getRepresentation());
+
+        assertEquals(streakReward, deserializedStreakReward);
+    }
+
+
+    @Test
     void rewardSideEffectRepresentationTest() {
         RewardSideEffect rewardSideEffect = new RewardSideEffect("Free Teddy");
         RewardSideEffect deserializedRewardSideEffect = new RewardSideEffect(rewardSideEffect.getRepresentation());
         assertEquals(rewardSideEffect, deserializedRewardSideEffect);
     }
 
+    /**
+     * Test that generic rewards can be deserialized to the corresponding classes.
+     */
     @Test
     void allRewardsRepresentationTest() {
         UpgradeVipReward upgradeVipReward = new UpgradeVipReward(2, 50, "Upgrade to 2", UUID.randomUUID());

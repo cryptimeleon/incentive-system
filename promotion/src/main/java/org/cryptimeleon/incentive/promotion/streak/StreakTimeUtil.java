@@ -10,14 +10,18 @@ import java.time.ZoneId;
 public class StreakTimeUtil {
 
     // European Central Time
-    final static String CRYPTIMELEON_ZONE = "ECT";
+    final String CRYPTIMELEON_ZONE = "ECT";
+
+    public StreakTimeUtil() {
+
+    }
 
     /**
      * Get today's date.
      *
      * @return date in LocalDate format
      */
-    private static LocalDate getToday() {
+    private LocalDate getToday() {
         return LocalDate.now(ZoneId.of(CRYPTIMELEON_ZONE));
     }
 
@@ -27,7 +31,7 @@ public class StreakTimeUtil {
      *
      * @return Today's Epoch Day
      */
-    static long getTodayAsEpochDay() {
+    long getTodayAsEpochDay() {
         return getToday().toEpochDay();
     }
 }
