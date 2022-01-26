@@ -9,8 +9,8 @@ import java.time.ZoneId;
  */
 public class StreakTimeUtil {
 
-    // European Central Time
-    final String CRYPTIMELEON_ZONE = "ECT";
+    // Central European Time
+    final String CRYPTIMELEON_ZONE = "CET";
 
     public StreakTimeUtil() {
 
