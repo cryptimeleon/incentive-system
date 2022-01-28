@@ -796,6 +796,9 @@ public class IncentiveSystem {
                 System.out.println("Remainder token not contained yet, will be added.");
                 dbHandler.addTokenNode(dsidStar);
             }
+            else {
+                System.out.println("Remainder token is already contained in the database.");
+            }
 
             System.out.println("Linking user info to remainder token");
 

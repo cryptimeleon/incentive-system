@@ -241,18 +241,15 @@ public class LocalDatabaseHandlerUnitTests {
 
         logger.info("Checking whether ta1 was registered as not consuming dsid1.");
 
-        Optional<Transaction> retrievedTa1 = consumingTasDsid1.stream().filter(t -> t.equals(ta1)).findAny();
-        Assertions.assertTrue(!retrievedTa1.isPresent());
+        Assertions.assertTrue(!consumingTasDsid1.contains(ta1));
 
         logger.info("Checking whether ta2 was registered as consuming dsid1.");
 
-        Optional<Transaction> retrievedTa2 = consumingTasDsid1.stream().filter(t -> t.equals(ta2)).findAny();
-        Assertions.assertTrue(retrievedTa2.isPresent());
+        Assertions.assertTrue(consumingTasDsid1.contains(ta2));
 
         logger.info("Checking whether ta3 was registered as consuming dsid1.");
 
-        Optional<Transaction> retrievedTa3 = consumingTasDsid1.stream().filter(t -> t.equals(ta3)).findAny();
-        Assertions.assertTrue(retrievedTa3.isPresent());
+        Assertions.assertTrue(consumingTasDsid1.contains(ta3));
 
         logger.info("Done checking consuming transactions for dsid1.");
 
