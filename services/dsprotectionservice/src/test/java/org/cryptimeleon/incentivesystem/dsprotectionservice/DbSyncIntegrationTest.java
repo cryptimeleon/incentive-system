@@ -234,6 +234,7 @@ public class DbSyncIntegrationTest {
                 t2Prime.getK(),
                 dbHandler
         );
+        logger.info("Token count in database: " + dbHandler.getTokenCount());
         logger.info("Syncing t1 which spent dsid1");
         incSys.dbSync( // t1 and dsid1
                 t1.getTaIdentifier().getTid(),
@@ -242,6 +243,7 @@ public class DbSyncIntegrationTest {
                 t1.getK(),
                 dbHandler
         );
+        logger.info("Token count in database: " + dbHandler.getTokenCount());
         logger.info("Syncing t3 which spent dsid3");
         incSys.dbSync( // t3 and dsid3
                 t3.getTaIdentifier().getTid(),
@@ -250,6 +252,7 @@ public class DbSyncIntegrationTest {
                 t3.getK(),
                 dbHandler
         );
+        logger.info("Token count in database: " + dbHandler.getTokenCount());
         logger.info("Done syncing honest transactions.");
 
         logger.info("Checking integrity conditions.");
@@ -274,6 +277,7 @@ public class DbSyncIntegrationTest {
                 t1.getK(),
                 dbHandler
         );
+        logger.info("Token count in database: " + dbHandler.getTokenCount());
         logger.info("Syncing t2 which spent dsid2");
         incSys.dbSync( // t2 and dsid2
                 t2.getTaIdentifier().getTid(),
@@ -282,12 +286,10 @@ public class DbSyncIntegrationTest {
                 t2Prime.getK(),
                 dbHandler
         );
+        logger.info("Token count in database: " + dbHandler.getTokenCount());
         logger.info("Done syncing transactions and dsids to database.");
 
         logger.info("Checking whether double spending was correctly detected.");
-
-        logger.info("Checking token count.");
-        Assertions.assertEquals(dbHandler.getTokenCount(), 5);
 
         logger.info("Checking validity of transactions.");
         var retrievedT1 = dbHandler.getTransactionNode(t1.getTaIdentifier());
@@ -300,6 +302,9 @@ public class DbSyncIntegrationTest {
         Assertions.assertTrue(!retrievedT2.getIsValid());
         Assertions.assertTrue(!retrievedT2Prime.getIsValid());
         Assertions.assertTrue(!retrievedT3.getIsValid());
+
+        logger.info("Checking token count.");
+        Assertions.assertEquals(5, dbHandler.getTokenCount());
 
         logger.info("Double-spending was correctly detected.");
 

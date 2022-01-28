@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.ArrayList;
+import java.util.Optional;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class LocalDatabaseHandlerUnitTests {
@@ -230,6 +231,37 @@ public class LocalDatabaseHandlerUnitTests {
         Assertions.assertTrue(!containsDsid2Ta1Edge);
         Assertions.assertTrue(!containsDsid2Ta2Edge);
         Assertions.assertTrue(!containsDsid2Ta3Edge);
+
+        logger.info("Checking whether consuming transactions are computed correctly.");
+
+        logger.info("Checking consuming transactions for dsid1.");
+
+        ArrayList<Transaction> consumingTasDsid1 = dbHandler.getConsumingTransactions(dsid1);
+        Assertions.assertTrue(consumingTasDsid1.size() == 2);
+
+        logger.info("Checking whether ta1 was registered as not consuming dsid1.");
+
+        Optional<Transaction> retrievedTa1 = consumingTasDsid1.stream().filter(t -> t.equals(ta1)).findAny();
+        Assertions.assertTrue(!retrievedTa1.isPresent());
+
+        logger.info("Checking whether ta2 was registered as consuming dsid1.");
+
+        Optional<Transaction> retrievedTa2 = consumingTasDsid1.stream().filter(t -> t.equals(ta2)).findAny();
+        Assertions.assertTrue(retrievedTa2.isPresent());
+
+        logger.info("Checking whether ta3 was registered as consuming dsid1.");
+
+        Optional<Transaction> retrievedTa3 = consumingTasDsid1.stream().filter(t -> t.equals(ta3)).findAny();
+        Assertions.assertTrue(retrievedTa3.isPresent());
+
+        logger.info("Done checking consuming transactions for dsid1.");
+
+        logger.info("Checking consuming transactions for dsid2.");
+
+        ArrayList<Transaction> consumingTasDsid2 = dbHandler.getConsumingTransactions(dsid2);
+        Assertions.assertTrue(consumingTasDsid2.size() == 0);
+
+        logger.info("Done checking consuming transactions for dsid2.");
 
         logger.info("Completed edge test.");
     }

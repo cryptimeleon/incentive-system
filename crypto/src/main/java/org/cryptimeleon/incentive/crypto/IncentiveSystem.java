@@ -789,12 +789,15 @@ public class IncentiveSystem {
             TraceOutput traceOutput = this.trace(this.pp, consumedDsidUserInfo.getDsTrace(), ta.getDsTag());
             GroupElement dsidStar = traceOutput.getDsidStar();
 
-            System.out.println("Add remainder token and its user info.");
+            System.out.println("Traced remainder token.");
 
             // add remainder token dsid if not contained yet
-            if(dbHandler.containsTokenNode(dsidStar)) {
+            if(!dbHandler.containsTokenNode(dsidStar)) {
+                System.out.println("Remainder token not contained yet, will be added.");
                 dbHandler.addTokenNode(dsidStar);
             }
+
+            System.out.println("Linking user info to remainder token");
 
             // associate corresponding user info with remainder token dsid
             UserInfo correspondingUserInfo = new UserInfo(
@@ -812,10 +815,11 @@ public class IncentiveSystem {
             // link current transaction with remainder token in database
             dbHandler.addTransactionTokenEdge(currentTaId, dsidStar);
 
-            System.out.println("Invalidating all transaction that (directly or indirectly) consumed the traced remainder token of " + currentTaId.toString() + ".");
+            System.out.println("Invalidating all transactions that (directly or indirectly) consumed the traced remainder token of " + currentTaId.toString() + ".");
 
             // invalidate all transactions that consumed the remainder token or followed from a transaction consuming it
             ArrayList<Transaction> followingTransactions = dbHandler.getConsumingTransactions(dsidStar);
+            System.out.println(followingTransactions.size() + " consuming transactions detected.");
             followingTransactions.forEach(currentTa -> {
                 dbHandler.invalidateTransaction(
                         currentTa.getTaIdentifier()
