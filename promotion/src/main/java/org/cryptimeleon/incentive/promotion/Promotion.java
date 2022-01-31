@@ -24,16 +24,16 @@ public abstract class Promotion implements StandaloneRepresentable {
     @Represented
     private String promotionDescription;
     @Represented
-    private List<Reward> rewards;
+    private List<ZkpTokenUpdate> zkpTokenUpdates;
 
     public Promotion() {
     }
 
-    public Promotion(PromotionParameters promotionParameters, String promotionName, String promotionDescription, List<Reward> rewards) {
+    public Promotion(PromotionParameters promotionParameters, String promotionName, String promotionDescription, List<ZkpTokenUpdate> zkpTokenUpdates) {
         this.promotionParameters = promotionParameters;
         this.promotionName = promotionName;
         this.promotionDescription = promotionDescription;
-        this.rewards = rewards;
+        this.zkpTokenUpdates = zkpTokenUpdates;
     }
 
     /**
@@ -46,7 +46,8 @@ public abstract class Promotion implements StandaloneRepresentable {
     }
 
     /**
-     * Computes how many points a basket is worth
+     * Computes how many points a basket is worth in terms of simple 'Earn' updates, i.e. adding a vector to to token's
+     * point vector. Some promotions might not utilize this feature because they require ZKPs for all updates on tokens.
      *
      * @param basket the basket to analyze
      * @return a vector of points
@@ -57,13 +58,14 @@ public abstract class Promotion implements StandaloneRepresentable {
      * Computes which rewards the points in the token combined with the worth of the basket (determined with
      * {@literal computeEarningsForBasket}) qualify for.
      *
-     * @param tokenPoints  points of the token
-     * @param basketPoints worth of the basket
+     * @param tokenPoints            points of the token
+     * @param basketPoints           worth of the basket
+     * @param zkpTokenUpdateMetadata
      * @return list of rewards
      */
-    public List<Reward> computeRewardsForPoints(Vector<BigInteger> tokenPoints, Vector<BigInteger> basketPoints) {
+    public List<ZkpTokenUpdate> computeRewardsForPoints(Vector<BigInteger> tokenPoints, Vector<BigInteger> basketPoints, ZkpTokenUpdateMetadata zkpTokenUpdateMetadata) {
         return this.getRewards().stream()
-                .filter(reward -> reward.computeSatisfyingNewPointsVector(tokenPoints, basketPoints).isPresent())
+                .filter(update -> update.computeSatisfyingNewPointsVector(tokenPoints, basketPoints, zkpTokenUpdateMetadata).isPresent())
                 .collect(Collectors.toList());
     }
 
@@ -79,8 +81,8 @@ public abstract class Promotion implements StandaloneRepresentable {
         return this.promotionDescription;
     }
 
-    public List<Reward> getRewards() {
-        return this.rewards;
+    public List<ZkpTokenUpdate> getRewards() {
+        return this.zkpTokenUpdates;
     }
 
     @Override
@@ -88,11 +90,11 @@ public abstract class Promotion implements StandaloneRepresentable {
         if (this == o) return true;
         if (!(o instanceof Promotion)) return false;
         Promotion promotion = (Promotion) o;
-        return Objects.equals(promotionParameters, promotion.promotionParameters) && Objects.equals(promotionName, promotion.promotionName) && Objects.equals(promotionDescription, promotion.promotionDescription) && Objects.equals(rewards, promotion.rewards);
+        return Objects.equals(promotionParameters, promotion.promotionParameters) && Objects.equals(promotionName, promotion.promotionName) && Objects.equals(promotionDescription, promotion.promotionDescription) && Objects.equals(zkpTokenUpdates, promotion.zkpTokenUpdates);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(promotionParameters, promotionName, promotionDescription, rewards);
+        return Objects.hash(promotionParameters, promotionName, promotionDescription, zkpTokenUpdates);
     }
 }

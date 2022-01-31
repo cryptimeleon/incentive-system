@@ -11,10 +11,10 @@ import org.cryptimeleon.incentive.crypto.model.messages.JoinRequest;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
 import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellformednessProtocol;
+import org.cryptimeleon.incentive.promotion.ZkpTokenUpdate;
 import org.cryptimeleon.incentive.promotion.model.Basket;
 import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion;
 import org.cryptimeleon.incentive.promotion.Promotion;
-import org.cryptimeleon.incentive.promotion.Reward;
 import org.cryptimeleon.incentive.services.promotion.repository.BasketRepository;
 import org.cryptimeleon.incentive.services.promotion.repository.CryptoRepository;
 import org.cryptimeleon.incentive.services.promotion.repository.PromotionRepository;
@@ -125,7 +125,7 @@ public class PromotionService {
         log.info("SpendRequest:" + serializedSpendRequest);
 
         Promotion promotion = promotionRepository.getPromotion(promotionId).orElseThrow(() -> new IncentiveServiceException(String.format("promotionId %d not found", promotionId)));
-        Reward reward = promotion.getRewards().stream().filter(reward1 -> reward1.getRewardId().equals(rewardId)).findAny().orElseThrow(() -> new IncentiveServiceException("Reward id not found"));
+        ZkpTokenUpdate zkpTokenUpdate = promotion.getRewards().stream().filter(reward1 -> reward1.getTokenUpdateId().equals(rewardId)).findAny().orElseThrow(() -> new IncentiveServiceException("Reward id not found"));
 
         // Prepare incentive system
         var pp = cryptoRepository.getPublicParameters();
@@ -140,7 +140,7 @@ public class PromotionService {
 
         // Prepare zkp
         var basketPoints = promotion.computeEarningsForBasket(basket);
-        var spendDeductTree = reward.generateRelationTree(basketPoints);
+        var spendDeductTree = zkpTokenUpdate.generateRelationTree(basketPoints);
         var tid = basket.getBasketId(pp.getBg().getZn());
         FiatShamirProofSystem spendDeductProofSystem = new FiatShamirProofSystem(
                 new SpendDeductBooleanZkp(spendDeductTree, pp, promotion.getPromotionParameters(), providerPublicKey)

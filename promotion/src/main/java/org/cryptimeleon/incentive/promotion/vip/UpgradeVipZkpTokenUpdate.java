@@ -4,8 +4,10 @@ import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenPointsLeaf;
 import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenUpdateLeaf;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductAndNode;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
-import org.cryptimeleon.incentive.promotion.Reward;
+import org.cryptimeleon.incentive.promotion.EmptyTokenUpdateMetadata;
 import org.cryptimeleon.incentive.promotion.RewardSideEffect;
+import org.cryptimeleon.incentive.promotion.ZkpTokenUpdate;
+import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.annotations.ReprUtil;
 import org.cryptimeleon.math.serialization.annotations.Represented;
@@ -15,7 +17,7 @@ import java.math.BigInteger;
 import java.util.Optional;
 import java.util.UUID;
 
-public class UpgradeVipReward extends Reward {
+public class UpgradeVipZkpTokenUpdate extends ZkpTokenUpdate {
 
     @Represented
     private Integer toVipStatus;
@@ -23,18 +25,18 @@ public class UpgradeVipReward extends Reward {
     @Represented
     private Integer accumulatedCost;
 
-    public UpgradeVipReward(Representation representation) {
+    public UpgradeVipZkpTokenUpdate(Representation representation) {
         ReprUtil.deserialize(this, representation);
     }
 
-    public UpgradeVipReward(int toVipStatus, Integer accumulatedCost, String rewardDescription, UUID rewardId) {
+    public UpgradeVipZkpTokenUpdate(int toVipStatus, Integer accumulatedCost, String rewardDescription, UUID rewardId) {
         super(rewardId, rewardDescription, new RewardSideEffect("Upgrade VIP status to " + toVipStatus));
         this.toVipStatus = toVipStatus;
         this.accumulatedCost = accumulatedCost;
     }
 
     @Override
-    public SpendDeductTree generateRelationTree(Vector<BigInteger> basketPoints) {
+    public SpendDeductTree generateRelationTree(Vector<BigInteger> basketPoints, ZkpTokenUpdateMetadata zkpTokenUpdateMetadata) {
         assert toVipStatus > 0 && toVipStatus <= 3;
         // points stay the same and must be larger than accumulatedPoints, level must be between 1 and 1 and increased by 1 (avoid 'empty' updates)
         return new SpendDeductAndNode(
@@ -54,7 +56,7 @@ public class UpgradeVipReward extends Reward {
     }
 
     @Override
-    public Optional<Vector<BigInteger>> computeSatisfyingNewPointsVector(Vector<BigInteger> tokenPoints, Vector<BigInteger> basketPoints) {
+    public Optional<Vector<BigInteger>> computeSatisfyingNewPointsVector(Vector<BigInteger> tokenPoints, Vector<BigInteger> basketPoints, ZkpTokenUpdateMetadata zkpTokenUpdateMetadata) {
         int currentStatus = tokenPoints.get(1).intValueExact();
         if (toVipStatus <= currentStatus) return Optional.empty(); // No unnecessary upgrades
 
@@ -70,5 +72,17 @@ public class UpgradeVipReward extends Reward {
     @Override
     public Representation getRepresentation() {
         return ReprUtil.serialize(this);
+    }
+
+
+    /**
+     * User-chosen metadata like timestamps needs to be verified before being used.
+     *
+     * @param zkpTokenUpdateMetadata
+     * @return whether the validation was successful or not
+     */
+    @Override
+    public boolean validateTokenUpdateMetadata(ZkpTokenUpdateMetadata zkpTokenUpdateMetadata) {
+        return zkpTokenUpdateMetadata instanceof EmptyTokenUpdateMetadata;
     }
 }

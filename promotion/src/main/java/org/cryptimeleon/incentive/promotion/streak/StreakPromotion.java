@@ -4,7 +4,7 @@ import lombok.EqualsAndHashCode;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.promotion.Promotion;
-import org.cryptimeleon.incentive.promotion.Reward;
+import org.cryptimeleon.incentive.promotion.ZkpTokenUpdate;
 import org.cryptimeleon.incentive.promotion.model.Basket;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.annotations.ReprUtil;
@@ -25,8 +25,8 @@ public class StreakPromotion extends Promotion {
     @Represented
     private Integer interval;
 
-    public StreakPromotion(PromotionParameters promotionParameters, String promotionName, String promotionDescription, List<Reward> rewards, int interval) {
-        super(promotionParameters, promotionName, promotionDescription, rewards);
+    public StreakPromotion(PromotionParameters promotionParameters, String promotionName, String promotionDescription, List<ZkpTokenUpdate> zkpTokenUpdates, int interval) {
+        super(promotionParameters, promotionName, promotionDescription, zkpTokenUpdates);
         this.interval = interval;
     }
 

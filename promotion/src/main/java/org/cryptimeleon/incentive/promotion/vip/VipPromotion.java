@@ -4,8 +4,8 @@ import lombok.EqualsAndHashCode;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.promotion.Promotion;
-import org.cryptimeleon.incentive.promotion.Reward;
 import org.cryptimeleon.incentive.promotion.RewardSideEffect;
+import org.cryptimeleon.incentive.promotion.ZkpTokenUpdate;
 import org.cryptimeleon.incentive.promotion.model.Basket;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.annotations.ReprUtil;
@@ -15,6 +15,11 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Promotion in which users can earn a VIP status (BRONZE/SILVER/GOLD) for spent money and prove their current status.
+ * The updates are modelled such that it is revealed when a user upgrades to the next status.
+ * This could be avoided by using a more expensive OR proof.
+ */
 @EqualsAndHashCode(callSuper = true)
 public class VipPromotion extends Promotion {
 
@@ -48,7 +53,7 @@ public class VipPromotion extends Promotion {
         );
     }
 
-    private static List<Reward> computeRewards(
+    private static List<ZkpTokenUpdate> computeRewards(
             int costBronze,
             int costSilver,
             int costGold,
@@ -59,12 +64,12 @@ public class VipPromotion extends Promotion {
         assert costBronze < costSilver && costSilver < costGold;
 
         return List.of(
-                new UpgradeVipReward(BRONZE, costBronze, "Get Bronze VIP Status", UUID.randomUUID()),
-                new UpgradeVipReward(SILVER, costSilver, "Get Silver VIP Status", UUID.randomUUID()),
-                new UpgradeVipReward(GOLD, costGold, "Get Gold VIP Status", UUID.randomUUID()),
-                new VipReward(BRONZE, UUID.randomUUID(), bronzeSideEffect),
-                new VipReward(SILVER, UUID.randomUUID(), silverSideEffect),
-                new VipReward(GOLD, UUID.randomUUID(), goldSideEffect)
+                new UpgradeVipZkpTokenUpdate(BRONZE, costBronze, "Get Bronze VIP Status", UUID.randomUUID()),
+                new UpgradeVipZkpTokenUpdate(SILVER, costSilver, "Get Silver VIP Status", UUID.randomUUID()),
+                new UpgradeVipZkpTokenUpdate(GOLD, costGold, "Get Gold VIP Status", UUID.randomUUID()),
+                new ProveVipTokenUpdate(BRONZE, UUID.randomUUID(), bronzeSideEffect),
+                new ProveVipTokenUpdate(SILVER, UUID.randomUUID(), silverSideEffect),
+                new ProveVipTokenUpdate(GOLD, UUID.randomUUID(), goldSideEffect)
         );
     }
 

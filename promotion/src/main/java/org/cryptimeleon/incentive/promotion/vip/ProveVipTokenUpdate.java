@@ -3,8 +3,10 @@ package org.cryptimeleon.incentive.promotion.vip;
 import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenUpdateLeaf;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductAndNode;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
-import org.cryptimeleon.incentive.promotion.Reward;
+import org.cryptimeleon.incentive.promotion.EmptyTokenUpdateMetadata;
 import org.cryptimeleon.incentive.promotion.RewardSideEffect;
+import org.cryptimeleon.incentive.promotion.ZkpTokenUpdate;
+import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.annotations.ReprUtil;
 import org.cryptimeleon.math.serialization.annotations.Represented;
@@ -15,7 +17,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 // Just prove VIP status to get side effect!
-public class VipReward extends Reward {
+public class ProveVipTokenUpdate extends ZkpTokenUpdate {
 
     @Represented
     private Integer requiredStatus;
@@ -23,11 +25,11 @@ public class VipReward extends Reward {
     @Represented
     private Integer accumulatedCost;
 
-    public VipReward(Representation representation) {
+    public ProveVipTokenUpdate(Representation representation) {
         ReprUtil.deserialize(this, representation);
     }
 
-    public VipReward(int requiredStatus, UUID rewardId, RewardSideEffect sideEffect) {
+    public ProveVipTokenUpdate(int requiredStatus, UUID rewardId, RewardSideEffect sideEffect) {
         super(rewardId, "Reward for VIP level " + requiredStatus, sideEffect);
         this.requiredStatus = requiredStatus;
     }
@@ -43,7 +45,7 @@ public class VipReward extends Reward {
      * @return SpendDeductTree for this VIP reward
      */
     @Override
-    public SpendDeductTree generateRelationTree(Vector<BigInteger> basketPoints) {
+    public SpendDeductTree generateRelationTree(Vector<BigInteger> basketPoints, ZkpTokenUpdateMetadata zkpTokenUpdateMetadata) {
         return new SpendDeductAndNode(
                 new TokenUpdateLeaf(
                         "keep-vip-status",
@@ -63,7 +65,7 @@ public class VipReward extends Reward {
     }
 
     @Override
-    public Optional<Vector<BigInteger>> computeSatisfyingNewPointsVector(Vector<BigInteger> tokenPoints, Vector<BigInteger> basketPoints) {
+    public Optional<Vector<BigInteger>> computeSatisfyingNewPointsVector(Vector<BigInteger> tokenPoints, Vector<BigInteger> basketPoints, ZkpTokenUpdateMetadata zkpTokenUpdateMetadata) {
         if (tokenPoints.get(1).equals(BigInteger.valueOf(requiredStatus))) {
             return Optional.of(Vector.of(tokenPoints.get(0).add(basketPoints.get(0)), tokenPoints.get(1)));
         }
@@ -73,5 +75,16 @@ public class VipReward extends Reward {
     @Override
     public Representation getRepresentation() {
         return ReprUtil.serialize(this);
+    }
+
+    /**
+     * User-chosen metadata like timestamps needs to be verified before being used.
+     *
+     * @param zkpTokenUpdateMetadata
+     * @return whether the validation was successful or not
+     */
+    @Override
+    public boolean validateTokenUpdateMetadata(ZkpTokenUpdateMetadata zkpTokenUpdateMetadata) {
+        return zkpTokenUpdateMetadata instanceof EmptyTokenUpdateMetadata;
     }
 }
