@@ -26,7 +26,7 @@ public class StreakPromotion extends Promotion {
     private Integer interval;
 
     public StreakPromotion(PromotionParameters promotionParameters, String promotionName, String promotionDescription, List<ZkpTokenUpdate> zkpTokenUpdates, int interval) {
-        super(promotionParameters, promotionName, promotionDescription, zkpTokenUpdates);
+        super(promotionParameters, promotionName, promotionDescription, zkpTokenUpdates); // TODO StandardUpdate must always be present
         this.interval = interval;
     }
 

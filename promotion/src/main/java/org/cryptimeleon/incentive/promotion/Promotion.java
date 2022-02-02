@@ -11,10 +11,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import lombok.EqualsAndHashCode;
+
 /**
  * Promotion objects completely determine the semantic of a promotion, how the token looks like, for what a user can earn points,
  * and which rewards a user can obtain.
  */
+@EqualsAndHashCode
 public abstract class Promotion implements StandaloneRepresentable {
 
     @Represented
@@ -64,7 +67,7 @@ public abstract class Promotion implements StandaloneRepresentable {
      * @return list of rewards
      */
     public List<ZkpTokenUpdate> computeRewardsForPoints(Vector<BigInteger> tokenPoints, Vector<BigInteger> basketPoints, ZkpTokenUpdateMetadata zkpTokenUpdateMetadata) {
-        return this.getRewards().stream()
+        return this.getTokenUpdates().stream()
                 .filter(update -> update.computeSatisfyingNewPointsVector(tokenPoints, basketPoints, zkpTokenUpdateMetadata).isPresent())
                 .collect(Collectors.toList());
     }
@@ -81,20 +84,7 @@ public abstract class Promotion implements StandaloneRepresentable {
         return this.promotionDescription;
     }
 
-    public List<ZkpTokenUpdate> getRewards() {
+    public List<ZkpTokenUpdate> getTokenUpdates() {
         return this.zkpTokenUpdates;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Promotion)) return false;
-        Promotion promotion = (Promotion) o;
-        return Objects.equals(promotionParameters, promotion.promotionParameters) && Objects.equals(promotionName, promotion.promotionName) && Objects.equals(promotionDescription, promotion.promotionDescription) && Objects.equals(zkpTokenUpdates, promotion.zkpTokenUpdates);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(promotionParameters, promotionName, promotionDescription, zkpTokenUpdates);
     }
 }
