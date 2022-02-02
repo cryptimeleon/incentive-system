@@ -5,7 +5,9 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.paddingFromBaseline
 import androidx.compose.foundation.layout.requiredSize
@@ -61,9 +63,9 @@ fun Dashboard(
         Column(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier
-                .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
+            Spacer(modifier = Modifier.height(0.dp))
             for (promotionState in dashboardState.promotionStates) {
                 TokenCard(
                     promotionState = promotionState,
@@ -73,6 +75,7 @@ fun Dashboard(
                     }
                 )
             }
+            Spacer(modifier = Modifier.height(0.dp))
         }
     }
 }
@@ -87,6 +90,7 @@ fun TokenCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(horizontal = 16.dp)
             .wrapContentHeight(),
         elevation = 4.dp,
         onClick = { toggleExpanded(promotionState.id) },
@@ -135,7 +139,7 @@ fun TokenCard(
                 text = promotionState.description,
                 style = MaterialTheme.typography.body1,
             )
-            if (true || expandedPromotion == promotionState.id) { // TODO decide on one option
+            if (expandedPromotion == promotionState.id) {
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
