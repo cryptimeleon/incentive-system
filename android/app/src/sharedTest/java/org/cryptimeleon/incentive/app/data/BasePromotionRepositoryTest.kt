@@ -4,10 +4,10 @@ import com.google.common.truth.Truth.assertThat
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.cryptimeleon.incentive.app.domain.IPromotionRepository
-import org.cryptimeleon.incentive.promotion.Reward
 import org.cryptimeleon.incentive.promotion.RewardSideEffect
+import org.cryptimeleon.incentive.promotion.ZkpTokenUpdate
 import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion
-import org.cryptimeleon.incentive.promotion.hazel.HazelReward
+import org.cryptimeleon.incentive.promotion.hazel.HazelTokenUpdate
 import org.cryptimeleon.incentive.promotion.vip.VipPromotion
 import org.junit.After
 import org.junit.Before
@@ -26,8 +26,8 @@ abstract class BasePromotionRepositoryTest {
             HazelPromotion.generatePromotionParameters(),
             "First test promotion",
             "Description of first test promotion",
-            listOf<Reward>(
-                HazelReward(
+            listOf<ZkpTokenUpdate>(
+                HazelTokenUpdate(
                     3,
                     "Earn a free teddy bear!",
                     UUID.randomUUID(),
