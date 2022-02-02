@@ -125,7 +125,7 @@ public class PromotionService {
         log.info("SpendRequest:" + serializedSpendRequest);
 
         Promotion promotion = promotionRepository.getPromotion(promotionId).orElseThrow(() -> new IncentiveServiceException(String.format("promotionId %d not found", promotionId)));
-        ZkpTokenUpdate zkpTokenUpdate = promotion.getRewards().stream().filter(reward1 -> reward1.getTokenUpdateId().equals(rewardId)).findAny().orElseThrow(() -> new IncentiveServiceException("Reward id not found"));
+        ZkpTokenUpdate zkpTokenUpdate = promotion.getTokenUpdates().stream().filter(reward1 -> reward1.getTokenUpdateId().equals(rewardId)).findAny().orElseThrow(() -> new IncentiveServiceException("Reward id not found"));
 
         // Prepare incentive system
         var pp = cryptoRepository.getPublicParameters();
