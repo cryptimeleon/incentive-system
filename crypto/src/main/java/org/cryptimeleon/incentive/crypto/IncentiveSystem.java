@@ -660,14 +660,14 @@ public class IncentiveSystem {
         }
 
         // compute next dstrace
-        ZnElement dsTracePrime = usedZn.getZeroElement();
+        ZnElement dsTraceStar = usedZn.getZeroElement();
         for (int i = 0; i < pp.getNumEskDigits(); i++) {
-            dsTracePrime.add(userEskShareDigits[i].mul(usedZn.valueOf(Setup.ESK_DEC_BASE).pow(i)));
+            dsTraceStar = dsTraceStar.add(userEskShareDigits[i].mul(usedZn.valueOf(Setup.ESK_DEC_BASE).pow(i)));
         }
-        dsTracePrime.add(dsTag.getEskStarProv());
+        dsTraceStar = dsTraceStar.add(dsTag.getEskStarProv());
 
         // assemble and return output (new dsid and dstrace)
-        return new TraceOutput(pp.getW().pow(dsTracePrime), dsTracePrime);
+        return new TraceOutput(pp.getW().pow(dsTraceStar), dsTraceStar);
     }
 
     /**
@@ -704,7 +704,7 @@ public class IncentiveSystem {
         if(!dbHandler.containsTransactionNode(taId)) {
             System.out.println("Transaction not found in database, will be added.");
             // add a corresponding transaction node to DB (which also contains the dstag)
-            Transaction ta = new Transaction(true, tid, spendAmount, dsTag);
+            Transaction ta = new Transaction(true, tid, spendAmount, dsTag); // first parameter: validity of the transaction
             dbHandler.addTransactionNode(ta);
         }
 
@@ -781,7 +781,7 @@ public class IncentiveSystem {
 
             // retrieve double-spending ID of token consumed by transaction and the corresponding user info
             GroupElement consumedDsid = dbHandler.getConsumedTokenDsid(currentTaId, this.pp);
-            UserInfo consumedDsidUserInfo = dbHandler.getUserInfo(consumedDsid);
+            UserInfo consumedDsidUserInfo = dbHandler.getUserInfo(consumedDsid); // cannot be null since user info is always computed for invalidated transactions before needed
 
             System.out.println("Tracing remainder token.");
 
@@ -800,7 +800,7 @@ public class IncentiveSystem {
                 System.out.println("Remainder token is already contained in the database.");
             }
 
-            System.out.println("Linking user info to remainder token");
+            System.out.println("Linking user info to remainder token.");
 
             // associate corresponding user info with remainder token dsid
             UserInfo correspondingUserInfo = new UserInfo(
@@ -822,7 +822,7 @@ public class IncentiveSystem {
 
             // invalidate all transactions that consumed the remainder token or followed from a transaction consuming it
             ArrayList<Transaction> followingTransactions = dbHandler.getConsumingTransactions(dsidStar);
-            System.out.println(followingTransactions.size() + " consuming transactions detected.");
+            System.out.println(followingTransactions.size() + " transactions consuming remainder token detected, need to be invalidated.");
             followingTransactions.forEach(currentTa -> {
                 dbHandler.invalidateTransaction(
                         currentTa.getTaIdentifier()
