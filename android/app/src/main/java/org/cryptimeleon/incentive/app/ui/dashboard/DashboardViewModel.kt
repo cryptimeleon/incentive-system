@@ -16,8 +16,16 @@ import org.cryptimeleon.incentive.app.data.PromotionRepository
 import org.cryptimeleon.incentive.crypto.model.Token
 import org.cryptimeleon.incentive.promotion.Promotion
 import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion
-import org.cryptimeleon.incentive.promotion.hazel.HazelReward
+import org.cryptimeleon.incentive.promotion.hazel.HazelTokenUpdate
+import org.cryptimeleon.incentive.promotion.streak.RangeProofStreakTokenUpdate
+import org.cryptimeleon.incentive.promotion.streak.SpendStreakTokenUpdate
+import org.cryptimeleon.incentive.promotion.streak.StandardStreakTokenUpdate
+import org.cryptimeleon.incentive.promotion.streak.StreakPromotion
+import org.cryptimeleon.incentive.promotion.vip.ProveVipTokenUpdate
+import org.cryptimeleon.incentive.promotion.vip.UpgradeVipZkpTokenUpdate
+import org.cryptimeleon.incentive.promotion.vip.VipPromotion
 import timber.log.Timber
+import java.time.LocalDate
 import javax.inject.Inject
 
 @HiltViewModel
@@ -42,29 +50,20 @@ class DashboardViewModel @Inject constructor(
                 promotions.mapNotNull { promotion ->
                     val token: Token =
                         tokens.find { promotion.promotionParameters.promotionId == it.promotionId }!!
-                    if (promotion is HazelPromotion) {
-                        val count = token.points.get(0).asInteger().toInt()
-                        HazelPromotionState(
-                            id = promotion.promotionParameters.promotionId.toString(),
-                            title = promotion.promotionName,
-                            description = promotion.promotionDescription,
-                            rewards = promotion.rewards.mapNotNull {
-                                if (it is HazelReward) {
-                                    HazelRewardState(
-                                        it.rewardDescription,
-                                        it.rewardSideEffect.name,
-                                        count,
-                                        it.rewardCost
-                                    )
-                                } else {
-                                    null
-                                }
-                            },
-                            count = count,
-                        )
-                    } else {
-                        Timber.i("Promotion not yet implemented")
-                        null
+                    when (promotion) {
+                        is HazelPromotion -> {
+                            HazelPromotionState.fromPromotion(promotion, token)
+                        }
+                        is VipPromotion -> {
+                            VipPromotionState.fromPromotion(promotion, token)
+                        }
+                        is StreakPromotion -> {
+                            StreakPromotionState.fromPromotion(promotion, token)
+                        }
+                        else -> {
+                            Timber.i("Promotion not yet implemented")
+                            null
+                        }
                     }
                 }
             )
@@ -82,56 +81,193 @@ sealed class PromotionState {
     abstract val id: String
     abstract val title: String
     abstract val description: String
-    abstract val rewards: List<RewardState>
+    abstract val updates: List<TokenUpdateState>
 }
 
 data class HazelPromotionState(
     override val id: String,
     override val title: String,
     override val description: String,
-    override val rewards: List<RewardState>,
+    override val updates: List<TokenUpdateState>,
     val count: Int,
-) : PromotionState()
+) : PromotionState() {
+    companion object {
+        fun fromPromotion(promotion: HazelPromotion, token: Token): HazelPromotionState {
+            val count = token.points.get(0).asInteger().toInt()
+            return HazelPromotionState(
+                id = promotion.promotionParameters.promotionId.toString(),
+                title = promotion.promotionName,
+                description = promotion.promotionDescription,
+                updates = promotion.tokenUpdates.mapNotNull {
+                    if (it is HazelTokenUpdate) {
+                        HazelTokenUpdateState(
+                            it.rewardDescription,
+                            it.rewardSideEffect.name,
+                            count,
+                            it.rewardCost
+                        )
+                    } else {
+                        null
+                    }
+                },
+                count = count,
+            )
+        }
+    }
+}
 
 data class VipPromotionState(
     override val id: String,
     override val title: String,
     override val description: String,
-    override val rewards: List<RewardState>,
+    override val updates: List<TokenUpdateState>,
     val points: Int,
     val status: VipStatus
-) : PromotionState()
+) : PromotionState() {
+    companion object {
+        fun fromPromotion(promotion: VipPromotion, token: Token): VipPromotionState {
+            val vipStatus = VipStatus.fromInt(token.points.get(0).asInteger().toInt())
+            val points = token.points.get(1).asInteger().toInt()
+            return VipPromotionState(
+                id = promotion.promotionParameters.promotionId.toString(),
+                title = promotion.promotionName,
+                description = promotion.promotionDescription,
+                updates = promotion.tokenUpdates.mapNotNull {
+                    when (it) {
+                        is UpgradeVipZkpTokenUpdate -> {
+                            UpgradeVipTokenUpdateState(
+                                it.rewardDescription,
+                                it.rewardSideEffect.name,
+                                points,
+                                it.accumulatedCost,
+                                VipStatus.fromInt(it.toVipStatus)
+                            )
+                        }
+                        is ProveVipTokenUpdate -> {
+                            VipTokenUpdateState(
+                                it.rewardDescription,
+                                it.rewardSideEffect.name,
+                                vipStatus,
+                                VipStatus.fromInt(it.requiredStatus)
+                            )
+                        }
+                        else -> {
+                            null
+                        }
+                    }
+                },
+                points,
+                vipStatus
+            )
+        }
+    }
+}
 
-sealed class RewardState {
+data class StreakPromotionState(
+    override val id: String,
+    override val title: String,
+    override val description: String,
+    override val updates: List<TokenUpdateState>,
+    val streak: Int,
+    val lastTimestamp: LocalDate
+) : PromotionState() {
+    companion object {
+        fun fromPromotion(promotion: StreakPromotion, token: Token): StreakPromotionState {
+            val streak = token.points.get(0).asInteger().toInt()
+            val lastTimestamp = LocalDate.ofEpochDay(token.points.get(1).asInteger().toLong())
+            return StreakPromotionState(
+                id = promotion.promotionParameters.promotionId.toString(),
+                title = promotion.promotionName,
+                description = promotion.promotionDescription,
+                updates = promotion.tokenUpdates.mapNotNull {
+                    when (it) {
+                        is StandardStreakTokenUpdate -> {
+                            StandardStreakTokenUpdateState(
+                                it.rewardDescription,
+                                it.rewardSideEffect.name,
+                            )
+                        }
+                        is RangeProofStreakTokenUpdate -> {
+                            RangeProofStreakTokenUpdateState(
+                                it.rewardDescription,
+                                it.rewardSideEffect.name,
+                                it.lowerLimit,
+                                streak
+                            )
+                        }
+                        is SpendStreakTokenUpdate -> {
+                            SpendStreakTokenUpdateState(
+                                it.rewardDescription,
+                                it.rewardSideEffect.name,
+                                it.cost,
+                                streak
+                            )
+                        }
+                        else -> {
+                            null
+                        }
+                    }
+                },
+                streak,
+                lastTimestamp
+            )
+        }
+    }
+}
+
+sealed class TokenUpdateState {
     abstract val description: String
     abstract val sideEffect: String
 }
 
-data class HazelRewardState(
+data class HazelTokenUpdateState(
     override val description: String,
     override val sideEffect: String,
     val current: Int,
     val goal: Int
-) : RewardState()
+) : TokenUpdateState()
 
-data class VipRewardState(
+data class VipTokenUpdateState(
     override val description: String,
     override val sideEffect: String,
     val currentStatus: VipStatus,
     val requiredStatus: VipStatus
-) : RewardState()
+) : TokenUpdateState()
 
-data class UpgradeVipRewardState(
+data class UpgradeVipTokenUpdateState(
     override val description: String,
     override val sideEffect: String,
     val currentPoints: Int,
     val requiredPoints: Int,
     val vipStatus: VipStatus,
-) : RewardState()
+) : TokenUpdateState()
 
-enum class VipStatus(statusValue: Int) {
+data class StandardStreakTokenUpdateState(
+    override val description: String,
+    override val sideEffect: String,
+) : TokenUpdateState()
+
+data class RangeProofStreakTokenUpdateState(
+    override val description: String,
+    override val sideEffect: String,
+    val requiredStreak: Int,
+    val currentStreak: Int
+) : TokenUpdateState()
+
+data class SpendStreakTokenUpdateState(
+    override val description: String,
+    override val sideEffect: String,
+    val requiredStreak: Int,
+    val currentStreak: Int
+) : TokenUpdateState()
+
+enum class VipStatus(val statusValue: Int) {
     NONE(0),
     BRONZE(1),
     SILVER(2),
-    GOLD(3)
+    GOLD(3);
+
+    companion object {
+        fun fromInt(value: Int) = values().first { it.statusValue == value }
+    }
 }

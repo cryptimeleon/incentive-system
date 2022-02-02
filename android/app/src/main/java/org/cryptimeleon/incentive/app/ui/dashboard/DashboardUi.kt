@@ -107,23 +107,28 @@ fun TokenCard(
                         .paddingFromBaseline(36.sp)
                 )
                 when (promotionState) {
-                    is HazelPromotionState -> {
+                    is HazelPromotionState ->
                         Text(
                             text = "${promotionState.count}",
                             style = MaterialTheme.typography.h4,
                             color = MaterialTheme.colors.secondary,
                             modifier = Modifier.paddingFromBaseline(36.sp)
                         )
-                    }
                     // TODO find nicer visualization
-                    is VipPromotionState -> {
+                    is VipPromotionState ->
                         Text(
                             text = "${promotionState.status}",
                             style = MaterialTheme.typography.h4,
                             color = MaterialTheme.colors.secondary,
                             modifier = Modifier.paddingFromBaseline(36.sp)
                         )
-                    }
+                    is StreakPromotionState ->
+                        Text(
+                            text = "${promotionState.streak}",
+                            style = MaterialTheme.typography.h4,
+                            color = MaterialTheme.colors.secondary,
+                            modifier = Modifier.paddingFromBaseline(36.sp)
+                        )
                 }
             }
             Text(
@@ -151,10 +156,11 @@ fun TokenCard(
                     )
                 }
                 // Display points matching the promotion
-                val rewardStateIterator: Iterator<RewardState> = promotionState.rewards.iterator()
-                while (rewardStateIterator.hasNext()) {
-                    when (val rewardState = rewardStateIterator.next()) {
-                        is HazelRewardState -> {
+                val tokenUpdateStateIterator: Iterator<TokenUpdateState> =
+                    promotionState.updates.iterator()
+                while (tokenUpdateStateIterator.hasNext()) {
+                    when (val rewardState = tokenUpdateStateIterator.next()) {
+                        is HazelTokenUpdateState -> {
                             Text(
                                 text = rewardState.sideEffect,
                                 style = MaterialTheme.typography.body1,
@@ -165,13 +171,13 @@ fun TokenCard(
                                 modifier = Modifier.fillMaxWidth()
                             )
                             Text(
-                                text = "${rewardState.goal} ",
+                                text = "${rewardState.goal}",
                                 style = MaterialTheme.typography.body1,
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier.align(Alignment.End)
                             )
                         }
-                        is VipRewardState -> {
+                        is VipTokenUpdateState -> {
                             Text(
                                 text = "Advantage for ${rewardState.requiredStatus} VIP",
                                 style = MaterialTheme.typography.body1,
@@ -183,7 +189,7 @@ fun TokenCard(
                                 modifier = Modifier.align(Alignment.End),
                             )
                         }
-                        is UpgradeVipRewardState -> {
+                        is UpgradeVipTokenUpdateState -> {
                             Text(
                                 text = rewardState.sideEffect,
                                 style = MaterialTheme.typography.body1,
@@ -194,14 +200,52 @@ fun TokenCard(
                                 modifier = Modifier.fillMaxWidth()
                             )
                             Text(
-                                text = "${rewardState.requiredPoints} ",
+                                text = "${rewardState.requiredPoints}",
                                 style = MaterialTheme.typography.body1,
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier.align(Alignment.End)
                             )
                         }
+                        is SpendStreakTokenUpdateState -> {
+                            Text(
+                                text = rewardState.sideEffect,
+                                style = MaterialTheme.typography.body1,
+                            )
+                            // TODO handle 'out of streak', add this to state!
+                            LinearProgressIndicator(
+                                progress = if (rewardState.currentStreak > rewardState.requiredStreak) 1f else rewardState.currentStreak / (rewardState.requiredStreak * 1.0f),
+                                color = MaterialTheme.colors.secondary,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Text(
+                                text = "${rewardState.requiredStreak}",
+                                style = MaterialTheme.typography.body1,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.align(Alignment.End)
+                            )
+                        }
+                        is RangeProofStreakTokenUpdateState -> {
+                            Text(
+                                text = rewardState.sideEffect,
+                                style = MaterialTheme.typography.body1,
+                            )
+                            LinearProgressIndicator(
+                                progress = if (rewardState.currentStreak > rewardState.requiredStreak) 1f else rewardState.currentStreak / (rewardState.requiredStreak * 1.0f),
+                                color = MaterialTheme.colors.secondary,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Text(
+                                text = "${rewardState.requiredStreak}",
+                                style = MaterialTheme.typography.body1,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.align(Alignment.End)
+                            )
+                        }
+                        is StandardStreakTokenUpdateState -> {
+                            // TODO do we want to visualize this?
+                        }
                     }
-                    if (rewardStateIterator.hasNext()) {
+                    if (tokenUpdateStateIterator.hasNext()) {
                         Divider(Modifier.padding(vertical = 8.dp))
                     }
                 }
@@ -217,9 +261,9 @@ val firstPromotionState =
         title = "First Promotion",
         description = "Get free Hazelnut Spread for buying Hazelnut Spread",
         count = 3,
-        rewards = listOf(
-            HazelRewardState("Description", "Hazelnut Spread", 3, 5),
-            HazelRewardState("Description", "Large Hazelnut Spread", 3, 8),
+        updates = listOf(
+            HazelTokenUpdateState("Description", "Hazelnut Spread", 3, 5),
+            HazelTokenUpdateState("Description", "Large Hazelnut Spread", 3, 8),
         ),
     )
 val secondPromotionState =
@@ -228,8 +272,8 @@ val secondPromotionState =
         title = "Other Promotion",
         description = "You can win a pan if you're really really really lucky",
         count = 3,
-        rewards = listOf(
-            HazelRewardState("Description", "Pan", 3, 5)
+        updates = listOf(
+            HazelTokenUpdateState("Description", "Pan", 3, 5)
         ),
     )
 val thirdPromotionState =
@@ -237,10 +281,22 @@ val thirdPromotionState =
         id = "3",
         title = "VIP Promotion",
         description = "You can reach VIP levels bronze, silver and gold for spending money.",
-        rewards = listOf(
-            VipRewardState("Description", "2% Discount", VipStatus.BRONZE, VipStatus.BRONZE),
-            UpgradeVipRewardState("Description", "Become Silver VIP", 2734, 3000, VipStatus.SILVER),
-            UpgradeVipRewardState("Description", "Become Gold VIP", 2734, 10000, VipStatus.GOLD)
+        updates = listOf(
+            VipTokenUpdateState("Description", "2% Discount", VipStatus.BRONZE, VipStatus.BRONZE),
+            UpgradeVipTokenUpdateState(
+                "Description",
+                "Become Silver VIP",
+                2734,
+                3000,
+                VipStatus.SILVER
+            ),
+            UpgradeVipTokenUpdateState(
+                "Description",
+                "Become Gold VIP",
+                2734,
+                10000,
+                VipStatus.GOLD
+            )
         ),
         2734,
         VipStatus.BRONZE

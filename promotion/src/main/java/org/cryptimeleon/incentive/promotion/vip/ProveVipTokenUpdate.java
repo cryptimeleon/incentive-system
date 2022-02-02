@@ -16,14 +16,16 @@ import java.math.BigInteger;
 import java.util.Optional;
 import java.util.UUID;
 
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+
 // Just prove VIP status to get side effect!
+@EqualsAndHashCode(callSuper = true)
+@Getter
 public class ProveVipTokenUpdate extends ZkpTokenUpdate {
 
     @Represented
     private Integer requiredStatus;
-
-    @Represented
-    private Integer accumulatedCost;
 
     public ProveVipTokenUpdate(Representation representation) {
         ReprUtil.deserialize(this, representation);
