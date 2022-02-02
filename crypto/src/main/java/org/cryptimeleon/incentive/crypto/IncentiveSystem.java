@@ -701,7 +701,8 @@ public class IncentiveSystem {
         // first part of DBSync from 2020 incentive system paper: adding a new transaction
 
         // if transaction is not yet in the database
-        if(!dbHandler.containsTransactionNode(taId)) {
+        boolean transactionWasAlreadyKnown = dbHandler.containsTransactionNode(taId);
+        if(!transactionWasAlreadyKnown) {
             System.out.println("Transaction not found in database, will be added.");
             // add a corresponding transaction node to DB (which also contains the dstag)
             Transaction ta = new Transaction(true, tid, spendAmount, dsTag); // first parameter: validity of the transaction
@@ -716,8 +717,8 @@ public class IncentiveSystem {
             // and make edge from dsid's token node to the node of the passed transaction
             dbHandler.addTokenTransactionEdge(dsid, taId);
         }
-        // if dsid is already in DB -> double-spending attempt detected!
-        else {
+        // if dsid is already in DB but transaction was not before this call -> double-spending attempt detected!
+        else if(!transactionWasAlreadyKnown) {
             System.out.println("Spent token found in database, double-spending protection mechanism triggered.");
 
             // make edge from dsid's token node to the node of the passed transaction
@@ -827,6 +828,7 @@ public class IncentiveSystem {
                 dbHandler.invalidateTransaction(
                         currentTa.getTaIdentifier()
                 );
+                invalidatedTasIdentifiers.add(currentTa.getTaIdentifier()); // add invalidated transaction to list so it will be processed
             });
         }
 

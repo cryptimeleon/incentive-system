@@ -299,7 +299,7 @@ public class DbSyncIntegrationTest {
         Assertions.assertTrue(!retrievedT3.getIsValid());
 
         logger.info("Checking final token count.");
-        Assertions.assertEquals(3, dbHandler.getTokenCount());
+        Assertions.assertEquals(5, dbHandler.getTokenCount());
 
         logger.info("Double-spending was correctly detected.");
 
