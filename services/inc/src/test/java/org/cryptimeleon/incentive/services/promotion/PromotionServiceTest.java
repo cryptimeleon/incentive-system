@@ -10,14 +10,15 @@ import org.cryptimeleon.incentive.crypto.model.Token;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse;
+import org.cryptimeleon.incentive.promotion.Promotion;
+import org.cryptimeleon.incentive.promotion.RewardSideEffect;
+import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion;
 import org.cryptimeleon.incentive.promotion.hazel.HazelTokenUpdate;
 import org.cryptimeleon.incentive.promotion.model.Basket;
 import org.cryptimeleon.incentive.promotion.model.BasketItem;
-import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion;
-import org.cryptimeleon.incentive.promotion.Promotion;
-import org.cryptimeleon.incentive.promotion.RewardSideEffect;
 import org.cryptimeleon.incentive.services.promotion.repository.BasketRepository;
 import org.cryptimeleon.incentive.services.promotion.repository.CryptoRepository;
+import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.rings.RingElement;
@@ -113,7 +114,8 @@ public class PromotionServiceTest {
 
         assert newSerializedPromotions != null;
         return Arrays.stream(newSerializedPromotions)
-                .map(s -> new HazelPromotion(jsonConverter.deserialize(s))).collect(Collectors.toList());
+                .map(s -> (Promotion) ((RepresentableRepresentation) jsonConverter.deserialize(s)).recreateRepresentable())
+                .collect(Collectors.toList());
     }
 
     @Test
