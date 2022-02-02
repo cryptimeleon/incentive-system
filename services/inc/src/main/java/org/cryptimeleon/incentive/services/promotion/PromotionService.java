@@ -18,6 +18,7 @@ import org.cryptimeleon.incentive.promotion.Promotion;
 import org.cryptimeleon.incentive.services.promotion.repository.BasketRepository;
 import org.cryptimeleon.incentive.services.promotion.repository.CryptoRepository;
 import org.cryptimeleon.incentive.services.promotion.repository.PromotionRepository;
+import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +52,7 @@ public class PromotionService {
 
     public String[] getPromotions() {
         return promotionRepository.getPromotions().stream()
-                .map(Promotion::getRepresentation)
+                .map(RepresentableRepresentation::new)
                 .map(jsonConverter::serialize)
                 .toArray(String[]::new);
     }
