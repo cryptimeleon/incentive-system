@@ -10,19 +10,21 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class HazelPromotionTest {
+
+    HazelPromotion hazelPromotion = new HazelPromotion(HazelPromotion.generatePromotionParameters(),
+            "Test Promotion",
+            "This is another Test Promotion",
+            List.of(),
+            "hAzel"); // Make sure case is ignored
 
     /**
      * Test counting items that match a selector.
      */
     @Test
     void testComputeEarningsForBasket() {
-        HazelPromotion hazelPromotion = new HazelPromotion(HazelPromotion.generatePromotionParameters(),
-                "Test Promotion",
-                "This is another Test Promotion",
-                List.of(),
-                "hAzel"); // Make sure case is ignored
         Basket basket = new Basket(UUID.randomUUID(), List.of(
                 new BasketItem(UUID.randomUUID(), "Hazel", 400, 2),
                 new BasketItem(UUID.randomUUID(), "Hazelnut spread", 400, 4),
@@ -32,5 +34,10 @@ class HazelPromotionTest {
         // Compute value of basket
         Vector<BigInteger> basketPoints = hazelPromotion.computeEarningsForBasket(basket);
         assertEquals(Vector.of(BigInteger.valueOf(6)), basketPoints);
+    }
+
+    @Test
+    void allowsEarnProtocol() {
+        assertTrue(hazelPromotion.getFastEarnSupported());
     }
 }

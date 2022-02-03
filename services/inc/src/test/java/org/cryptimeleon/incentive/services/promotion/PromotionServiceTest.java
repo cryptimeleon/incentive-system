@@ -197,7 +197,7 @@ public class PromotionServiceTest {
         // Spend Deduct
         Vector<BigInteger> basketPoints = promotionToJoin.computeEarningsForBasket(testBasket);
         var tokenPoints = new Vector<>(earnedToken.getPoints().map(RingElement::asInteger));
-        var possibleRewards = promotionToJoin.computeRewardsForPoints(tokenPoints, basketPoints, null);
+        var possibleRewards = promotionToJoin.computeTokenUpdatesForPoints(tokenPoints, basketPoints, null);
         // User choice in app
         var chosenReward = possibleRewards.get(0);
         var pointsAfterSpend = chosenReward.computeSatisfyingNewPointsVector(tokenPoints, basketPoints).orElseThrow();

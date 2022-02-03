@@ -49,7 +49,8 @@ public class VipPromotion extends Promotion {
                         costGold,
                         bronzeSideEffect,
                         silverSideEffect,
-                        goldSideEffect)
+                        goldSideEffect),
+                false // No fast earn, all updates must be through ZKPs
         );
     }
 

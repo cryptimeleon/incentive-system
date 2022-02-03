@@ -30,7 +30,7 @@ public class HazelPromotion extends Promotion {
     }
 
     public HazelPromotion(PromotionParameters promotionParameters, String promotionName, String promotionDescription, List<ZkpTokenUpdate> zkpTokenUpdates, String selector) {
-        super(promotionParameters, promotionName, promotionDescription, zkpTokenUpdates);
+        super(promotionParameters, promotionName, promotionDescription, zkpTokenUpdates, true);
         this.selector = selector.toLowerCase();
     }
 

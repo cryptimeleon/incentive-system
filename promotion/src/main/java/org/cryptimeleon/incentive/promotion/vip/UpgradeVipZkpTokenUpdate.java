@@ -1,5 +1,7 @@
 package org.cryptimeleon.incentive.promotion.vip;
 
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenPointsLeaf;
 import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenUpdateLeaf;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductAndNode;
@@ -16,9 +18,6 @@ import org.cryptimeleon.math.structures.cartesian.Vector;
 import java.math.BigInteger;
 import java.util.Optional;
 import java.util.UUID;
-
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 
 @Getter
 @EqualsAndHashCode(callSuper = true)

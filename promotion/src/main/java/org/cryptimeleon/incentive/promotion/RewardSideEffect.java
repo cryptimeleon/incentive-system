@@ -10,6 +10,7 @@ import org.cryptimeleon.math.serialization.annotations.Represented;
 
 /**
  * Class that represents side effects on baskets, e.g. a reward that is added to the basket, a discount, ...
+ * This will probably be updated to a smarter version in the near future.
  */
 @Value
 @AllArgsConstructor

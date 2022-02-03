@@ -1,5 +1,7 @@
 package org.cryptimeleon.incentive.promotion;
 
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.math.serialization.StandaloneRepresentable;
 import org.cryptimeleon.math.serialization.annotations.Represented;
@@ -10,8 +12,17 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * A reward object identifies a reward and the conditions in the form of a ZKP relation.
+ * A token update defines a set of rules encoded in a ZKP that define how a token can be mutated. For example, such an
+ * update could be the points in the new token must be 10 points less than the old token and non-negative. This could be
+ * used for paying something with 10 token points.
+ * Token updates can have a side-effect, e.g. if users pay for something it is the thing they get, or it could be a
+ * discount on a basket, etc., but this is not always the case. Some updates might only mutate the token.
+ * <p>
+ * These ZKP  updates can be seen as the expressive and slow counterpart to the earn protocol. Furthermore, updates of
+ * this kind will be registered in the double-spending protection database.
  */
+@EqualsAndHashCode
+@Getter
 public abstract class ZkpTokenUpdate implements StandaloneRepresentable {
 
     @Represented
@@ -21,9 +32,18 @@ public abstract class ZkpTokenUpdate implements StandaloneRepresentable {
     @Represented
     private RewardSideEffect rewardSideEffect;
 
+    /**
+     * Empty constructor is needed for restoring represented objects using refletion.
+     */
     protected ZkpTokenUpdate() {
     }
 
+    /**
+     * @param rewardId          every reward is identified by a unique id. This is for example useful for the user to
+     *                          tell the server which update it should verify
+     * @param rewardDescription a short description text on what this ZKP update actually does to display in an application on the user side
+     * @param rewardSideEffect  the side effect of this update
+     */
     public ZkpTokenUpdate(UUID rewardId, String rewardDescription, RewardSideEffect rewardSideEffect) {
         this.tokenUpdateId = rewardId;
         this.rewardDescription = rewardDescription;
@@ -32,12 +52,14 @@ public abstract class ZkpTokenUpdate implements StandaloneRepresentable {
 
     /**
      * Generate the tree that represent the partial proof of knowledge that is required to get the reward.
-     * The basket points vector represents what the current basket is worth, and can be offset with the token points.
+     * The basket points vector represents what the current basket is worth, and can be conceptually added to the token points.
      * For example, if a user has 3 points on the token, the basket is worth 2 points, and the reward required 4 points
      * then the user can get 1 point with the reward, instead of having too little points.
      *
      * @param basketPoints           a vector representing the points a user can earn for this basket
-     * @param zkpTokenUpdateMetadata
+     * @param zkpTokenUpdateMetadata metadata can provide additional input to the ZKP tree, this can be seen as public
+     *                               (user) input to a ZKP. You might want to verify the metadata first using
+     *                               {@link #validateTokenUpdateMetadata(ZkpTokenUpdateMetadata)}
      * @return a spend-deduct tree from which the ZKP that the user must provide can be generated
      */
     public abstract SpendDeductTree generateRelationTree(Vector<BigInteger> basketPoints, ZkpTokenUpdateMetadata zkpTokenUpdateMetadata);
@@ -56,7 +78,8 @@ public abstract class ZkpTokenUpdate implements StandaloneRepresentable {
      *
      * @param tokenPoints            the points of the token
      * @param basketPoints           the points that the basket is worth
-     * @param zkpTokenUpdateMetadata
+     * @param zkpTokenUpdateMetadata metadata can provide additional input to the ZKP tree, this can be seen as public
+     *                               (user) input to a ZKP
      * @return and optional vector, which returns satisfying points vector, or empty if none was found
      */
     public abstract Optional<Vector<BigInteger>> computeSatisfyingNewPointsVector(Vector<BigInteger> tokenPoints, Vector<BigInteger> basketPoints, ZkpTokenUpdateMetadata zkpTokenUpdateMetadata);
@@ -66,57 +89,11 @@ public abstract class ZkpTokenUpdate implements StandaloneRepresentable {
     }
 
     /**
-     * User-chosen metadata like timestamps needs to be verified before being used.
+     * User-chosen metadata like timestamps needs to be verified before being used. This could be checking that it is
+     * from the correct subclass, holds values in a certain range (e.g. when dealing with timestamps), etc.
      *
-     * @param zkpTokenUpdateMetadata
+     * @param zkpTokenUpdateMetadata the metadata to verify
      * @return whether the validation was successful or not
      */
     public abstract boolean validateTokenUpdateMetadata(ZkpTokenUpdateMetadata zkpTokenUpdateMetadata);
-
-
-    public UUID getTokenUpdateId() {
-        return this.tokenUpdateId;
-    }
-
-    public String getRewardDescription() {
-        return this.rewardDescription;
-    }
-
-    public RewardSideEffect getRewardSideEffect() {
-        return this.rewardSideEffect;
-    }
-
-    public boolean equals(final Object o) {
-        if (o == this) return true;
-        if (!(o instanceof ZkpTokenUpdate)) return false;
-        final ZkpTokenUpdate other = (ZkpTokenUpdate) o;
-        if (!other.canEqual(this)) return false;
-        final Object this$rewardId = this.getTokenUpdateId();
-        final Object other$rewardId = other.getTokenUpdateId();
-        if (this$rewardId == null ? other$rewardId != null : !this$rewardId.equals(other$rewardId))
-            return false;
-        final Object this$rewardDescription = this.getRewardDescription();
-        final Object other$rewardDescription = other.getRewardDescription();
-        if (this$rewardDescription == null ? other$rewardDescription != null : !this$rewardDescription.equals(other$rewardDescription))
-            return false;
-        final Object this$rewardSideEffect = this.getRewardSideEffect();
-        final Object other$rewardSideEffect = other.getRewardSideEffect();
-        return this$rewardSideEffect == null ? other$rewardSideEffect == null : this$rewardSideEffect.equals(other$rewardSideEffect);
-    }
-
-    protected boolean canEqual(final Object other) {
-        return other instanceof ZkpTokenUpdate;
-    }
-
-    public int hashCode() {
-        final int PRIME = 59;
-        int result = 1;
-        final Object $rewardId = this.getTokenUpdateId();
-        result = result * PRIME + ($rewardId == null ? 43 : $rewardId.hashCode());
-        final Object $rewardDescription = this.getRewardDescription();
-        result = result * PRIME + ($rewardDescription == null ? 43 : $rewardDescription.hashCode());
-        final Object $rewardSideEffect = this.getRewardSideEffect();
-        result = result * PRIME + ($rewardSideEffect == null ? 43 : $rewardSideEffect.hashCode());
-        return result;
-    }
 }

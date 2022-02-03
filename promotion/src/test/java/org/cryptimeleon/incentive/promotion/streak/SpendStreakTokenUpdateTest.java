@@ -11,7 +11,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class SpendStreakTokenUpdateTest {
-    SpendStreakTokenUpdate spendTokenUpdate= new SpendStreakTokenUpdate(UUID.randomUUID(),
+    SpendStreakTokenUpdate spendTokenUpdate = new SpendStreakTokenUpdate(UUID.randomUUID(),
             "Some Reward",
             new RewardSideEffect("Some Side Effect"),
             7,
