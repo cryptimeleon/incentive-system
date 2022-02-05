@@ -31,8 +31,8 @@ public class PromotionRepository {
                             "Nutella Promotion",
                             "Earn one point for every jar of Nutella purchased!",
                             List.of(
-                                    new HazelTokenUpdate(4, "Get a free Nutella for 4 points!", UUID.randomUUID(), new RewardSideEffect("Free Nutella")),
-                                    new HazelTokenUpdate(9, "Get a free Big Nutella for 9 points!", UUID.randomUUID(), new RewardSideEffect("Free Big nutella"))
+                                    new HazelTokenUpdate(UUID.randomUUID(), "Get a free Nutella for 4 points!", new RewardSideEffect("Free Nutella"), 4),
+                                    new HazelTokenUpdate(UUID.randomUUID(), "Get a free Big Nutella for 9 points!", new RewardSideEffect("Free Big nutella"), 9)
                             ),
                             "nutella"
                     ),
@@ -41,8 +41,8 @@ public class PromotionRepository {
                             "General Promotion",
                             "Earn one point for every item you buy!",
                             List.of(
-                                    new HazelTokenUpdate(9, "Get a free Teddy for 9 points!", UUID.randomUUID(), new RewardSideEffect("Free Teddy")),
-                                    new HazelTokenUpdate(6, "Get a free Pan for 6 points!", UUID.randomUUID(), new RewardSideEffect("Free Pan"))
+                                    new HazelTokenUpdate(UUID.randomUUID(), "Get a free Teddy for 9 points!", new RewardSideEffect("Free Teddy"), 9),
+                                    new HazelTokenUpdate(UUID.randomUUID(), "Get a free Pan for 6 points!", new RewardSideEffect("Free Pan"), 6)
                             ),
                             ""
                     ),

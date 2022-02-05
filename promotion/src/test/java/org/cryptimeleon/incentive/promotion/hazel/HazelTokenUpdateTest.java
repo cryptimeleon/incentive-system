@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class HazelTokenUpdateTest {
 
-    HazelTokenUpdate reward = new HazelTokenUpdate(2, "", UUID.randomUUID(), new RewardSideEffect("Free Hazelnut Spread"));
+    HazelTokenUpdate reward = new HazelTokenUpdate(UUID.randomUUID(), "", new RewardSideEffect("Free Hazelnut Spread"), 2);
 
     /*
      * Sanity check, user needs the basket points to satisfy the promotion's requirements

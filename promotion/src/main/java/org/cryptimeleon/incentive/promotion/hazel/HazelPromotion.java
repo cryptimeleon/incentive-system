@@ -29,6 +29,16 @@ public class HazelPromotion extends Promotion {
         ReprUtil.deserialize(this, representation);
     }
 
+    /**
+     * Constructor.
+     *
+     * @param promotionParameters  the promotion parameters
+     * @param promotionName        a short name for the promotion
+     * @param promotionDescription a brief description of the promotion and its rewards
+     * @param zkpTokenUpdates      token updates for the promotion.
+     * @param selector             the selector determines which items apply to the promotion. The case is ignored, any item
+     *                             containing the selector in its title is counted
+     */
     public HazelPromotion(PromotionParameters promotionParameters, String promotionName, String promotionDescription, List<ZkpTokenUpdate> zkpTokenUpdates, String selector) {
         super(promotionParameters, promotionName, promotionDescription, zkpTokenUpdates, true);
         this.selector = selector.toLowerCase();
@@ -38,6 +48,12 @@ public class HazelPromotion extends Promotion {
         return IncentiveSystem.generatePromotionParameters(1);
     }
 
+    /**
+     * Count items in basket that match the selector. Can be used to validate Earn-request server-side, and to include points to earn in zkp updates.
+     *
+     * @param basket the basket to analyze
+     * @return a one-element vector with the count
+     */
     public Vector<BigInteger> computeEarningsForBasket(Basket basket) {
         return Vector.of(BigInteger.valueOf(
                 basket.getBasketItemList().stream()

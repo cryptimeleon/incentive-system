@@ -18,7 +18,10 @@ import java.math.BigInteger;
 import java.util.Optional;
 import java.util.UUID;
 
-// Just prove VIP status to get side effect!
+/**
+ * Token update for proving the VIP status and increasing the counter to eventually reach the next VIP level.
+ * Allows getting some side-effect for having that VIP level, e.g. some discount.
+ */
 @EqualsAndHashCode(callSuper = true)
 @Getter
 public class ProveVipTokenUpdate extends ZkpTokenUpdate {
@@ -30,7 +33,15 @@ public class ProveVipTokenUpdate extends ZkpTokenUpdate {
         ReprUtil.deserialize(this, representation);
     }
 
-    public ProveVipTokenUpdate(int requiredStatus, UUID rewardId, RewardSideEffect sideEffect) {
+    /**
+     * Constructor.
+     *
+     * @param rewardId       every reward is identified by a unique id. This is for example useful for the user to
+     *                       tell the server which update it should verify
+     * @param requiredStatus the VIP level to prove
+     * @param sideEffect     whatever the user gets for having that VIP level
+     */
+    public ProveVipTokenUpdate(UUID rewardId, int requiredStatus, RewardSideEffect sideEffect) {
         super(rewardId, "Reward for VIP level " + requiredStatus, sideEffect);
         this.requiredStatus = requiredStatus;
     }
@@ -65,6 +76,15 @@ public class ProveVipTokenUpdate extends ZkpTokenUpdate {
         );
     }
 
+    /**
+     * Compute whether a user can afford this and how the updated token looks like.
+     *
+     * @param tokenPoints            the points of the token
+     * @param basketPoints           the points that the basket is worth
+     * @param zkpTokenUpdateMetadata metadata can provide additional input to the ZKP tree, this can be seen as public
+     *                               (user) input to a ZKP
+     * @return the new points vector if update possible, else an empty optional.
+     */
     @Override
     public Optional<Vector<BigInteger>> computeSatisfyingNewPointsVector(Vector<BigInteger> tokenPoints, Vector<BigInteger> basketPoints, ZkpTokenUpdateMetadata zkpTokenUpdateMetadata) {
         if (tokenPoints.get(1).equals(BigInteger.valueOf(requiredStatus))) {
@@ -73,19 +93,19 @@ public class ProveVipTokenUpdate extends ZkpTokenUpdate {
         return Optional.empty();
     }
 
-    @Override
-    public Representation getRepresentation() {
-        return ReprUtil.serialize(this);
-    }
-
     /**
-     * User-chosen metadata like timestamps needs to be verified before being used.
+     * This promotion does not expect metadata sent by the user.
      *
-     * @param zkpTokenUpdateMetadata
+     * @param zkpTokenUpdateMetadata the user metadata to verify
      * @return whether the validation was successful or not
      */
     @Override
     public boolean validateTokenUpdateMetadata(ZkpTokenUpdateMetadata zkpTokenUpdateMetadata) {
         return zkpTokenUpdateMetadata instanceof EmptyTokenUpdateMetadata;
+    }
+
+    @Override
+    public Representation getRepresentation() {
+        return ReprUtil.serialize(this);
     }
 }

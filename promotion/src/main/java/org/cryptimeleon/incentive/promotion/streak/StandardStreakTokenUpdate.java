@@ -26,12 +26,30 @@ public class StandardStreakTokenUpdate extends StreakZkpTokenUpdate {
         super(rewardId, rewardDescription, rewardSideEffect, intervalDays);
     }
 
+    /**
+     * Combine the superclass' updateTree and resetTree to allow updates and resets of the streak.
+     *
+     * @param basketPoints           a vector representing the points a user can earn for this basket
+     * @param zkpTokenUpdateMetadata metadata can provide additional input to the ZKP tree, this can be seen as public
+     *                               (user) input to a ZKP. You might want to verify the metadata first using
+     *                               {@link #validateTokenUpdateMetadata(ZkpTokenUpdateMetadata)}
+     * @return a tree representing the boolean statement to prove
+     */
     @Override
     public SpendDeductTree generateRelationTree(Vector<BigInteger> basketPoints, ZkpTokenUpdateMetadata zkpTokenUpdateMetadata) {
         long now = toTimestampMetadata(zkpTokenUpdateMetadata).getTimestamp();
         return new SpendDeductOrNode(updateTree(now), resetTree(now));
     }
 
+    /**
+     * Compute a valid update of the current user token value. Will be either a streak update or a reset to 1.
+     *
+     * @param tokenPoints            the points of the token
+     * @param basketPoints           the points that the basket is worth
+     * @param zkpTokenUpdateMetadata metadata can provide additional input to the ZKP tree, this can be seen as public
+     *                               (user) input to a ZKP
+     * @return the best update on the token possible withing this update instance
+     */
     @Override
     public Optional<Vector<BigInteger>> computeSatisfyingNewPointsVector(Vector<BigInteger> tokenPoints, Vector<BigInteger> basketPoints, ZkpTokenUpdateMetadata zkpTokenUpdateMetadata) {
         long now = toTimestampMetadata(zkpTokenUpdateMetadata).getTimestamp();

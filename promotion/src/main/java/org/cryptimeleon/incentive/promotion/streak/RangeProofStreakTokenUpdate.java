@@ -29,14 +29,26 @@ public class RangeProofStreakTokenUpdate extends StreakZkpTokenUpdate {
         super(representation);
     }
 
+    /**
+     * Constructor.
+     *
+     * @param rewardId          every reward is identified by a unique id. This is for example useful for the user to
+     *                          tell the server which update it should verify
+     * @param rewardDescription a short description text on what this ZKP update actually does to display in an application on the user side
+     * @param rewardSideEffect  the side effect of this update
+     * @param intervalDays      the interval in which the streak needs to be updates to not get lost.
+     * @param lowerLimit        the lower limit for the range proof
+     */
     public RangeProofStreakTokenUpdate(UUID rewardId, String rewardDescription, RewardSideEffect rewardSideEffect, int intervalDays, int lowerLimit) {
         super(rewardId, rewardDescription, rewardSideEffect, intervalDays);
         this.lowerLimit = lowerLimit;
     }
 
     /**
+     * Generate a zkp tree for this updates' statement.
+     *
      * @param basketPoints           a vector representing the points a user can earn for this basket
-     * @param zkpTokenUpdateMetadata
+     * @param zkpTokenUpdateMetadata the current timestamp
      * @return a spend-deduct tree from which the ZKP that the user must provide can be generated
      */
     @Override
@@ -46,9 +58,11 @@ public class RangeProofStreakTokenUpdate extends StreakZkpTokenUpdate {
     }
 
     /**
+     * Compute whether a user can afford this update and how many points the token holds afterwards.
+     *
      * @param tokenPoints            the points of the token
      * @param basketPoints           the points that the basket is worth
-     * @param zkpTokenUpdateMetadata
+     * @param zkpTokenUpdateMetadata the current timestamp
      * @return and optional vector, which returns satisfying points vector, or empty if none was found
      */
     @Override

@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class UpgradeVipZkpTokenUpdateTest {
 
-    UpgradeVipZkpTokenUpdate reward = new UpgradeVipZkpTokenUpdate(2, 10, "This is a test upgrade reward.", UUID.randomUUID());
+    UpgradeVipZkpTokenUpdate reward = new UpgradeVipZkpTokenUpdate(UUID.randomUUID(), "This is a test upgrade reward.", 2, 10);
 
     /**
      * VIP status must not be the target status

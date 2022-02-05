@@ -28,7 +28,7 @@ public class FullWorkflowTest extends IncentiveSystemIntegrationTest {
     Promotion testPromotion = new HazelPromotion(HazelPromotion.generatePromotionParameters(),
             "Test Promotion",
             "Some Test Promotion",
-            List.of(new HazelTokenUpdate(2, "This is a test reward", UUID.randomUUID(), new RewardSideEffect("Test Reward Sideffect"))),
+            List.of(new HazelTokenUpdate(UUID.randomUUID(), "This is a test reward", new RewardSideEffect("Test Reward Sideffect"), 2)),
             "Apple");
 
     @Test

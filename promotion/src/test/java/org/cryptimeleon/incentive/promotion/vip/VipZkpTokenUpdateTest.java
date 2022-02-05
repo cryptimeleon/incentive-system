@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class VipZkpTokenUpdateTest {
 
-    ProveVipTokenUpdate reward = new ProveVipTokenUpdate(2, UUID.randomUUID(), new RewardSideEffect("Test Side Effect"));
+    ProveVipTokenUpdate reward = new ProveVipTokenUpdate(UUID.randomUUID(), 2, new RewardSideEffect("Test Side Effect"));
 
     /*
      * Wrong VIP status yields no satisfying points vector.

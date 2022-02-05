@@ -10,6 +10,12 @@ import org.cryptimeleon.math.serialization.annotations.Represented;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
+/**
+ * User metadata for timestamps. This ensures that the user's public input is known to the verifier and avoids errors
+ * due to edge cases (like buying something around midnight), and is required with more precise (e.g. seconds) timestamps.
+ *
+ * We use an epoch day timestamp, but for other implementations minutes or seconds might be required.
+ */
 @EqualsAndHashCode(callSuper = true)
 @Getter
 public class StreakTokenUpdateTimestamp extends ZkpTokenUpdateMetadata {
@@ -25,6 +31,10 @@ public class StreakTokenUpdateTimestamp extends ZkpTokenUpdateMetadata {
         ReprUtil.deserialize(this, representation);
     }
 
+    /**
+     * Compute a timestamp metadata for the current time/day.
+     * @return timestamp
+     */
     static StreakTokenUpdateTimestamp now() {
         LocalDate epoch = LocalDate.ofEpochDay(0);
         LocalDate now = LocalDate.ofEpochDay(0);

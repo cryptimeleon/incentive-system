@@ -29,7 +29,7 @@ public class RepresentationTests {
     @Test
     public void hazelPromotionRepresentationTest() {
         PromotionParameters promotionParameters = HazelPromotion.generatePromotionParameters();
-        List<ZkpTokenUpdate> zkpTokenUpdateList = List.of(new HazelTokenUpdate(4, "Some reward", UUID.randomUUID(), new RewardSideEffect("Free Nutella")));
+        List<ZkpTokenUpdate> zkpTokenUpdateList = List.of(new HazelTokenUpdate(UUID.randomUUID(), "Some reward", new RewardSideEffect("Free Nutella"), 4));
         HazelPromotion hazelPromotion = new HazelPromotion(promotionParameters, "Test Promotion", "This is some Test Promotion", zkpTokenUpdateList, "nutella");
         HazelPromotion deserializedHazelPromotion = new HazelPromotion(hazelPromotion.getRepresentation());
 
@@ -38,7 +38,7 @@ public class RepresentationTests {
 
     @Test
     void hazelRewardRepresentationTest() {
-        HazelTokenUpdate hazelReward = new HazelTokenUpdate(8, "", UUID.randomUUID(), new RewardSideEffect("Free Nutella"));
+        HazelTokenUpdate hazelReward = new HazelTokenUpdate(UUID.randomUUID(), "", new RewardSideEffect("Free Nutella"), 8);
         HazelTokenUpdate deserializedHazelReward = new HazelTokenUpdate(hazelReward.getRepresentation());
 
         assertEquals(hazelReward, deserializedHazelReward);
@@ -77,7 +77,7 @@ public class RepresentationTests {
 
     @Test
     void proveVipUpdateRepresentationTest() {
-        ProveVipTokenUpdate vipTokenUpdate = new ProveVipTokenUpdate(2, UUID.randomUUID(), new RewardSideEffect("Some side effect"));
+        ProveVipTokenUpdate vipTokenUpdate = new ProveVipTokenUpdate(UUID.randomUUID(), 2, new RewardSideEffect("Some side effect"));
         ProveVipTokenUpdate deserializedVipTokenUpdate = new ProveVipTokenUpdate(vipTokenUpdate.getRepresentation());
 
         assertEquals(vipTokenUpdate, deserializedVipTokenUpdate);
@@ -85,7 +85,7 @@ public class RepresentationTests {
 
     @Test
     void upgradeVipUpdateRepresentationTest() {
-        UpgradeVipZkpTokenUpdate upgradeVipReward = new UpgradeVipZkpTokenUpdate(2, 50, "Upgrade to 2", UUID.randomUUID());
+        UpgradeVipZkpTokenUpdate upgradeVipReward = new UpgradeVipZkpTokenUpdate(UUID.randomUUID(), "Upgrade to 2", 2, 50);
         UpgradeVipZkpTokenUpdate deserializedUpgradeVipReward = new UpgradeVipZkpTokenUpdate(upgradeVipReward.getRepresentation());
 
         assertEquals(upgradeVipReward, deserializedUpgradeVipReward);
@@ -128,7 +128,7 @@ public class RepresentationTests {
      */
     @Test
     void allZkpUpdatesRepresentationTest() {
-        UpgradeVipZkpTokenUpdate upgradeVipReward = new UpgradeVipZkpTokenUpdate(2, 50, "Upgrade to 2", UUID.randomUUID());
+        UpgradeVipZkpTokenUpdate upgradeVipReward = new UpgradeVipZkpTokenUpdate(UUID.randomUUID(), "Upgrade to 2", 2, 50);
 
         // Needs to be casted to RepresentableRepresentation for the JsonConverter to correctly serialize it
         // getRepresentation() does not work, since the class is not encoded in the JSON string

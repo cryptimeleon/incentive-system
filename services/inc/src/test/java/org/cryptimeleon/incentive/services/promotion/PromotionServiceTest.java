@@ -66,7 +66,7 @@ public class PromotionServiceTest {
     Promotion promotionToAdd = new HazelPromotion(HazelPromotion.generatePromotionParameters(),
             "Test Promotion",
             "Test Description",
-            List.of(new HazelTokenUpdate(2, "Reward", UUID.randomUUID(), new RewardSideEffect("Yay"))),
+            List.of(new HazelTokenUpdate(UUID.randomUUID(), "Reward", new RewardSideEffect("Yay"), 2)),
             "Test");
 
     @BeforeEach

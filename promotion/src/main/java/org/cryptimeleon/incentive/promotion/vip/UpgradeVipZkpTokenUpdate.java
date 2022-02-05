@@ -19,6 +19,9 @@ import java.math.BigInteger;
 import java.util.Optional;
 import java.util.UUID;
 
+/**
+ * Token update for the VIP promotion in which the VIP status is upgraded to the next level.
+ */
 @Getter
 @EqualsAndHashCode(callSuper = true)
 public class UpgradeVipZkpTokenUpdate extends ZkpTokenUpdate {
@@ -33,12 +36,31 @@ public class UpgradeVipZkpTokenUpdate extends ZkpTokenUpdate {
         ReprUtil.deserialize(this, representation);
     }
 
-    public UpgradeVipZkpTokenUpdate(int toVipStatus, Integer accumulatedCost, String rewardDescription, UUID rewardId) {
+    /**
+     * Constructor.
+     *
+     * @param rewardId          every reward is identified by a unique id. This is for example useful for the user to
+     *                          tell the server which update it should verify
+     * @param rewardDescription a short description text on what this ZKP update actually does to display in an application on the user side
+     * @param toVipStatus       the target status as an integer (1-bronze, 2-silver, 3-gold)
+     * @param accumulatedCost   the cost of reaching this VIP status (accumulated with the previous costs)
+     */
+    public UpgradeVipZkpTokenUpdate(UUID rewardId, String rewardDescription, int toVipStatus, Integer accumulatedCost) {
+        // TODO we could add the advantage of having that VIP level to the side effect
         super(rewardId, rewardDescription, new RewardSideEffect("Upgrade VIP status to " + toVipStatus));
         this.toVipStatus = toVipStatus;
         this.accumulatedCost = accumulatedCost;
     }
 
+    /**
+     * Generate a ZKP tree for this token update.
+     *
+     * @param basketPoints           a vector representing the points a user can earn for this basket
+     * @param zkpTokenUpdateMetadata metadata can provide additional input to the ZKP tree, this can be seen as public
+     *                               (user) input to a ZKP. You might want to verify the metadata first using
+     *                               {@link #validateTokenUpdateMetadata(ZkpTokenUpdateMetadata)}
+     * @return a tree for generating the ZKP.
+     */
     @Override
     public SpendDeductTree generateRelationTree(Vector<BigInteger> basketPoints, ZkpTokenUpdateMetadata zkpTokenUpdateMetadata) {
         assert toVipStatus > 0 && toVipStatus <= 3;
@@ -59,6 +81,15 @@ public class UpgradeVipZkpTokenUpdate extends ZkpTokenUpdate {
         );
     }
 
+    /**
+     * Compute whether one can afford this update and how the updated token would look like.
+     *
+     * @param tokenPoints            the points of the token
+     * @param basketPoints           the points that the basket is worth
+     * @param zkpTokenUpdateMetadata metadata can provide additional input to the ZKP tree, this can be seen as public
+     *                               (user) input to a ZKP
+     * @return Value of updated token if update possible, else empty optional.
+     */
     @Override
     public Optional<Vector<BigInteger>> computeSatisfyingNewPointsVector(Vector<BigInteger> tokenPoints, Vector<BigInteger> basketPoints, ZkpTokenUpdateMetadata zkpTokenUpdateMetadata) {
         int currentStatus = tokenPoints.get(1).intValueExact();
@@ -73,20 +104,20 @@ public class UpgradeVipZkpTokenUpdate extends ZkpTokenUpdate {
         return Optional.empty();
     }
 
-    @Override
-    public Representation getRepresentation() {
-        return ReprUtil.serialize(this);
-    }
-
 
     /**
-     * User-chosen metadata like timestamps needs to be verified before being used.
+     * This promotion does not expect any metadata.
      *
-     * @param zkpTokenUpdateMetadata
+     * @param zkpTokenUpdateMetadata metadata sent by the user along the request
      * @return whether the validation was successful or not
      */
     @Override
     public boolean validateTokenUpdateMetadata(ZkpTokenUpdateMetadata zkpTokenUpdateMetadata) {
         return zkpTokenUpdateMetadata instanceof EmptyTokenUpdateMetadata;
+    }
+
+    @Override
+    public Representation getRepresentation() {
+        return ReprUtil.serialize(this);
     }
 }

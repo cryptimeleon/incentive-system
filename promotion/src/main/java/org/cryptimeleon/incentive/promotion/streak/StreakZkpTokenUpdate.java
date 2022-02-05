@@ -20,11 +20,16 @@ import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 /**
- * Superclass for Streak update implementations with shared behaviour.
+ * Superclass for all streak updates with shared behavior. For example, the trees for the proofs of partial knowledge
+ * are all similar, hence we can implement them once with some parametrization and use them in all subclasses.
+ * <p>
  * Time unit is days since this is probably most natural to users, but could be extended to e.g. seconds.
  */
 @Getter
 abstract class StreakZkpTokenUpdate extends ZkpTokenUpdate {
+
+    // User public input metadata timestamps may be off by this threshold
+    private static final long USER_TIMESTAMP_THRESHOLD_MINUTES = 5;
 
     // Interval in days
     @Represented
@@ -34,20 +39,46 @@ abstract class StreakZkpTokenUpdate extends ZkpTokenUpdate {
         ReprUtil.deserialize(this, representation);
     }
 
+    /**
+     * @param rewardId          every reward is identified by a unique id. This is for example useful for the user to
+     *                          tell the server which update it should verify
+     * @param rewardDescription a short description text on what this ZKP update actually does to display in an application on the user side
+     * @param rewardSideEffect  the side effect of this update
+     * @param intervalDays      the interval in which the streak needs to be updates to not get lost.
+     */
     public StreakZkpTokenUpdate(UUID rewardId, String rewardDescription, RewardSideEffect rewardSideEffect, int intervalDays) {
         super(rewardId, rewardDescription, rewardSideEffect);
         this.intervalDays = intervalDays;
     }
 
-    // Case in which user can update streak
+    /**
+     * ZKP statement for incrementing a streak within the time constraints without additional checks or requirements.
+     *
+     * @param now the current timestamp as long
+     * @return tree representing the statement to prove with zero knowledge
+     */
     protected SpendDeductTree updateTree(long now) {
         return updateTree(now, null, null);
     }
 
+    /**
+     * ZKP statement for incrementing a streak within the time constraints with additional range proof on the streak
+     *
+     * @param now                    the current timestamp as long
+     * @param streakGreaterOrEqualTo lower bound for range proof. Only allows streaks that have at least this value
+     * @return tree representing the statement to prove with zero knowledge
+     */
     protected SpendDeductTree updateTreeRangeProof(long now, int streakGreaterOrEqualTo) {
         return updateTree(now, streakGreaterOrEqualTo, null);
     }
 
+    /**
+     * ZKP statement for incrementing a streak within the time constraints with additionally subtracting some of the streak points.
+     *
+     * @param now                 the current timestamp as long
+     * @param streakPointsToSpend the number of points a user needs to subtract from the streak e.g. for a promotion
+     * @return tree representing the statement to prove with zero knowledge
+     */
     protected SpendDeductTree updateTreeAndSpend(long now, int streakPointsToSpend) {
         return updateTree(now, 0, streakPointsToSpend);
     }
@@ -75,7 +106,13 @@ abstract class StreakZkpTokenUpdate extends ZkpTokenUpdate {
         );
     }
 
-    // User needs to restart streak: Start from zero!
+
+    /**
+     * Generates a zkp tree for the statement that a User needs to restart streak and starts from zero!
+     *
+     * @param now current timestamp
+     * @return tree for this statement
+     */
     protected SpendDeductTree resetTree(long now) {
         return new SpendDeductAndNode(
                 // This PointsLeaf might be removed in the future, right now it only ensures that users only have a witness for either one of the Or children.
@@ -92,6 +129,12 @@ abstract class StreakZkpTokenUpdate extends ZkpTokenUpdate {
         );
     }
 
+    /**
+     * Utility function that perform a type cast on some ZkpTokenUpdateMetadata and returns a matching timestamp instance if possible.
+     *
+     * @param zkpTokenUpdateMetadata the metadata to cast
+     * @return the metadata casted to the timestamp type
+     */
     protected StreakTokenUpdateTimestamp toTimestampMetadata(ZkpTokenUpdateMetadata zkpTokenUpdateMetadata) {
         if (!(zkpTokenUpdateMetadata instanceof StreakTokenUpdateTimestamp)) {
             throw new RuntimeException("Expected Metadata of type StreakTokenUpdateTimestamp");
@@ -100,17 +143,29 @@ abstract class StreakZkpTokenUpdate extends ZkpTokenUpdate {
         return ((StreakTokenUpdateTimestamp) zkpTokenUpdateMetadata);
     }
 
-    public Long epochDays() {
+    /**
+     * Returns a timestamp fro the current day
+     *
+     * @return timestamp as long
+     */
+    private long epochDays() {
         return epochDaysOf(LocalDate.now());
     }
 
-    private Long epochDaysOf(LocalDate timestamp) {
+    /**
+     * Returns the epoch timestamp in days of some datetime
+     *
+     * @param timestamp the datetime timestamp to convert
+     * @return epoch day timestamp
+     */
+    private long epochDaysOf(LocalDate timestamp) {
         LocalDate epoch = LocalDate.ofEpochDay(0);
         return ChronoUnit.DAYS.between(epoch, timestamp);
     }
 
     /**
-     * Timestamps used by users to generate their proofs are valid for 5 minutes.
+     * Timestamps used by users to generate their proofs are valid for {@link #USER_TIMESTAMP_THRESHOLD_MINUTES} minutes.
+     * This avoids problems with updates around midnight.
      *
      * @param zkpTokenUpdateMetadata the user timestamp as metadata
      * @return true if the timestamp is at most five minutes old
@@ -121,9 +176,10 @@ abstract class StreakZkpTokenUpdate extends ZkpTokenUpdate {
             throw new RuntimeException("Expected Metadata of type StreakTokenUpdateTimestamp");
         }
         long userEpochDay = ((StreakTokenUpdateTimestamp) zkpTokenUpdateMetadata).getTimestamp();
+        // Check whether the day is today, was yesterday and yesterday is at most some threshold away, or the same for tomorrow
         return epochDays() == userEpochDay
-                || epochDaysOf(LocalDateTime.now().minusMinutes(5).toLocalDate()) == userEpochDay
-                || epochDaysOf(LocalDateTime.now().plusMinutes(5).toLocalDate()) == userEpochDay;
+                || epochDaysOf(LocalDateTime.now().minusMinutes(USER_TIMESTAMP_THRESHOLD_MINUTES).toLocalDate()) == userEpochDay
+                || epochDaysOf(LocalDateTime.now().plusMinutes(USER_TIMESTAMP_THRESHOLD_MINUTES).toLocalDate()) == userEpochDay;
 
     }
 
