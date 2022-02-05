@@ -98,7 +98,7 @@ data class HazelPromotionState(
                 id = promotion.promotionParameters.promotionId.toString(),
                 title = promotion.promotionName,
                 description = promotion.promotionDescription,
-                updates = promotion.tokenUpdates.mapNotNull {
+                updates = promotion.zkpTokenUpdates.mapNotNull {
                     if (it is HazelTokenUpdate) {
                         HazelTokenUpdateState(
                             it.rewardDescription,
@@ -132,7 +132,7 @@ data class VipPromotionState(
                 id = promotion.promotionParameters.promotionId.toString(),
                 title = promotion.promotionName,
                 description = promotion.promotionDescription,
-                updates = promotion.tokenUpdates.mapNotNull {
+                updates = promotion.zkpTokenUpdates.mapNotNull {
                     when (it) {
                         is UpgradeVipZkpTokenUpdate -> {
                             UpgradeVipTokenUpdateState(
@@ -179,7 +179,7 @@ data class StreakPromotionState(
                 id = promotion.promotionParameters.promotionId.toString(),
                 title = promotion.promotionName,
                 description = promotion.promotionDescription,
-                updates = promotion.tokenUpdates.mapNotNull {
+                updates = promotion.zkpTokenUpdates.mapNotNull {
                     when (it) {
                         is StandardStreakTokenUpdate -> {
                             StandardStreakTokenUpdateState(

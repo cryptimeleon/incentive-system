@@ -28,10 +28,10 @@ abstract class BasePromotionRepositoryTest {
             "Description of first test promotion",
             listOf<ZkpTokenUpdate>(
                 HazelTokenUpdate(
-                    3,
-                    "Earn a free teddy bear!",
                     UUID.randomUUID(),
-                    RewardSideEffect("Free Teddy")
+                    "Earn a free teddy bear!",
+                    RewardSideEffect("Free Teddy"),
+                    3
                 )
             ),
             "Hazel"

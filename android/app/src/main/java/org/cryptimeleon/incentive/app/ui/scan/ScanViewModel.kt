@@ -64,7 +64,7 @@ class ScanViewModel @Inject constructor(
                 // TODO! trailing zeros in barcode?
 
                 // Search for item, first locally and then by reloading
-                var shoppingItem: ShoppingItem? = null
+                var shoppingItem: ShoppingItem?
                 shoppingItem = basketRepository.getBasketItem(barcode)
                 if (shoppingItem == null) {
                     // Try refreshing shoppingItems
