@@ -1,7 +1,6 @@
 package org.cryptimeleon.incentive.app
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -14,13 +13,12 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import org.cryptimeleon.incentive.app.basket.Basket
-import org.cryptimeleon.incentive.app.benchmark.BenchmarkUi
-import org.cryptimeleon.incentive.app.dashboard.Dashboard
-import org.cryptimeleon.incentive.app.scan.ScanScreen
-import org.cryptimeleon.incentive.app.settings.Settings
-import org.cryptimeleon.incentive.app.setup.SetupUi
+import org.cryptimeleon.incentive.app.ui.basket.BasketUi
+import org.cryptimeleon.incentive.app.ui.benchmark.BenchmarkUi
+import org.cryptimeleon.incentive.app.ui.dashboard.Dashboard
+import org.cryptimeleon.incentive.app.ui.scan.ScanScreen
+import org.cryptimeleon.incentive.app.ui.settings.Settings
+import org.cryptimeleon.incentive.app.ui.setup.SetupUi
 
 object MainDestination {
     const val LOADING_ROUTE = "loading"
@@ -31,8 +29,6 @@ object MainDestination {
     const val BENCHMARK_ROUTE = "benchmark"
 }
 
-@ExperimentalPermissionsApi
-@ExperimentalAnimationApi
 @Composable
 fun NavGraph(
     navController: NavHostController,
@@ -77,7 +73,7 @@ fun NavGraph(
             )
         }
         composable(MainDestination.BASKET_ROUTE) {
-            Basket(
+            BasketUi(
                 actions.openSettings,
                 actions.openBenchmark
             )

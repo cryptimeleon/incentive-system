@@ -3,7 +3,6 @@ package org.cryptimeleon.incentive.crypto;
 import org.cryptimeleon.math.hash.impl.ByteArrayAccumulator;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.groups.GroupElement;
-import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
 import org.cryptimeleon.math.structures.rings.zn.HashIntoZn;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 

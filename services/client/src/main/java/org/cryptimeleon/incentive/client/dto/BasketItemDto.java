@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 public class BasketItemDto {
     String id;
     String title;
-    long price;
+    int price;
 }

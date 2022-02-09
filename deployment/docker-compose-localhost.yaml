@@ -8,25 +8,16 @@ services:
     networks:
       - provider
     hostname: infoservice
-  issueservice:
-    image: cryptimeleon/incentive-service-issue:0.5.0
+  promotionservice:
+    image: cryptimeleon/incentive-service-promotion:0.5.0
     ports:
-      - "8001:8001"
-    environment:
-      - INFO_SERVICE_URL=http://infoservice:8000/
-    networks:
-      - provider
-    hostname: issueservice
-  creditservice:
-    image: cryptimeleon/incentive-service-credit:0.5.0
-    ports:
-      - "8002:8002"
+      - "8012:8012"
     environment:
       - INFO_SERVICE_URL=http://infoservice:8000/
       - BASKET_SERVICE_URL=http://basketservice:8010/
     networks:
       - provider
-    hostname: creditservice
+    hostname: promotionservice
   basketservice:
     image: cryptimeleon/incentive-service-basket:0.5.0
     ports:

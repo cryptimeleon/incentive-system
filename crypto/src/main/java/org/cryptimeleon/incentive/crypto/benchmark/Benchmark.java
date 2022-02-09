@@ -12,7 +12,7 @@ import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserSecretKey;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinRequest;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse;
-import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
+import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 
 import java.math.BigInteger;
@@ -83,10 +83,8 @@ public class Benchmark {
         UserPublicKey upk = benchmarkConfig.upk;
         UserSecretKey usk = benchmarkConfig.usk;
         PromotionParameters promotionParameters = incentiveSystem.generatePromotionParameters(EARN_SPEND_AMOUNT.length());
-        SpendDeductBooleanZkp spendDeductZkp = BenchmarkSpendDeductZkp.getBenchmarkSpendDeductZkp(
-                pp,
+        SpendDeductTree spendDeductTree = BenchmarkSpendDeductZkp.getBenchmarkSpendDeductTree(
                 promotionParameters,
-                ppk,
                 EARN_SPEND_AMOUNT);
 
         var userKeyPair = new UserKeyPair(upk, usk);
@@ -170,7 +168,7 @@ public class Benchmark {
                     newPoints,
                     userKeyPair,
                     tid,
-                    spendDeductZkp
+                    spendDeductTree
             );
 
             finish = Instant.now();
@@ -181,7 +179,7 @@ public class Benchmark {
                     spendRequest,
                     providerKeyPair,
                     tid,
-                    spendDeductZkp
+                    spendDeductTree
             );
             finish = Instant.now();
             tSpendResponse[i] = Duration.between(start, finish).toNanos();

@@ -1,0 +1,30 @@
+plugins {
+    id "java-library"
+    id "io.freefair.lombok" version "6.0.0-m2"
+    id 'jacoco'
+}
+
+sourceCompatibility = JavaVersion.VERSION_11
+targetCompatibility = JavaVersion.VERSION_11
+
+group 'org.cryptimeleon.incentive'
+version '1.0.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    api "org.cryptimeleon.incentive:crypto"
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.0")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.0")
+}
+
+test {
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport // report is always generated after tests run
+}
+
+test {
+    useJUnitPlatform()
+}

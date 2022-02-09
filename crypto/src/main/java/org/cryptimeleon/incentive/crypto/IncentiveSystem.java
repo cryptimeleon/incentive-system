@@ -16,6 +16,7 @@ import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserSecretKey;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinRequest;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse;
+import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkpCommonInput;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkpWitnessInput;
@@ -23,6 +24,7 @@ import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellform
 import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellformednessProtocol;
 import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellformednessWitness;
 import org.cryptimeleon.math.hash.impl.ByteArrayAccumulator;
+import org.cryptimeleon.math.random.RandomGenerator;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.groups.cartesian.GroupElementVector;
@@ -80,13 +82,14 @@ public class IncentiveSystem {
     }
 
 
+
     public PromotionParameters generatePromotionParameters(int pointsVectorSize) {
-        return new PromotionParameters(this.pp.getBg().getZn().getUniformlyRandomElement(), pointsVectorSize);
+        return new PromotionParameters(this.pp.getBg().getZn().getUniformlyRandomElement().asInteger(), pointsVectorSize);
     }
 
     @Deprecated
     public PromotionParameters legacyPromotionParameters() {
-        return new PromotionParameters(this.pp.getBg().getZn().getOneElement(), 1);
+        return new PromotionParameters(BigInteger.ONE, 1);
     }
 
     /*
@@ -384,7 +387,7 @@ public class IncentiveSystem {
      * @param newPoints           the new points vector the token should have
      * @param userKeyPair         keypair of the user that owns the token
      * @param tid                 transaction ID, provided by the provider
-     * @param spendDeductZkp      the zero knowledge proof for this promotion
+     * @param spendDeductTree     the zero knowledge proof for this promotion
      * @return serializable spendRequest that can be sent to the provider
      */
     public SpendRequest generateSpendRequest(PromotionParameters promotionParameters,
@@ -392,8 +395,8 @@ public class IncentiveSystem {
                                              ProviderPublicKey providerPublicKey,
                                              Vector<BigInteger> newPoints,
                                              UserKeyPair userKeyPair,
-                                             Zn.ZnElement tid,
-                                             SpendDeductBooleanZkp spendDeductZkp
+                                             ZnElement tid,
+                                             SpendDeductTree spendDeductTree
     ) {
         // Some local variables and pre-computations to make the code more readable
         var zp = pp.getBg().getZn();
@@ -440,6 +443,7 @@ public class IncentiveSystem {
         var cTrace1 = cTrace0.pow(esk).op(pp.getW().pow(eskUsrSDec)).compute();
 
         /* Build non-interactive (Fiat-Shamir transformed) ZKP to ensure that the user follows the rules of the protocol */
+        var spendDeductZkp = new SpendDeductBooleanZkp(spendDeductTree, pp, promotionParameters, providerPublicKey);
         var fiatShamirProofSystem = new FiatShamirProofSystem(spendDeductZkp);
         var witness = new SpendDeductZkpWitnessInput(usk, token.getZ(), zS, token.getT(), tS, uS, esk, eskUsrS, token.getDoubleSpendRandomness0(), dsrnd0S, token.getDoubleSpendRandomness1(), dsrnd1S, eskUsrSDec, vectorR, token.getPoints(), newPointsVector);
         var commonInput = new SpendDeductZkpCommonInput(gamma, c0, c1, dsid, cPre0, cPre1, token.getCommitment0(), cTrace0, cTrace1);
@@ -456,7 +460,6 @@ public class IncentiveSystem {
      * @param spendRequest    the user's request
      * @param providerKeyPair keypair of the provider
      * @param tid             transaction id, should be verified by the provider
-     * @param spendDeductZkp  the zero knowledge proof to verify for this promotion
      * @return tuple of response to send to the user and information required for double-spending protection
      */
     public DeductOutput generateSpendRequestResponse(PromotionParameters promotionParameters,

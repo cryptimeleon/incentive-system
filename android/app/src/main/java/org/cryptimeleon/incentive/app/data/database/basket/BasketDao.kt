@@ -1,22 +1,38 @@
 package org.cryptimeleon.incentive.app.data.database.basket
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import java.util.UUID
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface BasketDao {
-    @Query("SELECT basketId FROM baskets WHERE active=1 LIMIT 1")
-    suspend fun getActiveBasketId(): UUID?
+    @Query("SELECT * FROM baskets LIMIT 1")
+    fun observeBasketEntity(): Flow<BasketEntity?>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertBasket(basketEntity: BasketEntity)
+    suspend fun setBasketEntity(basketEntity: BasketEntity)
 
-    @Query("UPDATE baskets SET active=:active WHERE basketId = :id")
-    fun setActive(active: Boolean, id: UUID)
+    @Query("SELECT * FROM `basket-items` ORDER BY itemId ASC")
+    fun observeBasketItemEntities(): Flow<List<BasketItemEntity>>
 
-    @Query("UPDATE baskets SET active=0")
-    fun setAllInactive()
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertBasketItems(basketItemsEntity: List<BasketItemEntity>)
+
+    @Delete
+    suspend fun removeBasketItem(basketItemEntity: BasketItemEntity)
+
+    @Query("DELETE FROM `basket-items`")
+    suspend fun deleteAllBasketItems()
+
+    @Query("SELECT * FROM `shopping-items`")
+    fun observeShoppingItems(): Flow<List<ShoppingItemEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertShoppingItems(shoppingItemsEntity: List<ShoppingItemEntity>)
+
+    @Query("DELETE FROM `shopping-items`")
+    suspend fun deleteAllShoppingItems()
 }

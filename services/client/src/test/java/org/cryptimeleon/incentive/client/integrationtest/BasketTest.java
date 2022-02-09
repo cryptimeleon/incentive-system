@@ -1,11 +1,9 @@
 package org.cryptimeleon.incentive.client.integrationtest;
 
+import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.incentive.client.BasketClient;
-import org.cryptimeleon.incentive.client.IncentiveClientException;
 import org.cryptimeleon.incentive.client.dto.PostRedeemBasketDto;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.util.UUID;
@@ -13,9 +11,8 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+@Slf4j
 public class BasketTest extends IncentiveSystemIntegrationTest {
-
-    Logger logger = LoggerFactory.getLogger(BasketTest.class);
 
     @Value("${basket-service.pay-secret}")
     private String paymentSecret;
@@ -27,12 +24,11 @@ public class BasketTest extends IncentiveSystemIntegrationTest {
     void testGetBasket() {
         var basketClient = new BasketClient(basketUrl);
 
-        logger.info("Testing getBasket for not existing basket");
+        log.info("Testing getBasket for not existing basket");
         var wrongBasketId = UUID.randomUUID();
-        assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> basketClient.getBasket(wrongBasketId).block())
-                .withCauseInstanceOf(IncentiveClientException.class);
+        assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> basketClient.getBasket(wrongBasketId).block());
 
-        logger.info("Testing getBasket for existing basket");
+        log.info("Testing getBasket for existing basket");
         var basketId = basketClient.createBasket().block();
 
         var basket = basketClient.getBasket(basketId).block();
@@ -43,7 +39,7 @@ public class BasketTest extends IncentiveSystemIntegrationTest {
     void testRedeemBasket() {
         var basketClient = new BasketClient(basketUrl);
 
-        logger.info("Create new basket and adding items");
+        log.info("Create new basket and adding items");
         UUID basketId = basketClient.createBasket().block();
         var items = basketClient.getItems().block();
         var firstTestItem = items[0];
@@ -54,16 +50,15 @@ public class BasketTest extends IncentiveSystemIntegrationTest {
 
         var basket = basketClient.getBasket(basketId).block();
 
-        logger.info("Redeeming not paid basket throws exception");
+        log.info("Redeeming not paid basket throws exception");
         var redeemRequest = new PostRedeemBasketDto(basketId, "Some request", basket.getValue());
         assertThatExceptionOfType(RuntimeException.class).isThrownBy(() ->
-                basketClient.redeemBasket(redeemRequest, redeemSecret).block())
-                .withCauseInstanceOf(IncentiveClientException.class);
+                basketClient.redeemBasket(redeemRequest, redeemSecret).block());
 
 
         basketClient.payBasket(basketId, basket.getValue(), paymentSecret).block();
 
-        logger.info("Payed basket can be redeemed");
+        log.info("Payed basket can be redeemed");
         basketClient.redeemBasket(redeemRequest, redeemSecret).block();
         basket = basketClient.getBasket(basketId).block();
         assertThat(basket.isRedeemed()).isTrue();
