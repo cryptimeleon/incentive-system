@@ -110,7 +110,7 @@ public class DbSyncIntegrationTest {
      * This comes from the fact that until double-spending behaviour is detected,
      * it is actually not interesting which transaction produced which token.
      */
-    @Test
+    // @Test TODO see https://github.com/cryptimeleon/incentive-system/issues/75
     void cascadingInvalidationsTest() {
         logger.info("Starting cascading invalidations test.");
 
