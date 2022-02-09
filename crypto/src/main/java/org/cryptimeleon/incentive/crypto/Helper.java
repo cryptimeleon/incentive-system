@@ -13,13 +13,10 @@ import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
 import org.cryptimeleon.math.serialization.Representable;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
-import org.cryptimeleon.math.structures.groups.Group;
-import org.cryptimeleon.math.structures.rings.zn.Zn;
-import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
-import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
-import org.cryptimeleon.incentive.crypto.model.Token;
 import org.cryptimeleon.math.structures.cartesian.Vector;
+import org.cryptimeleon.math.structures.groups.Group;
 import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
+import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 import java.math.BigInteger;
 
@@ -86,20 +83,21 @@ public class Helper {
 
     /**
      * Generates a sound transaction that spends the passed token.
+     *
      * @return spend-deduct output, consisting of this transaction and the result token
      */
     public static SpendDeductOutput generateSoundTransaction(IncentiveSystem incSys,
-                                                           PromotionParameters promP,
-                                                           Token token,
-                                                           ProviderKeyPair pkp,
-                                                           UserKeyPair ukp,
-                                                           Vector<BigInteger> newPoints,
-                                                           Zn.ZnElement tid,
-                                                           SpendDeductBooleanZkp spendDeductBooleanZkp
-                                                       ) {
-        var spendRequest = incSys.generateSpendRequest(promP, token, pkp.getPk(), newPoints, ukp, tid, spendDeductBooleanZkp);
+                                                             PromotionParameters promP,
+                                                             Token token,
+                                                             ProviderKeyPair pkp,
+                                                             UserKeyPair ukp,
+                                                             Vector<BigInteger> newPoints,
+                                                             Zn.ZnElement tid,
+                                                             SpendDeductTree spendDeductTree
+    ) {
+        var spendRequest = incSys.generateSpendRequest(promP, token, pkp.getPk(), newPoints, ukp, tid, spendDeductTree);
 
-        var deductOutput = incSys.generateSpendRequestResponse(promP, spendRequest, pkp, tid, spendDeductBooleanZkp);
+        var deductOutput = incSys.generateSpendRequestResponse(promP, spendRequest, pkp, tid, spendDeductTree);
 
         var resultToken = incSys.handleSpendRequestResponse(promP, deductOutput.getSpendResponse(), spendRequest, token, newPoints, pkp.getPk(), ukp);
 
@@ -121,6 +119,7 @@ public class Helper {
 
     /**
      * Creates and returns a transaction with spend amount 1 and random other fields.
+     *
      * @param valid whether the generated transaction shall be valid or not
      */
     // TODO: make spend amount random once basket server endpoint is implemented
@@ -129,22 +128,23 @@ public class Helper {
         Group usedG1 = pp.getBg().getG1();
 
         return new Transaction(
-            valid,
-            usedZn.getUniformlyRandomElement(),
-            BigInteger.ONE,
-            new DoubleSpendingTag(
-                    usedZn.getUniformlyRandomElement(),
-                    usedZn.getUniformlyRandomElement(),
-                    usedZn.getUniformlyRandomElement(),
-                    usedZn.getUniformlyRandomElement(),
-                    usedG1.getUniformlyRandomElements(pp.getNumEskDigits()),
-                    usedG1.getUniformlyRandomElements(pp.getNumEskDigits())
-            )
+                valid,
+                usedZn.getUniformlyRandomElement(),
+                BigInteger.ONE,
+                new DoubleSpendingTag(
+                        usedZn.getUniformlyRandomElement(),
+                        usedZn.getUniformlyRandomElement(),
+                        usedZn.getUniformlyRandomElement(),
+                        usedZn.getUniformlyRandomElement(),
+                        usedG1.getUniformlyRandomElements(pp.getNumEskDigits()),
+                        usedG1.getUniformlyRandomElements(pp.getNumEskDigits())
+                )
         );
     }
 
     /**
      * Creates random user info.
+     *
      * @return UserInfo
      */
     public static UserInfo generateRandomUserInfo(IncentivePublicParameters pp) {
