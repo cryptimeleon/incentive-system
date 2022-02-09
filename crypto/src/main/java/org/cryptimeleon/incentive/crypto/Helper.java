@@ -203,9 +203,9 @@ public class Helper {
      * Helper that generates a ZKP of the following form over the old and new point vectors:
      * <p>
      * Metadata correct
-     * ^ lowerLimits <= points <= upperLimits
-     * ^ newLowerLimits <= newPoints <= newUpperLimits
-     * ^ for all i: newPoints_i = a_i * oldPoints_i + b_i
+     * {@literal ^ lowerLimits <= points <= upperLimits}
+     * {@literal ^ newLowerLimits <= newPoints <= newUpperLimits}
+     * {@literal ^ for all i: newPoints_i = a_i * oldPoints_i + b_i}
      *
      * @param pp                  the public parameters used for this
      * @param promotionParameters the promotion parameters used. Point vector size must match the BigInteger[] sizes!
