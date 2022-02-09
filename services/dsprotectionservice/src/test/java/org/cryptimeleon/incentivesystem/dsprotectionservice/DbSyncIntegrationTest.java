@@ -5,7 +5,7 @@ import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.Setup;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.crypto.model.Token;
-import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
+import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.mock.MockDsTagEntryRepository;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.mock.MockDsidEntryRepository;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.mock.MockTransactionEntryRepository;
@@ -24,7 +24,7 @@ import java.util.ArrayList;
  * Tests for the DB Sync algorithm using dummy transactions.
  */
 public class DbSyncIntegrationTest {
-    private Logger logger = LoggerFactory.getLogger(DbSyncIntegrationTest.class);
+    private final Logger logger = LoggerFactory.getLogger(DbSyncIntegrationTest.class);
 
     /**
      * Syncing two transactions into the DB that spend different tokens.
@@ -46,11 +46,9 @@ public class DbSyncIntegrationTest {
 
         logger.info("Clear database."); // needed if this is not the first test in a sequence of tests
         dbHandler.clearDatabase();
-        Assertions.assertTrue(
-                ((ArrayList<TransactionEntry>)
-                        dbHandler.transactionRepository.findAll()
-                ).size() == 0
-        );
+        Assertions.assertEquals(0, ((ArrayList<TransactionEntry>)
+                dbHandler.transactionRepository.findAll()
+        ).size());
 
         logger.info("Generating random valid transactions and dsids.");
         var ta1 = Helper.generateRandomTransaction(incSys.pp, true);
@@ -94,12 +92,8 @@ public class DbSyncIntegrationTest {
         Assertions.assertTrue(
                 dbHandler.containsTokenTransactionEdge(dsid1, ta1.getTaIdentifier())
         );
-        Assertions.assertTrue(
-                !dbHandler.containsTokenTransactionEdge(dsid1, ta2.getTaIdentifier())
-        );
-        Assertions.assertTrue(
-                !dbHandler.containsTokenTransactionEdge(dsid2, ta1.getTaIdentifier())
-        );
+        Assertions.assertFalse(dbHandler.containsTokenTransactionEdge(dsid1, ta2.getTaIdentifier()));
+        Assertions.assertFalse(dbHandler.containsTokenTransactionEdge(dsid2, ta1.getTaIdentifier()));
         Assertions.assertTrue(
                 dbHandler.containsTokenTransactionEdge(dsid2, ta2.getTaIdentifier())
         );
@@ -111,7 +105,7 @@ public class DbSyncIntegrationTest {
      * Syncing transactions into the DB, some of which spend the same token.
      * This should be detected as a double-spending attempt and result in cascading invalidations of transactions.
      * We use the graph from section 6 of the 2019 Updatable Anonymous Credentials paper for testing.
-     *
+     * <p>
      * Double-spending IDs dsid4 and dsid5 are computed during the double-spending detection.
      * This comes from the fact that until double-spending behaviour is detected,
      * it is actually not interesting which transaction produced which token.
@@ -138,26 +132,22 @@ public class DbSyncIntegrationTest {
 
         logger.info("Clear database."); // needed if this is not the first test in a sequence of tests
         dbHandler.clearDatabase();
-        Assertions.assertTrue(
-                ((ArrayList<TransactionEntry>)
-                        dbHandler.transactionRepository.findAll()
-                ).size() == 0
-        );
+        Assertions.assertEquals(0, ((ArrayList<TransactionEntry>)
+                dbHandler.transactionRepository.findAll()
+        ).size());
 
         logger.info("Generating transactions and dsids by executing spend-deduct several times.");
         PromotionParameters legacyPromotionParameters = incSys.legacyPromotionParameters(); // the promotion parameters to always use throughout this test
-        SpendDeductBooleanZkp legacyZkp = Helper.generateSimpleTestSpendDeductZkp( // the spend deduct zkp to include in the spend requests, legacy = just collecting and spending a single type of points
-                incSys.getPp(),
+        SpendDeductTree legacyZkpTree = Helper.generateSimpleTestSpendDeductZkp( // the spend deduct zkp to include in the spend requests, legacy = just collecting and spending a single type of points
                 legacyPromotionParameters,
-                pkp.getPk(),
-                new Vector<BigInteger>(new BigInteger("1")) // subtract 1 point from token per spend, generate a token with 10 points
+                new Vector<>(new BigInteger("1")) // subtract 1 point from token per spend, generate a token with 10 points
         );
         Token initialToken = Helper.generateToken( // the initial token that the user starts off with
                 incSys.getPp(),
                 ukp,
                 pkp,
                 legacyPromotionParameters,
-                new Vector<BigInteger>(new BigInteger("10")) // ten points are more than enough for this test, ensures that user always has enough points
+                new Vector<>(new BigInteger("10")) // ten points are more than enough for this test, ensures that user always has enough points
         );
 
         var spendDeductOutputT1 = Helper.generateSoundTransaction(
@@ -166,9 +156,9 @@ public class DbSyncIntegrationTest {
                 initialToken,
                 pkp,
                 ukp,
-                new Vector<BigInteger>(new BigInteger("9")), // initial token holds 10 points, we spend one in every transaction
+                new Vector<>(new BigInteger("9")), // initial token holds 10 points, we spend one in every transaction
                 incSys.getPp().getBg().getZn().getUniformlyRandomElement(),
-                legacyZkp
+                legacyZkpTree
         );
 
         var spendDeductOutputT1Prime = Helper.generateSoundTransaction(
@@ -177,9 +167,9 @@ public class DbSyncIntegrationTest {
                 initialToken,
                 pkp,
                 ukp,
-                new Vector<BigInteger>(new BigInteger("9")), // initial token holds 10 points, we spend one in every transaction
+                new Vector<>(new BigInteger("9")), // initial token holds 10 points, we spend one in every transaction
                 incSys.getPp().getBg().getZn().getUniformlyRandomElement(),
-                legacyZkp
+                legacyZkpTree
         );
 
         var spendDeductOutputT2 = Helper.generateSoundTransaction(
@@ -188,9 +178,9 @@ public class DbSyncIntegrationTest {
                 spendDeductOutputT1Prime.getResultToken(),
                 pkp,
                 ukp,
-                new Vector<BigInteger>(new BigInteger("8")), // initial token holds 10 points, we spend one in every transaction
+                new Vector<>(new BigInteger("8")), // initial token holds 10 points, we spend one in every transaction
                 incSys.getPp().getBg().getZn().getUniformlyRandomElement(),
-                legacyZkp
+                legacyZkpTree
         );
 
         var spendDeductOutputT2Prime = Helper.generateSoundTransaction(
@@ -199,9 +189,9 @@ public class DbSyncIntegrationTest {
                 spendDeductOutputT1Prime.getResultToken(),
                 pkp,
                 ukp,
-                new Vector<BigInteger>(new BigInteger("8")), // initial token holds 10 points, we spend one in every transaction
+                new Vector<>(new BigInteger("8")), // initial token holds 10 points, we spend one in every transaction
                 incSys.getPp().getBg().getZn().getUniformlyRandomElement(),
-                legacyZkp
+                legacyZkpTree
         );
 
         var spendDeductOutputT3 = Helper.generateSoundTransaction(
@@ -210,9 +200,9 @@ public class DbSyncIntegrationTest {
                 spendDeductOutputT2.getResultToken(),
                 pkp,
                 ukp,
-                new Vector<BigInteger>(new BigInteger("7")), // initial token holds 10 points, we spend one in every transaction
+                new Vector<>(new BigInteger("7")), // initial token holds 10 points, we spend one in every transaction
                 incSys.getPp().getBg().getZn().getUniformlyRandomElement(),
-                legacyZkp
+                legacyZkpTree
         );
 
         var t1 = spendDeductOutputT1.getOccuredTransaction();
@@ -293,10 +283,10 @@ public class DbSyncIntegrationTest {
         var retrievedT2Prime = dbHandler.getTransactionNode(t2Prime.getTaIdentifier());
         var retrievedT3 = dbHandler.getTransactionNode(t3.getTaIdentifier());
         Assertions.assertTrue(retrievedT1.getIsValid());
-        Assertions.assertTrue(!retrievedT1Prime.getIsValid());
-        Assertions.assertTrue(!retrievedT2.getIsValid());
-        Assertions.assertTrue(!retrievedT2Prime.getIsValid());
-        Assertions.assertTrue(!retrievedT3.getIsValid());
+        Assertions.assertFalse(retrievedT1Prime.getIsValid());
+        Assertions.assertFalse(retrievedT2.getIsValid());
+        Assertions.assertFalse(retrievedT2Prime.getIsValid());
+        Assertions.assertFalse(retrievedT3.getIsValid());
 
         logger.info("Checking final token count.");
         Assertions.assertEquals(5, dbHandler.getTokenCount());
