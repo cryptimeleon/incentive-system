@@ -1,0 +1,2 @@
+org/cryptimeleon/incentive/services/deduct/DeductIntegrationTest.java
+ org.cryptimeleon.incentive.services.deduct.DeductIntegrationTest

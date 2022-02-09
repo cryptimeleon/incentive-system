@@ -1,0 +1,4 @@
+•09:12:00.184 [Test worker] INFO org.cryptimeleon.incentivesystem.dsprotectionservice.DbSyncIntegrationTest - Starting cascading invalidations test.
+Ä09:12:00.186 [Test worker] INFO org.cryptimeleon.incentivesystem.dsprotectionservice.DbSyncIntegrationTest - Setup incentive system, provider and user key pair and database handler for the test.
+~09:12:00.325 [Test worker] INFO org.cryptimeleon.incentivesystem.dsprotectionservice.DbSyncIntegrationTest - Clear database.
+¹09:12:00.327 [Test worker] INFO org.cryptimeleon.incentivesystem.dsprotectionservice.DbSyncIntegrationTest - Generating transactions and dsids by executing spend-deduct several times.

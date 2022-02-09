@@ -1,0 +1,10 @@
+org/cryptimeleon/incentive/services/deduct/BasketRepository.java
+ org.cryptimeleon.incentive.services.deduct.BasketRepository
+org/cryptimeleon/incentive/services/deduct/DeductController.java
+ org.cryptimeleon.incentive.services.deduct.DeductController
+org/cryptimeleon/incentive/services/deduct/DeductService.java
+ org.cryptimeleon.incentive.services.deduct.DeductService
+org/cryptimeleon/incentive/services/deduct/DeductApplication.java
+ org.cryptimeleon.incentive.services.deduct.DeductApplication
+org/cryptimeleon/incentive/services/deduct/CryptoRepository.java
+ org.cryptimeleon.incentive.services.deduct.CryptoRepository

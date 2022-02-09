@@ -1,0 +1,9 @@
+{
+  "properties": [
+    {
+      "name": "t2.server.gateway",
+      "type": "java.lang.String",
+      "description": "Basepath at which issuing service api can be reached."
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+org/cryptimeleon/incentive/services/credit/GenerateSwagger.java
+ org.cryptimeleon.incentive.services.credit.GenerateSwagger
+org/cryptimeleon/incentive/services/credit/CreditIntegrationTest.java
+ org.cryptimeleon.incentive.services.credit.CreditIntegrationTest
