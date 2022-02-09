@@ -1,4 +1,5 @@
 rootProject.name = 'incentive-app'
 
+includeBuild '../promotion'
 includeBuild '../crypto'
 include ":app"

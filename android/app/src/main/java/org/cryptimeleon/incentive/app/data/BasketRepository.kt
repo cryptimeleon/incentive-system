@@ -1,128 +1,148 @@
 package org.cryptimeleon.incentive.app.data
 
-import org.cryptimeleon.incentive.app.basket.BasketListItem
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.*
 import org.cryptimeleon.incentive.app.data.database.basket.BasketDao
 import org.cryptimeleon.incentive.app.data.database.basket.BasketEntity
-import org.cryptimeleon.incentive.app.data.network.Basket
+import org.cryptimeleon.incentive.app.data.database.basket.BasketItemEntity
+import org.cryptimeleon.incentive.app.data.database.basket.ShoppingItemEntity
 import org.cryptimeleon.incentive.app.data.network.BasketApiService
-import org.cryptimeleon.incentive.app.data.network.BasketItem
-import org.cryptimeleon.incentive.app.data.network.Item
-import org.cryptimeleon.incentive.app.data.network.PayBody
-import java.util.UUID
+import org.cryptimeleon.incentive.app.data.network.NetworkBasketItem
+import org.cryptimeleon.incentive.app.data.network.NetworkPayBody
+import org.cryptimeleon.incentive.app.data.network.NetworkShoppingItem
+import org.cryptimeleon.incentive.app.domain.IBasketRepository
+import org.cryptimeleon.incentive.app.domain.model.Basket
+import org.cryptimeleon.incentive.app.domain.model.BasketItem
+import org.cryptimeleon.incentive.app.domain.model.ShoppingItem
 
 class BasketRepository(
     private val basketApiService: BasketApiService,
     private val basketDao: BasketDao,
-) {
-    /**
-     * If there is no (active) basket, this function will create a new basket.
-     *
-     * @return true if the function was successful and an active basket can be assumed to exist.
-     */
-    suspend fun ensureActiveBasket(): Boolean {
-        val basketId: UUID? = basketDao.getActiveBasketId()
+) : IBasketRepository {
 
-        if (basketId == null || !basketApiService.getBasketContent(basketId).isSuccessful) {
+    override val basket: Flow<Basket?> = basketDao.observeBasketEntity()
+        .combine(basketDao.observeBasketItemEntities())
+        { a: BasketEntity?, b: List<BasketItemEntity> ->
+            if (a != null) basketEntityToBasket(
+                a,
+                b.map { basketItemEntityToItem(it) }) else null
+        }.flowOn(Dispatchers.Default)
+
+    override val shoppingItems: Flow<List<ShoppingItem>>
+        get() = basketDao.observeShoppingItems()
+            .map { items: List<ShoppingItemEntity> -> items.map { shoppingItemEntityToItem(it) } }
+            .flowOn(Dispatchers.Default)
+
+    override suspend fun refreshShoppingItems() {
+        basketDao.insertShoppingItems(
+            basketApiService.getAllItems().body()!!
+                .map { networkShoppingItemToShoppingItemEntity(it) }
+        )
+    }
+
+    // Load contents from basket into database
+    override suspend fun refreshBasket() {
+        val basket: Basket = basket.first()!!
+        val shoppingItems: List<ShoppingItem> = shoppingItems.first()
+
+        val networkBasket = basketApiService.getBasketContent(basket.basketId).body()!!
+
+        val basketItems = networkBasket.items.mapNotNull { entry ->
+            val foundItem =
+                shoppingItems.find { shoppingItem: ShoppingItem -> shoppingItem.id == entry.key }
+            return@mapNotNull if (foundItem != null) shoppingItemToBasketItemEntity(
+                foundItem,
+                entry.value
+            ) else null
+        }
+        val updatedBasket = BasketEntity(
+            basketId = networkBasket.basketId,
+            paid = networkBasket.paid,
+            redeemed = networkBasket.redeemed,
+        )
+        basketDao.setBasketEntity(updatedBasket)
+        basketDao.deleteAllBasketItems()
+        basketDao.insertBasketItems(basketItems)
+    }
+
+    override suspend fun ensureActiveBasket(): Boolean {
+        val basket = basket.first()
+
+        if (basket == null || !basketApiService.getBasketContent(basket.basketId).isSuccessful) {
             return createNewBasket()
         }
         return true
     }
 
-    /**
-     * Put an item with a given amount to the basket.
-     *
-     * @return true if successful
-     */
-    suspend fun putItemIntoCurrentBasket(amount: Int, barcode: String): Boolean {
-        val basketId = basketDao.getActiveBasketId() ?: return false
-        val basketItem = BasketItem(basketId, amount, barcode)
-        val putItemResponse = basketApiService.putItemToBasket(basketItem)
+    private suspend fun putItemIntoCurrentBasket(shoppingItem: ShoppingItem, amount: Int): Boolean {
+        // Update database, Trigger request, refresh database
+        val basket: Basket = basket.first() ?: return false
+
+        // Update Database
+        val basketItem = BasketItem(
+            itemId = shoppingItem.id,
+            title = shoppingItem.title,
+            price = shoppingItem.price,
+            count = amount
+        )
+        if (amount == 0) {
+            basketDao.removeBasketItem(basketItemToEntity(basketItem))
+        } else {
+            basketDao.insertBasketItems(listOf(basketItemToEntity(basketItem)))
+        }
+
+        // Trigger request
+        val networkBasketItem = NetworkBasketItem(
+            basketId = basket.basketId,
+            count = amount,
+            itemId = shoppingItem.id
+        )
+        val putItemResponse = basketApiService.putItemToBasket(networkBasketItem)
+
+        // TODO update database if not successful
         return putItemResponse.isSuccessful
     }
 
-    suspend fun getBasketItem(barcode: String): Item? {
-        return basketApiService.getItemById(barcode).body()
+    override suspend fun getBasketItem(itemId: String): ShoppingItem? {
+        return shoppingItems.first().find { it.id == itemId }
     }
 
-    /**
-     * Get the currently active basket.
-     */
-    suspend fun getActiveBasketId(): UUID? {
-        return basketDao.getActiveBasketId()
+    override suspend fun createNewBasket(): Boolean {
+        val createBasketResponse = basketApiService.getNewBasket()
+        if (!createBasketResponse.isSuccessful) return false
+        val basketID = createBasketResponse.body()!!
+        val basket = Basket(
+            value = 0,
+            redeemed = false,
+            paid = false,
+            basketId = basketID,
+            items = listOf()
+        )
+        basketDao.setBasketEntity(basketToEntity(basket))
+        return true
     }
 
-    // TODO Flow, maybe combine these two into a more detailed basket object
-    suspend fun getActiveBasket(): Basket? {
-        val basketId = getActiveBasketId() ?: return null
-        return basketApiService.getBasketContent(basketId).body()
+    override suspend fun putItemIntoCurrentBasket(itemId: String, amount: Int): Boolean {
+        // TODO or query shopping items
+        val shoppingItem = shoppingItems.first().find { it.id == itemId } ?: return false
+        putItemIntoCurrentBasket(shoppingItem = shoppingItem, amount = amount)
+        return true
     }
 
-    // TODO Flow
-    suspend fun getCurrentBasketContents(): List<BasketListItem>? {
-        val basketId = basketDao.getActiveBasketId() ?: return null
-        val getBasketResponse = basketApiService.getBasketContent(basketId)
-        return if (getBasketResponse.isSuccessful) {
-            val basket: Basket = getBasketResponse.body()!!
-
-            val itemsInBasket = ArrayList<BasketListItem>()
-            basket.items.forEach { (id, count) ->
-                val item = basketApiService.getItemById(id)
-                itemsInBasket.add(
-                    BasketListItem(
-                        item.body()!!,
-                        count
-                    )
-                )
-            }
-            itemsInBasket
-        } else {
-            null
-        }
-    }
-
-    /**
-     * Creates a new basket and invalidates all other baskets
-     */
-    private suspend fun createNewBasket(): Boolean {
-        val basketResponse = basketApiService.getNewBasket()
-        return if (basketResponse.isSuccessful) {
-            val basketEntity = BasketEntity(basketResponse.body()!!, true)
-
-            // Make sure all other baskets are set to inactive
-            basketDao.setAllInactive()
-            basketDao.insertBasket(basketEntity)
-            true
-        } else {
-            false
-        }
-    }
-
-    /**
-     * Discards the current basket and creates a new basket.
-     *
-     * @return true if successful
-     */
-    suspend fun discardCurrentBasket(delete: Boolean = false): Boolean {
-        if (delete) {
-            val basketId = basketDao.getActiveBasketId()
-            if (basketId != null) {
-                basketApiService.deleteBasket(basketId)
-            }
+    override suspend fun discardCurrentBasket(delete: Boolean): Boolean {
+        val basket = basket.first()
+        if (basket != null) {
+            basketApiService.deleteBasket(basket.basketId)
         }
         return createNewBasket()
     }
 
-    /**
-     * Pays the current basket.
-     *
-     * @return true if basket is paid after finished
-     */
-    suspend fun payCurrentBasket(): Boolean {
-        val basket = getActiveBasket() ?: return false
+    override suspend fun payCurrentBasket(): Boolean {
+        val basket = basket.first() ?: return false
 
         // Pay basket
         val payResponse =
-            basketApiService.payBasket(PayBody(basket.basketId, basket.value))
+            basketApiService.payBasket(NetworkPayBody(basket.basketId, basket.value))
         return if (payResponse.isSuccessful) {
             discardCurrentBasket()
             true
@@ -131,23 +151,65 @@ class BasketRepository(
         }
     }
 
-    suspend fun setBasketItemCount(itemId: String, count: Int): Boolean {
-        val basketId = getActiveBasketId() ?: return false
+    companion object Converter {
+        fun basketItemToEntity(basketItem: BasketItem): BasketItemEntity =
+            BasketItemEntity(
+                itemId = basketItem.itemId,
+                price = basketItem.price,
+                title = basketItem.title,
+                count = basketItem.count
+            )
 
-        val response = if (count <= 0) {
-            basketApiService.removeItemFromBasket(
-                basketId,
-                itemId
+        fun basketItemEntityToItem(basketItemEntity: BasketItemEntity): BasketItem =
+            BasketItem(
+                itemId = basketItemEntity.itemId,
+                price = basketItemEntity.price,
+                title = basketItemEntity.title,
+                count = basketItemEntity.count
             )
-        } else {
-            basketApiService.putItemToBasket(
-                BasketItem(
-                    basketId,
-                    count,
-                    itemId
-                )
+
+        fun shoppingItemToBasketItemEntity(
+            shoppingItem: ShoppingItem,
+            count: Int
+        ): BasketItemEntity =
+            BasketItemEntity(
+                title = shoppingItem.title,
+                itemId = shoppingItem.id,
+                price = shoppingItem.price,
+                count = count
             )
-        }
-        return response.isSuccessful
+
+        fun basketToEntity(basket: Basket): BasketEntity =
+            BasketEntity(
+                basketId = basket.basketId,
+                paid = basket.paid,
+                redeemed = basket.redeemed,
+            )
+
+        fun basketEntityToBasket(
+            basketEntity: BasketEntity,
+            basketItems: List<BasketItem>
+        ): Basket =
+            Basket(
+                basketId = basketEntity.basketId,
+                paid = basketEntity.paid,
+                value = basketItems.map { it.count * it.price }.sum(),
+                redeemed = basketEntity.redeemed,
+                items = basketItems
+            )
+
+        fun shoppingItemEntityToItem(shoppingItemEntity: ShoppingItemEntity): ShoppingItem =
+            ShoppingItem(
+                id = shoppingItemEntity.itemId,
+                price = shoppingItemEntity.price,
+                title = shoppingItemEntity.title
+            )
+
+        fun networkShoppingItemToShoppingItemEntity(networkShoppingItem: NetworkShoppingItem): ShoppingItemEntity =
+            ShoppingItemEntity(
+                networkShoppingItem.id,
+                networkShoppingItem.price,
+                networkShoppingItem.title
+            )
     }
 }

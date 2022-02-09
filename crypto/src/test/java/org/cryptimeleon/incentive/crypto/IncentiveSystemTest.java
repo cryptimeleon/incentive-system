@@ -10,6 +10,7 @@ import org.cryptimeleon.incentive.crypto.model.messages.JoinRequest;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse;
 import org.cryptimeleon.incentive.crypto.proof.spend.SpendHelper;
 import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenUpdateLeaf;
+import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
 import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellformednessProtocol;
 import org.cryptimeleon.math.structures.cartesian.Vector;
@@ -86,7 +87,6 @@ public class IncentiveSystemTest {
         /*
          * transaction 1: user tries to spend points with an empty token
 
-        * TODO uncomment and replace with statements about old token
         logger.info("Testing spend transaction with empty token.");
 
         // generate a fresh ID for the spend transaction
@@ -95,10 +95,11 @@ public class IncentiveSystemTest {
         var spendAmount1 = Vector.of(BigInteger.ONE, BigInteger.ZERO);
 
         // ensure exception is thrown when user tries to generate spend request
-        Assertions.assertThrows(IllegalArgumentException.class, () -> incSys.generateSpendRequest(promotionParameters, initialToken, pkp.getPk(), spendAmount1, ukp, tid1));
-         */
+        Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> incSys.generateSpendRequest(promotionParameters, initialToken, pkp.getPk(), spendAmount1, ukp, tid1)
+        );
 
-        /*
          * transaction 2: user earns 20 points
          */
 
@@ -162,7 +163,7 @@ public class IncentiveSystemTest {
                 i -> finalUpdatedToken.getPoints().get(i).asInteger().subtract(newPointsAmount3.get(i)),
                 newPointsAmount3.length()
         );
-        var spendDeductTestZkp = SpendHelper.generateSimpleTestSpendDeductZkp(incSys.pp, promotionParameters, pkp.getPk(), spendAmount);
+        SpendDeductTree spendDeductTestZkp = SpendHelper.generateSimpleTestSpendDeductTree(incSys.pp, promotionParameters, pkp.getPk(), spendAmount);
 
         // user generates spend request
         SpendRequest spendRequest3 = incSys.generateSpendRequest(promotionParameters, updatedToken, pkp.getPk(), newPointsAmount3, ukp, tid3, spendDeductTestZkp);

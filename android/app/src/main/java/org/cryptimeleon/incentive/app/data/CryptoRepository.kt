@@ -1,72 +1,81 @@
 package org.cryptimeleon.incentive.app.data
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature
 import org.cryptimeleon.incentive.app.data.database.crypto.CryptoDao
-import org.cryptimeleon.incentive.app.data.database.crypto.CryptoMaterial
-import org.cryptimeleon.incentive.app.data.database.crypto.CryptoToken
-import org.cryptimeleon.incentive.app.data.database.crypto.CryptoUtil
-import org.cryptimeleon.incentive.app.data.network.CreditEarnApiService
+import org.cryptimeleon.incentive.app.data.database.crypto.CryptoMaterialEntity
+import org.cryptimeleon.incentive.app.data.database.crypto.CryptoTokenEntity
+import org.cryptimeleon.incentive.app.data.network.CryptoApiService
 import org.cryptimeleon.incentive.app.data.network.InfoApiService
-import org.cryptimeleon.incentive.app.data.network.IssueJoinApiService
+import org.cryptimeleon.incentive.app.domain.ICryptoRepository
+import org.cryptimeleon.incentive.app.domain.model.CryptoMaterial
 import org.cryptimeleon.incentive.crypto.IncentiveSystem
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters
+import org.cryptimeleon.incentive.crypto.model.PromotionParameters
+import org.cryptimeleon.incentive.crypto.model.Token
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey
+import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair
+import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey
+import org.cryptimeleon.incentive.crypto.model.keys.user.UserSecretKey
 import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse
 import org.cryptimeleon.math.serialization.converter.JSONConverter
 import org.cryptimeleon.math.structures.cartesian.Vector
 import timber.log.Timber
 import java.math.BigInteger
-import java.util.UUID
+import java.util.*
 
 /**
  * Repository that handles the crypto database, provides cached deserialized crypto objects and
  * methods for running the protocols.
- *
- * TODO add caching (e.g. by hashing the serialized assets and putting the deserialized object into a hashmap)
  */
 class CryptoRepository(
-    private val creditEarnApiService: CreditEarnApiService,
     private val infoApiService: InfoApiService,
-    private val issueJoinApiService: IssueJoinApiService,
+    private val cryptoApiService: CryptoApiService,
     private val cryptoDao: CryptoDao,
-) {
+) : ICryptoRepository {
     private val jsonConverter = JSONConverter()
 
-    // Tokens change
-    // TODO Make sure pp (cryptoMaterial.first()) are valid when token changes
-    val token: Flow<CryptoToken?> = cryptoDao.observeToken().map {
-        val cryptoMaterial = observeCryptoMaterial().first()
-        if (cryptoMaterial == null || it == null) {
-            null
-        } else {
-            CryptoUtil.toCryptoToken(it, cryptoMaterial.pp)
-        }
-    }
+    override val tokens: Flow<List<Token>>
+        get() = cryptoDao.observeTokens().map {
+            val cryptoMaterial = cryptoMaterial.first()
+            if (cryptoMaterial != null) {
+                it.map { cryptoTokenEntity -> toCryptoToken(cryptoTokenEntity, cryptoMaterial.pp) }
+            } else {
+                emptyList()
+            }
+        }.flowOn(Dispatchers.Default)
 
-    fun observeCryptoMaterial(): Flow<CryptoMaterial?> = cryptoDao.observeCryptoMaterial().map {
-        if (it == null) {
-            null
-        } else {
-            CryptoUtil.fromSerializedCryptoAsset(it)
-        }
-    }
+    override val cryptoMaterial: Flow<CryptoMaterial?>
+        get() = cryptoDao.observeCryptoMaterial().map {
+            it?.let { it1 -> toCryptoMaterial(it1) }
+        }.flowOn(Dispatchers.Default)
 
-    suspend fun runIssueJoin(dummy: Boolean = false) {
-        val cryptoMaterial = observeCryptoMaterial().first()!!
+
+    override suspend fun runIssueJoin(promotionParameters: PromotionParameters, dummy: Boolean) {
+        val cryptoMaterial = cryptoMaterial.first()!!
         val pp = cryptoMaterial.pp
-        val incentiveSystem = cryptoMaterial.incentiveSystem
         val providerPublicKey = cryptoMaterial.ppk
         val userKeyPair = cryptoMaterial.ukp
-        val promotionParameters = incentiveSystem.legacyPromotionParameters()
+        val incentiveSystem = IncentiveSystem(pp)
 
         val joinRequest = incentiveSystem.generateJoinRequest(providerPublicKey, userKeyPair)
-        val joinResponse = issueJoinApiService.runIssueJoin(
+        val joinResponse = cryptoApiService.runIssueJoin(
             jsonConverter.serialize(joinRequest.representation),
+            promotionParameters.promotionId.toString(),
             jsonConverter.serialize(userKeyPair.pk.representation)
         )
+
+        if (!joinResponse.isSuccessful) {
+            throw RuntimeException(
+                "Join Response not successful: " + joinResponse.code() + "\n" + joinResponse.errorBody()!!
+                    .string()
+            )
+        }
+
 
         val token = incentiveSystem.handleJoinRequestResponse(
             promotionParameters,
@@ -76,28 +85,27 @@ class CryptoRepository(
             JoinResponse(jsonConverter.deserialize(joinResponse.body()), pp)
         )
         if (!dummy) {
-            cryptoDao.insertToken(
-                CryptoUtil.fromCryptoToken(
-                    CryptoToken(token, 1, cryptoMaterial.id)
-                )
-            )
+            cryptoDao.insertToken(toCryptoTokenEntity(token))
         }
     }
 
-    suspend fun runCreditEarn(basketId: UUID, basketValue: Int) {
-        val cryptoMaterial = observeCryptoMaterial().first()!!
-        val cryptoToken = token.first()!!
-        val token = cryptoToken.token
+    override suspend fun runCreditEarn(
+        basketId: UUID,
+        promotionParameters: PromotionParameters,
+        basketValue: Int
+    ) {
+        val cryptoMaterial = cryptoMaterial.first()!!
+        val token = tokens.first().find { it.promotionId == promotionParameters.promotionId }
         val pp = cryptoMaterial.pp
-        val incentiveSystem = cryptoMaterial.incentiveSystem
         val providerPublicKey = cryptoMaterial.ppk
         val userKeyPair = cryptoMaterial.ukp
-        val promotionParameters = incentiveSystem.legacyPromotionParameters()
+        val incentiveSystem = IncentiveSystem(pp)
 
         val earnRequest =
             incentiveSystem.generateEarnRequest(token, providerPublicKey, userKeyPair)
-        val earnResponse = creditEarnApiService.runCreditEarn(
+        val earnResponse = cryptoApiService.runCreditEarn(
             basketId,
+            promotionParameters.promotionId.toInt(),
             jsonConverter.serialize(earnRequest.representation)
         )
 
@@ -118,29 +126,12 @@ class CryptoRepository(
             userKeyPair
         )
 
-        // Update token in database
-        // Will be nicer when handling multiple tokens
-        cryptoDao.deleteAllTokens()
-        cryptoDao.insertToken(
-            CryptoUtil.fromCryptoToken(
-                CryptoToken(
-                    newToken,
-                    cryptoToken.promotionId,
-                    cryptoToken.cryptoMaterialId
-                )
-            )
-        )
+        cryptoDao.insertToken(toCryptoTokenEntity(newToken))
         Timber.i("Added new token $newToken to database")
     }
 
-    /**
-     * Refresh the crypto material by querying the info service. Deletes all old tokens if crypto
-     * material has changed.
-     *
-     * @return true if crypto material has changed
-     */
-    suspend fun refreshCryptoMaterial(): Boolean {
-        val oldSerializedCryptoAsset = cryptoDao.observeSerializedCryptoMaterial().first()
+    override suspend fun refreshCryptoMaterial(): Boolean {
+        val oldSerializedCryptoAsset = cryptoDao.observeCryptoMaterial().first()
 
         val ppResponse = infoApiService.getPublicParameters()
         val ppkResponse = infoApiService.getProviderPublicKey()
@@ -175,16 +166,63 @@ class CryptoRepository(
                 publicParameters,
                 providerPublicKey,
                 userKeyPair,
-                incentiveSystem,
-                1
             )
 
-            cryptoDao.insertAsset(CryptoUtil.toSerializedCryptoAsset(newCryptoAsset))
-            cryptoDao.deleteAllTokens()
-            // TODO invalidate all tokens with cascade
+            cryptoDao.insertCryptoMaterial(toSerializedCryptoAsset(newCryptoAsset))
             return true
         }
 
         return false
+    }
+
+    /**
+     * Utility for serializing tokens to database objects and vice versa.
+     * This is not a Converter since it requires the public parameters as additional resources.
+     */
+    companion object Converter {
+        private val jsonConverter = JSONConverter()
+
+        fun toCryptoTokenEntity(token: Token): CryptoTokenEntity = CryptoTokenEntity(
+            token.promotionId.toInt(),
+            jsonConverter.serialize(token.representation)
+        )
+
+        fun toCryptoToken(
+            cryptoTokenEntity: CryptoTokenEntity,
+            pp: IncentivePublicParameters
+        ): Token =
+            Token(jsonConverter.deserialize(cryptoTokenEntity.serializedToken), pp)
+
+        fun toCryptoMaterial(cryptoMaterialEntity: CryptoMaterialEntity): CryptoMaterial {
+            val pp =
+                IncentivePublicParameters(jsonConverter.deserialize(cryptoMaterialEntity.serializedPublicParameters))
+            val ppk = ProviderPublicKey(
+                jsonConverter.deserialize(cryptoMaterialEntity.serializedProviderPublicKey),
+                pp.spsEq,
+                pp.bg.g1
+            )
+            val upk = UserPublicKey(
+                jsonConverter.deserialize(cryptoMaterialEntity.serializedUserPublicKey),
+                pp.bg.g1
+            )
+            val usk = UserSecretKey(
+                jsonConverter.deserialize(cryptoMaterialEntity.serializedUserSecretKey),
+                pp.bg.zn,
+                pp.prfToZn
+            )
+            return CryptoMaterial(
+                pp,
+                ppk,
+                UserKeyPair(upk, usk),
+            )
+        }
+
+        fun toSerializedCryptoAsset(cryptoMaterial: CryptoMaterial): CryptoMaterialEntity =
+            CryptoMaterialEntity(
+                jsonConverter.serialize(cryptoMaterial.pp.representation),
+                jsonConverter.serialize(cryptoMaterial.ppk.representation),
+                jsonConverter.serialize(cryptoMaterial.ukp.pk.representation),
+                jsonConverter.serialize(cryptoMaterial.ukp.sk.representation),
+            )
     }
 }

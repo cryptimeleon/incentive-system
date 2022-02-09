@@ -4,7 +4,6 @@ import org.cryptimeleon.incentive.crypto.Util;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductLeafNode;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.math.structures.cartesian.Vector;
-import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
 
 import java.math.BigInteger;
 
@@ -32,7 +31,7 @@ public class TokenPointsLeaf extends SpendDeductLeafNode {
     }
 
     @Override
-    public boolean isValidForPoints(RingElementVector pointsVector, RingElementVector newPointsVector) {
+    public boolean isValidForPoints(Vector<BigInteger> pointsVector, Vector<BigInteger> newPointsVector) {
         return Util.arePointsInRange(pointsVector, this.lowerLimits, this.upperLimits);
     }
 }

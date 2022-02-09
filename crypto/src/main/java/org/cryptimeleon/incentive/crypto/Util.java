@@ -3,7 +3,6 @@ package org.cryptimeleon.incentive.crypto;
 import org.cryptimeleon.math.hash.impl.ByteArrayAccumulator;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.groups.GroupElement;
-import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
 import org.cryptimeleon.math.structures.rings.zn.HashIntoZn;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
@@ -76,11 +75,9 @@ public class Util {
      * @param upperLimits  a vector of upper limits
      * @return whether are relations are satisfied
      */
-    public static boolean arePointsInRange(RingElementVector pointsVector, Vector<BigInteger> lowerLimits, Vector<BigInteger> upperLimits) {
-        boolean isValid = lowerLimits.zipReduce(pointsVector, (lowerLimit, points) -> lowerLimit == null || lowerLimit.compareTo(points.asInteger()) <= 0, (a, b) -> a && b);
-        
-        isValid &= upperLimits.zipReduce(pointsVector, (upperLimit, points) -> upperLimit == null || upperLimit.compareTo(points.asInteger()) >= 0, (a, b) -> a && b);
-
+    public static boolean arePointsInRange(Vector<BigInteger> pointsVector, Vector<BigInteger> lowerLimits, Vector<BigInteger> upperLimits) {
+        boolean isValid = lowerLimits.zipReduce(pointsVector, (lowerLimit, points) -> lowerLimit == null || lowerLimit.compareTo(points) <= 0, (a, b) -> a && b);
+        isValid &= upperLimits.zipReduce(pointsVector, (upperLimit, points) -> upperLimit == null || upperLimit.compareTo(points) >= 0, (a, b) -> a && b);
         return isValid;
     }
 }

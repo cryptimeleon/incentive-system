@@ -18,6 +18,7 @@ import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductOrNode;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.math.expressions.bool.BooleanExpression;
 import org.cryptimeleon.math.serialization.Representation;
+import org.cryptimeleon.math.structures.rings.RingElement;
 
 /**
  * Proofs of partial knowledge that can be assembled from a SpendDeductTree.
@@ -110,7 +111,7 @@ public class SpendDeductBooleanZkp extends ProofOfPartialKnowledge {
         } else if (spendDeductTree instanceof SpendDeductLeafNode) {
             SpendDeductLeafNode spendDeductLeafNode = (SpendDeductLeafNode) spendDeductTree;
             SpendDeductZkpWitnessInput witnessInput = (SpendDeductZkpWitnessInput) secretInput;
-            if (spendDeductLeafNode.isValidForPoints(witnessInput.pointsVector, witnessInput.newPointsVector)) {
+            if (spendDeductLeafNode.isValidForPoints(witnessInput.pointsVector.map(RingElement::asInteger), witnessInput.newPointsVector.map(RingElement::asInteger))) {
                 builder.putSecretInput(spendDeductLeafNode.getLeafName(), secretInput);
             }
         } else {
