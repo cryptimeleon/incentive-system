@@ -491,8 +491,6 @@ public class IncentiveSystem {
                 new SpendResponse(sigmaPrime, eskStarProv),
                 new DoubleSpendingTag(commonInput.c0, commonInput.c1, gamma, eskStarProv, commonInput.ctrace0, commonInput.ctrace1)
         );
-
-
     }
 
     /**

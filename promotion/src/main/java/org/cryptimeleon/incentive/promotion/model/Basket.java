@@ -12,7 +12,9 @@ import java.util.UUID;
  */
 @Value
 public class Basket {
+    // The id of the basket
     UUID basketId;
+    // A list of all items in the basket
     List<BasketItem> basketItemList;
 
     /**
@@ -23,5 +25,14 @@ public class Basket {
      */
     public Zn.ZnElement getBasketId(Zn zn) {
         return zn.createZnElement(new BigInteger(basketId.toString().replace("-", ""), 16));
+    }
+
+    /**
+     * Helper function that sums up the costs of all basket items.
+     *
+     * @return cost of the basket
+     */
+    public int computeBasketValue() {
+        return basketItemList.stream().mapToInt(basketItem -> basketItem.getCount() * basketItem.getPrice()).sum();
     }
 }

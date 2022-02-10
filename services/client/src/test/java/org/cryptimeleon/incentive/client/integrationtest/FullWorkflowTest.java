@@ -8,10 +8,10 @@ import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse;
-import org.cryptimeleon.incentive.promotion.promotions.NutellaPromotion;
-import org.cryptimeleon.incentive.promotion.promotions.Promotion;
-import org.cryptimeleon.incentive.promotion.reward.NutellaReward;
-import org.cryptimeleon.incentive.promotion.reward.RewardSideEffect;
+import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion;
+import org.cryptimeleon.incentive.promotion.Promotion;
+import org.cryptimeleon.incentive.promotion.hazel.HazelTokenUpdate;
+import org.cryptimeleon.incentive.promotion.RewardSideEffect;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.junit.jupiter.api.Test;
 
@@ -25,10 +25,10 @@ import java.util.UUID;
 @Slf4j
 public class FullWorkflowTest extends IncentiveSystemIntegrationTest {
 
-    Promotion testPromotion = new NutellaPromotion(NutellaPromotion.generatePromotionParameters(),
+    Promotion testPromotion = new HazelPromotion(HazelPromotion.generatePromotionParameters(),
             "Test Promotion",
             "Some Test Promotion",
-            List.of(new NutellaReward(2, "This is a test reward", UUID.randomUUID(), new RewardSideEffect("Test Reward Sideffect"))),
+            List.of(new HazelTokenUpdate(UUID.randomUUID(), "This is a test reward", new RewardSideEffect("Test Reward Sideffect"), 2)),
             "Apple");
 
     @Test

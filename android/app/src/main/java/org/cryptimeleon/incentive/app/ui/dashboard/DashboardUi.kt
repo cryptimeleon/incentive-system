@@ -5,11 +5,15 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.paddingFromBaseline
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Card
 import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
@@ -58,8 +62,10 @@ fun Dashboard(
     }) {
         Column(
             verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
         ) {
+            Spacer(modifier = Modifier.height(0.dp))
             for (promotionState in dashboardState.promotionStates) {
                 TokenCard(
                     promotionState = promotionState,
@@ -69,6 +75,7 @@ fun Dashboard(
                     }
                 )
             }
+            Spacer(modifier = Modifier.height(0.dp))
         }
     }
 }
@@ -83,6 +90,7 @@ fun TokenCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(horizontal = 16.dp)
             .wrapContentHeight(),
         elevation = 4.dp,
         onClick = { toggleExpanded(promotionState.id) },
@@ -103,21 +111,35 @@ fun TokenCard(
                         .paddingFromBaseline(36.sp)
                 )
                 when (promotionState) {
-                    is NutellaPromotionState -> {
+                    is HazelPromotionState ->
                         Text(
                             text = "${promotionState.count}",
                             style = MaterialTheme.typography.h4,
                             color = MaterialTheme.colors.secondary,
                             modifier = Modifier.paddingFromBaseline(36.sp)
                         )
-                    }
+                    // TODO find nicer visualization
+                    is VipPromotionState ->
+                        Text(
+                            text = "${promotionState.status}",
+                            style = MaterialTheme.typography.h4,
+                            color = MaterialTheme.colors.secondary,
+                            modifier = Modifier.paddingFromBaseline(36.sp)
+                        )
+                    is StreakPromotionState ->
+                        Text(
+                            text = "${promotionState.streak}",
+                            style = MaterialTheme.typography.h4,
+                            color = MaterialTheme.colors.secondary,
+                            modifier = Modifier.paddingFromBaseline(36.sp)
+                        )
                 }
             }
             Text(
                 text = promotionState.description,
                 style = MaterialTheme.typography.body1,
             )
-            if (true || expandedPromotion == promotionState.id) { // TODO decide on one option
+            if (expandedPromotion == promotionState.id) {
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
@@ -138,10 +160,11 @@ fun TokenCard(
                     )
                 }
                 // Display points matching the promotion
-                val rewardStateIterator: Iterator<RewardState> = promotionState.rewards.iterator()
-                while (rewardStateIterator.hasNext()) {
-                    when (val rewardState = rewardStateIterator.next()) {
-                        is NutellaRewardState -> {
+                val tokenUpdateStateIterator: Iterator<TokenUpdateState> =
+                    promotionState.updates.iterator()
+                while (tokenUpdateStateIterator.hasNext()) {
+                    when (val rewardState = tokenUpdateStateIterator.next()) {
+                        is HazelTokenUpdateState -> {
                             Text(
                                 text = rewardState.sideEffect,
                                 style = MaterialTheme.typography.body1,
@@ -152,14 +175,81 @@ fun TokenCard(
                                 modifier = Modifier.fillMaxWidth()
                             )
                             Text(
-                                text = "${rewardState.goal} ",
+                                text = "${rewardState.goal}",
                                 style = MaterialTheme.typography.body1,
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier.align(Alignment.End)
                             )
                         }
+                        is VipTokenUpdateState -> {
+                            Text(
+                                text = "Advantage for ${rewardState.requiredStatus} VIP",
+                                style = MaterialTheme.typography.body1,
+                            )
+                            Text(
+                                text = rewardState.sideEffect,
+                                style = MaterialTheme.typography.body1,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.align(Alignment.End),
+                            )
+                        }
+                        is UpgradeVipTokenUpdateState -> {
+                            Text(
+                                text = rewardState.sideEffect,
+                                style = MaterialTheme.typography.body1,
+                            )
+                            LinearProgressIndicator(
+                                progress = if (rewardState.currentPoints > rewardState.requiredPoints) 1f else rewardState.currentPoints / (rewardState.requiredPoints * 1.0f),
+                                color = MaterialTheme.colors.secondary,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Text(
+                                text = "${rewardState.requiredPoints}",
+                                style = MaterialTheme.typography.body1,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.align(Alignment.End)
+                            )
+                        }
+                        is SpendStreakTokenUpdateState -> {
+                            Text(
+                                text = rewardState.sideEffect,
+                                style = MaterialTheme.typography.body1,
+                            )
+                            // TODO handle 'out of streak', add this to state!
+                            LinearProgressIndicator(
+                                progress = if (rewardState.currentStreak > rewardState.requiredStreak) 1f else rewardState.currentStreak / (rewardState.requiredStreak * 1.0f),
+                                color = MaterialTheme.colors.secondary,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Text(
+                                text = "${rewardState.requiredStreak}",
+                                style = MaterialTheme.typography.body1,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.align(Alignment.End)
+                            )
+                        }
+                        is RangeProofStreakTokenUpdateState -> {
+                            Text(
+                                text = rewardState.sideEffect,
+                                style = MaterialTheme.typography.body1,
+                            )
+                            LinearProgressIndicator(
+                                progress = if (rewardState.currentStreak > rewardState.requiredStreak) 1f else rewardState.currentStreak / (rewardState.requiredStreak * 1.0f),
+                                color = MaterialTheme.colors.secondary,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Text(
+                                text = "${rewardState.requiredStreak}",
+                                style = MaterialTheme.typography.body1,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.align(Alignment.End)
+                            )
+                        }
+                        is StandardStreakTokenUpdateState -> {
+                            // TODO do we want to visualize this?
+                        }
                     }
-                    if (rewardStateIterator.hasNext()) {
+                    if (tokenUpdateStateIterator.hasNext()) {
                         Divider(Modifier.padding(vertical = 8.dp))
                     }
                 }
@@ -170,25 +260,50 @@ fun TokenCard(
 
 const val uiMode = Configuration.UI_MODE_NIGHT_NO
 val firstPromotionState =
-    NutellaPromotionState(
+    HazelPromotionState(
         id = "1",
         title = "First Promotion",
-        description = "Get free nutella for buying nutella",
+        description = "Get free Hazelnut Spread for buying Hazelnut Spread",
         count = 3,
-        rewards = listOf(
-            NutellaRewardState("Description", "Nutella", 3, 5),
-            NutellaRewardState("Description", "Large Nutella", 3, 8),
+        updates = listOf(
+            HazelTokenUpdateState("Description", "Hazelnut Spread", 3, 5),
+            HazelTokenUpdateState("Description", "Large Hazelnut Spread", 3, 8),
         ),
     )
 val secondPromotionState =
-    NutellaPromotionState(
+    HazelPromotionState(
         id = "2",
         title = "Other Promotion",
         description = "You can win a pan if you're really really really lucky",
         count = 3,
-        rewards = listOf(
-            NutellaRewardState("Description", "Pan", 3, 5)
+        updates = listOf(
+            HazelTokenUpdateState("Description", "Pan", 3, 5)
         ),
+    )
+val thirdPromotionState =
+    VipPromotionState(
+        id = "3",
+        title = "VIP Promotion",
+        description = "You can reach VIP levels bronze, silver and gold for spending money.",
+        updates = listOf(
+            VipTokenUpdateState("Description", "2% Discount", VipStatus.BRONZE, VipStatus.BRONZE),
+            UpgradeVipTokenUpdateState(
+                "Description",
+                "Become Silver VIP",
+                2734,
+                3000,
+                VipStatus.SILVER
+            ),
+            UpgradeVipTokenUpdateState(
+                "Description",
+                "Become Gold VIP",
+                2734,
+                10000,
+                VipStatus.GOLD
+            )
+        ),
+        2734,
+        VipStatus.BRONZE
     )
 
 @Composable
@@ -203,6 +318,7 @@ fun DashboardPreview() {
             DashboardState(
                 listOf(
                     firstPromotionState,
+                    thirdPromotionState,
                     secondPromotionState,
                 )
             )
