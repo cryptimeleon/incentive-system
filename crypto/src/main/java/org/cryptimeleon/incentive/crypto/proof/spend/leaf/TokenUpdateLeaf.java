@@ -44,11 +44,7 @@ public class TokenUpdateLeaf extends SpendDeductLeafNode {
 
     @Override
     public boolean isValidForPoints(Vector<BigInteger> oldPointsVector, Vector<BigInteger> newPointsVector) {
-        boolean isValid = Util.arePointsInRange(newPointsVector, this.lowerLimits, this.upperLimits);
-        for (int i = 0; i < oldPointsVector.length(); i++) {
-            isValid &= newPointsVector.get(i).equals(this.aVector.get(i).multiply(oldPointsVector.get(i)).add(this.bVector.get(i)));
-        }
-        return isValid;
+        return Util.arePointsInRange(newPointsVector, this.lowerLimits, this.upperLimits)
+                && Util.satisfyAffineLinearRelation(oldPointsVector, newPointsVector, this.aVector, this.bVector);
     }
-
 }

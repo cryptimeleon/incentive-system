@@ -1,7 +1,7 @@
 package org.cryptimeleon.incentive.client;
 
-import org.cryptimeleon.incentive.promotion.promotions.NutellaPromotion;
-import org.cryptimeleon.incentive.promotion.promotions.Promotion;
+import org.cryptimeleon.incentive.promotion.Promotion;
+import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -79,7 +79,7 @@ public class IncentiveClient {
                 .toEntityList(String.class)
                 .map(s ->
                         s.getBody().stream().map(it ->
-                                new NutellaPromotion(jsonConverter.deserialize(it))
+                                (Promotion) ((RepresentableRepresentation) jsonConverter.deserialize(it)).recreateRepresentable()
                         ).collect(Collectors.toList())
                 );
     }

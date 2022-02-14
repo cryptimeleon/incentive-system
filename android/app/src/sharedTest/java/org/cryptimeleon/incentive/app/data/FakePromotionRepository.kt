@@ -3,7 +3,7 @@ package org.cryptimeleon.incentive.app.data
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.cryptimeleon.incentive.app.domain.IPromotionRepository
-import org.cryptimeleon.incentive.promotion.promotions.Promotion
+import org.cryptimeleon.incentive.promotion.Promotion
 
 class FakePromotionRepository(private val promotionList: List<Promotion>) : IPromotionRepository {
 
