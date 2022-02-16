@@ -10,14 +10,15 @@ import org.cryptimeleon.incentive.crypto.model.Token;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse;
+import org.cryptimeleon.incentive.promotion.Promotion;
+import org.cryptimeleon.incentive.promotion.RewardSideEffect;
+import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion;
+import org.cryptimeleon.incentive.promotion.hazel.HazelTokenUpdate;
 import org.cryptimeleon.incentive.promotion.model.Basket;
 import org.cryptimeleon.incentive.promotion.model.BasketItem;
-import org.cryptimeleon.incentive.promotion.promotions.NutellaPromotion;
-import org.cryptimeleon.incentive.promotion.promotions.Promotion;
-import org.cryptimeleon.incentive.promotion.reward.NutellaReward;
-import org.cryptimeleon.incentive.promotion.reward.RewardSideEffect;
 import org.cryptimeleon.incentive.services.promotion.repository.BasketRepository;
 import org.cryptimeleon.incentive.services.promotion.repository.CryptoRepository;
+import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.rings.RingElement;
@@ -62,10 +63,10 @@ public class PromotionServiceTest {
     UserKeyPair ukp = Setup.userKeyGen(pp);
     JSONConverter jsonConverter = new JSONConverter();
 
-    Promotion promotionToAdd = new NutellaPromotion(NutellaPromotion.generatePromotionParameters(),
+    Promotion promotionToAdd = new HazelPromotion(HazelPromotion.generatePromotionParameters(),
             "Test Promotion",
             "Test Description",
-            List.of(new NutellaReward(2, "Reward", UUID.randomUUID(), new RewardSideEffect("Yay"))),
+            List.of(new HazelTokenUpdate(UUID.randomUUID(), "Reward", new RewardSideEffect("Yay"), 2)),
             "Test");
 
     @BeforeEach
@@ -113,7 +114,8 @@ public class PromotionServiceTest {
 
         assert newSerializedPromotions != null;
         return Arrays.stream(newSerializedPromotions)
-                .map(s -> new NutellaPromotion(jsonConverter.deserialize(s))).collect(Collectors.toList());
+                .map(s -> (Promotion) ((RepresentableRepresentation) jsonConverter.deserialize(s)).recreateRepresentable())
+                .collect(Collectors.toList());
     }
 
     @Test
@@ -194,11 +196,11 @@ public class PromotionServiceTest {
 
         // Spend Deduct
         Vector<BigInteger> basketPoints = promotionToJoin.computeEarningsForBasket(testBasket);
-        var tokenPoitns = new Vector<>(earnedToken.getPoints().map(RingElement::asInteger));
-        var possibleRewards = promotionToJoin.computeRewardsForPoints(tokenPoitns, basketPoints);
+        var tokenPoints = new Vector<>(earnedToken.getPoints().map(RingElement::asInteger));
+        var possibleRewards = promotionToJoin.computeTokenUpdatesForPoints(tokenPoints, basketPoints, null);
         // User choice in app
         var chosenReward = possibleRewards.get(0);
-        var pointsAfterSpend = chosenReward.computeSatisfyingNewPointsVector(tokenPoitns, basketPoints).orElseThrow();
+        var pointsAfterSpend = chosenReward.computeSatisfyingNewPointsVector(tokenPoints, basketPoints).orElseThrow();
 
         var spendDeductTree = chosenReward.generateRelationTree(basketPoints);
         var tid = testBasket.getBasketId(pp.getBg().getZn());
@@ -210,7 +212,7 @@ public class PromotionServiceTest {
                 .header("promotion-id", String.valueOf(promotionToJoin.getPromotionParameters().getPromotionId()))
                 .header("spend-request", jsonConverter.serialize(spendRequest.getRepresentation()))
                 .header("basket-id", testBasketId.toString())
-                .header("reward-id", String.valueOf(chosenReward.getRewardId()))
+                .header("reward-id", String.valueOf(chosenReward.getTokenUpdateId()))
                 .exchange()
                 .expectStatus()
                 .isOk()
@@ -227,7 +229,7 @@ public class PromotionServiceTest {
                 .header("promotion-id", String.valueOf(BigInteger.valueOf(42)))
                 .header("spend-request", jsonConverter.serialize(spendRequest.getRepresentation()))
                 .header("basket-id", testBasketId.toString())
-                .header("reward-id", String.valueOf(chosenReward.getRewardId()))
+                .header("reward-id", String.valueOf(chosenReward.getTokenUpdateId()))
                 .exchange()
                 .expectStatus()
                 .is4xxClientError();
@@ -238,7 +240,7 @@ public class PromotionServiceTest {
                 .header("promotion-id", String.valueOf(promotionToJoin.getPromotionParameters().getPromotionId()))
                 .header("spend-request", jsonConverter.serialize(spendRequest.getRepresentation()))
                 .header("basket-id", UUID.randomUUID().toString())
-                .header("reward-id", String.valueOf(chosenReward.getRewardId()))
+                .header("reward-id", String.valueOf(chosenReward.getTokenUpdateId()))
                 .exchange()
                 .expectStatus()
                 .is4xxClientError();

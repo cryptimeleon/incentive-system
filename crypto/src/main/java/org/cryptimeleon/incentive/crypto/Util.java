@@ -80,4 +80,17 @@ public class Util {
         isValid &= upperLimits.zipReduce(pointsVector, (upperLimit, points) -> upperLimit == null || upperLimit.compareTo(points) >= 0, (a, b) -> a && b);
         return isValid;
     }
+
+    public static boolean satisfyAffineLinearRelation(Vector<BigInteger> oldPointsVector,
+                                                      Vector<BigInteger> newPointsVector,
+                                                      Vector<BigInteger> aVector,
+                                                      Vector<BigInteger> bVector) {
+        boolean isValid = true;
+        for (int i = 0; i < oldPointsVector.length(); i++) {
+            if (aVector.get(i) != null && bVector.get(i) != null) {
+                isValid &= newPointsVector.get(i).equals(aVector.get(i).multiply(oldPointsVector.get(i)).add(bVector.get(i)));
+            }
+        }
+        return isValid;
+    }
 }
