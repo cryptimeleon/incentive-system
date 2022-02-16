@@ -96,7 +96,8 @@ public class Benchmark {
             start = Instant.now();
             joinRequest = incentiveSystem.generateJoinRequest(
                     ppk,
-                    userKeyPair
+                    userKeyPair,
+                    promotionParameters
             );
             finish = Instant.now();
             tJoinRequest[i] = Duration.between(start, finish).toNanos();
