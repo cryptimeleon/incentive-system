@@ -26,7 +26,8 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
@@ -36,6 +37,7 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedButton
+import androidx.compose.material.RadioButton
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
@@ -51,6 +53,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -246,9 +249,31 @@ private fun BasketUi(
 @Composable
 fun BasketPromotion(promotionStates: List<PromotionState>) {
     promotionStates.forEach {
-        Text(text = it.toString(), style = MaterialTheme.typography.h6)
-        it.qualifiedUpdates.forEach {
-            Text(text = it.toString())
+        val (selectedItemIndex, setSelectedItemIndex) = remember { mutableStateOf(0) }
+        Text(text = it.promotion.promotionName, style = MaterialTheme.typography.h6)
+        Column(Modifier.selectableGroup()) {
+            it.qualifiedUpdates.forEachIndexed { index, updateChoice ->
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .selectable(
+                            selected = (index == selectedItemIndex),
+                            onClick = { setSelectedItemIndex(index) },
+                            role = Role.RadioButton
+                        ),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RadioButton(
+                        selected = (index == selectedItemIndex),
+                        onClick = null // Recommended since Row already handles clicks
+                    )
+                    Text(
+                        text = updateChoice.toString(),
+                        style = MaterialTheme.typography.body1.merge(),
+                        modifier = Modifier.padding(start = 16.dp)
+                    )
+                }
+            }
         }
     }
 }

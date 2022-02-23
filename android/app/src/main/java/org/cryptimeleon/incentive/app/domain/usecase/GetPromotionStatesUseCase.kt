@@ -9,7 +9,6 @@ import org.cryptimeleon.incentive.app.domain.model.PromotionState
 import org.cryptimeleon.incentive.app.domain.model.UpdateChoice
 import org.cryptimeleon.incentive.crypto.model.Token
 import org.cryptimeleon.math.structures.cartesian.Vector
-import timber.log.Timber
 import java.math.BigInteger
 import java.util.function.Function
 
@@ -35,13 +34,23 @@ class GetPromotionStatesUseCase(
                 val tokenPoints = token.toBigIntVector()
                 val updates = mutableListOf<UpdateChoice>(UpdateChoice.None)
                 val metadata = it.generateMetadataForUpdate()
-                if (it.fastEarnSupported == null) {
-                    Timber.w("Fast earn null for %s", it.toString())
-                } else if (it.fastEarnSupported) updates.add(UpdateChoice.Earn(basketPoints))
+                if (it.fastEarnSupported && basketPoints.stream().anyMatch { x -> x.toInt() > 0 }) {
+                    // Basket points must be non-zero (and positive) for a useful update
+                    updates.add(UpdateChoice.Earn(basketPoints))
+                }
                 updates.addAll(
                     it.computeTokenUpdatesForPoints(tokenPoints, basketPoints, metadata)
                         .map { zkp ->
-                            UpdateChoice.ZKP(zkp, metadata)
+                            UpdateChoice.ZKP(
+                                update = zkp,
+                                oldPoints = tokenPoints,
+                                newPoints = zkp.computeSatisfyingNewPointsVector(
+                                    tokenPoints,
+                                    basketPoints,
+                                    metadata
+                                ).get(),
+                                metadata = metadata
+                            )
                         })
                 return@map PromotionState(it, basketPoints, tokenPoints, updates)
             }
