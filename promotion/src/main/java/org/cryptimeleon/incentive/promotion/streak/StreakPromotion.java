@@ -6,6 +6,7 @@ import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.promotion.Promotion;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdate;
+import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
 import org.cryptimeleon.incentive.promotion.model.Basket;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.annotations.ReprUtil;
@@ -69,6 +70,11 @@ public class StreakPromotion extends Promotion {
     @Override
     public Vector<BigInteger> computeEarningsForBasket(Basket basket) {
         return Vector.of(BigInteger.ZERO, BigInteger.ZERO);
+    }
+
+    @Override
+    public ZkpTokenUpdateMetadata generateMetadataForUpdate() {
+        return StreakTokenUpdateTimestamp.now();
     }
 
     @Override

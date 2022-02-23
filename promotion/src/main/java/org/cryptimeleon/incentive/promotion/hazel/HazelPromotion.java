@@ -60,7 +60,7 @@ public class HazelPromotion extends Promotion {
                         .filter(basketItem -> basketItem.getTitle().toLowerCase().contains(selector))
                         .map(BasketItem::getCount)
                         .reduce(Integer::sum)
-                        .orElseThrow()
+                        .orElse(0)
         ));
     }
 
