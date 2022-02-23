@@ -47,6 +47,7 @@ public class UpgradeVipZkpTokenUpdate extends ZkpTokenUpdate {
      */
     public UpgradeVipZkpTokenUpdate(UUID rewardId, String rewardDescription, int toVipStatus, Integer accumulatedCost) {
         // TODO we could add the advantage of having that VIP level to the side effect
+        // Yes, replace Side Effect by that!
         super(rewardId, rewardDescription, new RewardSideEffect("Upgrade VIP status to " + toVipStatus));
         this.toVipStatus = toVipStatus;
         this.accumulatedCost = accumulatedCost;
