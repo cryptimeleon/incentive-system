@@ -37,7 +37,7 @@ public class StreakTokenUpdateTimestamp extends ZkpTokenUpdateMetadata {
      */
     static StreakTokenUpdateTimestamp now() {
         LocalDate epoch = LocalDate.ofEpochDay(0);
-        LocalDate now = LocalDate.ofEpochDay(0);
+        LocalDate now = LocalDate.now();
         return new StreakTokenUpdateTimestamp(ChronoUnit.DAYS.between(epoch, now));
     }
 
