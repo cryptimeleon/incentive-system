@@ -13,7 +13,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.cryptimeleon.incentive.app.data.BasketRepository
 import org.cryptimeleon.incentive.app.data.CryptoRepository
+import org.cryptimeleon.incentive.app.data.PromotionRepository
 import org.cryptimeleon.incentive.app.domain.model.Basket
+import org.cryptimeleon.incentive.app.domain.model.PromotionState
+import org.cryptimeleon.incentive.app.domain.usecase.GetPromotionStatesUseCase
 import org.cryptimeleon.incentive.app.util.SLE
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters
 import timber.log.Timber
@@ -24,6 +27,7 @@ import javax.inject.Inject
 class BasketViewModel @Inject constructor(
     private val cryptoRepository: CryptoRepository,
     private val basketRepository: BasketRepository,
+    promotionRepository: PromotionRepository,
     application: Application
 ) : AndroidViewModel(application) {
 
@@ -35,6 +39,12 @@ class BasketViewModel @Inject constructor(
             SLE.Success(it)
         }
     }
+
+    val promotionStates: Flow<List<PromotionState>> = GetPromotionStatesUseCase(
+        promotionRepository,
+        cryptoRepository,
+        basketRepository
+    )()
 
     fun setItemCount(itemId: String, count: Int) {
         viewModelScope.launch {

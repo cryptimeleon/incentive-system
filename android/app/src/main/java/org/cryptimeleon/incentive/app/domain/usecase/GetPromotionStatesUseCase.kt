@@ -1,0 +1,52 @@
+package org.cryptimeleon.incentive.app.domain.usecase
+
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import org.cryptimeleon.incentive.app.domain.IBasketRepository
+import org.cryptimeleon.incentive.app.domain.ICryptoRepository
+import org.cryptimeleon.incentive.app.domain.IPromotionRepository
+import org.cryptimeleon.incentive.app.domain.model.PromotionState
+import org.cryptimeleon.incentive.app.domain.model.UpdateChoice
+import org.cryptimeleon.incentive.crypto.model.Token
+import org.cryptimeleon.math.structures.cartesian.Vector
+import timber.log.Timber
+import java.math.BigInteger
+import java.util.function.Function
+
+class GetPromotionStatesUseCase(
+    private val promotionRepository: IPromotionRepository,
+    private val cryptoRepository: ICryptoRepository,
+    private val basketRepository: IBasketRepository
+) {
+
+    operator fun invoke(): Flow<List<PromotionState>> =
+        combine(
+            promotionRepository.promotions,
+            cryptoRepository.tokens,
+            basketRepository.basket
+        ) { promotions, tokens, basket ->
+            if (basket == null) return@combine emptyList<PromotionState>()
+
+            return@combine promotions.map {
+                val token =
+                    tokens.find { token: Token -> token.promotionId == it.promotionParameters.promotionId }
+                        ?: throw RuntimeException("No token for promotion found!")
+                val basketPoints = it.computeEarningsForBasket(basket.toPromotionBasket())
+                val tokenPoints = token.toBigIntVector()
+                val updates = mutableListOf<UpdateChoice>(UpdateChoice.None)
+                val metadata = it.generateMetadataForUpdate()
+                if (it.fastEarnSupported == null) {
+                    Timber.w("Fast earn null for %s", it.toString())
+                } else if (it.fastEarnSupported) updates.add(UpdateChoice.Earn(basketPoints))
+                updates.addAll(
+                    it.computeTokenUpdatesForPoints(tokenPoints, basketPoints, metadata)
+                        .map { zkp ->
+                            UpdateChoice.ZKP(zkp, metadata)
+                        })
+                return@map PromotionState(it, basketPoints, tokenPoints, updates)
+            }
+        }
+}
+
+private fun Token.toBigIntVector(): Vector<BigInteger> =
+    points.map(Function { it.asInteger() })

@@ -59,6 +59,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import org.cryptimeleon.incentive.app.domain.model.Basket
 import org.cryptimeleon.incentive.app.domain.model.BasketItem
+import org.cryptimeleon.incentive.app.domain.model.PromotionState
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 import org.cryptimeleon.incentive.app.util.SLE
@@ -74,9 +75,13 @@ fun formatCents(valueCents: Int): String = currencyFormat.format(valueCents.toDo
 fun BasketUi(openSettings: () -> Unit, openBenchmark: () -> Unit) {
     val basketViewModel = hiltViewModel<BasketViewModel>()
     val basket: SLE<Basket> by basketViewModel.basket.collectAsState(initial = SLE.Loading())
+    val promotionStates: List<PromotionState> by basketViewModel.promotionStates.collectAsState(
+        initial = emptyList()
+    )
 
     BasketUi(
         basketSle = basket,
+        promotionStates = promotionStates,
         setItemCount = basketViewModel::setItemCount,
         pay = basketViewModel::payAndRedeem,
         discard = basketViewModel::onDiscardClicked,
@@ -89,6 +94,7 @@ fun BasketUi(openSettings: () -> Unit, openBenchmark: () -> Unit) {
 @Composable
 private fun BasketUi(
     basketSle: SLE<Basket>,
+    promotionStates: List<PromotionState>,
     setItemCount: (String, Int) -> Unit,
     pay: () -> Unit,
     discard: () -> Unit,
@@ -96,7 +102,6 @@ private fun BasketUi(
     openBenchmark: () -> Unit = {}
 ) {
     var expandedBasketItem by remember { mutableStateOf(wrongId) }
-    val lazyListState = rememberLazyListState()
 
     Scaffold(topBar = {
         DefaultTopAppBar(
@@ -107,94 +112,107 @@ private fun BasketUi(
         when (basketSle) {
             is SLE.Error -> TODO()
             is SLE.Loading -> LoadingSpinner()
-            is SLE.Success -> Column(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxHeight(),
-            ) {
+            is SLE.Success -> {
                 val basket = basketSle.data!!
                 if (basket.items.isNotEmpty()) {
                     val basketItemsCount = basket.items.map { it.count }.sum()
-                    Row() {
-                        AnimatedContent(targetState = basketItemsCount, transitionSpec = {
-                            if (targetState > initialState) {
-                                slideInVertically { height -> height } + fadeIn() with
-                                        slideOutVertically { height -> -height } + fadeOut()
-                            } else {
-                                slideInVertically { height -> -height } + fadeIn() with
-                                        slideOutVertically { height -> height } + fadeOut()
-                            }.using(
-                                SizeTransform(clip = false)
-                            )
-                        }) { targetItem ->
-                            Text(
-                                text = "$targetItem",
-                                style = MaterialTheme.typography.overline,
-                                fontSize = 14.sp
-                            )
+                    Column(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .padding(16.dp)
+                    ) {
+                        LazyColumn(modifier = Modifier.weight(1f)) {
+                            item {
+                                Row() {
+                                    AnimatedContent(
+                                        targetState = basketItemsCount,
+                                        transitionSpec = {
+                                            if (targetState > initialState) {
+                                                slideInVertically { height -> height } + fadeIn() with
+                                                        slideOutVertically { height -> -height } + fadeOut()
+                                            } else {
+                                                slideInVertically { height -> -height } + fadeIn() with
+                                                        slideOutVertically { height -> height } + fadeOut()
+                                            }.using(
+                                                SizeTransform(clip = false)
+                                            )
+                                        }) { targetItem ->
+                                        Text(
+                                            text = "$targetItem",
+                                            style = MaterialTheme.typography.overline,
+                                            fontSize = 14.sp
+                                        )
+                                    }
+                                    Text(
+                                        text = " Item${if (basketItemsCount > 1) "s" else ""} in your cart:",
+                                        style = MaterialTheme.typography.overline,
+                                        fontSize = 14.sp
+                                    )
+                                }
+                            }
+
+                            items(basket.items) { item ->
+                                Divider()
+                                BasketItem(
+                                    item = item,
+                                    expanded = expandedBasketItem == item.itemId,
+                                    onClick = {
+                                        expandedBasketItem =
+                                            if (expandedBasketItem == item.itemId) wrongId else item.itemId
+                                    },
+                                    setCount = { count ->
+                                        setItemCount(item.itemId, count)
+                                    },
+                                    modifier = Modifier.padding(vertical = 8.dp),
+                                )
+                            }
+                            item {
+                                Divider(thickness = 3.dp)
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 8.dp)
+                                ) {
+                                    Text(
+                                        text = "Total",
+                                        style = MaterialTheme.typography.h5,
+                                    )
+                                    Text(
+                                        text = formatCents(basket.value),
+                                        style = MaterialTheme.typography.h5,
+                                    )
+                                }
+                                Spacer(
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                )
+                            }
+                            item {
+                                BasketPromotion(promotionStates)
+                            }
+                            item {
+                                Spacer(
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                )
+                            }
                         }
-                        Text(
-                            text = " Item${if (basketItemsCount > 1) "s" else ""} in your cart:",
-                            style = MaterialTheme.typography.overline,
-                            fontSize = 14.sp
-                        )
-                    }
-                    LazyColumn(
-                        modifier = Modifier
-                            .padding(top = 8.dp),
-                        state = lazyListState
-                    ) {
-                        items(basket.items) { item ->
-                            Divider()
-                            BasketItem(
-                                item = item,
-                                expanded = expandedBasketItem == item.itemId,
-                                onClick = {
-                                    expandedBasketItem =
-                                        if (expandedBasketItem == item.itemId) wrongId else item.itemId
-                                },
-                                setCount = { count ->
-                                    setItemCount(item.itemId, count)
-                                },
-                                modifier = Modifier.padding(vertical = 8.dp),
-                            )
-                        }
-                    }
-                    Divider(thickness = 3.dp)
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp)
-                    ) {
-                        Text(
-                            text = "Total",
-                            style = MaterialTheme.typography.h5,
-                        )
-                        Text(
-                            text = formatCents(basket.value),
-                            style = MaterialTheme.typography.h5,
-                        )
-                    }
-                    Spacer(
-                        modifier = Modifier
-                            .size(32.dp)
-                            .weight(1f)
-                    )
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        OutlinedButton(
-                            modifier = Modifier.weight(1f),
-                            onClick = { discard() }
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            Text("Discard")
-                        }
-                        Button(
-                            modifier = Modifier.weight(1f),
-                            onClick = { pay() }
-                        ) {
-                            Text("Pay and Redeem")
+                            OutlinedButton(
+                                modifier = Modifier.weight(1f),
+                                onClick = { discard() }
+                            ) {
+                                Text("Discard")
+                            }
+                            Button(
+                                modifier = Modifier.weight(1f),
+                                onClick = { pay() }
+                            ) {
+                                Text("Pay and Redeem")
+                            }
                         }
                     }
                 } else {
@@ -221,6 +239,16 @@ private fun BasketUi(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun BasketPromotion(promotionStates: List<PromotionState>) {
+    promotionStates.forEach {
+        Text(text = it.toString(), style = MaterialTheme.typography.h6)
+        it.qualifiedUpdates.forEach {
+            Text(text = it.toString())
         }
     }
 }
@@ -399,7 +427,7 @@ const val previewUiMode = Configuration.UI_MODE_NIGHT_NO
 )
 private fun BasketPreview() {
     CryptimeleonTheme {
-        BasketUi(SLE.Success(testBasket), { _, _ -> {} }, {}, {})
+        BasketUi(SLE.Success(testBasket), emptyList(), { _, _ -> {} }, {}, {})
     }
 }
 
@@ -413,7 +441,7 @@ private fun BasketPreview() {
 )
 private fun BasketPreviewLoading() {
     CryptimeleonTheme {
-        BasketUi(SLE.Loading(), { _, _ -> {} }, {}, {})
+        BasketUi(SLE.Loading(), emptyList(), { _, _ -> {} }, {}, {})
     }
 }
 
@@ -427,7 +455,7 @@ private fun BasketPreviewLoading() {
 )
 private fun BasketPreviewEmpty() {
     CryptimeleonTheme {
-        BasketUi(SLE.Success(emptyTestBasket), { _, _ -> {} }, {}, {})
+        BasketUi(SLE.Success(emptyTestBasket), emptyList(), { _, _ -> {} }, {}, {})
     }
 }
 
