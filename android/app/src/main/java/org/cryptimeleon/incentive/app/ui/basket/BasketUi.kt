@@ -63,9 +63,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import org.cryptimeleon.incentive.app.domain.model.Basket
 import org.cryptimeleon.incentive.app.domain.model.BasketItem
 import org.cryptimeleon.incentive.app.domain.model.PromotionState
+import org.cryptimeleon.incentive.app.domain.model.PromotionUserUpdateChoice
+import org.cryptimeleon.incentive.app.domain.model.UserUpdateChoice
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 import org.cryptimeleon.incentive.app.util.SLE
+import java.math.BigInteger
 import java.util.*
 
 val wrongId: String =
@@ -81,11 +84,16 @@ fun BasketUi(openSettings: () -> Unit, openBenchmark: () -> Unit) {
     val promotionStates: List<PromotionState> by basketViewModel.promotionStates.collectAsState(
         initial = emptyList()
     )
+    val userUpdateChoices: List<PromotionUserUpdateChoice> by basketViewModel.tokenUpdateChoices.collectAsState(
+        initial = emptyList()
+    )
 
     BasketUi(
         basketSle = basket,
         promotionStates = promotionStates,
+        userTokenUpdateChoices = userUpdateChoices,
         setItemCount = basketViewModel::setItemCount,
+        setUserUpdateChoice = basketViewModel::setUpdateChoice,
         pay = basketViewModel::payAndRedeem,
         discard = basketViewModel::onDiscardClicked,
         openSettings = openSettings,
@@ -98,7 +106,9 @@ fun BasketUi(openSettings: () -> Unit, openBenchmark: () -> Unit) {
 private fun BasketUi(
     basketSle: SLE<Basket>,
     promotionStates: List<PromotionState>,
+    userTokenUpdateChoices: List<PromotionUserUpdateChoice>,
     setItemCount: (String, Int) -> Unit,
+    setUserUpdateChoice: (promotionId: BigInteger, userUpdateChoice: UserUpdateChoice) -> Unit,
     pay: () -> Unit,
     discard: () -> Unit,
     openSettings: () -> Unit = {},
@@ -192,7 +202,11 @@ private fun BasketUi(
                                 )
                             }
                             item {
-                                BasketPromotion(promotionStates)
+                                BasketPromotion(
+                                    promotionStates = promotionStates,
+                                    userTokenUpdateChoices = userTokenUpdateChoices,
+                                    setUserUpdateChoice = setUserUpdateChoice
+                                )
                             }
                             item {
                                 Spacer(
@@ -247,24 +261,34 @@ private fun BasketUi(
 }
 
 @Composable
-fun BasketPromotion(promotionStates: List<PromotionState>) {
+fun BasketPromotion(
+    promotionStates: List<PromotionState>,
+    userTokenUpdateChoices: List<PromotionUserUpdateChoice>,
+    setUserUpdateChoice: (promotionId: BigInteger, userUpdateChoice: UserUpdateChoice) -> Unit
+) {
     promotionStates.forEach {
-        val (selectedItemIndex, setSelectedItemIndex) = remember { mutableStateOf(0) }
+        val selectedTokenUpdateChoice =
+            userTokenUpdateChoices.find { choice -> choice.promotionId == it.promotion.promotionParameters.promotionId }?.userUpdateChoice
         Text(text = it.promotion.promotionName, style = MaterialTheme.typography.h6)
         Column(Modifier.selectableGroup()) {
-            it.qualifiedUpdates.forEachIndexed { index, updateChoice ->
+            it.qualifiedUpdates.forEach { updateChoice ->
                 Row(
                     Modifier
                         .fillMaxWidth()
                         .selectable(
-                            selected = (index == selectedItemIndex),
-                            onClick = { setSelectedItemIndex(index) },
+                            selected = (updateChoice.toUserUpdateChoice() == selectedTokenUpdateChoice),
+                            onClick = {
+                                setUserUpdateChoice(
+                                    it.promotion.promotionParameters.promotionId,
+                                    updateChoice.toUserUpdateChoice()
+                                )
+                            },
                             role = Role.RadioButton
                         ),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     RadioButton(
-                        selected = (index == selectedItemIndex),
+                        selected = (updateChoice.toUserUpdateChoice() == selectedTokenUpdateChoice),
                         onClick = null // Recommended since Row already handles clicks
                     )
                     Text(
@@ -452,7 +476,15 @@ const val previewUiMode = Configuration.UI_MODE_NIGHT_NO
 )
 private fun BasketPreview() {
     CryptimeleonTheme {
-        BasketUi(SLE.Success(testBasket), emptyList(), { _, _ -> {} }, {}, {})
+        BasketUi(
+            SLE.Success(testBasket),
+            emptyList(),
+            emptyList(),
+            { _, _ -> {} },
+            { _, _ -> {} },
+            {},
+            {},
+            {})
     }
 }
 
@@ -466,7 +498,15 @@ private fun BasketPreview() {
 )
 private fun BasketPreviewLoading() {
     CryptimeleonTheme {
-        BasketUi(SLE.Loading(), emptyList(), { _, _ -> {} }, {}, {})
+        BasketUi(
+            SLE.Loading(),
+            emptyList(),
+            emptyList(),
+            { _, _ -> {} },
+            { _, _ -> {} },
+            {},
+            {},
+            {})
     }
 }
 
@@ -480,7 +520,15 @@ private fun BasketPreviewLoading() {
 )
 private fun BasketPreviewEmpty() {
     CryptimeleonTheme {
-        BasketUi(SLE.Success(emptyTestBasket), emptyList(), { _, _ -> {} }, {}, {})
+        BasketUi(
+            SLE.Success(emptyTestBasket),
+            emptyList(),
+            emptyList(),
+            { _, _ -> {} },
+            { _, _ -> {} },
+            {},
+            {},
+            {})
     }
 }
 

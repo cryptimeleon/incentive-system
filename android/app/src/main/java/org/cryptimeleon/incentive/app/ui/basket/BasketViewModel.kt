@@ -16,6 +16,9 @@ import org.cryptimeleon.incentive.app.data.CryptoRepository
 import org.cryptimeleon.incentive.app.data.PromotionRepository
 import org.cryptimeleon.incentive.app.domain.model.Basket
 import org.cryptimeleon.incentive.app.domain.model.PromotionState
+import org.cryptimeleon.incentive.app.domain.model.PromotionUserUpdateChoice
+import org.cryptimeleon.incentive.app.domain.model.UserUpdateChoice
+import org.cryptimeleon.incentive.app.domain.usecase.AnalyzeUserTokenUpdatesUseCase
 import org.cryptimeleon.incentive.app.domain.usecase.GetPromotionStatesUseCase
 import org.cryptimeleon.incentive.app.util.SLE
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters
@@ -27,7 +30,7 @@ import javax.inject.Inject
 class BasketViewModel @Inject constructor(
     private val cryptoRepository: CryptoRepository,
     private val basketRepository: BasketRepository,
-    promotionRepository: PromotionRepository,
+    private val promotionRepository: PromotionRepository,
     application: Application
 ) : AndroidViewModel(application) {
 
@@ -45,6 +48,17 @@ class BasketViewModel @Inject constructor(
         cryptoRepository,
         basketRepository
     )()
+
+    val tokenUpdateChoices: Flow<List<PromotionUserUpdateChoice>> =
+        AnalyzeUserTokenUpdatesUseCase(promotionRepository, cryptoRepository, basketRepository)()
+
+    fun setUpdateChoice(promotionId: BigInteger, userUpdateChoice: UserUpdateChoice) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                promotionRepository.putUserUpdateChoice(promotionId, userUpdateChoice)
+            }
+        }
+    }
 
     fun setItemCount(itemId: String, count: Int) {
         viewModelScope.launch {
