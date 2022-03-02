@@ -51,7 +51,7 @@ public class BasketRepository {
                 basketDto.getItems().entrySet().stream()
                         .map(stringIntegerEntry -> {
                             var basketItem = Arrays.stream(items).filter(item -> item.getId().equals(stringIntegerEntry.getKey())).findAny().get();
-                            return new BasketItem(UUID.fromString(basketItem.getId()), basketItem.getTitle(), basketItem.getPrice(), stringIntegerEntry.getValue());
+                            return new BasketItem(basketItem.getId(), basketItem.getTitle(), basketItem.getPrice(), stringIntegerEntry.getValue());
                         })
                         .collect(Collectors.toList())
         );
