@@ -1,5 +1,7 @@
 package org.cryptimeleon.incentive.client;
 
+import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
+import org.cryptimeleon.incentive.client.dto.inc.TokenUpdateResultsDto;
 import org.cryptimeleon.incentive.promotion.Promotion;
 import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
@@ -57,20 +59,23 @@ public class IncentiveClient {
                 .bodyToMono(String.class);
     }
 
-    /**
-     * Sends an earn request
-     *
-     * @param serializedEarnRequest the serialized earn request
-     * @param basketId              the serialized basket id
-     */
-    public Mono<String> sendEarnRequest(String serializedEarnRequest, UUID basketId) {
+    public Mono<Void> sendBulkUpdates(UUID basketId, BulkRequestDto bulkRequestDto) {
         return incentiveClient.post()
-                .uri(uriBuilder -> uriBuilder.path("/earn").build())
-                .header("earn-request", serializedEarnRequest)
+                .uri(uriBuilder -> uriBuilder.path("/bulk-token-updates").build())
+                .header("basket-id", basketId.toString())
+                .body(BodyInserters.fromValue(bulkRequestDto))
+                .retrieve()
+                .bodyToMono(Void.class);
+    }
+
+    public Mono<TokenUpdateResultsDto> retrieveBulkResults(UUID basketId) {
+        return incentiveClient.post()
+                .uri(uriBuilder -> uriBuilder.path("/bulk-token-update-results").build())
                 .header("basket-id", basketId.toString())
                 .retrieve()
-                .bodyToMono(String.class);
+                .bodyToMono(TokenUpdateResultsDto.class);
     }
+
 
     public Mono<List<Promotion>> queryPromotions() {
         return incentiveClient.get()

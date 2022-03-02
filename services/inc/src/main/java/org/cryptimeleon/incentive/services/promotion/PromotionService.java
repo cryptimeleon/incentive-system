@@ -13,11 +13,14 @@ import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
 import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellformednessProtocol;
 import org.cryptimeleon.incentive.promotion.Promotion;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdate;
+import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
 import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion;
 import org.cryptimeleon.incentive.promotion.model.Basket;
+import org.cryptimeleon.incentive.client.dto.inc.*;
 import org.cryptimeleon.incentive.services.promotion.repository.BasketRepository;
 import org.cryptimeleon.incentive.services.promotion.repository.CryptoRepository;
 import org.cryptimeleon.incentive.services.promotion.repository.PromotionRepository;
+import org.cryptimeleon.incentive.services.promotion.repository.TokenUpdateResultRepository;
 import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.cartesian.Vector;
@@ -27,6 +30,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 
 /**
@@ -41,12 +45,14 @@ public class PromotionService {
     private CryptoRepository cryptoRepository;
     private PromotionRepository promotionRepository;
     private BasketRepository basketRepository;
+    private TokenUpdateResultRepository tokenUpdateResultRepository;
 
     @Autowired
-    private PromotionService(CryptoRepository cryptoRepository, PromotionRepository promotionRepository, BasketRepository basketRepository) {
+    private PromotionService(CryptoRepository cryptoRepository, PromotionRepository promotionRepository, BasketRepository basketRepository, TokenUpdateResultRepository tokenUpdateResultRepository) {
         this.cryptoRepository = cryptoRepository;
         this.promotionRepository = promotionRepository;
         this.basketRepository = basketRepository;
+        this.tokenUpdateResultRepository = tokenUpdateResultRepository;
     }
 
 
@@ -91,7 +97,7 @@ public class PromotionService {
      * @param basketId              id of the basket that is used for this earn protocol run
      * @return serialized signature
      */
-    public String handleEarnRequest(BigInteger promotionId, String serializedEarnRequest, UUID basketId) {
+    private String handleEarnRequest(BigInteger promotionId, String serializedEarnRequest, UUID basketId) {
         log.info("EarnRequest:" + serializedEarnRequest);
 
         Promotion promotion = promotionRepository.getPromotion(promotionId).orElseThrow(() -> new IncentiveServiceException(String.format("promotionId %d not found", promotionId)));
@@ -117,12 +123,10 @@ public class PromotionService {
         var providerKeyPair = new ProviderKeyPair(providerSecretKey, providerPublicKey);
         var signature = incentiveSystem.generateEarnRequestResponse(promotion.getPromotionParameters(), earnRequest, pointsToEarn, providerKeyPair);
 
-        // TODO: send this to basket server via back channel and return success
-
         return jsonConverter.serialize(signature.getRepresentation());
     }
 
-    public String handleSpendRequest(BigInteger promotionId, UUID basketId, UUID rewardId, String serializedSpendRequest) {
+    private String handleSpendRequest(BigInteger promotionId, UUID basketId, UUID rewardId, String serializedSpendRequest, String serializedMetadata) {
         log.info("SpendRequest:" + serializedSpendRequest);
 
         Promotion promotion = promotionRepository.getPromotion(promotionId).orElseThrow(() -> new IncentiveServiceException(String.format("promotionId %d not found", promotionId)));
@@ -140,8 +144,13 @@ public class PromotionService {
         // TODO some sanity checks on basket, wait for new basket service api
 
         // Prepare zkp
+        var metadata = (ZkpTokenUpdateMetadata) ((RepresentableRepresentation) jsonConverter.deserialize(serializedMetadata)).recreateRepresentable();
+        if (!zkpTokenUpdate.validateTokenUpdateMetadata(metadata)) {
+            throw new RuntimeException("Metadata is invalid for zkpTokenUpdate!");
+        }
+
         var basketPoints = promotion.computeEarningsForBasket(basket);
-        var spendDeductTree = zkpTokenUpdate.generateRelationTree(basketPoints);
+        var spendDeductTree = zkpTokenUpdate.generateRelationTree(basketPoints, metadata);
         var tid = basket.getBasketId(pp.getBg().getZn());
         FiatShamirProofSystem spendDeductProofSystem = new FiatShamirProofSystem(
                 new SpendDeductBooleanZkp(spendDeductTree, pp, promotion.getPromotionParameters(), providerPublicKey)
@@ -152,7 +161,6 @@ public class PromotionService {
         SpendProviderOutput spendProviderOutput = incentiveSystem.generateSpendRequestResponse(promotion.getPromotionParameters(), spendRequest, new ProviderKeyPair(providerSecretKey, providerPublicKey), tid, spendDeductTree);
 
         // TODO process provider output
-        // TODO send result to basket such that it is locked until payment
 
         return jsonConverter.serialize(spendProviderOutput.getSpendResponse().getRepresentation());
     }
@@ -162,5 +170,34 @@ public class PromotionService {
             Promotion promotion = new HazelPromotion(jsonConverter.deserialize(serializedPromotion));
             promotionRepository.addPromotion(promotion);
         }
+    }
+
+    public void handleBulk(UUID basketId, BulkRequestDto bulkRequestDto) {
+        // Can only perform zkp updates on baskets that are locked but not payed.
+        basketRepository.lockBasket(basketId);
+        if (basketRepository.isBasketPayed(basketId)) {
+            throw new RuntimeException("Basket already payed!");
+        }
+
+        for (SpendRequestDto spendRequestDto : bulkRequestDto.getSpendRequestDtoList()) {
+            var result = handleSpendRequest(spendRequestDto.getPromotionId(), basketId, spendRequestDto.getTokenUpdateId(), spendRequestDto.getSerializedSpendRequest(), spendRequestDto.getSerializedMetadata());
+            tokenUpdateResultRepository.insertZkpTokenUpdateResponse(basketId, spendRequestDto.getPromotionId(), spendRequestDto.getTokenUpdateId(), result);
+            // TODO apply side-effects
+        }
+        for (EarnRequestDto earnRequestDto : bulkRequestDto.getEarnRequestDtoList()) {
+            var result = handleEarnRequest(earnRequestDto.getPromotionId(), earnRequestDto.getSerializedEarnRequest(), basketId);
+            tokenUpdateResultRepository.insertEarnResponse(basketId, earnRequestDto.getPromotionId(), result);
+        }
+    }
+
+    public TokenUpdateResultsDto retrieveBulkResults(UUID basketId) {
+        if (!basketRepository.isBasketPayed(basketId)) {
+            throw new RuntimeException("Basket not payed");
+        }
+        var results = tokenUpdateResultRepository.getUpdateResults(basketId).values();
+        return new TokenUpdateResultsDto(
+                results.stream().filter(tokenUpdateResult -> tokenUpdateResult instanceof ZkpTokenUpdateResultDto).map(i -> (ZkpTokenUpdateResultDto) i).collect(Collectors.toList()),
+                results.stream().filter(tokenUpdateResult -> tokenUpdateResult instanceof EarnTokenUpdateResultDto).map(i -> (EarnTokenUpdateResultDto) i).collect(Collectors.toList())
+        );
     }
 }

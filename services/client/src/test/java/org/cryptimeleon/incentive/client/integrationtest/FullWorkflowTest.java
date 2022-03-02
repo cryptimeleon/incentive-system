@@ -1,23 +1,32 @@
 package org.cryptimeleon.incentive.client.integrationtest;
 
 import lombok.extern.slf4j.Slf4j;
+import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentive.client.BasketClient;
 import org.cryptimeleon.incentive.client.IncentiveClient;
 import org.cryptimeleon.incentive.client.InfoClient;
+import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
+import org.cryptimeleon.incentive.client.dto.inc.EarnRequestDto;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse;
-import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion;
 import org.cryptimeleon.incentive.promotion.Promotion;
-import org.cryptimeleon.incentive.promotion.hazel.HazelTokenUpdate;
 import org.cryptimeleon.incentive.promotion.RewardSideEffect;
+import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion;
+import org.cryptimeleon.incentive.promotion.hazel.HazelTokenUpdate;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
+import org.cryptimeleon.math.structures.cartesian.Vector;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigInteger;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test a full (correct) protocol flow.
@@ -48,7 +57,7 @@ public class FullWorkflowTest extends IncentiveSystemIntegrationTest {
                 publicParameters.getSpsEq(),
                 publicParameters.getBg().getG1());
         var incentiveSystem = new IncentiveSystem(publicParameters);
-        incentiveClient.addPromotions(List.of(testPromotion)).block(Duration.ofSeconds(1)).getStatusCode().is2xxSuccessful();
+        assertTrue(incentiveClient.addPromotions(List.of(testPromotion)).block(Duration.ofSeconds(1)).getStatusCode().is2xxSuccessful());
 
         var userKeyPair = incentiveSystem.generateUserKeys();
 
@@ -66,18 +75,27 @@ public class FullWorkflowTest extends IncentiveSystemIntegrationTest {
         var basket = TestHelper.createBasketWithItems(basketUrl);
 
         /*
-         * These test cases will be rewritten alongside their implementation in the app
         log.info("Test earn with unpaid basket should fail");
         assertThatExceptionOfType(RuntimeException.class).isThrownBy(() ->
-                incentiveClient.sendEarnRequest("Some request", basket.getBasketID()).block())
+                incentiveClient.sendBulkUpdates(basket.getBasketID(), new BulkRequestDto(List.of(new EarnRequestDto()), Collections.emptyList())).block())
                 .withCauseInstanceOf(IncentiveClientException.class);
-        basketClient.payBasket(basket.getBasketID(), basket.getValue(), paySecret).block();
+        */
+
 
         log.info("Run valid credit earn protocol");
         var earnRequest = incentiveSystem.generateEarnRequest(token, providerPublicKey, userKeyPair);
         var serializedEarnRequest = jsonConverter.serialize(earnRequest.getRepresentation());
-        var serializedSignature = incentiveClient.sendEarnRequest(serializedEarnRequest, basket.getBasketID()).block();
-        var signature = new SPSEQSignature(jsonConverter.deserialize(serializedSignature), publicParameters.getBg().getG1(), publicParameters.getBg().getG2());
+        incentiveClient.sendBulkUpdates(basket.getBasketID(),
+                new BulkRequestDto(
+                        List.of(new EarnRequestDto(testPromotion.getPromotionParameters().getPromotionId(), serializedEarnRequest)),
+                        Collections.emptyList()
+                )
+        ).block();
+
+        basketClient.payBasket(basket.getBasketID(), basket.getValue(), paySecret).block();
+
+        var response = incentiveClient.retrieveBulkResults(basket.getBasketID()).block();
+        var signature = new SPSEQSignature(jsonConverter.deserialize(response.getEarnTokenUpdateResultDtoList().get(0).getSerializedEarnResponse()), publicParameters.getBg().getG1(), publicParameters.getBg().getG2());
         var newToken = incentiveSystem.handleEarnRequestResponse(
                 testPromotion.getPromotionParameters(),
                 earnRequest,
@@ -88,6 +106,7 @@ public class FullWorkflowTest extends IncentiveSystemIntegrationTest {
                 userKeyPair);
         Assertions.assertEquals(newToken.getPoints().get(0).asInteger().longValueExact(), basket.getValue());
 
+        /*
         log.info("Second earn with paid basket and same request should succeed");
         incentiveClient.sendEarnRequest(serializedEarnRequest, basket.getBasketID()).block();
 

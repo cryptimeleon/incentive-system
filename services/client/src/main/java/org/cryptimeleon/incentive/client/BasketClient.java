@@ -90,4 +90,13 @@ public class BasketClient {
                 .retrieve()
                 .bodyToMono(Void.class);
     }
+
+    public Mono<Void> lockBasket(UUID basketId, String redeemSecret) {
+        return basketClient.post()
+                .uri("/basket/lock")
+                .header("redeem-secret", redeemSecret)
+                .body(BodyInserters.fromValue(basketId))
+                .retrieve()
+                .bodyToMono(Void.class);
+    }
 }

@@ -147,6 +147,11 @@ public class BasketController {
         basketService.payBasket(payBasketRequest.getBasketId(), payBasketRequest.getValue());
     }
 
+    @PostMapping("/basket/lock")
+    void lockBasket(@RequestBody UUID basketId) throws BasketServiceException {
+        basketService.lockBasket(basketId);
+    }
+
     /**
      * Sets a basket to redeemed and stores the redeem request.
      * The redeem amount is modelled as basket's value

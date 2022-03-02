@@ -24,6 +24,8 @@ public class Basket {
     private boolean paid;
     @ApiModelProperty(value = "${basketModel.redeemed}")
     private boolean redeemed;
+    @ApiModelProperty(value = "${basketModel.locked}")
+    private boolean locked;
     @ApiModelProperty(value = "${basketModel.redeemRequest}")
     private String redeemRequest;
     // value must be set manually for serialization
@@ -34,6 +36,7 @@ public class Basket {
         basketID = id;
         items = new HashMap<>();
         paid = false;
+        locked = false;
         redeemed = false;
         redeemRequest = "";
     }

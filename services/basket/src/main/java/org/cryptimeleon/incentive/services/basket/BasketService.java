@@ -106,6 +106,14 @@ public class BasketService {
         basket.setPaid(true);
     }
 
+    public void lockBasket(UUID basketId) throws BasketServiceException {
+        var basket = getBasketById(basketId);
+
+        if (basket.getItems().isEmpty()) throw new BasketServiceException("Cannot pay empty baskets");
+
+        basket.setLocked(true);
+    }
+
     public void redeemBasket(UUID basketId, String redeemRequest, long value) throws BasketServiceException {
         var basket = getBasketById(basketId);
 
