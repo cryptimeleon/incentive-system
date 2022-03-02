@@ -132,11 +132,11 @@ public class BasketController {
      * TODO add hashcode for integrity? At which state was the basket payed? (Avoid race condition between payment add adding 'free' items to basket.
      */
     @PostMapping("/basket/pay")
-    void payBasket(@RequestHeader("pay-secret") String clientPaySecret, @RequestBody PayBasketRequest payBasketRequest) throws BasketServiceException {
+    void payBasket(@RequestHeader("pay-secret") String clientPaySecret, @RequestHeader("basket-id") UUID basketId) throws BasketServiceException {
         if (!clientPaySecret.equals(paymentSecret)) {
             throw new BasketUnauthorizedException("You are not authorized to access '/basket/pay'!");
         }
-        basketService.payBasket(payBasketRequest.getBasketId(), payBasketRequest.getValue());
+        basketService.payBasket(basketId);
     }
 
     /**
@@ -144,7 +144,7 @@ public class BasketController {
      */
     @PostMapping("/basket/pay-dev")
     void payBasket(@RequestBody PayBasketRequest payBasketRequest) throws BasketServiceException {
-        basketService.payBasket(payBasketRequest.getBasketId(), payBasketRequest.getValue());
+        basketService.payBasket(payBasketRequest.getBasketId());
     }
 
     @PostMapping("/basket/lock")

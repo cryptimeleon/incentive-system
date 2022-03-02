@@ -96,21 +96,15 @@ public class BasketService {
         basket.getItems().remove(itemId);
     }
 
-    public void payBasket(UUID basketId, long value) throws BasketServiceException {
+    public void payBasket(UUID basketId) throws BasketServiceException {
         var basket = getBasketById(basketId);
-
-        long basketValue = getBasketValue(basket);
-        if (value != basketValue) throw new WrongBasketValueException();
         if (basket.getItems().isEmpty()) throw new BasketServiceException("Cannot pay empty baskets");
-
         basket.setPaid(true);
     }
 
     public void lockBasket(UUID basketId) throws BasketServiceException {
         var basket = getBasketById(basketId);
-
         if (basket.getItems().isEmpty()) throw new BasketServiceException("Cannot pay empty baskets");
-
         basket.setLocked(true);
     }
 
