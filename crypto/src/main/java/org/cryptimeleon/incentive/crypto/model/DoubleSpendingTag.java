@@ -16,10 +16,11 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 /**
  * Data associated to a spend operation which the provider requires to trace double-spending.
+ * c0, c1 and gamma allow to reveal a double-spending user's secret key and the ElGamal secret key
+ * used to trace the remainder token of the malicious transaction.
  * Called 'dstag' in the cryptimeleon incentive system paper.
  */
 @Getter
-@Setter
 @AllArgsConstructor
 public class DoubleSpendingTag implements Representable {
     @NonFinal

@@ -23,7 +23,6 @@ import java.util.UUID;
  * Test a full (correct) protocol flow.
  */
 @Slf4j
-// TODO: also test deduct service
 public class FullWorkflowTest extends IncentiveSystemIntegrationTest {
 
     Promotion testPromotion = new HazelPromotion(HazelPromotion.generatePromotionParameters(),

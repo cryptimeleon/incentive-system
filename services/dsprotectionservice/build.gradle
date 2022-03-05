@@ -3,17 +3,6 @@ plugins {
 	id 'io.spring.dependency-management'
 }
 
-configurations {
-	compileOnly {
-		extendsFrom annotationProcessor
-	}
-}
-
-// specifies which source repositories are used to resolve dependencies
-repositories {
-	mavenCentral()
-}
-
 // lists all dependencies of the project in the format "configuration 'groupId:artifactId:version'"
 dependencies {
 	// testing and convenience

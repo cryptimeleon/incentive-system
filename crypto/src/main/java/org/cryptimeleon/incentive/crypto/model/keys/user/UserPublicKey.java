@@ -11,7 +11,6 @@ import org.cryptimeleon.math.structures.groups.Group;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 
 @Getter
-@Setter
 public class UserPublicKey implements Representable {
 
     @NonFinal

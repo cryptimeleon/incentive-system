@@ -26,8 +26,6 @@ import java.util.ArrayList;
 public class LocalDatabaseHandler implements DatabaseHandler {
     private Logger logger = LoggerFactory.getLogger(LocalDatabaseHandler.class);
 
-    private WebClient dsProtectionClient;
-
     private IncentivePublicParameters pp;
 
     DsidRepository dsidRepository;

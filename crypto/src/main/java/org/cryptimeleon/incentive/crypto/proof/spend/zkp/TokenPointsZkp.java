@@ -22,7 +22,7 @@ import java.math.BigInteger;
 /**
  * A zero knowledge proof over a token's points for range proofs.
  */
-public class TokenPointsZkp extends DelegateProtocol {
+class TokenPointsZkp extends DelegateProtocol {
 
     // Public parameters
     IncentivePublicParameters pp;

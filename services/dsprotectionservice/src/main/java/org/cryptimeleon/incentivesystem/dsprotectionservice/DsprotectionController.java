@@ -52,18 +52,4 @@ public class DsprotectionController {
         // send response
         return new ResponseEntity<String>("Sent transaction data was recorded in database.", HttpStatus.OK);
     }
-
-
-
-    /**
-     * Clears all tables of the double-spending database.
-     * Needed for test runs where different test scenarios are created without restarting the double-spending protection service after each test.
-     * @return success report
-     */
-    @PostMapping("/cleardb")
-    public ResponseEntity<String> clearDatabase() {
-        dsprotectionService.clearDatabase();
-
-        return new ResponseEntity<String>("All tables cleared. Double-spending protection service still running.", HttpStatus.OK);
-    }
 }

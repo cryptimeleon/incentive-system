@@ -18,7 +18,6 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
  * This info is associated with a token (represented by a dsid).
  **/
 @Getter
-@Setter
 @AllArgsConstructor
 public class UserInfo implements Representable {
     @NonFinal

@@ -630,10 +630,13 @@ public class IncentiveSystem {
     }
 
     /**
-     * @param pp
-     * @param dsTrace
-     * @param dsTag
-     * @return
+     * Computes remainder token dsids for some double-spending transaction T (remainder token of a transaction: token that resulted from that transaction)
+     * and at the same time retrieves the next ElGamal encryption key (i.e. the one for the transaction T' after T) from the chain of keys.
+     *
+     * @param pp        public parameters of the respective incentive system instance
+     * @param dsTrace   ElGamal decryption key used for tracing the next ElGamal encryption key (= dsid of remainder token) in the chain
+     * @param dsTag     double-spending tag associated to T, used to trace the remainder token
+     * @return          trace output, which consists of remainder token and the dstrace ElGamal secret key of T'
      */
     public TraceOutput trace(IncentivePublicParameters pp, ZnElement dsTrace, DoubleSpendingTag dsTag) {
         // extract values from passed objects to save references in the below for-loops
@@ -657,7 +660,7 @@ public class IncentiveSystem {
         // check whether all bits could be computed
         for(int i = 0; i < pp.getNumEskDigits(); i++) {
             if(userEskShareDigits[i] == null) {
-                throw new RuntimeException("Could not find a fitting " + String.valueOf(i) + "-th digit for the user's share of esk.");
+                throw new RuntimeException("Could not find a fitting " + i + "-th digit for the user's share of esk.");
             }
         }
 

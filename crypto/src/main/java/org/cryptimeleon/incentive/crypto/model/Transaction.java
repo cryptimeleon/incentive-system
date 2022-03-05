@@ -20,7 +20,6 @@ import java.math.BigInteger;
  * and thus not a field of the transaction class (DRY principle).
  */
 @Getter
-@Setter
 @AllArgsConstructor
 public class Transaction implements Representable {
     @NonFinal
