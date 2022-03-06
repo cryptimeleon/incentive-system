@@ -1,6 +1,5 @@
 package org.cryptimeleon.incentive.crypto;
 
-import lombok.Value;
 import org.cryptimeleon.craco.common.ByteArrayImplementation;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProof;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
@@ -8,6 +7,14 @@ import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignatureScheme;
 import org.cryptimeleon.incentive.crypto.dsprotectionlogic.DatabaseHandler;
 import org.cryptimeleon.incentive.crypto.model.*;
+import org.cryptimeleon.incentive.crypto.model.DoubleSpendingTag;
+import org.cryptimeleon.incentive.crypto.model.EarnRequest;
+import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
+import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
+import org.cryptimeleon.incentive.crypto.model.SpendProviderOutput;
+import org.cryptimeleon.incentive.crypto.model.SpendRequest;
+import org.cryptimeleon.incentive.crypto.model.SpendResponse;
+import org.cryptimeleon.incentive.crypto.model.Token;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderSecretKey;
@@ -37,6 +44,10 @@ import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
+
+import lombok.AllArgsConstructor;
+import lombok.Value;
 
 
 /**
@@ -102,34 +113,25 @@ public class IncentiveSystem {
      * @param ukp user key pair
      * @return join request, i.e. object representing the first two messages in the Issue-Join protocol of the Cryptimeleon incentive system
      */
-    public JoinRequest generateJoinRequest(ProviderPublicKey pk, UserKeyPair ukp) {
+    public JoinRequest generateJoinRequest(ProviderPublicKey pk, UserKeyPair ukp, PromotionParameters promotionParameters) {
         UserPublicKey upk = ukp.getPk();
         UserSecretKey usk = ukp.getSk();
 
         // generate random values needed for generation of fresh user token using PRF hashThenPRFtoZn, user secret key is hash input
-        var pseudoRandVector = pp.getPrfToZn().hashThenPrfToZnVector(ukp.getSk().getPrfKey(),
-                ukp.getSk(),
-                6,
-                "IssueJoin");
-        ZnElement eskUsr = (ZnElement) pseudoRandVector.get(0);
-        ZnElement dsrnd0 = (ZnElement) pseudoRandVector.get(1);
-        ZnElement dsrnd1 = (ZnElement) pseudoRandVector.get(2);
-        ZnElement z = (ZnElement) pseudoRandVector.get(3);
-        ZnElement t = (ZnElement) pseudoRandVector.get(4);
-        ZnElement u = (ZnElement) pseudoRandVector.get(5);
+        IssueJoinRandomness R = computeIssueJoinRandomness(ukp.getSk(), promotionParameters);
 
-        var H = pk.getTokenMetadataH(this.pp);
+        GroupElementVector H = pk.getTokenMetadataH(this.pp);
 
         // compute Pedersen commitment for user token
         // need to retrieve exponent from usk object; point count of 0 is reresented by zero in used Z_n
-        RingElementVector exponents = new RingElementVector(t, usk.getUsk(), eskUsr, dsrnd0, dsrnd1, z);
-        GroupElement c0Pre = H.innerProduct(exponents).pow(u);
-        GroupElement c1Pre = pp.getG1Generator().pow(u);
+        RingElementVector exponents = new RingElementVector(R.t, usk.getUsk(), R.eskUsr, R.dsrnd0, R.dsrnd1, R.z);
+        GroupElement c0Pre = H.innerProduct(exponents).pow(R.u);
+        GroupElement c1Pre = pp.getG1Generator().pow(R.u);
 
         // compute NIZKP to prove well-formedness of token
         FiatShamirProofSystem cwfProofSystem = new FiatShamirProofSystem(new CommitmentWellformednessProtocol(pp, pk));
         CommitmentWellformednessCommonInput cwfCommon = new CommitmentWellformednessCommonInput(upk.getUpk(), c0Pre, c1Pre);
-        CommitmentWellformednessWitness cwfWitness = new CommitmentWellformednessWitness(usk.getUsk(), eskUsr, dsrnd0, dsrnd1, z, t, u.inv());
+        CommitmentWellformednessWitness cwfWitness = new CommitmentWellformednessWitness(usk.getUsk(), R.eskUsr, R.dsrnd0, R.dsrnd1, R.z, R.t, R.u.inv());
         FiatShamirProof cwfProof = cwfProofSystem.createProof(cwfCommon, cwfWitness);
 
         // assemble and return join request object (commitment, proof of well-formedness)
@@ -169,10 +171,12 @@ public class IncentiveSystem {
         GroupElement modifiedC0Pre = c0Pre.op(c1Pre.pow(sk.getQ().get(1).mul(eskProv)));
 
         // create certificate for modified pre-commitment vector
-        SPSEQSignature cert = (SPSEQSignature) pp.getSpsEq().sign(sk.getSkSpsEq(),
+        SPSEQSignature cert = (SPSEQSignature) pp.getSpsEq().sign(
+                sk.getSkSpsEq(),
                 modifiedC0Pre,
                 c1Pre,
-                c1Pre.pow(promotionParameters.getPromotionId())); // first argument: signing keys, other arguments form the msg vector
+                c1Pre.pow(promotionParameters.getPromotionId())
+        ); // first argument: signing keys, other arguments form the msg vector
 
         // assemble and return join response object
         return new JoinResponse(cert, eskProv);
@@ -190,13 +194,7 @@ public class IncentiveSystem {
      */
     public Token handleJoinRequestResponse(PromotionParameters promotionParameters, ProviderPublicKey pk, UserKeyPair ukp, JoinRequest jReq, JoinResponse jRes) {
         // re-generate random values from join request generation of fresh user token using PRF hashThenPRFtoZn, user secret key is hash input
-        var pseudoRandVector = pp.getPrfToZn().hashThenPrfToZnVector(ukp.getSk().getPrfKey(), ukp.getSk(), 6, "IssueJoin");
-        ZnElement eskUsr = (ZnElement) pseudoRandVector.get(0);
-        ZnElement dsrnd0 = (ZnElement) pseudoRandVector.get(1);
-        ZnElement dsrnd1 = (ZnElement) pseudoRandVector.get(2);
-        ZnElement z = (ZnElement) pseudoRandVector.get(3);
-        ZnElement t = (ZnElement) pseudoRandVector.get(4);
-        ZnElement u = (ZnElement) pseudoRandVector.get(5);
+        IssueJoinRandomness R = computeIssueJoinRandomness(ukp.getSk(), promotionParameters);
 
         // extract relevant variables from join request, join response and public parameters
         GroupElement c0Pre = jReq.getPreCommitment0();
@@ -206,28 +204,30 @@ public class IncentiveSystem {
 
         // re-compute modified pre-commitment for token
         GroupElement h2 = pk.getH().get(1);
-        GroupElement modifiedC0Pre = c0Pre.op(h2.pow(u.mul(eskProv)));
+        GroupElement modifiedC0Pre = c0Pre.op(h2.pow(R.u.mul(eskProv)));
 
         // verify the signature on the modified pre-commitment
-        if (!usedSpsEq.verify(pk.getPkSpsEq(),
+        if (!usedSpsEq.verify(
+                pk.getPkSpsEq(),
                 preCert,
                 modifiedC0Pre,
                 jReq.getPreCommitment1(),
-                jReq.getPreCommitment1().pow(promotionParameters.getPromotionId()))) {
+                jReq.getPreCommitment1().pow(promotionParameters.getPromotionId())
+        )) {
             throw new RuntimeException("signature on pre-commitment's left part is not valid!");
         }
 
         // change representation of token-certificate pair
-        SPSEQSignature finalCert = (SPSEQSignature) usedSpsEq.chgRep(preCert, u.inv(), pk.getPkSpsEq()); // adapt signature
-        GroupElement finalCommitment0 = modifiedC0Pre.pow(u.inv()); // need to adapt message manually (entry by entry), used equivalence relation is R_exp
+        SPSEQSignature finalCert = (SPSEQSignature) usedSpsEq.chgRep(preCert, R.u.inv(), pk.getPkSpsEq()); // adapt signature
+        GroupElement finalCommitment0 = modifiedC0Pre.pow(R.u.inv()); // need to adapt message manually (entry by entry), used equivalence relation is R_exp
         GroupElement finalCommitment1 = pp.getG1Generator();
 
         // assemble and return token
-        ZnElement esk = eskUsr.add(eskProv);
+        ZnElement esk = R.eskUsr.add(eskProv);
         Zn usedZn = pp.getBg().getZn();
         RingElementVector zeros = RingElementVector.generate(usedZn::getZeroElement, promotionParameters.getPointsVectorSize());
 
-        return new Token(finalCommitment0, finalCommitment1, esk, dsrnd0, dsrnd1, z, t, promotionParameters.getPromotionId(), zeros, finalCert);
+        return new Token(finalCommitment0, finalCommitment1, esk, R.dsrnd0, R.dsrnd1, R.z, R.t, promotionParameters.getPromotionId(), zeros, finalCert);
     }
 
     /*
@@ -252,7 +252,7 @@ public class IncentiveSystem {
     public EarnRequest generateEarnRequest(Token token, ProviderPublicKey providerPublicKey, UserKeyPair userKeyPair) {
         // Compute pseudorandom value from the token that is used to blind the commitment
         // This makes this algorithm deterministic
-        var s = pp.getPrfToZn().hashThenPrfToZn(userKeyPair.getSk().getPrfKey(), token, "CreditEarn-s");
+        var s = pp.getPrfToZn().hashThenPrfToZn(userKeyPair.getSk().getPrfKey(), token, "CreditEarn");
 
         // Blind commitments and change representation of signature such that it is valid for blinded commitments
         // The blinded commitments and signature are sent to the provider
@@ -324,7 +324,7 @@ public class IncentiveSystem {
                                            UserKeyPair userKeyPair) {
 
         // Pseudorandom randomness s used for blinding in the request
-        var s = pp.getPrfToZn().hashThenPrfToZn(userKeyPair.getSk().getPrfKey(), token, "CreditEarn-s");
+        var s = pp.getPrfToZn().hashThenPrfToZn(userKeyPair.getSk().getPrfKey(), token, "CreditEarn");
         var K = RingElementVector.fromStream(deltaK.stream().map(e -> pp.getBg().getZn().createZnElement(e)));
 
         // Recover blinded commitments (to match the commitments signed by the prover) with updated value
@@ -408,18 +408,12 @@ public class IncentiveSystem {
 
         /* Compute pseudorandom values */
         // As in credit-earn, we use the PRF to make the algorithm deterministic
-        var prfZnElements = pp.getPrfToZn().hashThenPrfToZnVector(userKeyPair.getSk().getPrfKey(), token, 6, "SpendDeduct");
-        Zn.ZnElement eskUsrS = (Zn.ZnElement) prfZnElements.get(0);
-        Zn.ZnElement dsrnd0S = (Zn.ZnElement) prfZnElements.get(1);
-        Zn.ZnElement dsrnd1S = (Zn.ZnElement) prfZnElements.get(2);
-        Zn.ZnElement zS = (Zn.ZnElement) prfZnElements.get(3);
-        Zn.ZnElement tS = (Zn.ZnElement) prfZnElements.get(4);
-        Zn.ZnElement uS = (Zn.ZnElement) prfZnElements.get(5);
+        var R = computeSpendDeductRandomness(userKeyPair.getSk(), token);
 
         // Prepare a new commitment (cPre0, cPre1) based on the pseudorandom values
-        var exponents = new RingElementVector(tS, usk, eskUsrS, dsrnd0S, dsrnd1S, zS).concatenate(newPointsVector);
-        var cPre0 = vectorH.innerProduct(exponents).pow(uS).compute();
-        var cPre1 = pp.getG1Generator().pow(uS).compute();
+        var exponents = new RingElementVector(R.tS, usk, R.eskUsrS, R.dsrnd0S, R.dsrnd1S, R.zS).concatenate(newPointsVector);
+        var cPre0 = vectorH.innerProduct(exponents).pow(R.uS).compute();
+        var cPre1 = pp.getG1Generator().pow(R.uS).compute();
 
         /* Enable double-spending-protection by forcing usk and esk becoming public in that case
            If token is used twice in two different transactions, the provider observes (c0,c1), (c0',c1') with gamma!=gamma'
@@ -433,7 +427,7 @@ public class IncentiveSystem {
            By additionally storing esk^*_prov, the provider can retrieve esk^* and thus iteratively decrypt the new esks. */
 
         // Decompose the encryption-secret-key to base eskDecBase and map the digits to Zn
-        var eskUsrSDecBigInt = IntegerRing.decomposeIntoDigits(eskUsrS.asInteger(), pp.getEskDecBase().asInteger(), pp.getNumEskDigits());
+        var eskUsrSDecBigInt = IntegerRing.decomposeIntoDigits(R.eskUsrS.asInteger(), pp.getEskDecBase().asInteger(), pp.getNumEskDigits());
         var eskUsrSDec = RingElementVector.generate(i -> zp.valueOf(eskUsrSDecBigInt[i]), eskUsrSDecBigInt.length);
 
         // Encrypt digits using El-Gamal and the randomness r
@@ -443,7 +437,7 @@ public class IncentiveSystem {
         /* Build non-interactive (Fiat-Shamir transformed) ZKP to ensure that the user follows the rules of the protocol */
         var spendDeductZkp = new SpendDeductBooleanZkp(spendDeductTree, pp, promotionParameters, providerPublicKey);
         var fiatShamirProofSystem = new FiatShamirProofSystem(spendDeductZkp);
-        var witness = new SpendDeductZkpWitnessInput(usk, token.getZ(), zS, token.getT(), tS, uS, esk, eskUsrS, token.getDoubleSpendRandomness0(), dsrnd0S, token.getDoubleSpendRandomness1(), dsrnd1S, eskUsrSDec, vectorR, token.getPoints(), newPointsVector);
+        var witness = new SpendDeductZkpWitnessInput(usk, token.getZ(), R.zS, token.getT(), R.tS, R.uS, esk, R.eskUsrS, token.getDoubleSpendRandomness0(), R.dsrnd0S, token.getDoubleSpendRandomness1(), R.dsrnd1S, eskUsrSDec, vectorR, token.getPoints(), newPointsVector);
         var commonInput = new SpendDeductZkpCommonInput(gamma, c0, c1, dsid, cPre0, cPre1, token.getCommitment0(), cTrace0, cTrace1);
         var proof = fiatShamirProofSystem.createProof(commonInput, witness);
 
@@ -536,17 +530,11 @@ public class IncentiveSystem {
         var newPointsVector = RingElementVector.fromStream(newPoints.stream().map(e -> pp.getBg().getZn().createZnElement(e)));
 
         // Re-compute pseudorandom values
-        var prfZnElements = pp.getPrfToZn().hashThenPrfToZnVector(userKeyPair.getSk().getPrfKey(), token, 6, "SpendDeduct");
-        Zn.ZnElement eskUsrS = (Zn.ZnElement) prfZnElements.get(0);
-        Zn.ZnElement dsrnd0S = (Zn.ZnElement) prfZnElements.get(1);
-        Zn.ZnElement dsrnd1S = (Zn.ZnElement) prfZnElements.get(2);
-        Zn.ZnElement zS = (Zn.ZnElement) prfZnElements.get(3);
-        Zn.ZnElement tS = (Zn.ZnElement) prfZnElements.get(4);
-        Zn.ZnElement uS = (Zn.ZnElement) prfZnElements.get(5);
+        var R = computeSpendDeductRandomness(userKeyPair.getSk(), token);
 
         // Verify the signature on the new, blinded commitment
-        var blindedCStar0 = spendRequest.getCPre0().op(providerPublicKey.getH().get(1).pow(spendResponse.getEskProvStar().mul(uS)));
-        var blindedCStar1 = pp.getG1Generator().pow(uS); // Recompute, just to make sure
+        var blindedCStar0 = spendRequest.getCPre0().op(providerPublicKey.getH().get(1).pow(spendResponse.getEskProvStar().mul(R.uS)));
+        var blindedCStar1 = pp.getG1Generator().pow(R.uS); // Recompute, just to make sure
         var valid = pp.getSpsEq().verify(providerPublicKey.getPkSpsEq(),
                 spendResponse.getSigma(),
                 blindedCStar0,
@@ -558,17 +546,17 @@ public class IncentiveSystem {
 
         // Build new token
         return new Token(
-                blindedCStar0.pow(uS.inv()), // Unblind commitment
+                blindedCStar0.pow(R.uS.inv()), // Unblind commitment
                 pp.getG1Generator(), // Same as unblinded CStar1
-                eskUsrS.add(spendResponse.getEskProvStar()), // esk^* is sum of user's and providers new esk
-                dsrnd0S,
-                dsrnd1S,
-                zS,
-                tS,
+                R.eskUsrS.add(spendResponse.getEskProvStar()), // esk^* is sum of user's and providers new esk
+                R.dsrnd0S,
+                R.dsrnd1S,
+                R.zS,
+                R.tS,
                 token.getPromotionId(),
                 new RingElementVector(newPointsVector),
                 // Change representation of signature to match the un-blinded commitments
-                (SPSEQSignature) pp.getSpsEq().chgRep(spendResponse.getSigma(), uS.inv(), providerPublicKey.getPkSpsEq())
+                (SPSEQSignature) pp.getSpsEq().chgRep(spendResponse.getSigma(), R.uS.inv(), providerPublicKey.getPkSpsEq())
         );
     }
 
@@ -842,4 +830,64 @@ public class IncentiveSystem {
     /*
      * end of double-spending database interface to be used by provider
      */
+
+    /**
+     * Helper function for pseudorandom values on user side to generate a request, and handle the response.
+     *
+     * @param userSecretKey       the user secret key is hashed for this, and contains the prf key
+     * @param promotionParameters the promotion id is hashed to ensure values are unique for promotionIds
+     * @return a data object with the pseudorandom values
+     */
+    private IssueJoinRandomness computeIssueJoinRandomness(UserSecretKey userSecretKey, PromotionParameters promotionParameters) {
+        var prv = pp.getPrfToZn().hashThenPrfToZnVector(
+                userSecretKey.getPrfKey(),
+                userSecretKey,
+                6,
+                "IssueJoin" + promotionParameters.getPromotionId().toString() // Ensure randomness is unique for every promotion
+        ).stream().map(ringElement -> (ZnElement) ringElement).collect(Collectors.toList());
+        return new IssueJoinRandomness(prv.get(0), prv.get(1), prv.get(2), prv.get(3), prv.get(4), prv.get(5));
+    }
+
+    /**
+     * Helper function for pseudorandom values on user side to generate a request, and handle the response.
+     *
+     * @param userSecretKey the user secret key is hashed for this, and contains the prf key
+     * @param token         the token is hashed to server as input for the prf
+     * @return a data object with the pseudorandom values
+     */
+    private SpendDeductRandomness computeSpendDeductRandomness(UserSecretKey userSecretKey, Token token) {
+        var prv = pp.getPrfToZn().hashThenPrfToZnVector(
+                userSecretKey.getPrfKey(),
+                token,
+                6,
+                "SpendDeduct"
+        ).stream().map(ringElement -> (ZnElement) ringElement).collect(Collectors.toList());
+        return new SpendDeductRandomness(prv.get(0), prv.get(1), prv.get(2), prv.get(3), prv.get(4), prv.get(5));
+    }
+}
+
+/**
+ * Data class for user randomness used in issue-join protocol.
+ */
+@AllArgsConstructor
+class IssueJoinRandomness {
+    final ZnElement eskUsr;
+    final ZnElement dsrnd0;
+    final ZnElement dsrnd1;
+    final ZnElement z;
+    final ZnElement t;
+    final ZnElement u;
+}
+
+/**
+ * Data class for user randomness used in spend-deduct protocol.
+ */
+@AllArgsConstructor
+class SpendDeductRandomness {
+    Zn.ZnElement eskUsrS;
+    Zn.ZnElement dsrnd0S;
+    Zn.ZnElement dsrnd1S;
+    Zn.ZnElement zS;
+    Zn.ZnElement tS;
+    Zn.ZnElement uS;
 }

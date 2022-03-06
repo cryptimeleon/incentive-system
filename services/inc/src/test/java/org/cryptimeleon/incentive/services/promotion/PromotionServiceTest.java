@@ -126,7 +126,7 @@ public class PromotionServiceTest {
         Promotion promotionToJoin = promotions.get(0);
 
         // Create request to send
-        var joinRequest = incentiveSystem.generateJoinRequest(pkp.getPk(), ukp);
+        var joinRequest = incentiveSystem.generateJoinRequest(pkp.getPk(), ukp, promotionToJoin.getPromotionParameters());
 
         // Send request and process response to assert correct behavior
         var serializedJoinResponse = webClient.post()

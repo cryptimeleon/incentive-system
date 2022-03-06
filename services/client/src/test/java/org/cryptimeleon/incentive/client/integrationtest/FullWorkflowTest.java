@@ -54,7 +54,7 @@ public class FullWorkflowTest extends IncentiveSystemIntegrationTest {
         var userKeyPair = incentiveSystem.generateUserKeys();
 
         log.info("Send join request to server and retrieve token");
-        var joinRequest = incentiveSystem.generateJoinRequest(providerPublicKey, userKeyPair);
+        var joinRequest = incentiveSystem.generateJoinRequest(providerPublicKey, userKeyPair, testPromotion.getPromotionParameters());
         var serializedJoinResponse = incentiveClient.sendJoinRequest(
                 jsonConverter.serialize(joinRequest.getRepresentation()),
                 jsonConverter.serialize(userKeyPair.getPk().getRepresentation()),
