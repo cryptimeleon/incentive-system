@@ -43,11 +43,8 @@ public class LocalDatabaseHandlerUnitTests {
 
         logger.info("Clear database."); // needed if this is not the first test in a sequence of tests
         dbHandler.clearDatabase();
-        Assertions.assertTrue(
-                ((ArrayList<TransactionEntry>)
-                        dbHandler.transactionRepository.findAll()
-                ).size()
-                == 0
+        Assertions.assertEquals(
+                0, ( (ArrayList<TransactionEntry>) dbHandler.transactionRepository.findAll() ).size()
         );
 
         logger.info("Generating valid random transaction with associated double-spending tag.");
@@ -61,10 +58,8 @@ public class LocalDatabaseHandlerUnitTests {
         dbHandler.addTransactionNode(ta2);
 
         logger.info("Checking whether double-spending database contains the correct number of transaction entries.");
-        Assertions.assertTrue(
-                ((ArrayList<TransactionEntry>)
-                        dbHandler.transactionRepository.findAll()
-                ).size() == 2
+        Assertions.assertEquals(
+                2, ( (ArrayList<TransactionEntry>) dbHandler.transactionRepository.findAll() )
         );
 
         logger.info("Checking whether database contains both indivdual transactions.");
@@ -169,11 +164,8 @@ public class LocalDatabaseHandlerUnitTests {
 
         logger.info("Clear database."); // needed if this is not the first test in a sequence of tests
         dbHandler.clearDatabase();
-        Assertions.assertTrue(
-                ((ArrayList<TransactionEntry>)
-                        dbHandler.transactionRepository.findAll()
-                ).size()
-                        == 0
+        Assertions.assertEquals(
+                0, ((ArrayList<TransactionEntry>) dbHandler.transactionRepository.findAll() ).size()
         );
 
         logger.info("Generating and adding random valid transactions.");
@@ -218,18 +210,18 @@ public class LocalDatabaseHandlerUnitTests {
         boolean containsDsid2Ta3Edge = dbHandler.containsTokenTransactionEdge(dsid2, ta3.getTaIdentifier());
 
         Assertions.assertTrue(containsTa1Dsid1Edge);
-        Assertions.assertTrue(!containsTa1Dsid2Edge);
-        Assertions.assertTrue(!containsTa2Dsid1Edge);
+        Assertions.assertFalse(containsTa1Dsid2Edge);
+        Assertions.assertFalse(containsTa2Dsid1Edge);
         Assertions.assertTrue(containsTa2Dsid2Edge);
-        Assertions.assertTrue(!containsTa3Dsid1Edge);
-        Assertions.assertTrue(!containsTa3Dsid2Edge);
+        Assertions.assertFalse(containsTa3Dsid1Edge);
+        Assertions.assertFalse(containsTa3Dsid2Edge);
 
-        Assertions.assertTrue(!containsDsid1Ta1Edge);
+        Assertions.assertFalse(containsDsid1Ta1Edge);
         Assertions.assertTrue(containsDsid1Ta2Edge);
         Assertions.assertTrue(containsDsid1Ta3Edge);
-        Assertions.assertTrue(!containsDsid2Ta1Edge);
-        Assertions.assertTrue(!containsDsid2Ta2Edge);
-        Assertions.assertTrue(!containsDsid2Ta3Edge);
+        Assertions.assertFalse(containsDsid2Ta1Edge);
+        Assertions.assertFalse(containsDsid2Ta2Edge);
+        Assertions.assertFalse(containsDsid2Ta3Edge);
 
         logger.info("Checking whether consuming transactions are computed correctly.");
 
@@ -240,7 +232,7 @@ public class LocalDatabaseHandlerUnitTests {
 
         logger.info("Checking whether ta1 was registered as not consuming dsid1.");
 
-        Assertions.assertTrue(!consumingTasDsid1.contains(ta1));
+        Assertions.assertFalse(consumingTasDsid1.contains(ta1));
 
         logger.info("Checking whether ta2 was registered as consuming dsid1.");
 
@@ -282,10 +274,8 @@ public class LocalDatabaseHandlerUnitTests {
 
         logger.info("Clear database."); // needed if this is not the first test in a sequence of tests
         dbHandler.clearDatabase();
-        Assertions.assertTrue(
-                ((ArrayList<TransactionEntry>)
-                        dbHandler.transactionRepository.findAll()
-                ).size() == 0
+        Assertions.assertEquals(
+                0, ( (ArrayList<TransactionEntry>) dbHandler.transactionRepository.findAll() ).size()
         );
 
         logger.info("Generating valid random transaction with associated double-spending tag and add it to the database.");
@@ -301,7 +291,7 @@ public class LocalDatabaseHandlerUnitTests {
         for(int i = 0; i < 2; i++) {
             dbHandler.invalidateTransaction(ta1.getTaIdentifier());
             retrievedTa = dbHandler.getTransactionNode(ta1.getTaIdentifier());
-            Assertions.assertTrue(!retrievedTa.getIsValid());
+            Assertions.assertFalse(retrievedTa.getIsValid());
         }
 
         logger.info("Completed transaction invalidation test.");

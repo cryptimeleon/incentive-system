@@ -46,9 +46,9 @@ public class DbSyncIntegrationTest {
 
         logger.info("Clear database."); // needed if this is not the first test in a sequence of tests
         dbHandler.clearDatabase();
-        Assertions.assertEquals(0, ((ArrayList<TransactionEntry>)
-                dbHandler.transactionRepository.findAll()
-        ).size());
+        Assertions.assertEquals(
+                0, ( (ArrayList<TransactionEntry>) dbHandler.transactionRepository.findAll() ).size()
+        );
 
         logger.info("Generating random valid transactions and dsids.");
         var ta1 = Helper.generateRandomTransaction(incSys.pp, true);
@@ -132,9 +132,9 @@ public class DbSyncIntegrationTest {
 
         logger.info("Clear database."); // needed if this is not the first test in a sequence of tests
         dbHandler.clearDatabase();
-        Assertions.assertEquals(0, ((ArrayList<TransactionEntry>)
-                dbHandler.transactionRepository.findAll()
-        ).size());
+        Assertions.assertEquals(
+                0, ( (ArrayList<TransactionEntry>) dbHandler.transactionRepository.findAll() ).size()
+        );
 
         logger.info("Generating transactions and dsids by executing spend-deduct several times.");
         PromotionParameters legacyPromotionParameters = incSys.legacyPromotionParameters(); // the promotion parameters to always use throughout this test
