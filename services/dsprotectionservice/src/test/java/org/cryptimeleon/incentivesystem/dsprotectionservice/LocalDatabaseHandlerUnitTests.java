@@ -59,7 +59,7 @@ public class LocalDatabaseHandlerUnitTests {
 
         logger.info("Checking whether double-spending database contains the correct number of transaction entries.");
         Assertions.assertEquals(
-                2, ( (ArrayList<TransactionEntry>) dbHandler.transactionRepository.findAll() )
+                2, ( (ArrayList<TransactionEntry>) dbHandler.transactionRepository.findAll() ).size()
         );
 
         logger.info("Checking whether database contains both indivdual transactions.");

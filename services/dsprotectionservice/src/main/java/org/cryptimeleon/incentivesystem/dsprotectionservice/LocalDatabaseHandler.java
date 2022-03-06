@@ -108,20 +108,15 @@ public class LocalDatabaseHandler implements DatabaseHandler {
         DsIdEntry dsIdEntry = findDsidEntry(dsid);
 
         // make edge (i.e. update field of ta entry that holds ID of produced token's dsid) if both nodes exist
-        if(taEntry != null && dsIdEntry != null) {
+        if (taEntry == null) {
+            throw new RuntimeException("No transaction corresponding to the queried identifier was found in database.");
+        }
+        else if (dsIdEntry == null) {
+            throw new RuntimeException("Queried double-spending ID not found in database.");
+        }  else {
             transactionRepository.delete(taEntry);
             taEntry.setProducedDsidEntryId(dsIdEntry.getId());
             transactionRepository.save(taEntry);
-        }
-        // error report if either transaction or dsid was not found in the database
-        else {
-            if (taEntry == null) {
-                throw new RuntimeException("No transaction corresponding to the queried identifier was found in database.");
-            }
-            if (dsIdEntry == null) {
-                throw new RuntimeException("Queried double-spending ID not found in database.");
-            }
-            throw new RuntimeException("An unknown error occurred while adding transaction-token edge. Aborting, no write operations performed on database.");
         }
     }
 
@@ -135,21 +130,16 @@ public class LocalDatabaseHandler implements DatabaseHandler {
         TransactionEntry taEntry = findTransactionEntryWithTaIdentifier(taId);
         DsIdEntry dsIdEntry = findDsidEntry(dsid);
 
-        // make edge (i.e. update field of transaction entry that holds ID of consumed dsid's entry) if both nodes exist
-        if(taEntry != null && dsIdEntry != null) {
+        // make edge (i.e. update field of ta entry that holds ID of consumed token's dsid) if both nodes exist
+        if (taEntry == null) {
+            throw new RuntimeException("No transaction corresponding to the queried identifier was found in database.");
+        }
+        else if (dsIdEntry == null) {
+            throw new RuntimeException("Queried double-spending ID not found in database.");
+        }  else {
             transactionRepository.delete(taEntry);
             taEntry.setConsumedDsidEntryId(dsIdEntry.getId());
             transactionRepository.save(taEntry);
-        }
-        // error report if either transaction or dsid was not found in the database
-        else {
-            if (taEntry == null) {
-                throw new RuntimeException("No transaction corresponding to the queried identifier was found in database.");
-            }
-            if (dsIdEntry == null) {
-                throw new RuntimeException("Queried double-spending ID not found in database.");
-            }
-            throw new RuntimeException("An unknown error occurred while adding token-transaction edge. Aborting, no write operations performed on database.");
         }
     }
 
