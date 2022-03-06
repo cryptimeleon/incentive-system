@@ -1,9 +1,6 @@
 package org.cryptimeleon.incentive.crypto.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.Value;
+import lombok.*;
 import lombok.experimental.NonFinal;
 import org.cryptimeleon.math.serialization.Representable;
 import org.cryptimeleon.math.serialization.Representation;
@@ -21,6 +18,7 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
  * Called 'dstag' in the cryptimeleon incentive system paper.
  */
 @Getter
+@EqualsAndHashCode
 @AllArgsConstructor
 public class DoubleSpendingTag implements Representable {
     @NonFinal
@@ -81,22 +79,6 @@ public class DoubleSpendingTag implements Representable {
     @Override
     public Representation getRepresentation() {
         return ReprUtil.serialize(this);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if(!o.getClass().equals(DoubleSpendingTag.class)) {
-            return false;
-        }
-        else {
-            DoubleSpendingTag otherTag = (DoubleSpendingTag) o;
-            return otherTag.getC0().equals(this.c0)
-                    && otherTag.getC1().equals(this.c1)
-                    && otherTag.getEskStarProv().equals(this.eskStarProv)
-                    && otherTag.getGamma().equals(this.gamma)
-                    && otherTag.getCtrace0().equals(this.ctrace0)
-                    && otherTag.getCtrace1().equals(this.ctrace1);
-        }
     }
 
     @Override

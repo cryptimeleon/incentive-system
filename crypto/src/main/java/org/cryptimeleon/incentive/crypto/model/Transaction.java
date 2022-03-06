@@ -1,6 +1,7 @@
 package org.cryptimeleon.incentive.crypto.model;
 
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.NonFinal;
@@ -20,6 +21,7 @@ import java.math.BigInteger;
  * and thus not a field of the transaction class (DRY principle).
  */
 @Getter
+@EqualsAndHashCode
 @AllArgsConstructor
 public class Transaction implements Representable {
     @NonFinal
@@ -60,20 +62,6 @@ public class Transaction implements Representable {
         repr.add(ReprUtil.serialize(this));
         repr.add(dsTag.getRepresentation());
         return repr;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if(!o.getClass().equals(Transaction.class)) {
-            return false;
-        }
-        else {
-            Transaction otherTa = (Transaction) o;
-            return otherTa.getIsValid()== this.isValid
-                    && otherTa.getTransactionID().equals(this.transactionID)
-                    && otherTa.getK().equals(this.k)
-                    && otherTa.getDsTag().equals(this.getDsTag());
-        }
     }
 
     @Override

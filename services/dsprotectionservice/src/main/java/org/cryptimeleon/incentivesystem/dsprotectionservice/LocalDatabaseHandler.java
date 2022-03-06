@@ -18,6 +18,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.lang.reflect.Array;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Optional;
 
 /**
  * Implements the double-spending protection database access functionality when having direct (i.e. non-remote) access to said database.
@@ -211,9 +212,10 @@ public class LocalDatabaseHandler implements DatabaseHandler {
         // this changes its id => need to update consuming and producing transactions!
         long uInfoEntryId = uie.getId();
         DsIdEntry dside = findDsidEntry(dsid);
-        long oldDsidEntryId = dside.getId();
+        long oldDsidEntryId = 0;
         long newDsidEntryId = 0;
         if(dside != null) {
+            oldDsidEntryId = dside.getId();
             dsidRepository.delete(dside);
             dside.setAssociatedUserInfoId(uInfoEntryId);
             dsidRepository.save(dside);
@@ -235,16 +237,35 @@ public class LocalDatabaseHandler implements DatabaseHandler {
 
     /**
      * Retrieves the (anonymized) user info associated to the token identified by the passed dsid.
+     * If either passed dsid is not contained in database or has no user info associated to it,
+     * null is returned.
      */
     @Override
     public UserInfo getUserInfo(GroupElement dsid) {
         // query user info from database
         DsIdEntry dside = findDsidEntry(dsid);
-        long uieId = dside.getAssociatedUserInfoId();
-        UserInfoEntry uie = userInfoRepository.findById(uieId).get();
 
-        // convert user info entry to user info
-        UserInfo uInfo = convertUserInfoEntry(uie);
+        // storage variables to shorten code
+        UserInfo uInfo = null;
+        UserInfoEntry uie = null;
+        long uieId = 0;
+
+        // Attempt to retrieve user info entry associated to passed dsid.
+        if(dside != null) {
+            uieId = dside.getAssociatedUserInfoId();
+            if(userInfoRepository.findById(uieId).isPresent()) {
+                uie = userInfoRepository.findById(uieId).get();
+            }
+            else {
+                return null;
+            }
+        }
+        else {
+            return null;
+        }
+
+        // if successfully retrieved: convert user info entry to user info
+        uInfo = convertUserInfoEntry(uie);
 
         return uInfo;
     }
