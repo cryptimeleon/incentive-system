@@ -100,16 +100,10 @@ public class Helper {
         var resultToken = incSys.handleSpendRequestResponse(promP, deductOutput.getSpendResponse(), spendRequest, token, newPoints, pkp.getPk(), ukp);
 
         var occuredTransaction = new Transaction(
-                incSys.getPp(),
                 true,
-                computeSerializedRepresentation(tid),
-                token.getPoints().get(0).asInteger().subtract(newPoints.get(0)).toString(), // for v1: difference in 0-th component taken as spend amount TODO make transaction API able to handle vectors
-                computeSerializedRepresentation(deductOutput.getDstag().getC0()),
-                computeSerializedRepresentation(deductOutput.getDstag().getC1()),
-                computeSerializedRepresentation(deductOutput.getDstag().getGamma()),
-                computeSerializedRepresentation(deductOutput.getDstag().getEskStarProv()),
-                computeSerializedRepresentation(deductOutput.getDstag().getCtrace0()),
-                computeSerializedRepresentation(deductOutput.getDstag().getCtrace1())
+                tid,
+                token.getPoints().get(0).asInteger().subtract(newPoints.get(0)), // for v1: difference in 0-th component taken as spend amount TODO make transaction API able to handle vectors
+                deductOutput.getDstag()
         );
 
         return new SpendDeductOutput(resultToken, occuredTransaction);

@@ -2,12 +2,10 @@ package org.cryptimeleon.incentivesystem.dsprotectionservice;
 
 import org.cryptimeleon.incentive.client.WebClientHelper;
 import org.cryptimeleon.incentive.crypto.dsprotectionlogic.DatabaseHandler;
-import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
-import org.cryptimeleon.incentive.crypto.model.Transaction;
-import org.cryptimeleon.incentive.crypto.model.TransactionIdentifier;
-import org.cryptimeleon.incentive.crypto.model.UserInfo;
+import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.storage.*;
+import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.groups.Group;
 import org.cryptimeleon.math.structures.groups.GroupElement;
@@ -18,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.lang.reflect.Array;
+import java.math.BigInteger;
 import java.util.ArrayList;
 
 /**
@@ -332,18 +331,27 @@ public class LocalDatabaseHandler implements DatabaseHandler {
      * @return transaction object
      */
     private Transaction convertTransactionEntry(TransactionEntry taEntry) {
+        // retrieve entry of the double-spending tag corresponding to the transaction entry in question
         DsTagEntry taDsTagEntry = doubleSpendingTagRepository.findById(taEntry.getDsTagEntryId()).get();
+
+        // deserialize representation of transaction ID
+        JSONConverter jsonConverter = new JSONConverter();
+        Representation transactionIDRepr = jsonConverter.deserialize(taEntry.getSerializedTransactionIDRepr());
+
+        // assemble crypto transaction object
         return new Transaction(
-                this.pp,
                 taEntry.isValid(),
-                taEntry.getSerializedTransactionIDRepr(),
-                taEntry.getK(),
-                taDsTagEntry.getSerializedC0Repr(),
-                taDsTagEntry.getSerializedC1Repr(),
-                taDsTagEntry.getSerializedGammaRepr(),
-                taDsTagEntry.getSerializedEskStarProvRepr(),
-                taDsTagEntry.getSerializedCTrace0Repr(),
-                taDsTagEntry.getSerializedCTrace1Repr()
+                this.pp.getBg().getZn().restoreElement(transactionIDRepr),
+                new BigInteger(taEntry.getK()),
+                new DoubleSpendingTag(
+                        this.pp,
+                        taDsTagEntry.getSerializedC0Repr(),
+                        taDsTagEntry.getSerializedC1Repr(),
+                        taDsTagEntry.getSerializedGammaRepr(),
+                        taDsTagEntry.getSerializedEskStarProvRepr(),
+                        taDsTagEntry.getSerializedCTrace0Repr(),
+                        taDsTagEntry.getSerializedCTrace1Repr()
+                )
         );
     }
 
