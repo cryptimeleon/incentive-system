@@ -1,6 +1,7 @@
 package org.cryptimeleon.incentive.crypto.model;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Value;
 import lombok.experimental.NonFinal;
 import org.cryptimeleon.math.serialization.Representable;
 import org.cryptimeleon.math.serialization.Representation;
@@ -17,8 +18,7 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
  * used to trace the remainder token of the malicious transaction.
  * Called 'dstag' in the cryptimeleon incentive system paper.
  */
-@Getter
-@EqualsAndHashCode
+@Value
 @AllArgsConstructor
 public class DoubleSpendingTag implements Representable {
     @NonFinal

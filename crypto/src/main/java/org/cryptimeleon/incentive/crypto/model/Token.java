@@ -93,6 +93,7 @@ public class Token implements Representable, UniqueByteRepresentable {
 
     /**
      * Computes the double-spending ID for this token as defined in the 2020 incentive system paper.
+     *
      * @param pp public parameters of the incentive system this token is used in
      * @return element of group G1
      */

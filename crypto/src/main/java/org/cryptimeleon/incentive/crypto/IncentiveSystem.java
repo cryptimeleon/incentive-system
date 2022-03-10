@@ -1,5 +1,7 @@
 package org.cryptimeleon.incentive.crypto;
 
+import lombok.AllArgsConstructor;
+import lombok.Value;
 import org.cryptimeleon.craco.common.ByteArrayImplementation;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProof;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
@@ -7,13 +9,6 @@ import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignatureScheme;
 import org.cryptimeleon.incentive.crypto.dsprotectionlogic.DatabaseHandler;
 import org.cryptimeleon.incentive.crypto.model.*;
-import org.cryptimeleon.incentive.crypto.model.DoubleSpendingTag;
-import org.cryptimeleon.incentive.crypto.model.EarnRequest;
-import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
-import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
-import org.cryptimeleon.incentive.crypto.model.SpendRequest;
-import org.cryptimeleon.incentive.crypto.model.SpendResponse;
-import org.cryptimeleon.incentive.crypto.model.Token;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderSecretKey;
@@ -44,9 +39,6 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
-
-import lombok.AllArgsConstructor;
-import lombok.Value;
 
 
 /**
@@ -455,10 +447,10 @@ public class IncentiveSystem {
      * @return tuple of response to send to the user and information required for double-spending protection
      */
     public DeductOutput generateSpendRequestResponse(PromotionParameters promotionParameters,
-                                                            SpendRequest spendRequest,
-                                                            ProviderKeyPair providerKeyPair,
-                                                            ZnElement tid,
-                                                            SpendDeductTree spendDeductTree) {
+                                                     SpendRequest spendRequest,
+                                                     ProviderKeyPair providerKeyPair,
+                                                     ZnElement tid,
+                                                     SpendDeductTree spendDeductTree) {
 
         /* Verify that the request is valid and well-formed */
 
@@ -620,10 +612,10 @@ public class IncentiveSystem {
      * Computes remainder token dsids for some double-spending transaction T (remainder token of a transaction: token that resulted from that transaction)
      * and at the same time retrieves the next ElGamal encryption key (i.e. the one for the transaction T' after T) from the chain of keys.
      *
-     * @param pp        public parameters of the respective incentive system instance
-     * @param dsTrace   ElGamal decryption key used for tracing the next ElGamal encryption key (= dsid of remainder token) in the chain
-     * @param dsTag     double-spending tag associated to T, used to trace the remainder token
-     * @return          trace output, which consists of remainder token and the dstrace ElGamal secret key of T'
+     * @param pp      public parameters of the respective incentive system instance
+     * @param dsTrace ElGamal decryption key used for tracing the next ElGamal encryption key (= dsid of remainder token) in the chain
+     * @param dsTag   double-spending tag associated to T, used to trace the remainder token
+     * @return trace output, which consists of remainder token and the dstrace ElGamal secret key of T'
      */
     public TraceOutput trace(IncentivePublicParameters pp, ZnElement dsTrace, DoubleSpendingTag dsTag) {
         // extract values from passed objects to save references in the below for-loops
@@ -637,7 +629,7 @@ public class IncentiveSystem {
         for (int i = 0; i < pp.getNumEskDigits(); i++) { // getNumEskDigits returns the number of digits the esk consists of (rho in the paper)
             for (int b = 0; b < Setup.ESK_DEC_BASE; b++) {
                 // search for DLOG (i-th digit of the user share of esk), beta from paper is b in code
-                if ( w.pow(b).equals( ctrace1.get(i).pow(dsTrace.neg()).op(ctrace2.get(i)) ) ) {
+                if (w.pow(b).equals(ctrace1.get(i).pow(dsTrace.neg()).op(ctrace2.get(i)))) {
                     userEskShareDigits[i] = usedZn.valueOf(b);
                     break;
                 }
@@ -645,8 +637,8 @@ public class IncentiveSystem {
         }
 
         // check whether all bits could be computed
-        for(int i = 0; i < pp.getNumEskDigits(); i++) {
-            if(userEskShareDigits[i] == null) {
+        for (int i = 0; i < pp.getNumEskDigits(); i++) {
+            if (userEskShareDigits[i] == null) {
                 throw new RuntimeException("Could not find a fitting " + i + "-th digit for the user's share of esk.");
             }
         }
@@ -679,7 +671,7 @@ public class IncentiveSystem {
      * @param dsid        double-spending ID of used token
      * @param dsTag       double-spending tag of used token (contains challenge generator gamma)
      * @param spendAmount point amount spent
-     * @param dbHandler reference to the object handling the database connectivity
+     * @param dbHandler   reference to the object handling the database connectivity
      */
     public void dbSync(ZnElement tid, GroupElement dsid, DoubleSpendingTag dsTag, BigInteger spendAmount, DatabaseHandler dbHandler) {
         System.out.println("Started database synchronization process.");
@@ -688,13 +680,13 @@ public class IncentiveSystem {
         TransactionIdentifier taId = new TransactionIdentifier(tid, gamma);
 
         // make list for keeping track of identifiers of transactions that are invalidated over the course of the method
-        ArrayList<TransactionIdentifier> invalidatedTasIdentifiers = new ArrayList<TransactionIdentifier>();
+        ArrayList<TransactionIdentifier> invalidatedTasIdentifiers = new ArrayList<>();
 
         // first part of DBSync from 2020 incentive system paper: adding a new transaction
 
         // if transaction is not yet in the database
         boolean transactionWasAlreadyKnown = dbHandler.containsTransactionNode(taId);
-        if(!transactionWasAlreadyKnown) {
+        if (!transactionWasAlreadyKnown) {
             System.out.println("Transaction not found in database, will be added.");
             // add a corresponding transaction node to DB (which also contains the dstag)
             Transaction ta = new Transaction(true, tid, spendAmount, dsTag); // first parameter: validity of the transaction
@@ -702,7 +694,7 @@ public class IncentiveSystem {
         }
 
         // if dsid of used token is not yet in DB
-        if(!dbHandler.containsTokenNode(dsid)) {
+        if (!dbHandler.containsTokenNode(dsid)) {
             System.out.println("Spent token not found in database, will be added.");
             // add a corresponding token node to DB
             dbHandler.addTokenNode(dsid);
@@ -710,7 +702,7 @@ public class IncentiveSystem {
             dbHandler.addTokenTransactionEdge(dsid, taId);
         }
         // if dsid is already in DB but transaction was not before this call -> double-spending attempt detected!
-        else if(!transactionWasAlreadyKnown) {
+        else if (!transactionWasAlreadyKnown) {
             System.out.println("Spent token found in database, double-spending protection mechanism triggered.");
 
             // make edge from dsid's token node to the node of the passed transaction
@@ -718,15 +710,14 @@ public class IncentiveSystem {
 
             // attempt to retrieve user info associated to dsid
             UserInfo associatedUserInfo = null;
-            try{
+            try {
                 associatedUserInfo = dbHandler.getUserInfo(dsid);
-            }
-            catch (NoSuchElementException e) {
+            } catch (NoSuchElementException e) {
                 System.out.println("No user info associated with the spent token.");
             }
 
             // if the token node has no user info associated with it
-            if(associatedUserInfo == null) {
+            if (associatedUserInfo == null) {
                 System.out.println("Retrieving all transactions that spent the passed token.");
                 // retrieve all transaction that consumed the dsid
                 ArrayList<Transaction> consumingTaList = dbHandler.getConsumingTransactions(dsid);
@@ -741,12 +732,10 @@ public class IncentiveSystem {
                             uInfo,
                             dsid
                     );
-                }
-                catch(Exception e) {
+                } catch (Exception e) {
                     System.out.println("Cannot compute user info for passed token: need at least 2 consuming transactions");
                 }
             }
-
 
 
             // invalidate transaction
@@ -759,7 +748,7 @@ public class IncentiveSystem {
         System.out.println("Starting cascading invalidations.");
 
         // whenever a transaction is invalidated: invalidate all transactions that resulted from it (if any exist)
-        while(!invalidatedTasIdentifiers.isEmpty()) {
+        while (!invalidatedTasIdentifiers.isEmpty()) {
             System.out.println("Processing invalidated transaction. " + invalidatedTasIdentifiers.size() + " pending.");
 
             TransactionIdentifier currentTaId = invalidatedTasIdentifiers.remove(0);
@@ -785,11 +774,10 @@ public class IncentiveSystem {
             System.out.println("Traced remainder token.");
 
             // add remainder token dsid if not contained yet
-            if(!dbHandler.containsTokenNode(dsidStar)) {
+            if (!dbHandler.containsTokenNode(dsidStar)) {
                 System.out.println("Remainder token not contained yet, will be added.");
                 dbHandler.addTokenNode(dsidStar);
-            }
-            else {
+            } else {
                 System.out.println("Remainder token is already contained in the database.");
             }
 

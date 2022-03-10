@@ -1,11 +1,10 @@
 package org.cryptimeleon.incentive.crypto.dsprotectionlogic;
 
-import org.cryptimeleon.incentive.crypto.model.*;
-import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
-import org.cryptimeleon.math.structures.groups.Group;
+import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
+import org.cryptimeleon.incentive.crypto.model.Transaction;
+import org.cryptimeleon.incentive.crypto.model.TransactionIdentifier;
+import org.cryptimeleon.incentive.crypto.model.UserInfo;
 import org.cryptimeleon.math.structures.groups.GroupElement;
-import org.cryptimeleon.math.structures.rings.zn.Zn;
-import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
 
 import java.util.ArrayList;
 
@@ -16,8 +15,7 @@ import java.util.ArrayList;
  * Note that transactions are usually identified by the combination of transaction ID tid and challenge generator gamma. Tokens are identified by dsids.
  */
 
-public interface DatabaseHandler
-{
+public interface DatabaseHandler {
     /*
      * Methods for adding nodes and edges.
      * 2 types of nodes: transaction and token nodes (token nodes correspond to dsids)
@@ -28,6 +26,7 @@ public interface DatabaseHandler
 
     /**
      * Adds a new transaction node to the database.
+     *
      * @param ta transaction to add
      */
     void addTransactionNode(Transaction ta);
@@ -53,7 +52,6 @@ public interface DatabaseHandler
      */
 
 
-
     boolean containsTransactionNode(TransactionIdentifier taIdentifier);
 
     boolean containsTokenNode(GroupElement dsid);
@@ -75,11 +73,11 @@ public interface DatabaseHandler
      */
 
 
-
     /**
      * Adds info about the user that spent a specific token to said token.
+     *
      * @param userInfo user info
-     * @param dsid double-spending ID identifying the token
+     * @param dsid     double-spending ID identifying the token
      */
     void addAndLinkUserInfo(UserInfo userInfo, GroupElement dsid);
 
@@ -116,7 +114,10 @@ public interface DatabaseHandler
      * Note that they are designed to not expose any information about the underlying database administration objects (like for example CRUDRepositories).
      */
     long getTransactionCount();
+
     long getTokenCount();
+
     long getDsTagCount();
+
     long getUserInfoCount();
 }

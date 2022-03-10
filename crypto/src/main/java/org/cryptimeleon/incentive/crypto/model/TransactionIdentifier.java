@@ -18,11 +18,11 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
 public class TransactionIdentifier implements Representable {
     @NonFinal
     @Represented(restorer = "zn")
-    private Zn.ZnElement tid;
+    Zn.ZnElement tid;
 
     @NonFinal
     @Represented(restorer = "zn")
-    private Zn.ZnElement gamma;
+    Zn.ZnElement gamma;
 
     public TransactionIdentifier(Representation repr, IncentivePublicParameters pp) {
         new ReprUtil(this).register(pp.getBg().getZn(), "zn").deserialize(repr);

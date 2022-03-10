@@ -23,7 +23,7 @@ import java.math.BigInteger;
  */
 public class Helper {
     /**
-     * Generates a sound empty (i.e. no points) user tokenm as output by a sound execution of the Issue-Join protocol.
+     * Generates a sound empty (i.e. no points) user token as output by a sound execution of the Issue-Join protocol.
      */
     public static Token generateToken(IncentivePublicParameters pp,
                                       UserKeyPair userKeyPair,
