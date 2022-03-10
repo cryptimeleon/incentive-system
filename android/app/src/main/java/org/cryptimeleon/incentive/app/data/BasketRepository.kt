@@ -144,7 +144,7 @@ class BasketRepository(
         val payResponse =
             basketApiService.payBasket(NetworkPayBody(basket.basketId, basket.value))
         return if (payResponse.isSuccessful) {
-            discardCurrentBasket()
+            // TODO do not want to do that? discardCurrentBasket()
             true
         } else {
             false

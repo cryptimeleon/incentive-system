@@ -1,6 +1,8 @@
 package org.cryptimeleon.incentive.app.domain
 
 import kotlinx.coroutines.flow.Flow
+import org.cryptimeleon.incentive.app.domain.model.BulkRequestDto
+import org.cryptimeleon.incentive.app.domain.model.BulkResponseDto
 import org.cryptimeleon.incentive.app.domain.model.CryptoMaterial
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters
 import org.cryptimeleon.incentive.crypto.model.Token
@@ -20,9 +22,8 @@ interface ICryptoRepository {
      */
     suspend fun refreshCryptoMaterial(): Boolean
     suspend fun runIssueJoin(promotionParameters: PromotionParameters, dummy: Boolean = false)
-    suspend fun runCreditEarn(
-        basketId: UUID,
-        promotionParameters: PromotionParameters,
-        basketValue: Int
-    )
+
+    // Results are stored at the server's side until basket is payed
+    suspend fun sendTokenUpdatesBatch(basketId: UUID, bulkRequestDto: BulkRequestDto)
+    suspend fun retrieveTokenUpdatesResults(basketId: UUID): BulkResponseDto
 }

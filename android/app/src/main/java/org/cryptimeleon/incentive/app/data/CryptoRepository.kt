@@ -5,13 +5,14 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
-import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature
 import org.cryptimeleon.incentive.app.data.database.crypto.CryptoDao
 import org.cryptimeleon.incentive.app.data.database.crypto.CryptoMaterialEntity
 import org.cryptimeleon.incentive.app.data.database.crypto.CryptoTokenEntity
 import org.cryptimeleon.incentive.app.data.network.CryptoApiService
 import org.cryptimeleon.incentive.app.data.network.InfoApiService
 import org.cryptimeleon.incentive.app.domain.ICryptoRepository
+import org.cryptimeleon.incentive.app.domain.model.BulkRequestDto
+import org.cryptimeleon.incentive.app.domain.model.BulkResponseDto
 import org.cryptimeleon.incentive.app.domain.model.CryptoMaterial
 import org.cryptimeleon.incentive.crypto.IncentiveSystem
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters
@@ -23,9 +24,7 @@ import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserSecretKey
 import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse
 import org.cryptimeleon.math.serialization.converter.JSONConverter
-import org.cryptimeleon.math.structures.cartesian.Vector
 import timber.log.Timber
-import java.math.BigInteger
 import java.util.*
 
 /**
@@ -62,7 +61,8 @@ class CryptoRepository(
         val userKeyPair = cryptoMaterial.ukp
         val incentiveSystem = IncentiveSystem(pp)
 
-        val joinRequest = incentiveSystem.generateJoinRequest(providerPublicKey, userKeyPair, promotionParameters)
+        val joinRequest =
+            incentiveSystem.generateJoinRequest(providerPublicKey, userKeyPair, promotionParameters)
         val joinResponse = cryptoApiService.runIssueJoin(
             jsonConverter.serialize(joinRequest.representation),
             promotionParameters.promotionId.toString(),
@@ -89,45 +89,22 @@ class CryptoRepository(
         }
     }
 
-    override suspend fun runCreditEarn(
+    override suspend fun sendTokenUpdatesBatch(
         basketId: UUID,
-        promotionParameters: PromotionParameters,
-        basketValue: Int
-    ) {
-        val cryptoMaterial = cryptoMaterial.first()!!
-        val token = tokens.first().find { it.promotionId == promotionParameters.promotionId }
-        val pp = cryptoMaterial.pp
-        val providerPublicKey = cryptoMaterial.ppk
-        val userKeyPair = cryptoMaterial.ukp
-        val incentiveSystem = IncentiveSystem(pp)
+        bulkRequestDto: BulkRequestDto
+    ): Unit {
+        val response = cryptoApiService.sendTokenUpdatesBatch(basketId, bulkRequestDto)
+        if (!response.isSuccessful) {
+            throw RuntimeException(response.errorBody().toString())
+        }
+    }
 
-        val earnRequest =
-            incentiveSystem.generateEarnRequest(token, providerPublicKey, userKeyPair)
-        val earnResponse = cryptoApiService.runCreditEarn(
-            basketId,
-            promotionParameters.promotionId.toInt(),
-            jsonConverter.serialize(earnRequest.representation)
-        )
-
-        Timber.i("Earn response $earnResponse")
-
-        // The basket service computes the value in the backend, so no need to send it over the wire
-        val newToken = incentiveSystem.handleEarnRequestResponse(
-            promotionParameters,
-            earnRequest,
-            SPSEQSignature(
-                jsonConverter.deserialize(earnResponse.body()),
-                pp.bg.g1,
-                pp.bg.g2
-            ),
-            Vector.of(BigInteger.valueOf(basketValue.toLong())),
-            token,
-            providerPublicKey,
-            userKeyPair
-        )
-
-        cryptoDao.insertToken(toCryptoTokenEntity(newToken))
-        Timber.i("Added new token $newToken to database")
+    override suspend fun retrieveTokenUpdatesResults(basketId: UUID): BulkResponseDto {
+        val response = cryptoApiService.retrieveTokenUpdatesResults(basketId)
+        if (!response.isSuccessful || response.body() == null) {
+            throw RuntimeException(response.errorBody().toString())
+        }
+        return response.body()!!
     }
 
     override suspend fun refreshCryptoMaterial(): Boolean {

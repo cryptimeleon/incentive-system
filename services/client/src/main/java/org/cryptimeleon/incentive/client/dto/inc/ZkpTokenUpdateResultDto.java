@@ -16,7 +16,7 @@ public class ZkpTokenUpdateResultDto implements TokenUpdateResult {
     @NonFinal
     UUID tokenUpdateId;
     @NonFinal
-    String serializedZkpUpdateResponse;
+    String serializedResponse;
 
     public ZkpTokenUpdateResultDto() {
     }

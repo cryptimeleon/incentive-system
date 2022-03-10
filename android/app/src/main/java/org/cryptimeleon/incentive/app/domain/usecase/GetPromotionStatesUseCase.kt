@@ -7,10 +7,8 @@ import org.cryptimeleon.incentive.app.domain.ICryptoRepository
 import org.cryptimeleon.incentive.app.domain.IPromotionRepository
 import org.cryptimeleon.incentive.app.domain.model.PromotionState
 import org.cryptimeleon.incentive.app.domain.model.UpdateChoice
+import org.cryptimeleon.incentive.app.util.toBigIntVector
 import org.cryptimeleon.incentive.crypto.model.Token
-import org.cryptimeleon.math.structures.cartesian.Vector
-import java.math.BigInteger
-import java.util.function.Function
 
 class GetPromotionStatesUseCase(
     private val promotionRepository: IPromotionRepository,
@@ -56,6 +54,3 @@ class GetPromotionStatesUseCase(
             }
         }
 }
-
-private fun Token.toBigIntVector(): Vector<BigInteger> =
-    points.map(Function { it.asInteger() })

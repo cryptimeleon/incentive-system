@@ -1,6 +1,9 @@
 package org.cryptimeleon.incentive.app.data.network
 
+import org.cryptimeleon.incentive.app.domain.model.BulkRequestDto
+import org.cryptimeleon.incentive.app.domain.model.BulkResponseDto
 import retrofit2.Response
+import retrofit2.http.Body
 import retrofit2.http.Header
 import retrofit2.http.POST
 import java.util.*
@@ -13,10 +16,12 @@ interface CryptoApiService {
         @Header("user-public-key") publicKey: String
     ): Response<String>
 
-    @POST()
-    suspend fun runCreditEarn(
+    @POST("bulk-token-updates")
+    suspend fun sendTokenUpdatesBatch(
         @Header("basket-id") basketId: UUID,
-        @Header("promotion-id") promotionId: Int,
-        @Header("earn-request") serializedEarnRequest: String
-    ): Response<String>
+        @Body bulkRequestDto: BulkRequestDto
+    ): Response<Unit>
+
+    @POST("bulk-token")
+    suspend fun retrieveTokenUpdatesResults(@Header("basket-id") basketId: UUID): Response<BulkResponseDto>
 }
