@@ -7,8 +7,6 @@ plugins {
 dependencies {
 	// testing and convenience
 	implementation 'junit:junit:4.12'
-	compileOnly 'org.projectlombok:lombok' // TODO: ask Paul what this is useful for, why needed twice? isnt one annotation processor enough?
-	annotationProcessor 'org.projectlombok:lombok'
 
 	// spring boot dependencies
 	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
