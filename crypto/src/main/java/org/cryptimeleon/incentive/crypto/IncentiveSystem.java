@@ -11,7 +11,6 @@ import org.cryptimeleon.incentive.crypto.model.DoubleSpendingTag;
 import org.cryptimeleon.incentive.crypto.model.EarnRequest;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
-import org.cryptimeleon.incentive.crypto.model.SpendProviderOutput;
 import org.cryptimeleon.incentive.crypto.model.SpendRequest;
 import org.cryptimeleon.incentive.crypto.model.SpendResponse;
 import org.cryptimeleon.incentive.crypto.model.Token;
