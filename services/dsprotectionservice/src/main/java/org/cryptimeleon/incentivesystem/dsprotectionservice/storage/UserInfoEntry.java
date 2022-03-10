@@ -1,5 +1,6 @@
 package org.cryptimeleon.incentivesystem.dsprotectionservice.storage;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
@@ -18,14 +19,15 @@ import javax.persistence.*;
 
 @Getter
 @Setter
+@EqualsAndHashCode
 @Entity
-@Table(name="userInfo")
+@Table(name = "userInfo")
 public class UserInfoEntry {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
 
-    @Column(name="serializedUpkRepr", columnDefinition="CLOB NOT NULL")
+    @Column(name = "serializedUpkRepr", columnDefinition = "CLOB NOT NULL")
     @Lob
     private String serializedUpkRepr;
 
@@ -36,7 +38,8 @@ public class UserInfoEntry {
     /**
      * Default (i.e. no args) constructor needed for ORM reasons
      */
-    public UserInfoEntry() {}
+    public UserInfoEntry() {
+    }
 
     /**
      * All args constructor, note that ID is auto-generated.
@@ -50,7 +53,7 @@ public class UserInfoEntry {
     /**
      * Converts a user info (crypto) object to a user info entry.
      */
-    public UserInfoEntry(UserInfo userInfo){
+    public UserInfoEntry(UserInfo userInfo) {
         this.serializedUpkRepr = Util.computeSerializedRepresentation(userInfo.getUpk());
         this.serializedDsBlameRepr = Util.computeSerializedRepresentation(userInfo.getDsBlame());
         this.serializedDsTraceRepr = Util.computeSerializedRepresentation(userInfo.getDsTrace());
@@ -58,8 +61,9 @@ public class UserInfoEntry {
 
     /**
      * Constructs a user info entry from a serialized user info representation (crypto object).
+     *
      * @param serializedUserInfoRepr serialized representation a user info object
-     * @param pp public parameters of the respective incentive system instance
+     * @param pp                     public parameters of the respective incentive system instance
      */
     public UserInfoEntry(String serializedUserInfoRepr, IncentivePublicParameters pp) {
         // deserialize user info
@@ -71,19 +75,5 @@ public class UserInfoEntry {
         this.serializedUpkRepr = Util.computeSerializedRepresentation(uInfo.getUpk());
         this.serializedDsBlameRepr = Util.computeSerializedRepresentation(uInfo.getDsBlame());
         this.serializedDsTraceRepr = Util.computeSerializedRepresentation(uInfo.getDsTrace());
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if(!o.getClass().equals(UserInfoEntry.class)) {
-            return false;
-        }
-        else {
-            UserInfoEntry otherUInfoEntry = (UserInfoEntry) o;
-            return this.id == otherUInfoEntry.getId()
-                    && this.serializedUpkRepr.equals(otherUInfoEntry.getSerializedUpkRepr())
-                    && this.serializedDsTraceRepr.equals(otherUInfoEntry.getSerializedDsTraceRepr())
-                    && this.serializedDsBlameRepr.equals(otherUInfoEntry.getSerializedDsBlameRepr());
-        }
     }
 }

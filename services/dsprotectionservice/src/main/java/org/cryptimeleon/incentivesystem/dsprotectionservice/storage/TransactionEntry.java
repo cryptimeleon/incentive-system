@@ -1,5 +1,6 @@
 package org.cryptimeleon.incentivesystem.dsprotectionservice.storage;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
@@ -14,13 +15,14 @@ import javax.persistence.*;
  * Data class representing a Spend-transaction.
  * Needs ID attribute and some annotations to be processable by Hibernate (ORM framework),
  * furthermore we need to record whether the transaction is still considered valid.
- *
+ * <p>
  * Note that some attributes are serialized representations of the resembled properties since Hibernate
  * can only marshall objects that have primitive datatype fields only.
  */
 @Entity
 @Getter
 @Setter
+@EqualsAndHashCode
 @Table(name = "transactions")
 public class TransactionEntry {
     @Id
@@ -42,13 +44,15 @@ public class TransactionEntry {
     /**
      * Default (i.e. no args) constructor needed for ORM reasons
      */
-    public TransactionEntry() {}
+    public TransactionEntry() {
+    }
 
     /**
      * Constructs a transaction entry from a serialized transaction representation (crypto object).
      * Note that the association with a double-spending tag is done subsequently.
+     *
      * @param serializedTransaction serialized representation of a transaction
-     * @param pp public parameters of the incentive system
+     * @param pp                    public parameters of the incentive system
      */
     public TransactionEntry(String serializedTransaction, IncentivePublicParameters pp) {
         // deserialize transaction object (from crypto)
@@ -65,7 +69,7 @@ public class TransactionEntry {
     /**
      * All args constructor. Note that the ID  of the transaction is auto-generated.
      */
-    public TransactionEntry(boolean isValid, String tid, String k, long dsTagEntryId, long producedDsidEntryID, long consumedDsidEntryId){
+    public TransactionEntry(boolean isValid, String tid, String k, long dsTagEntryId, long producedDsidEntryID, long consumedDsidEntryId) {
         this.isValid = isValid;
         this.serializedTransactionIDRepr = tid;
         this.k = k;
@@ -86,7 +90,7 @@ public class TransactionEntry {
     /**
      * Constructor without IDs of produced and consumed tokens.
      */
-    public TransactionEntry(boolean isValid, String tid, String k, long dsTagEntryId){
+    public TransactionEntry(boolean isValid, String tid, String k, long dsTagEntryId) {
         this.isValid = isValid;
         this.serializedTransactionIDRepr = tid;
         this.k = k;
@@ -98,22 +102,5 @@ public class TransactionEntry {
      */
     public void invalidate() {
         this.isValid = false;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if(!o.getClass().equals(TransactionEntry.class)) {
-            return false;
-        }
-        else {
-            TransactionEntry otherTae = (TransactionEntry) o;
-            return this.id == otherTae.getId()
-                    && this.isValid == otherTae.isValid()
-                    && this.serializedTransactionIDRepr.equals(otherTae.getSerializedTransactionIDRepr())
-                    && this.k.equals(otherTae.getK())
-                    && this.dsTagEntryId == otherTae.getDsTagEntryId()
-                    && this.producedDsidEntryId == otherTae.getProducedDsidEntryId()
-                    && this.consumedDsidEntryId == otherTae.getConsumedDsidEntryId();
-        }
     }
 }

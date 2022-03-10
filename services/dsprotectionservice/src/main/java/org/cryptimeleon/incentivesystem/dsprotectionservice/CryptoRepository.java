@@ -22,17 +22,15 @@ public class CryptoRepository {
     public static final int MAX_TRIES = 5; // number of tries that the repo should reconnect to the info service for querying the assets
 
     private final Logger logger = LoggerFactory.getLogger(CryptoRepository.class);
-
+    private final InfoClient infoClient; // reference to the object handling the queries to the info service, set via dependency injection ("autowired") mechanism of Spring Boot
     @Getter
     private IncentivePublicParameters pp;
-
     @Getter
     private IncentiveSystem incSys;
 
-    private final InfoClient infoClient; // reference to the object handling the queries to the info service, set via dependency injection ("autowired") mechanism of Spring Boot
-
     /**
      * Default constructor to be executed when an object of this class is used as a Spring Bean.
+     *
      * @param infoClient ref to object handling info service queries
      */
     @Autowired
@@ -49,7 +47,7 @@ public class CryptoRepository {
         JSONConverter jsonConverter = new JSONConverter(); // info service provides assets as JSON objects => converter needed to obtain java objects
 
         // several connection attempts, wait 2^i seconds before retrying
-        for(int i = 0; i < MAX_TRIES; i++) {
+        for (int i = 0; i < MAX_TRIES; i++) {
             // attempt to connect to the info service and deserialize responses
             try {
                 logger.info("Retrieving data from info service (attempt " + i + ").");
@@ -62,19 +60,17 @@ public class CryptoRepository {
                 // deserializing retrieved values
                 this.pp = new IncentivePublicParameters(jsonConverter.deserialize(serializedPublicParameters));
                 break; // if values were received and deserialized successfully, no more attempts are needed
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 // exceptions are caught and ignored until the final connection attempt has failed
-                if(i + 1 >= MAX_TRIES) {
+                if (i + 1 >= MAX_TRIES) {
                     e.printStackTrace();
                 }
             }
 
             // waiting
-            try{
+            try {
                 Thread.sleep((long) (1000 * Math.pow(2, i)));
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

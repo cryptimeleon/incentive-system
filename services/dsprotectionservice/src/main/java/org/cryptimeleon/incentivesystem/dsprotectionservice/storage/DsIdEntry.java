@@ -1,5 +1,6 @@
 package org.cryptimeleon.incentivesystem.dsprotectionservice.storage;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.Util;
@@ -15,13 +16,14 @@ import javax.persistence.*;
 @Entity
 @Getter
 @Setter
-@Table(name="dsids")
+@EqualsAndHashCode
+@Table(name = "dsids")
 public class DsIdEntry {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id; // identifier for entry in database table that represents this object
 
-    @Column(name="serializedDsidRepr", columnDefinition="CLOB NOT NULL")
+    @Column(name = "serializedDsidRepr", columnDefinition = "CLOB NOT NULL")
     @Lob
     private String serializedDsidRepr; // the actual double spending ID (from nice mathematical structure), in serialized-representation form
 
@@ -30,7 +32,8 @@ public class DsIdEntry {
     /**
      * Default (i.e. no args) constructor needed for ORM reasons
      */
-    public DsIdEntry() {}
+    public DsIdEntry() {
+    }
 
     public DsIdEntry(String serializedDsidRepr) {
         this.serializedDsidRepr = serializedDsidRepr;
@@ -47,18 +50,5 @@ public class DsIdEntry {
         this.id = id;
         this.serializedDsidRepr = serializedDsidRepr;
         this.associatedUserInfoId = associatedUserInfoId;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if(!o.getClass().equals(DsIdEntry.class)) {
-            return false;
-        }
-        else {
-            DsIdEntry otherDsId = (DsIdEntry) o;
-            return this.id == otherDsId.getId()
-                    && this.serializedDsidRepr.equals(otherDsId.getSerializedDsidRepr())
-                    && this.associatedUserInfoId == otherDsId.getAssociatedUserInfoId();
-        }
     }
 }

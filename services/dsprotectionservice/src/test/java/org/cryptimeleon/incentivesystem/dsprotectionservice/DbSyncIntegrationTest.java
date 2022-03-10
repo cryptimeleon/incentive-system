@@ -47,7 +47,7 @@ public class DbSyncIntegrationTest {
         logger.info("Clear database."); // needed if this is not the first test in a sequence of tests
         dbHandler.clearDatabase();
         Assertions.assertEquals(
-                0, ( (ArrayList<TransactionEntry>) dbHandler.transactionRepository.findAll() ).size()
+                0, ((ArrayList<TransactionEntry>) dbHandler.transactionRepository.findAll()).size()
         );
 
         logger.info("Generating random valid transactions and dsids.");
@@ -110,7 +110,7 @@ public class DbSyncIntegrationTest {
      * This comes from the fact that until double-spending behaviour is detected,
      * it is actually not interesting which transaction produced which token.
      */
-    // @Test TODO see https://github.com/cryptimeleon/incentive-system/issues/75
+    // @Test // TODO see https://github.com/cryptimeleon/incentive-system/issues/75
     void cascadingInvalidationsTest() {
         logger.info("Starting cascading invalidations test.");
 
@@ -133,7 +133,7 @@ public class DbSyncIntegrationTest {
         logger.info("Clear database."); // needed if this is not the first test in a sequence of tests
         dbHandler.clearDatabase();
         Assertions.assertEquals(
-                0, ( (ArrayList<TransactionEntry>) dbHandler.transactionRepository.findAll() ).size()
+                0, ((ArrayList<TransactionEntry>) dbHandler.transactionRepository.findAll()).size()
         );
 
         logger.info("Generating transactions and dsids by executing spend-deduct several times.");

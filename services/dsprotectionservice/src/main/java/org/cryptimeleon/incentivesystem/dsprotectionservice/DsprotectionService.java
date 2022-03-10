@@ -28,10 +28,11 @@ public class DsprotectionService {
 
     /**
      * Executes dbSync for the passed (serialized) transaction data, i.e. records it in the database.
-     * @param serializedTidRepr serialized transaction identifier representation
-     * @param serializedDsidRepr serialized double-spending ID representation
+     *
+     * @param serializedTidRepr   serialized transaction identifier representation
+     * @param serializedDsidRepr  serialized double-spending ID representation
      * @param serializedDsTagRepr serialized double-spending tag representation
-     * @param spendAmount amount of points spent in the transaction
+     * @param spendAmount         amount of points spent in the transaction
      */
     public void dbSync(String serializedTidRepr, String serializedDsidRepr, String serializedDsTagRepr, String spendAmount) {
         // deserialize and restore data

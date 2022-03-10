@@ -1,5 +1,6 @@
 package org.cryptimeleon.incentivesystem.dsprotectionservice.storage;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import org.cryptimeleon.incentive.crypto.model.DoubleSpendingTag;
@@ -14,14 +15,15 @@ import javax.persistence.*;
  * Data class representing a double-spending tag.
  * Needs ID attribute and some annotations to be processable by Hibernate (ORM framework).
  * The counterpart double-spending tag class in the crypto project does not have these but apart from that, the two classes are identical.
- *
+ * <p>
  * Note that some attributes are serialized representations of the resembled properties since Hibernate
  * can only marshall objects that have primitive datatype fields only.
  */
 @Entity
-@Setter
 @Getter
-@Table(name="dstags")
+@Setter
+@EqualsAndHashCode
+@Table(name = "dstags")
 public class DsTagEntry {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -35,18 +37,19 @@ public class DsTagEntry {
 
     private String serializedEskStarProvRepr; // provider share for ElGamal encryption secret key
 
-    @Column(name="serializedCTrace0Repr", columnDefinition="CLOB NOT NULL")
+    @Column(name = "serializedCTrace0Repr", columnDefinition = "CLOB NOT NULL")
     @Lob
     private String serializedCTrace0Repr;
 
-    @Column(name="serializedCTrace1Repr", columnDefinition="CLOB NOT NULL")
+    @Column(name = "serializedCTrace1Repr", columnDefinition = "CLOB NOT NULL")
     @Lob
     private String serializedCTrace1Repr;
 
     /**
      * Default (i.e. no args) constructor needed for ORM reasons
      */
-    public DsTagEntry() {}
+    public DsTagEntry() {
+    }
 
     /**
      * Auto-generates the entry for a double-spending tag.
@@ -92,22 +95,5 @@ public class DsTagEntry {
                 + " " + serializedEskStarProvRepr
                 + " " + serializedCTrace0Repr
                 + " " + serializedCTrace1Repr;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if(!o.getClass().equals(DsTagEntry.class)) {
-            return false;
-        }
-        else {
-            DsTagEntry otherDsTag = (DsTagEntry) o;
-            return this.id == otherDsTag.getId()
-                    && this.serializedC0Repr.equals(otherDsTag.getSerializedC0Repr())
-                    && this.serializedC1Repr.equals(otherDsTag.getSerializedC1Repr())
-                    && this.serializedGammaRepr.equals(otherDsTag.getSerializedGammaRepr())
-                    && this.serializedEskStarProvRepr.equals(otherDsTag.getSerializedEskStarProvRepr())
-                    && this.serializedCTrace0Repr.equals(otherDsTag.getSerializedCTrace0Repr())
-                    && this.serializedCTrace1Repr.equals(otherDsTag.getSerializedCTrace1Repr());
-        }
     }
 }

@@ -44,7 +44,7 @@ public class LocalDatabaseHandlerUnitTests {
         logger.info("Clear database."); // needed if this is not the first test in a sequence of tests
         dbHandler.clearDatabase();
         Assertions.assertEquals(
-                0, ( (ArrayList<TransactionEntry>) dbHandler.transactionRepository.findAll() ).size()
+                0, ((ArrayList<TransactionEntry>) dbHandler.transactionRepository.findAll()).size()
         );
 
         logger.info("Generating valid random transaction with associated double-spending tag.");
@@ -59,7 +59,7 @@ public class LocalDatabaseHandlerUnitTests {
 
         logger.info("Checking whether double-spending database contains the correct number of transaction entries.");
         Assertions.assertEquals(
-                2, ( (ArrayList<TransactionEntry>) dbHandler.transactionRepository.findAll() ).size()
+                2, ((ArrayList<TransactionEntry>) dbHandler.transactionRepository.findAll()).size()
         );
 
         logger.info("Checking whether database contains both indivdual transactions.");
@@ -90,11 +90,9 @@ public class LocalDatabaseHandlerUnitTests {
 
         logger.info("Clear database."); // needed if this is not the first test in a sequence of tests
         dbHandler.clearDatabase();
-        Assertions.assertTrue(
-                ((ArrayList<TransactionEntry>)
-                        dbHandler.transactionRepository.findAll()
-                ).size() == 0
-        );
+        Assertions.assertEquals(0, ((ArrayList<TransactionEntry>)
+                dbHandler.transactionRepository.findAll()
+        ).size());
 
         logger.info("Generating random double-spending IDs.");
         GroupElement dsid1 = pp.getBg().getG1().getUniformlyRandomElement();
@@ -105,9 +103,7 @@ public class LocalDatabaseHandlerUnitTests {
         dbHandler.addTokenNode(dsid2);
 
         logger.info("Checking whether double-spending database contains correct number of double-spending IDs.");
-        Assertions.assertTrue(
-                dbHandler.dsidRepository.count() == 2
-        );
+        Assertions.assertEquals(2, dbHandler.dsidRepository.count());
 
         logger.info("Checking whether double-spending database contains both individual double-spending IDs.");
         boolean containsDsid1 = dbHandler.containsTokenNode(dsid1);
@@ -124,20 +120,14 @@ public class LocalDatabaseHandlerUnitTests {
         dbHandler.addAndLinkUserInfo(uInfo2, dsid2);
 
         logger.info("Checking whether double-spending database contains correct number of user info entries.");
-        Assertions.assertTrue(
-                dbHandler.userInfoRepository.count() == 2
-        );
+        Assertions.assertEquals(2, dbHandler.userInfoRepository.count());
 
         logger.info("Checking whether double-spending database contains both individual user info entries.");
         UserInfo retrievedUserInfo1 = dbHandler.getUserInfo(dsid1);
         UserInfo retrievedUserInfo2 = dbHandler.getUserInfo(dsid2);
-        Assertions.assertTrue(
-                uInfo1.equals(retrievedUserInfo1)
-        );
+        Assertions.assertEquals(retrievedUserInfo1, uInfo1);
         logger.info("User info for first transaction was retrieved correctly");
-        Assertions.assertTrue(
-                uInfo2.equals(retrievedUserInfo2)
-        );
+        Assertions.assertEquals(retrievedUserInfo2, uInfo2);
         logger.info("User info for second transaction was retrieved correctly");
 
         logger.info("Completed token adding test.");
@@ -165,7 +155,7 @@ public class LocalDatabaseHandlerUnitTests {
         logger.info("Clear database."); // needed if this is not the first test in a sequence of tests
         dbHandler.clearDatabase();
         Assertions.assertEquals(
-                0, ((ArrayList<TransactionEntry>) dbHandler.transactionRepository.findAll() ).size()
+                0, ((ArrayList<TransactionEntry>) dbHandler.transactionRepository.findAll()).size()
         );
 
         logger.info("Generating and adding random valid transactions.");
@@ -228,7 +218,7 @@ public class LocalDatabaseHandlerUnitTests {
         logger.info("Checking consuming transactions for dsid1.");
 
         ArrayList<Transaction> consumingTasDsid1 = dbHandler.getConsumingTransactions(dsid1);
-        Assertions.assertTrue(consumingTasDsid1.size() == 2);
+        Assertions.assertEquals(consumingTasDsid1.size(), 2);
 
         logger.info("Checking whether ta1 was registered as not consuming dsid1.");
 
@@ -247,7 +237,7 @@ public class LocalDatabaseHandlerUnitTests {
         logger.info("Checking consuming transactions for dsid2.");
 
         ArrayList<Transaction> consumingTasDsid2 = dbHandler.getConsumingTransactions(dsid2);
-        Assertions.assertTrue(consumingTasDsid2.size() == 0);
+        Assertions.assertEquals(consumingTasDsid2.size(), 0);
 
         logger.info("Done checking consuming transactions for dsid2.");
 
@@ -275,7 +265,7 @@ public class LocalDatabaseHandlerUnitTests {
         logger.info("Clear database."); // needed if this is not the first test in a sequence of tests
         dbHandler.clearDatabase();
         Assertions.assertEquals(
-                0, ( (ArrayList<TransactionEntry>) dbHandler.transactionRepository.findAll() ).size()
+                0, ((ArrayList<TransactionEntry>) dbHandler.transactionRepository.findAll()).size()
         );
 
         logger.info("Generating valid random transaction with associated double-spending tag and add it to the database.");
@@ -288,7 +278,7 @@ public class LocalDatabaseHandlerUnitTests {
         Assertions.assertTrue(retrievedTa.getIsValid());
 
         logger.info("Invalidating transaction twice and checking that it is invalid afterwards.");
-        for(int i = 0; i < 2; i++) {
+        for (int i = 0; i < 2; i++) {
             dbHandler.invalidateTransaction(ta1.getTaIdentifier());
             retrievedTa = dbHandler.getTransactionNode(ta1.getTaIdentifier());
             Assertions.assertFalse(retrievedTa.getIsValid());

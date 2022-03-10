@@ -1,6 +1,5 @@
 package org.cryptimeleon.incentivesystem.dsprotectionservice;
 
-import org.cryptimeleon.incentive.client.WebClientHelper;
 import org.cryptimeleon.incentive.crypto.dsprotectionlogic.DatabaseHandler;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
@@ -12,29 +11,20 @@ import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.reactive.function.client.WebClient;
 
-import java.lang.reflect.Array;
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Optional;
 
 /**
  * Implements the double-spending protection database access functionality when having direct (i.e. non-remote) access to said database.
  */
 public class LocalDatabaseHandler implements DatabaseHandler {
-    private Logger logger = LoggerFactory.getLogger(LocalDatabaseHandler.class);
-
-    private IncentivePublicParameters pp;
-
     DsidRepository dsidRepository;
-
     TransactionEntryRepository transactionRepository;
-
     DsTagEntryRepository doubleSpendingTagRepository;
-
     UserInfoRepository userInfoRepository;
+    private Logger logger = LoggerFactory.getLogger(LocalDatabaseHandler.class);
+    private IncentivePublicParameters pp;
 
     public LocalDatabaseHandler(IncentivePublicParameters pp) {
         this.pp = pp;
@@ -111,10 +101,9 @@ public class LocalDatabaseHandler implements DatabaseHandler {
         // make edge (i.e. update field of ta entry that holds ID of produced token's dsid) if both nodes exist
         if (taEntry == null) {
             throw new RuntimeException("No transaction corresponding to the queried identifier was found in database.");
-        }
-        else if (dsIdEntry == null) {
+        } else if (dsIdEntry == null) {
             throw new RuntimeException("Queried double-spending ID not found in database.");
-        }  else {
+        } else {
             transactionRepository.delete(taEntry);
             taEntry.setProducedDsidEntryId(dsIdEntry.getId());
             transactionRepository.save(taEntry);
@@ -134,10 +123,9 @@ public class LocalDatabaseHandler implements DatabaseHandler {
         // make edge (i.e. update field of ta entry that holds ID of consumed token's dsid) if both nodes exist
         if (taEntry == null) {
             throw new RuntimeException("No transaction corresponding to the queried identifier was found in database.");
-        }
-        else if (dsIdEntry == null) {
+        } else if (dsIdEntry == null) {
             throw new RuntimeException("Queried double-spending ID not found in database.");
-        }  else {
+        } else {
             transactionRepository.delete(taEntry);
             taEntry.setConsumedDsidEntryId(dsIdEntry.getId());
             transactionRepository.save(taEntry);
@@ -171,11 +159,9 @@ public class LocalDatabaseHandler implements DatabaseHandler {
         TransactionEntry taEntry = findTransactionEntryWithTaIdentifier(taId);
         DsIdEntry dsIdEntry = findDsidEntry(dsid);
 
-        boolean edgeExists = taEntry != null &&
+        return taEntry != null &&
                 dsIdEntry != null &&
                 taEntry.getProducedDsidEntryId() == dsIdEntry.getId();
-
-        return edgeExists;
     }
 
     /**
@@ -189,11 +175,10 @@ public class LocalDatabaseHandler implements DatabaseHandler {
         DsIdEntry dsIdEntry = findDsidEntry(dsid);
 
         // check for existence of edge
-        boolean edgeExists = taEntry != null &&
+
+        return taEntry != null &&
                 dsIdEntry != null &&
                 dsIdEntry.getId() == taEntry.getConsumedDsidEntryId();
-
-        return edgeExists;
     }
 
     /**
@@ -214,7 +199,7 @@ public class LocalDatabaseHandler implements DatabaseHandler {
         DsIdEntry dside = findDsidEntry(dsid);
         long oldDsidEntryId = 0;
         long newDsidEntryId = 0;
-        if(dside != null) {
+        if (dside != null) {
             oldDsidEntryId = dside.getId();
             dsidRepository.delete(dside);
             dside.setAssociatedUserInfoId(uInfoEntryId);
@@ -224,13 +209,13 @@ public class LocalDatabaseHandler implements DatabaseHandler {
 
         // update consuming transactions
         ArrayList<TransactionEntry> consumingTasEntries = this.getConsumingTransactionEntries(oldDsidEntryId);
-        for(TransactionEntry taEntry:consumingTasEntries) {
+        for (TransactionEntry taEntry : consumingTasEntries) {
             taEntry.setConsumedDsidEntryId(newDsidEntryId);
         }
 
         // update producing transactions
         ArrayList<TransactionEntry> producingTasEntries = this.getProducingTransactionEntries(oldDsidEntryId);
-        for(TransactionEntry taEntry:producingTasEntries) {
+        for (TransactionEntry taEntry : producingTasEntries) {
             taEntry.setProducedDsidEntryId(newDsidEntryId);
         }
     }
@@ -246,21 +231,19 @@ public class LocalDatabaseHandler implements DatabaseHandler {
         DsIdEntry dside = findDsidEntry(dsid);
 
         // storage variables to shorten code
-        UserInfo uInfo = null;
-        UserInfoEntry uie = null;
-        long uieId = 0;
+        UserInfo uInfo;
+        UserInfoEntry uie;
+        long uieId;
 
         // Attempt to retrieve user info entry associated to passed dsid.
-        if(dside != null) {
+        if (dside != null) {
             uieId = dside.getAssociatedUserInfoId();
-            if(userInfoRepository.findById(uieId).isPresent()) {
+            if (userInfoRepository.findById(uieId).isPresent()) {
                 uie = userInfoRepository.findById(uieId).get();
-            }
-            else {
+            } else {
                 return null;
             }
-        }
-        else {
+        } else {
             return null;
         }
 
@@ -299,7 +282,7 @@ public class LocalDatabaseHandler implements DatabaseHandler {
         TransactionEntry taEntry = findTransactionEntryWithTaIdentifier(taId);
 
         // find dsid entry of consumed token's double-spending ID
-        DsIdEntry consumedDsidEntry = dsidRepository.findById(taEntry.getConsumedDsidEntryId()).get();
+        DsIdEntry consumedDsidEntry = dsidRepository.findById(taEntry.getConsumedDsidEntryId()).orElseThrow();
 
         String serializedConsumedDsidRepr = consumedDsidEntry.getSerializedDsidRepr();
 
@@ -317,7 +300,7 @@ public class LocalDatabaseHandler implements DatabaseHandler {
     public void invalidateTransaction(TransactionIdentifier taIdentifier) {
         // if existent: update respective transaction entry (retrieve, then delete from DB; add modified entry)
         TransactionEntry tae = findTransactionEntryWithTaIdentifier(taIdentifier);
-        if(tae != null) {
+        if (tae != null) {
             transactionRepository.delete(tae);
             tae.invalidate();
             transactionRepository.save(tae);
@@ -325,25 +308,21 @@ public class LocalDatabaseHandler implements DatabaseHandler {
     }
 
 
-
-
-    /**
+    /*
      * helper methods
      */
-
-
-
 
 
     /**
      * Converts a transaction database entry to a normal (crypto) transaction.
      * The original object is not changed.
+     *
      * @param taEntry original transaction entry
      * @return transaction object
      */
     private Transaction convertTransactionEntry(TransactionEntry taEntry) {
         // retrieve entry of the double-spending tag corresponding to the transaction entry in question
-        DsTagEntry taDsTagEntry = doubleSpendingTagRepository.findById(taEntry.getDsTagEntryId()).get();
+        DsTagEntry taDsTagEntry = doubleSpendingTagRepository.findById(taEntry.getDsTagEntryId()).orElseThrow();
 
         // deserialize representation of transaction ID
         JSONConverter jsonConverter = new JSONConverter();
@@ -369,6 +348,7 @@ public class LocalDatabaseHandler implements DatabaseHandler {
     /**
      * Converts a user info database entry object to a normal (crypto) user info object.
      * The original object is not changed.
+     *
      * @param uiEntry original user info entry
      * @return user info object
      */
@@ -411,14 +391,14 @@ public class LocalDatabaseHandler implements DatabaseHandler {
             // deserialize tid of currently considered transaction entry
             Zn.ZnElement taeTid = usedZn.restoreElement(jsonConverter.deserialize(tae.getSerializedTransactionIDRepr()));
 
-            if(taeTid.equals(tid)) {
+            if (taeTid.equals(tid)) {
                 // retrieve corresponding double-spending tag entry
-                DsTagEntry dste = doubleSpendingTagRepository.findById(tae.getDsTagEntryId()).get();
+                DsTagEntry dste = doubleSpendingTagRepository.findById(tae.getDsTagEntryId()).orElseThrow();
 
                 // deserialize gamma of currently considered transaction entry
                 Zn.ZnElement dsteGamma = usedZn.restoreElement(jsonConverter.deserialize(dste.getSerializedGammaRepr()));
 
-                if(dsteGamma.equals(gamma)) {
+                if (dsteGamma.equals(gamma)) {
                     return tae;
                 }
             }
@@ -440,11 +420,11 @@ public class LocalDatabaseHandler implements DatabaseHandler {
         Group groupG1 = this.pp.getBg().getG1();
 
         // look for one with fitting value and return it
-        for(DsIdEntry dside : dsidEntryList) {
+        for (DsIdEntry dside : dsidEntryList) {
             // deserialize dsid of currently considered dsid entry
             GroupElement dsideDsid = groupG1.restoreElement(jsonConverter.deserialize(dside.getSerializedDsidRepr()));
 
-            if(dsideDsid.equals(dsid)) {
+            if (dsideDsid.equals(dsid)) {
                 return dside;
             }
         }
@@ -455,18 +435,19 @@ public class LocalDatabaseHandler implements DatabaseHandler {
 
     /**
      * Retrieves and returns all transactions that have consumed a Dsid whose corresponding database entry has the passed ID.
+     *
      * @param dsidEntryId database entry ID
      * @return list of transactions
      */
     public ArrayList<TransactionEntry> getConsumingTransactionEntries(long dsidEntryId) {
-        ArrayList<TransactionEntry> resultList = new ArrayList<TransactionEntry>();
+        ArrayList<TransactionEntry> resultList = new ArrayList<>();
 
         // query all transaction entries from database
         ArrayList<TransactionEntry> transactionEntryList = (ArrayList<TransactionEntry>) transactionRepository.findAll();
 
         // filter by consumed dsid entry ID
-        for(TransactionEntry tae : transactionEntryList) {
-            if(tae.getConsumedDsidEntryId() == dsidEntryId) {
+        for (TransactionEntry tae : transactionEntryList) {
+            if (tae.getConsumedDsidEntryId() == dsidEntryId) {
                 resultList.add(tae);
             }
         }
@@ -476,18 +457,19 @@ public class LocalDatabaseHandler implements DatabaseHandler {
 
     /**
      * Retrieves and returns all transactions that have produced a Dsid whose corresponding database entry has the passed ID.
+     *
      * @param dsidEntryId database entry ID
      * @return list of transactions
      */
     public ArrayList<TransactionEntry> getProducingTransactionEntries(long dsidEntryId) {
-        ArrayList<TransactionEntry> resultList = new ArrayList<TransactionEntry>();
+        ArrayList<TransactionEntry> resultList = new ArrayList<>();
 
         // query all transaction entries from database
         ArrayList<TransactionEntry> transactionEntryList = (ArrayList<TransactionEntry>) transactionRepository.findAll();
 
         // filter by produced dsid entry ID
-        for(TransactionEntry tae : transactionEntryList) {
-            if(tae.getProducedDsidEntryId() == dsidEntryId) {
+        for (TransactionEntry tae : transactionEntryList) {
+            if (tae.getProducedDsidEntryId() == dsidEntryId) {
                 resultList.add(tae);
             }
         }
@@ -513,12 +495,15 @@ public class LocalDatabaseHandler implements DatabaseHandler {
     public long getTransactionCount() {
         return transactionRepository.count();
     }
-    public long getTokenCount(){
+
+    public long getTokenCount() {
         return dsidRepository.count();
     }
-    public long getDsTagCount(){
+
+    public long getDsTagCount() {
         return doubleSpendingTagRepository.count();
     }
+
     public long getUserInfoCount() {
         return userInfoRepository.count();
     }

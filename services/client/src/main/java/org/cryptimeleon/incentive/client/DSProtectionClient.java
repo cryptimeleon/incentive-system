@@ -2,7 +2,6 @@ package org.cryptimeleon.incentive.client;
 
 import org.cryptimeleon.incentive.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.model.DoubleSpendingTag;
-import org.cryptimeleon.incentive.crypto.model.TransactionIdentifier;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
@@ -32,9 +31,10 @@ public class DSProtectionClient {
 
     /**
      * Sends a request to the double-spending protection service to add the passed (represented and serialized) transaction data to the database.
-     * @param tid transaction ID
-     * @param dsid double-spending ID
-     * @param dstag double-spending tag
+     *
+     * @param tid         transaction ID
+     * @param dsid        double-spending ID
+     * @param dstag       double-spending tag
      * @param spendAmount amount of points spent in this transaction
      * @return server response (success or failure report)
      */
