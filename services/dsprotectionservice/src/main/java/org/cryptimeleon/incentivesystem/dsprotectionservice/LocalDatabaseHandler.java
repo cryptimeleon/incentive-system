@@ -2,12 +2,10 @@ package org.cryptimeleon.incentivesystem.dsprotectionservice;
 
 import org.cryptimeleon.incentive.client.WebClientHelper;
 import org.cryptimeleon.incentive.crypto.dsprotectionlogic.DatabaseHandler;
-import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
-import org.cryptimeleon.incentive.crypto.model.Transaction;
-import org.cryptimeleon.incentive.crypto.model.TransactionIdentifier;
-import org.cryptimeleon.incentive.crypto.model.UserInfo;
+import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.storage.*;
+import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.groups.Group;
 import org.cryptimeleon.math.structures.groups.GroupElement;
@@ -18,15 +16,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.lang.reflect.Array;
+import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Optional;
 
 /**
  * Implements the double-spending protection database access functionality when having direct (i.e. non-remote) access to said database.
  */
 public class LocalDatabaseHandler implements DatabaseHandler {
     private Logger logger = LoggerFactory.getLogger(LocalDatabaseHandler.class);
-
-    private WebClient dsProtectionClient;
 
     private IncentivePublicParameters pp;
 
@@ -111,20 +109,15 @@ public class LocalDatabaseHandler implements DatabaseHandler {
         DsIdEntry dsIdEntry = findDsidEntry(dsid);
 
         // make edge (i.e. update field of ta entry that holds ID of produced token's dsid) if both nodes exist
-        if(taEntry != null && dsIdEntry != null) {
+        if (taEntry == null) {
+            throw new RuntimeException("No transaction corresponding to the queried identifier was found in database.");
+        }
+        else if (dsIdEntry == null) {
+            throw new RuntimeException("Queried double-spending ID not found in database.");
+        }  else {
             transactionRepository.delete(taEntry);
             taEntry.setProducedDsidEntryId(dsIdEntry.getId());
             transactionRepository.save(taEntry);
-        }
-        // error report if either transaction or dsid was not found in the database
-        else {
-            if (taEntry == null) {
-                throw new RuntimeException("No transaction corresponding to the queried identifier was found in database.");
-            }
-            if (dsIdEntry == null) {
-                throw new RuntimeException("Queried double-spending ID not found in database.");
-            }
-            throw new RuntimeException("An unknown error occurred while adding transaction-token edge. Aborting, no write operations performed on database.");
         }
     }
 
@@ -138,21 +131,16 @@ public class LocalDatabaseHandler implements DatabaseHandler {
         TransactionEntry taEntry = findTransactionEntryWithTaIdentifier(taId);
         DsIdEntry dsIdEntry = findDsidEntry(dsid);
 
-        // make edge (i.e. update field of transaction entry that holds ID of consumed dsid's entry) if both nodes exist
-        if(taEntry != null && dsIdEntry != null) {
+        // make edge (i.e. update field of ta entry that holds ID of consumed token's dsid) if both nodes exist
+        if (taEntry == null) {
+            throw new RuntimeException("No transaction corresponding to the queried identifier was found in database.");
+        }
+        else if (dsIdEntry == null) {
+            throw new RuntimeException("Queried double-spending ID not found in database.");
+        }  else {
             transactionRepository.delete(taEntry);
             taEntry.setConsumedDsidEntryId(dsIdEntry.getId());
             transactionRepository.save(taEntry);
-        }
-        // error report if either transaction or dsid was not found in the database
-        else {
-            if (taEntry == null) {
-                throw new RuntimeException("No transaction corresponding to the queried identifier was found in database.");
-            }
-            if (dsIdEntry == null) {
-                throw new RuntimeException("Queried double-spending ID not found in database.");
-            }
-            throw new RuntimeException("An unknown error occurred while adding token-transaction edge. Aborting, no write operations performed on database.");
         }
     }
 
@@ -224,9 +212,10 @@ public class LocalDatabaseHandler implements DatabaseHandler {
         // this changes its id => need to update consuming and producing transactions!
         long uInfoEntryId = uie.getId();
         DsIdEntry dside = findDsidEntry(dsid);
-        long oldDsidEntryId = dside.getId();
+        long oldDsidEntryId = 0;
         long newDsidEntryId = 0;
         if(dside != null) {
+            oldDsidEntryId = dside.getId();
             dsidRepository.delete(dside);
             dside.setAssociatedUserInfoId(uInfoEntryId);
             dsidRepository.save(dside);
@@ -248,16 +237,35 @@ public class LocalDatabaseHandler implements DatabaseHandler {
 
     /**
      * Retrieves the (anonymized) user info associated to the token identified by the passed dsid.
+     * If either passed dsid is not contained in database or has no user info associated to it,
+     * null is returned.
      */
     @Override
     public UserInfo getUserInfo(GroupElement dsid) {
         // query user info from database
         DsIdEntry dside = findDsidEntry(dsid);
-        long uieId = dside.getAssociatedUserInfoId();
-        UserInfoEntry uie = userInfoRepository.findById(uieId).get();
 
-        // convert user info entry to user info
-        UserInfo uInfo = convertUserInfoEntry(uie);
+        // storage variables to shorten code
+        UserInfo uInfo = null;
+        UserInfoEntry uie = null;
+        long uieId = 0;
+
+        // Attempt to retrieve user info entry associated to passed dsid.
+        if(dside != null) {
+            uieId = dside.getAssociatedUserInfoId();
+            if(userInfoRepository.findById(uieId).isPresent()) {
+                uie = userInfoRepository.findById(uieId).get();
+            }
+            else {
+                return null;
+            }
+        }
+        else {
+            return null;
+        }
+
+        // if successfully retrieved: convert user info entry to user info
+        uInfo = convertUserInfoEntry(uie);
 
         return uInfo;
     }
@@ -334,18 +342,27 @@ public class LocalDatabaseHandler implements DatabaseHandler {
      * @return transaction object
      */
     private Transaction convertTransactionEntry(TransactionEntry taEntry) {
+        // retrieve entry of the double-spending tag corresponding to the transaction entry in question
         DsTagEntry taDsTagEntry = doubleSpendingTagRepository.findById(taEntry.getDsTagEntryId()).get();
+
+        // deserialize representation of transaction ID
+        JSONConverter jsonConverter = new JSONConverter();
+        Representation transactionIDRepr = jsonConverter.deserialize(taEntry.getSerializedTransactionIDRepr());
+
+        // assemble crypto transaction object
         return new Transaction(
-                this.pp,
                 taEntry.isValid(),
-                taEntry.getSerializedTransactionIDRepr(),
-                taEntry.getK(),
-                taDsTagEntry.getSerializedC0Repr(),
-                taDsTagEntry.getSerializedC1Repr(),
-                taDsTagEntry.getSerializedGammaRepr(),
-                taDsTagEntry.getSerializedEskStarProvRepr(),
-                taDsTagEntry.getSerializedCTrace0Repr(),
-                taDsTagEntry.getSerializedCTrace1Repr()
+                this.pp.getBg().getZn().restoreElement(transactionIDRepr),
+                new BigInteger(taEntry.getK()),
+                new DoubleSpendingTag(
+                        this.pp,
+                        taDsTagEntry.getSerializedC0Repr(),
+                        taDsTagEntry.getSerializedC1Repr(),
+                        taDsTagEntry.getSerializedGammaRepr(),
+                        taDsTagEntry.getSerializedEskStarProvRepr(),
+                        taDsTagEntry.getSerializedCTrace0Repr(),
+                        taDsTagEntry.getSerializedCTrace1Repr()
+                )
         );
     }
 

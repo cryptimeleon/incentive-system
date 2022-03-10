@@ -8,6 +8,6 @@ import lombok.Value;
  */
 @Value
 public class SpendDeductOutput {
-    private Token resultToken; // the token resulting from the spend-deduct protocol
-    private Transaction occuredTransaction; // the transaction object capsulating the data of the occurred transaction
+    Token resultToken; // the token resulting from the spend-deduct protocol
+    Transaction occuredTransaction; // the transaction object capsulating the data of the occurred transaction
 }

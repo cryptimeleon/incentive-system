@@ -1,9 +1,6 @@
 package org.cryptimeleon.incentive.crypto.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.Value;
+import lombok.*;
 import lombok.experimental.NonFinal;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.math.serialization.ListRepresentation;
@@ -18,7 +15,7 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
  * This info is associated with a token (represented by a dsid).
  **/
 @Getter
-@Setter
+@EqualsAndHashCode
 @AllArgsConstructor
 public class UserInfo implements Representable {
     @NonFinal
@@ -45,19 +42,6 @@ public class UserInfo implements Representable {
         repr.add(this.upk.getRepresentation());
 
         return repr;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if(!o.getClass().equals(UserInfo.class)) {
-            return false;
-        }
-        else {
-            UserInfo otherUserInfo = (UserInfo) o;
-            return otherUserInfo.dsBlame.equals(this.dsBlame)
-                    && otherUserInfo.dsTrace.equals(this.dsTrace)
-                    && otherUserInfo.upk.equals(this.upk);
-        }
     }
 
     @Override

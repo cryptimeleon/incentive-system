@@ -1,6 +1,7 @@
 package org.cryptimeleon.incentive.crypto.model;
 
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.NonFinal;
@@ -20,7 +21,7 @@ import java.math.BigInteger;
  * and thus not a field of the transaction class (DRY principle).
  */
 @Getter
-@Setter
+@EqualsAndHashCode
 @AllArgsConstructor
 public class Transaction implements Representable {
     @NonFinal
@@ -44,31 +45,6 @@ public class Transaction implements Representable {
     }
 
     /**
-     * All args constructor, all parameters with complex data types are passed as serialized representations.
-     */
-    public Transaction(IncentivePublicParameters pp, boolean isValid, String serializedTransactionIDRepr, String k,
-                       String serializedC0Repr, String serializedC1Repr, String serializedGammaRepr, String serializedEskProvStarRepr, String serializedCTrace0Repr, String serializedCTrace1Repr) {
-        // set the primitive fields
-        this.isValid = isValid;
-        this.k = new BigInteger(k);
-
-        // restore other fields from representations
-        JSONConverter jsonConverter = new JSONConverter();
-        this.transactionID = pp.getBg().getZn().restoreElement(
-                jsonConverter.deserialize(serializedTransactionIDRepr)
-        );
-        this.dsTag = new DoubleSpendingTag(
-            pp,
-            serializedC0Repr,
-            serializedC1Repr,
-            serializedGammaRepr,
-            serializedEskProvStarRepr,
-            serializedCTrace0Repr,
-            serializedCTrace1Repr
-        );
-    }
-
-    /**
      * Returns identifying information for this transaction,
      * consisting of the transaction ID and the challenge generator gamma of the associated double-spending tag.
      * @return TransactionIdentifier
@@ -86,20 +62,6 @@ public class Transaction implements Representable {
         repr.add(ReprUtil.serialize(this));
         repr.add(dsTag.getRepresentation());
         return repr;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if(!o.getClass().equals(Transaction.class)) {
-            return false;
-        }
-        else {
-            Transaction otherTa = (Transaction) o;
-            return otherTa.getIsValid()== this.isValid
-                    && otherTa.getTransactionID().equals(this.transactionID)
-                    && otherTa.getK().equals(this.k)
-                    && otherTa.getDsTag().equals(this.getDsTag());
-        }
     }
 
     @Override
