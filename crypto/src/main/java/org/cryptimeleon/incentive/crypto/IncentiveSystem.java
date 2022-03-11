@@ -1,18 +1,14 @@
 package org.cryptimeleon.incentive.crypto;
 
+import lombok.AllArgsConstructor;
+import lombok.Value;
 import org.cryptimeleon.craco.common.ByteArrayImplementation;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProof;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignatureScheme;
-import org.cryptimeleon.incentive.crypto.model.DoubleSpendingTag;
-import org.cryptimeleon.incentive.crypto.model.EarnRequest;
-import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
-import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
-import org.cryptimeleon.incentive.crypto.model.SpendProviderOutput;
-import org.cryptimeleon.incentive.crypto.model.SpendRequest;
-import org.cryptimeleon.incentive.crypto.model.SpendResponse;
-import org.cryptimeleon.incentive.crypto.model.Token;
+import org.cryptimeleon.incentive.crypto.dsprotectionlogic.DatabaseHandler;
+import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderSecretKey;
@@ -40,10 +36,9 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
-
-import lombok.AllArgsConstructor;
-import lombok.Value;
 
 
 /**
@@ -60,7 +55,7 @@ public class IncentiveSystem {
     }
 
     /**
-     * Generate public parameters for the incentive system.
+     * Generate public parameters for the incentive system. Wrapper for the trustedSetup method of the Setup class.
      *
      * @param securityParameter   the security parameter used in the setup algorithm
      * @param bilinearGroupChoice the bilinear group to use. Especially useful for testing
@@ -74,10 +69,20 @@ public class IncentiveSystem {
         return new PromotionParameters(BigInteger.valueOf(RandomGenerator.getRandomNumber(Long.MIN_VALUE, Long.MAX_VALUE)), pointsVectorSize);
     }
 
+    /**
+     * wrapper for the provider key generation method in Setup
+     *
+     * @return fresh provider key pair
+     */
     public ProviderKeyPair generateProviderKeys() {
         return Setup.providerKeyGen(this.pp);
     }
 
+    /**
+     * wrapper for the user key generation method from Setup
+     *
+     * @return fresh user key pair
+     */
     public UserKeyPair generateUserKeys() {
         return Setup.userKeyGen(this.pp);
     }
@@ -221,9 +226,12 @@ public class IncentiveSystem {
      */
 
 
-    /**
+    /*
      * implementation of the Credit {@literal <}-{@literal >}Earn protocol
-     * <p>
+     */
+
+
+    /**
      * Generate an earn request that blinds the token and signature such that the provider can compute a signature on
      * a matching token with added value.
      *
@@ -354,9 +362,12 @@ public class IncentiveSystem {
      */
 
 
-    /**
+    /*
      * implementation of the Deduct {@literal <}-{@literal >}Spend protocol
-     * <p>
+     */
+
+
+    /**
      * Generates a request to add value k to token.
      *
      * @param promotionParameters the current promotion's parameters
@@ -435,11 +446,11 @@ public class IncentiveSystem {
      * @param spendDeductTree the zero knowledge proof to verify for this promotion
      * @return tuple of response to send to the user and information required for double-spending protection
      */
-    public SpendProviderOutput generateSpendRequestResponse(PromotionParameters promotionParameters,
-                                                            SpendRequest spendRequest,
-                                                            ProviderKeyPair providerKeyPair,
-                                                            ZnElement tid,
-                                                            SpendDeductTree spendDeductTree) {
+    public DeductOutput generateSpendRequestResponse(PromotionParameters promotionParameters,
+                                                     SpendRequest spendRequest,
+                                                     ProviderKeyPair providerKeyPair,
+                                                     ZnElement tid,
+                                                     SpendDeductTree spendDeductTree) {
 
         /* Verify that the request is valid and well-formed */
 
@@ -460,7 +471,7 @@ public class IncentiveSystem {
         var commonInput = new SpendDeductZkpCommonInput(spendRequest, gamma);
         var proofValid = fiatShamirProofSystem.checkProof(commonInput, spendRequest.getSpendDeductZkp());
         if (!proofValid) {
-            throw new IllegalArgumentException("ZPK of the request is not valid!");
+            throw new IllegalArgumentException("ZKP of the request is not valid!");
         }
 
         /* Request is valid. Compute new blinded token and signature */
@@ -481,7 +492,7 @@ public class IncentiveSystem {
         );
 
         // Assemble providers and users output and return as a tuple
-        return new SpendProviderOutput(
+        return new DeductOutput(
                 new SpendResponse(sigmaPrime, eskStarProv),
                 new DoubleSpendingTag(commonInput.c0, commonInput.c1, gamma, eskStarProv, commonInput.ctrace0, commonInput.ctrace1)
         );
@@ -550,17 +561,264 @@ public class IncentiveSystem {
      * methods for offline double-spending detection
      */
 
-    void link() {
+    /**
+     * Given two double-spending tags belonging to a detected double-spending attempt, this algorithm computes the key material of the suspected user
+     * as well as tracing information used to trace further transactions resulting from the detected double-spending attempt.
+     *
+     * @param pp         public parameters of the respective incentive system instance
+     * @param dsTag      tag of the first spend operation
+     * @param dsTagPrime tag of the second spend operation
+     * @return suspected user's key material + tracing information
+     */
+    public UserInfo link(IncentivePublicParameters pp, DoubleSpendingTag dsTag, DoubleSpendingTag dsTagPrime) {
+        // computing dsblame, DLOG of the usk of the user blamed of double-spending
+        ZnElement c0 = dsTag.getC0();
+        ZnElement c0Prime = dsTagPrime.getC0();
+        ZnElement c0Difference = c0.sub(c0Prime);
+
+        ZnElement gamma = dsTag.getGamma();
+        ZnElement gammaPrime = dsTagPrime.getGamma();
+        ZnElement gammaDifference = gamma.sub(gammaPrime);
+
+        ZnElement dsBlame = c0Difference.div(gammaDifference);
+
+        // computing dstrace to trace further transactions resulting from the detected double-spending attempt
+        ZnElement c1 = dsTag.getC1();
+        ZnElement c1Prime = dsTagPrime.getC1();
+        ZnElement c1Difference = c1.sub(c1Prime);
+
+        ZnElement dsTrace = c1Difference.div(gammaDifference);
+
+        // computing public key of the user blamed of double-spending
+        UserPublicKey upk = new UserPublicKey(pp.getW().pow(dsBlame));
+
+        // assemble and return output
+        return new UserInfo(upk, dsBlame, dsTrace);
     }
 
-    void verifyDS() {
+    /**
+     * Determines whether the user with public key upk was really found guilty of double spending or whether he was wrongly accused.
+     *
+     * @param pp      public parameters of the respective incentive system instance
+     * @param dsBlame used to verify/falsify that accused user indeed double-spended
+     * @param upk     public key of user accused of double-spending
+     * @return true if and only if user is found guilty of double-spending
+     */
+    public boolean verifyDs(IncentivePublicParameters pp, ZnElement dsBlame, UserPublicKey upk) {
+        return pp.getW().pow(dsBlame).equals(upk.getUpk());
     }
 
-    void trace() {
+    /**
+     * Computes remainder token dsids for some double-spending transaction T (remainder token of a transaction: token that resulted from that transaction)
+     * and at the same time retrieves the next ElGamal encryption key (i.e. the one for the transaction T' after T) from the chain of keys.
+     *
+     * @param pp      public parameters of the respective incentive system instance
+     * @param dsTrace ElGamal decryption key used for tracing the next ElGamal encryption key (= dsid of remainder token) in the chain
+     * @param dsTag   double-spending tag associated to T, used to trace the remainder token
+     * @return trace output, which consists of remainder token and the dstrace ElGamal secret key of T'
+     */
+    public TraceOutput trace(IncentivePublicParameters pp, ZnElement dsTrace, DoubleSpendingTag dsTag) {
+        // extract values from passed objects to save references in the below for-loops
+        Zn usedZn = pp.getBg().getZn();
+        GroupElement w = pp.getW();
+        GroupElementVector ctrace1 = dsTag.getCtrace0(); // this is no off-by-one error but due to naming inconsistency between our Spend-Deduct code and the ds protection algos. in the paper
+        GroupElementVector ctrace2 = dsTag.getCtrace1();
+
+        // compute user share of ElGamal encryption secret key esk
+        ZnElement[] userEskShareDigits = new ZnElement[pp.getNumEskDigits()];
+        for (int i = 0; i < pp.getNumEskDigits(); i++) { // getNumEskDigits returns the number of digits the esk consists of (rho in the paper)
+            for (int b = 0; b < Setup.ESK_DEC_BASE; b++) {
+                // search for DLOG (i-th digit of the user share of esk), beta from paper is b in code
+                if (w.pow(b).equals(ctrace1.get(i).pow(dsTrace.neg()).op(ctrace2.get(i)))) {
+                    userEskShareDigits[i] = usedZn.valueOf(b);
+                    break;
+                }
+            }
+        }
+
+        // check whether all bits could be computed
+        for (int i = 0; i < pp.getNumEskDigits(); i++) {
+            if (userEskShareDigits[i] == null) {
+                throw new RuntimeException("Could not find a fitting " + i + "-th digit for the user's share of esk.");
+            }
+        }
+
+        // compute next dstrace
+        ZnElement dsTraceStar = usedZn.getZeroElement();
+        for (int i = 0; i < pp.getNumEskDigits(); i++) {
+            dsTraceStar = dsTraceStar.add(userEskShareDigits[i].mul(usedZn.valueOf(Setup.ESK_DEC_BASE).pow(i)));
+        }
+        dsTraceStar = dsTraceStar.add(dsTag.getEskStarProv());
+
+        // assemble and return output (new dsid and dstrace)
+        return new TraceOutput(pp.getW().pow(dsTraceStar), dsTraceStar);
     }
 
     /*
-     * end of methods for offline double-spending detection
+     * end of crypto methods for double-spending detection
+     */
+
+
+    /*
+     * double-spending database interface to be used by provider
+     */
+
+    /**
+     * Adds a transaction's data (i.e. ID, challenge generator gamma, used token's dsid, ...) to the double-spending database.
+     * Triggers further DB-side actions for tracing tokens and transactions resulting from a double-spending attempt if necessary.
+     *
+     * @param tid         transaction ID
+     * @param dsid        double-spending ID of used token
+     * @param dsTag       double-spending tag of used token (contains challenge generator gamma)
+     * @param spendAmount point amount spent
+     * @param dbHandler   reference to the object handling the database connectivity
+     */
+    public void dbSync(ZnElement tid, GroupElement dsid, DoubleSpendingTag dsTag, BigInteger spendAmount, DatabaseHandler dbHandler) {
+        System.out.println("Started database synchronization process.");
+        // shorthands for readability
+        ZnElement gamma = dsTag.getGamma();
+        TransactionIdentifier taId = new TransactionIdentifier(tid, gamma);
+
+        // make list for keeping track of identifiers of transactions that are invalidated over the course of the method
+        ArrayList<TransactionIdentifier> invalidatedTasIdentifiers = new ArrayList<>();
+
+        // first part of DBSync from 2020 incentive system paper: adding a new transaction
+
+        // if transaction is not yet in the database
+        boolean transactionWasAlreadyKnown = dbHandler.containsTransactionNode(taId);
+        if (!transactionWasAlreadyKnown) {
+            System.out.println("Transaction not found in database, will be added.");
+            // add a corresponding transaction node to DB (which also contains the dstag)
+            Transaction ta = new Transaction(true, tid, spendAmount, dsTag); // first parameter: validity of the transaction
+            dbHandler.addTransactionNode(ta);
+        }
+
+        // if dsid of used token is not yet in DB
+        if (!dbHandler.containsTokenNode(dsid)) {
+            System.out.println("Spent token not found in database, will be added.");
+            // add a corresponding token node to DB
+            dbHandler.addTokenNode(dsid);
+            // and make edge from dsid's token node to the node of the passed transaction
+            dbHandler.addTokenTransactionEdge(dsid, taId);
+        }
+        // if dsid is already in DB but transaction was not before this call -> double-spending attempt detected!
+        else if (!transactionWasAlreadyKnown) {
+            System.out.println("Spent token found in database, double-spending protection mechanism triggered.");
+
+            // make edge from dsid's token node to the node of the passed transaction
+            dbHandler.addTokenTransactionEdge(dsid, taId);
+
+            // attempt to retrieve user info associated to dsid
+            UserInfo associatedUserInfo = null;
+            try {
+                associatedUserInfo = dbHandler.getUserInfo(dsid);
+            } catch (NoSuchElementException e) {
+                System.out.println("No user info associated with the spent token.");
+            }
+
+            // if the token node has no user info associated with it
+            if (associatedUserInfo == null) {
+                System.out.println("Retrieving all transactions that spent the passed token.");
+                // retrieve all transaction that consumed the dsid
+                ArrayList<Transaction> consumingTaList = dbHandler.getConsumingTransactions(dsid);
+
+                // use two of them to compute the user info for this token (i.e. link the double-spending to a user)
+                try {
+                    System.out.println("Attempting to compute user info for passed token.");
+                    DoubleSpendingTag firstTaTag = consumingTaList.get(0).getDsTag();
+                    DoubleSpendingTag secondTaTag = consumingTaList.get(1).getDsTag();
+                    UserInfo uInfo = this.link(this.pp, firstTaTag, secondTaTag);
+                    dbHandler.addAndLinkUserInfo(
+                            uInfo,
+                            dsid
+                    );
+                } catch (Exception e) {
+                    System.out.println("Cannot compute user info for passed token: need at least 2 consuming transactions");
+                }
+            }
+
+
+            // invalidate transaction
+            System.out.println("Marking transaction invalid.");
+            dbHandler.invalidateTransaction(taId);
+            invalidatedTasIdentifiers.add(taId);
+        }
+
+        // second part of DBSync: cascading invalidations
+        System.out.println("Starting cascading invalidations.");
+
+        // whenever a transaction is invalidated: invalidate all transactions that resulted from it (if any exist)
+        while (!invalidatedTasIdentifiers.isEmpty()) {
+            System.out.println("Processing invalidated transaction. " + invalidatedTasIdentifiers.size() + " pending.");
+
+            TransactionIdentifier currentTaId = invalidatedTasIdentifiers.remove(0);
+            System.out.println("Invalidated transaction " + currentTaId.toString() + " found.");
+
+            System.out.println("Retrieving transaction data for " + currentTaId.toString() + " .");
+
+            // retrieve transaction
+            Transaction ta = dbHandler.getTransactionNode(currentTaId);
+
+            System.out.println("Retrieving consumed token data (including user info).");
+
+            // retrieve double-spending ID of token consumed by transaction and the corresponding user info
+            GroupElement consumedDsid = dbHandler.getConsumedTokenDsid(currentTaId, this.pp);
+            UserInfo consumedDsidUserInfo = dbHandler.getUserInfo(consumedDsid); // cannot be null since user info is always computed for invalidated transactions before needed
+
+            System.out.println("Tracing remainder token.");
+
+            // use Trace to compute remainder token's dsid (remainder token: token that resulted from the currently considered transaction)
+            TraceOutput traceOutput = this.trace(this.pp, consumedDsidUserInfo.getDsTrace(), ta.getDsTag());
+            GroupElement dsidStar = traceOutput.getDsidStar();
+
+            System.out.println("Traced remainder token.");
+
+            // add remainder token dsid if not contained yet
+            if (!dbHandler.containsTokenNode(dsidStar)) {
+                System.out.println("Remainder token not contained yet, will be added.");
+                dbHandler.addTokenNode(dsidStar);
+            } else {
+                System.out.println("Remainder token is already contained in the database.");
+            }
+
+            System.out.println("Linking user info to remainder token.");
+
+            // associate corresponding user info with remainder token dsid
+            UserInfo correspondingUserInfo = new UserInfo(
+                    consumedDsidUserInfo.getUpk(),
+                    consumedDsidUserInfo.getDsBlame(),
+                    traceOutput.getDsTraceStar()
+            );
+            dbHandler.addAndLinkUserInfo(
+                    correspondingUserInfo,
+                    dsidStar
+            );
+
+            System.out.println("Making edge from " + currentTaId.toString() + " to traced remainder token.");
+
+            // link current transaction with remainder token in database
+            dbHandler.addTransactionTokenEdge(currentTaId, dsidStar);
+
+            System.out.println("Invalidating all transactions that (directly or indirectly) consumed the traced remainder token of " + currentTaId.toString() + ".");
+
+            // invalidate all transactions that consumed the remainder token or followed from a transaction consuming it
+            ArrayList<Transaction> followingTransactions = dbHandler.getConsumingTransactions(dsidStar);
+            System.out.println(followingTransactions.size() + " transactions consuming remainder token detected, need to be invalidated.");
+            followingTransactions.forEach(currentTa -> {
+                dbHandler.invalidateTransaction(
+                        currentTa.getTaIdentifier()
+                );
+                invalidatedTasIdentifiers.add(currentTa.getTaIdentifier()); // add invalidated transaction to list so it will be processed
+            });
+        }
+
+        System.out.println("Cascading invalidations terminated.");
+
+        System.out.println("Finished database synchronization process.");
+    }
+
+    /*
+     * end of double-spending database interface to be used by provider
      */
 
     /**

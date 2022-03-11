@@ -2,12 +2,12 @@ package org.cryptimeleon.incentive.crypto.model.keys.user;
 
 import lombok.Value;
 import lombok.experimental.NonFinal;
+import org.cryptimeleon.math.prf.PrfKey;
+import org.cryptimeleon.math.prf.zn.HashThenPrfToZn;
 import org.cryptimeleon.math.hash.ByteAccumulator;
 import org.cryptimeleon.math.hash.UniqueByteRepresentable;
 import org.cryptimeleon.math.hash.annotations.AnnotatedUbrUtil;
 import org.cryptimeleon.math.hash.annotations.UniqueByteRepresented;
-import org.cryptimeleon.math.prf.PrfKey;
-import org.cryptimeleon.math.prf.zn.HashThenPrfToZn;
 import org.cryptimeleon.math.serialization.Representable;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.annotations.ReprUtil;

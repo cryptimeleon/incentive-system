@@ -73,7 +73,7 @@ public class Benchmark {
         EarnRequest earnRequest;
         SPSEQSignature earnResponse;
         SpendRequest spendRequest;
-        SpendProviderOutput spendResponseTuple;
+        DeductOutput spendResponseTuple;
         Token token = null;
 
         IncentiveSystem incentiveSystem = benchmarkConfig.incentiveSystem;
@@ -158,7 +158,7 @@ public class Benchmark {
 
         for (int i = 0; i < benchmarkConfig.iterations; i++) {
             feedbackFunction.accept(BenchmarkState.SPEND_DEDUCT, i);
-            var tid = incentiveSystem.pp.getBg().getZn().getUniformlyRandomElement();
+            var tid = incentiveSystem.getPp().getBg().getZn().getUniformlyRandomElement();
             start = Instant.now();
             assert token != null;
             var newPoints = Vector.fromStreamPlain(token.getPoints().stream().map(p -> p.asInteger().subtract(EARN_SPEND_AMOUNT.get(0))));

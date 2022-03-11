@@ -1,0 +1,57 @@
+package org.cryptimeleon.incentivesystem.dsprotectionservice;
+
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * Handles HTTP requests for double-spending protection database service.
+ * Takes requests for adding transactions and double-spending IDs to the double spending database, as well as connections between them
+ * (i.e. "transaction X produced token with dsid Y", "token with dsid Z was consumed by transaction W")
+ * Request mapping is done via Spring Boot annotations.
+ */
+@RestController
+public class DsprotectionController {
+    DsprotectionService dsprotectionService;
+    private Logger logger = LoggerFactory.getLogger(DsprotectionController.class);
+
+    /**
+     * Simple heartbeating method that can be used to check whether the double-spending protection service is still up and running.
+     *
+     * @return hard-coded standard response
+     */
+    @GetMapping("/")
+    public ResponseEntity<String> heartbeat() {
+        return new ResponseEntity<>("Hello from double-spending protection service!", HttpStatus.OK);
+    }
+
+
+    /**
+     * Triggers execution of dbSync which synchronizes the passed transaction data (including dsid of spent token) into the database.
+     *
+     * @param serializedTidRepr   serialized representation of transaction ID
+     * @param serializedDsidRepr  serialized representation of double-spending protection ID
+     * @param serializedDsTagRepr serialized representation of double-spending tag
+     * @param spendAmount         points spent in this transaction
+     * @return success or error message as HTTP response
+     */
+    @PostMapping("/dbsync")
+    public ResponseEntity<String> dbSync(
+            @RequestHeader(value = "tid") String serializedTidRepr,
+            @RequestHeader(value = "dsid") String serializedDsidRepr,
+            @RequestHeader(value = "dstag") String serializedDsTagRepr,
+            @RequestHeader(value = "k") String spendAmount
+    ) {
+        // trigger dbSync in Service class (which triggers it in IncentiveSystem instance)
+        dsprotectionService.dbSync(serializedTidRepr, serializedDsidRepr, serializedDsTagRepr, spendAmount);
+
+        // send response
+        return new ResponseEntity<>("Sent transaction data was recorded in database.", HttpStatus.OK);
+    }
+}

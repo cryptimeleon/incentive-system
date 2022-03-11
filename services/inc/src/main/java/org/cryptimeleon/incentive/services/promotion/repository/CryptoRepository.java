@@ -41,7 +41,7 @@ public class CryptoRepository {
     private ProviderPublicKey providerPublicKey;
 
     @Value("${provider.shared-secret}")
-    private String sharedSecret;
+    private String sharedSecret; // used to authenticate the request for the provider secret key (set via environment variable)
 
     // Will be set via dependency injection
     private InfoClient infoClient;
@@ -57,7 +57,7 @@ public class CryptoRepository {
     @Profile("!test")
     @PostConstruct
     public void validateValue() {
-        System.out.println("PostConstruct");
+        log.info("PostConstruct");
         if (sharedSecret.equals("")) {
             throw new IllegalArgumentException("Provider shared secret is not set!");
         }

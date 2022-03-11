@@ -6,3 +6,5 @@ include ':basket'
 include ':client'
 include ':info'
 include ':inc'
+include ':dsprotectionservice'
+

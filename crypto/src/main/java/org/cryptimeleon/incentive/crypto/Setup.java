@@ -44,7 +44,7 @@ public class Setup {
     private static final int HASH_THEN_PRF_OVERSUBSCRIPTION = 128;
     // Base for esk decomposition. Requires as many signed digits in the provider's public key, but reduces digits and
     // hence verifications required in the Spend-Deduct protocol for the encryption secret key
-    private static final long ESK_DEC_BASE = 256;
+    public static final long ESK_DEC_BASE = 256;
     // ESK_DEC_BASE^MAX_POINTS_BASE_POWER determines the maximum number of points a user can have.
     // This is due to the CCS range proof used for v>=k in Spend-Deduct
     private static final int MAX_POINTS_BASE_POWER = 6;

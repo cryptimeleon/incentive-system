@@ -1,6 +1,8 @@
 package org.cryptimeleon.incentive.crypto.model.keys.user;
 
-import lombok.Value;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.NonFinal;
 import org.cryptimeleon.math.serialization.Representable;
 import org.cryptimeleon.math.serialization.Representation;
@@ -9,7 +11,8 @@ import org.cryptimeleon.math.serialization.annotations.Represented;
 import org.cryptimeleon.math.structures.groups.Group;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 
-@Value
+@Getter
+@EqualsAndHashCode
 public class UserPublicKey implements Representable {
 
     @NonFinal
@@ -29,5 +32,10 @@ public class UserPublicKey implements Representable {
     @Override
     public Representation getRepresentation() {
         return ReprUtil.serialize(this);
+    }
+
+    @Override
+    public String toString() {
+        return this.upk.toString();
     }
 }

@@ -4,11 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.Value;
 
 /**
- * Tuple for the private and public output of the provider when processing an spend-deduct request.
+ * Tuple for the private and public output of the deduct algorithm executed by the provider when processing an spend request.
  */
 @Value
 @AllArgsConstructor
-public class SpendProviderOutput {
+public class DeductOutput {
     SpendResponse spendResponse;
     DoubleSpendingTag dstag;
 }
