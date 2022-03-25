@@ -23,13 +23,13 @@ data class SpendRequestData(
 ) : RequestData
 
 data class BulkResponseDto(
-    val zkpTokenUpdateResultDtoList: List<ZkpTokenUpdateResultDto>,
-    val earnTokenUpdateResultDto: List<EarnTokenUpdateResultDto>
+    val earnTokenUpdateResultDtoList: List<EarnTokenUpdateResultDto>,
+    val zkpTokenUpdateResultDtoList: List<ZkpTokenUpdateResultDto>
 )
 
-data class ZkpTokenUpdateResultDto(val promotionId: BigInteger, val serializedEarnResponse: String)
-data class EarnTokenUpdateResultDto(
+data class EarnTokenUpdateResultDto(val promotionId: BigInteger, val serializedEarnResponse: String)
+data class ZkpTokenUpdateResultDto(
     val promotionId: BigInteger,
-    val tokenUpdateId: UUID,
-    val serializedResponse: String
+    val serializedResponse: String,
+    val tokenUpdateId: UUID
 )

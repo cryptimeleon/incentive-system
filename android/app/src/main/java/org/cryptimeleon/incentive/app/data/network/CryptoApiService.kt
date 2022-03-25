@@ -22,6 +22,6 @@ interface CryptoApiService {
         @Body bulkRequestDto: BulkRequestDto
     ): Response<Unit>
 
-    @POST("bulk-token")
+    @POST("bulk-token-update-results")
     suspend fun retrieveTokenUpdatesResults(@Header("basket-id") basketId: UUID): Response<BulkResponseDto>
 }

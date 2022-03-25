@@ -7,6 +7,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import okhttp3.OkHttpClient
 import org.cryptimeleon.incentive.app.data.BasketRepository
 import org.cryptimeleon.incentive.app.data.CryptoRepository
 import org.cryptimeleon.incentive.app.data.PromotionRepository
@@ -20,7 +21,9 @@ import org.cryptimeleon.incentive.app.data.network.PromotionApiService
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
+import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
+
 
 private const val BASKET_BASE_URL = "https://incentives.cs.upb.de/basket/"
 private const val INFO_BASE_URL = "https://incentives.cs.upb.de/info/"
@@ -60,13 +63,20 @@ class HiltApiModule {
 
     @Singleton
     @Provides
-    fun provideCryptoApiService(): CryptoApiService =
-        Retrofit.Builder()
+    fun provideCryptoApiService(): CryptoApiService {
+        val okHttpClient = OkHttpClient.Builder() // Increase timeouts for batch proofs during development
+            .connectTimeout(1, TimeUnit.MINUTES)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(15, TimeUnit.SECONDS)
+            .build()
+        return Retrofit.Builder()
+            .client(okHttpClient)
             .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(GsonConverterFactory.create())
             .baseUrl(PROMOTION_BASE_URL)
             .build()
             .create(CryptoApiService::class.java)
+    }
 }
 
 @Module

@@ -8,12 +8,12 @@ import org.cryptimeleon.incentive.app.data.database.basket.BasketItemEntity
 import org.cryptimeleon.incentive.app.data.database.basket.ShoppingItemEntity
 import org.cryptimeleon.incentive.app.data.network.BasketApiService
 import org.cryptimeleon.incentive.app.data.network.NetworkBasketItem
-import org.cryptimeleon.incentive.app.data.network.NetworkPayBody
 import org.cryptimeleon.incentive.app.data.network.NetworkShoppingItem
 import org.cryptimeleon.incentive.app.domain.IBasketRepository
 import org.cryptimeleon.incentive.app.domain.model.Basket
 import org.cryptimeleon.incentive.app.domain.model.BasketItem
 import org.cryptimeleon.incentive.app.domain.model.ShoppingItem
+import timber.log.Timber
 
 class BasketRepository(
     private val basketApiService: BasketApiService,
@@ -134,20 +134,18 @@ class BasketRepository(
         if (basket != null) {
             basketApiService.deleteBasket(basket.basketId)
         }
+        basketDao.deleteAllBasketItems()
         return createNewBasket()
     }
 
-    override suspend fun payCurrentBasket(): Boolean {
-        val basket = basket.first() ?: return false
+    override suspend fun payCurrentBasket() {
+        val basket = basket.first()
 
         // Pay basket
         val payResponse =
-            basketApiService.payBasket(NetworkPayBody(basket.basketId, basket.value))
-        return if (payResponse.isSuccessful) {
-            // TODO do not want to do that? discardCurrentBasket()
-            true
-        } else {
-            false
+            basketApiService.payBasket(basket!!.basketId)
+        if (!payResponse.isSuccessful) {
+            Timber.e(payResponse.raw().toString())
         }
     }
 

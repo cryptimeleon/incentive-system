@@ -40,7 +40,7 @@ interface BasketApiService {
 
     // This endpoint is for developing only and will be replaced by some payment process in the future
     @POST("basket/pay-dev")
-    suspend fun payBasket(@Body networkPayBody: NetworkPayBody): Response<Unit>
+    suspend fun payBasket(@Header("basket-id") basketId: UUID): Response<Unit>
 
     @GET("basket")
     suspend fun getBasketContent(@Header("basketId") basketId: UUID): Response<NetworkBasket>

@@ -42,7 +42,7 @@ interface IBasketRepository {
      *
      * @return true if basket is paid after finished
      */
-    suspend fun payCurrentBasket(): Boolean
+    suspend fun payCurrentBasket()
 
     /**
      * Load basket contents from basket server and update it in the database accordingly

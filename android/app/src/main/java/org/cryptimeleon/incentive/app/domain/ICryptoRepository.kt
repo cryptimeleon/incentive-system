@@ -26,4 +26,5 @@ interface ICryptoRepository {
     // Results are stored at the server's side until basket is payed
     suspend fun sendTokenUpdatesBatch(basketId: UUID, bulkRequestDto: BulkRequestDto)
     suspend fun retrieveTokenUpdatesResults(basketId: UUID): BulkResponseDto
+    suspend fun putToken(promotionParameters: PromotionParameters, token: Token)
 }

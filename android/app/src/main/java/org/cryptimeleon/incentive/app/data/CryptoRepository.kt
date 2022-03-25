@@ -70,9 +70,9 @@ class CryptoRepository(
         )
 
         if (!joinResponse.isSuccessful) {
+            Timber.e(joinResponse.raw().toString())
             throw RuntimeException(
-                "Join Response not successful: " + joinResponse.code() + "\n" + joinResponse.errorBody()!!
-                    .string()
+                "Join not successful"
             )
         }
 
@@ -92,9 +92,10 @@ class CryptoRepository(
     override suspend fun sendTokenUpdatesBatch(
         basketId: UUID,
         bulkRequestDto: BulkRequestDto
-    ): Unit {
+    ) {
         val response = cryptoApiService.sendTokenUpdatesBatch(basketId, bulkRequestDto)
         if (!response.isSuccessful) {
+            Timber.e(response.raw().toString())
             throw RuntimeException(response.errorBody().toString())
         }
     }
@@ -102,9 +103,19 @@ class CryptoRepository(
     override suspend fun retrieveTokenUpdatesResults(basketId: UUID): BulkResponseDto {
         val response = cryptoApiService.retrieveTokenUpdatesResults(basketId)
         if (!response.isSuccessful || response.body() == null) {
+            Timber.e(response.raw().toString())
             throw RuntimeException(response.errorBody().toString())
         }
         return response.body()!!
+    }
+
+    override suspend fun putToken(promotionParameters: PromotionParameters, token: Token) {
+        cryptoDao.insertToken(
+            CryptoTokenEntity(
+                promotionParameters.promotionId.toInt(),
+                jsonConverter.serialize(token.representation)
+            )
+        )
     }
 
     override suspend fun refreshCryptoMaterial(): Boolean {
