@@ -126,7 +126,7 @@ data class VipPromotionState(
 ) : PromotionState() {
     companion object {
         fun fromPromotion(promotion: VipPromotion, token: Token): VipPromotionState {
-            val vipStatus = VipStatus.fromInt(token.points.get(0).asInteger().toInt())
+            val vipStatus = VipStatus.fromInt(token.points.get(1).asInteger().toInt())
             val points = token.points.get(1).asInteger().toInt()
             return VipPromotionState(
                 id = promotion.promotionParameters.promotionId.toString(),
