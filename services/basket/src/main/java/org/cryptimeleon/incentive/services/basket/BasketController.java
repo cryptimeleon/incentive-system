@@ -3,7 +3,6 @@ package org.cryptimeleon.incentive.services.basket;
 import org.cryptimeleon.incentive.services.basket.exceptions.*;
 import org.cryptimeleon.incentive.services.basket.model.Basket;
 import org.cryptimeleon.incentive.services.basket.model.Item;
-import org.cryptimeleon.incentive.services.basket.model.requests.PayBasketRequest;
 import org.cryptimeleon.incentive.services.basket.model.requests.PutItemRequest;
 import org.cryptimeleon.incentive.services.basket.model.requests.RedeemBasketRequest;
 import org.springframework.beans.factory.annotation.Value;
@@ -143,8 +142,8 @@ public class BasketController {
      * Sets a basket to paid, TODO for development only.
      */
     @PostMapping("/basket/pay-dev")
-    void payBasket(@RequestBody PayBasketRequest payBasketRequest) throws BasketServiceException {
-        basketService.payBasket(payBasketRequest.getBasketId());
+    void payBasket(@RequestHeader("basket-id") UUID basketId) throws BasketServiceException {
+        basketService.payBasket(basketId);
     }
 
     @PostMapping("/basket/lock")

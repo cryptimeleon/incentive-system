@@ -256,7 +256,7 @@ public class PromotionServiceTest {
                 .isOk()
                 .expectBody(TokenUpdateResultsDto.class)
                 .returnResult().getResponseBody();
-        var serializedSpendResponse = resultsDto.getZkpTokenUpdateResultDtoList().get(0).getSerializedZkpUpdateResponse();
+        var serializedSpendResponse = resultsDto.getZkpTokenUpdateResultDtoList().get(0).getSerializedResponse();
 
         SpendResponse spendResponse = new SpendResponse(jsonConverter.deserialize(serializedSpendResponse), pp.getBg().getZn(), pp.getSpsEq());
         Token spentToken = incentiveSystem.handleSpendRequestResponse(promotionToJoin.getPromotionParameters(), spendResponse, spendRequest, earnedToken, pointsAfterSpend, pkp.getPk(), ukp);
