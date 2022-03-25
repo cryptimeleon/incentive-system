@@ -15,12 +15,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import org.cryptimeleon.incentive.app.ui.basket.BasketUi
 import org.cryptimeleon.incentive.app.ui.benchmark.BenchmarkUi
+import org.cryptimeleon.incentive.app.ui.checkout.CheckoutUi
 import org.cryptimeleon.incentive.app.ui.dashboard.Dashboard
 import org.cryptimeleon.incentive.app.ui.scan.ScanScreen
 import org.cryptimeleon.incentive.app.ui.settings.Settings
 import org.cryptimeleon.incentive.app.ui.setup.SetupUi
 
 object MainDestination {
+    const val CHECKOUT_ROUTE = "checkout"
     const val LOADING_ROUTE = "loading"
     const val DASHBOARD_ROUTE = "dashboard"
     const val SCANNER_ROUTE = "scanner"
@@ -75,8 +77,12 @@ fun NavGraph(
         composable(MainDestination.BASKET_ROUTE) {
             BasketUi(
                 actions.openSettings,
-                actions.openBenchmark
+                actions.openBenchmark,
+                actions.openCheckout
             )
+        }
+        composable(MainDestination.CHECKOUT_ROUTE) {
+            CheckoutUi()
         }
         composable(MainDestination.SETTINGS_ROUTE) { Settings(actions.onExitSettings) }
         composable(MainDestination.BENCHMARK_ROUTE) { BenchmarkUi(actions.onExitBenchmark) }
@@ -102,6 +108,10 @@ class MainActions(navController: NavHostController) {
 
     val openBenchmark: () -> Unit = {
         navController.navigate(MainDestination.BENCHMARK_ROUTE)
+    }
+
+    val openCheckout: () -> Unit = {
+        navController.navigate(MainDestination.CHECKOUT_ROUTE)
     }
 }
 

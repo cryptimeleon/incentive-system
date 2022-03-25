@@ -78,7 +78,7 @@ val currencyFormat: NumberFormat = NumberFormat.getCurrencyInstance(Locale.GERMA
 fun formatCents(valueCents: Int): String = currencyFormat.format(valueCents.toDouble() / 100)
 
 @Composable
-fun BasketUi(openSettings: () -> Unit, openBenchmark: () -> Unit) {
+fun BasketUi(openSettings: () -> Unit, openBenchmark: () -> Unit, gotoCheckout: () -> Unit) {
     val basketViewModel = hiltViewModel<BasketViewModel>()
     val basket: SLE<Basket> by basketViewModel.basket.collectAsState(initial = SLE.Loading())
     val promotionStates: List<PromotionState> by basketViewModel.promotionStates.collectAsState(
@@ -94,7 +94,7 @@ fun BasketUi(openSettings: () -> Unit, openBenchmark: () -> Unit) {
         userTokenUpdateChoices = userUpdateChoices,
         setItemCount = basketViewModel::setItemCount,
         setUserUpdateChoice = basketViewModel::setUpdateChoice,
-        pay = basketViewModel::payAndRedeem,
+        pay = gotoCheckout,
         discard = basketViewModel::onDiscardClicked,
         openSettings = openSettings,
         openBenchmark = openBenchmark
@@ -220,7 +220,7 @@ private fun BasketUi(
                         ) {
                             OutlinedButton(
                                 modifier = Modifier.weight(1f),
-                                onClick = { discard() }
+                                onClick = discard
                             ) {
                                 Text("Discard")
                             }

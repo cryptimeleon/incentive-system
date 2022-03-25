@@ -28,7 +28,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class BasketViewModel @Inject constructor(
-    private val cryptoRepository: CryptoRepository,
+    cryptoRepository: CryptoRepository,
     private val basketRepository: BasketRepository,
     private val promotionRepository: PromotionRepository,
     application: Application
@@ -80,46 +80,6 @@ class BasketViewModel @Inject constructor(
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 basketRepository.discardCurrentBasket(true)
-            }
-        }
-    }
-
-    fun payAndRedeem() {
-        // TODO continue working on this functionality
-        // Store basket as it will be replaced by payment
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                when (val currentBasket = basket.first()) {
-                    is SLE.Success -> {
-                        val basket =
-                            currentBasket.data!! // cannot be null by constructor of Success
-
-                        if (basketRepository.payCurrentBasket()) {
-                            // Redeem basket
-                            cryptoRepository.runCreditEarn(
-                                basket.basketId,
-                                // TODO this needs to be adapted!
-                                PromotionParameters(BigInteger.ONE, 1),
-                                basket.value
-                            )
-
-                            withContext(Dispatchers.Main) {
-                                Toast.makeText(
-                                    getApplication(), "Successfully paid and redeemed basket!",
-                                    Toast.LENGTH_LONG
-                                ).show()
-                            }
-                        }
-                    }
-                    else -> {
-                        withContext(Dispatchers.Main) {
-                            Toast.makeText(
-                                getApplication(), "An error occurred",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
-                    }
-                }
             }
         }
     }
