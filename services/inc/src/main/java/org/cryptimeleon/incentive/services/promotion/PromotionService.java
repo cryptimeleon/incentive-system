@@ -179,15 +179,19 @@ public class PromotionService {
             throw new RuntimeException("Basket already payed!");
         }
 
+        log.info("Start bulk proofs");
         for (SpendRequestDto spendRequestDto : bulkRequestDto.getSpendRequestDtoList()) {
             var result = handleSpendRequest(spendRequestDto.getPromotionId(), basketId, spendRequestDto.getTokenUpdateId(), spendRequestDto.getSerializedSpendRequest(), spendRequestDto.getSerializedMetadata());
+            log.info("SpendResult: " + result);
             tokenUpdateResultRepository.insertZkpTokenUpdateResponse(basketId, spendRequestDto.getPromotionId(), spendRequestDto.getTokenUpdateId(), result);
             // TODO apply side-effects
         }
         for (EarnRequestDto earnRequestDto : bulkRequestDto.getEarnRequestDtoList()) {
             var result = handleEarnRequest(earnRequestDto.getPromotionId(), earnRequestDto.getSerializedEarnRequest(), basketId);
+            log.info("EarnResult: " + result);
             tokenUpdateResultRepository.insertEarnResponse(basketId, earnRequestDto.getPromotionId(), result);
         }
+        log.info("Bulk proofs for basket " + basketId.toString() + " finished!");
     }
 
     public TokenUpdateResultsDto retrieveBulkResults(UUID basketId) {
@@ -195,6 +199,7 @@ public class PromotionService {
             throw new RuntimeException("Basket not payed");
         }
         var results = tokenUpdateResultRepository.getUpdateResults(basketId).values();
+        log.info(String.valueOf(results));
         return new TokenUpdateResultsDto(
                 results.stream().filter(tokenUpdateResult -> tokenUpdateResult instanceof ZkpTokenUpdateResultDto).map(i -> (ZkpTokenUpdateResultDto) i).collect(Collectors.toList()),
                 results.stream().filter(tokenUpdateResult -> tokenUpdateResult instanceof EarnTokenUpdateResultDto).map(i -> (EarnTokenUpdateResultDto) i).collect(Collectors.toList())
