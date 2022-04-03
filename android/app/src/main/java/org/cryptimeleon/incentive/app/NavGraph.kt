@@ -82,7 +82,7 @@ fun NavGraph(
             )
         }
         composable(MainDestination.CHECKOUT_ROUTE) {
-            CheckoutUi()
+            CheckoutUi(actions.navigateToDashboard)
         }
         composable(MainDestination.SETTINGS_ROUTE) { Settings(actions.onExitSettings) }
         composable(MainDestination.BENCHMARK_ROUTE) { BenchmarkUi(actions.onExitBenchmark) }
@@ -112,6 +112,10 @@ class MainActions(navController: NavHostController) {
 
     val openCheckout: () -> Unit = {
         navController.navigate(MainDestination.CHECKOUT_ROUTE)
+    }
+
+    val navigateToDashboard: () -> Unit = {
+        navController.navigate(MainDestination.DASHBOARD_ROUTE)
     }
 }
 

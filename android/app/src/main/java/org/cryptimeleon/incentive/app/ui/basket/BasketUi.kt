@@ -228,7 +228,7 @@ private fun BasketUi(
                                 modifier = Modifier.weight(1f),
                                 onClick = { pay() }
                             ) {
-                                Text("Pay and Redeem")
+                                Text("Checkout")
                             }
                         }
                     }
@@ -268,8 +268,8 @@ fun BasketPromotion(
 ) {
     promotionStates.forEach {
         val selectedTokenUpdateChoice =
-            userTokenUpdateChoices.find { choice -> choice.promotionId == it.promotion.promotionParameters.promotionId }?.userUpdateChoice
-        Text(text = it.promotion.promotionName, style = MaterialTheme.typography.h6)
+            userTokenUpdateChoices.find { choice -> choice.promotionId == it.promotionId }?.userUpdateChoice
+        Text(text = it.promotionName, style = MaterialTheme.typography.h6)
         Column(Modifier.selectableGroup()) {
             it.qualifiedUpdates.forEach { updateChoice ->
                 Row(
@@ -279,7 +279,7 @@ fun BasketPromotion(
                             selected = (updateChoice.toUserUpdateChoice() == selectedTokenUpdateChoice),
                             onClick = {
                                 setUserUpdateChoice(
-                                    it.promotion.promotionParameters.promotionId,
+                                    it.promotionId,
                                     updateChoice.toUserUpdateChoice()
                                 )
                             },

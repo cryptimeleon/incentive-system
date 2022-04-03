@@ -12,7 +12,7 @@ import org.cryptimeleon.incentive.app.domain.model.UpdateChoice
 import org.cryptimeleon.incentive.app.domain.model.ZKP
 
 /**
- * Filters choices that are still valid.
+ * Filters the promotion updates chosen by users by removing those that are outdated since e.g. basket contents or metadata have changed.
  */
 class AnalyzeUserTokenUpdatesUseCase(
     private val promotionRepository: IPromotionRepository,
@@ -31,11 +31,13 @@ class AnalyzeUserTokenUpdatesUseCase(
         ) { updates, promotionStates ->
             updates.filter { update ->
                 promotionStates.any { state ->
-                    state.promotion.promotionParameters.promotionId.equals(update.promotionId) &&
+                    state.promotionId.equals(update.promotionId) &&
                             when (update.userUpdateChoice) {
                                 None -> true
                                 Earn -> state.basketPoints.stream().anyMatch { it.toInt() > 0 }
-                                is ZKP -> state.qualifiedUpdates.any { it is UpdateChoice.ZKP && it.update.tokenUpdateId == update.userUpdateChoice.tokenUpdateId }
+                                is ZKP -> state.qualifiedUpdates.any {
+                                    it is UpdateChoice.ZKP && it.updateId == update.userUpdateChoice.tokenUpdateId
+                                }
                             }
                 }
             }

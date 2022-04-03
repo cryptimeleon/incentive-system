@@ -124,7 +124,7 @@ class PayAndRedeemUseCase(
                                     jsonConverter.serialize(RepresentableRepresentation(metadata))
                                 ),
                                 SpendCache(
-                                    promotion,
+                                    promotion.promotionParameters.promotionId,
                                     zkpRequest,
                                     basketValue,
                                     metadata,
@@ -190,7 +190,7 @@ class PayAndRedeemUseCase(
             updateResults.zkpTokenUpdateResultDtoList.forEach {
                 val promotion =
                     promotionParameters.find { promotion -> promotion.promotionParameters.promotionId == it.promotionId }!!
-                Timber.i("Earn for promotion ${promotion.promotionParameters.promotionId}")
+                Timber.i("Spend for promotion ${promotion.promotionParameters.promotionId}")
 
                 val cache =
                     spendUpdateRequestPairs.find { pair -> pair.second.promotionId == it.promotionId }!!.second
@@ -226,7 +226,7 @@ class PayAndRedeemUseCase(
 data class EarnCache(val promotionId: BigInteger, val earnRequest: EarnRequest, val token: Token)
 
 data class SpendCache(
-    val promotionId: Promotion,
+    val promotionId: BigInteger,
     val zkpRequest: SpendRequest,
     val basketValue: Vector<BigInteger>,
     val metadata: ZkpTokenUpdateMetadata,

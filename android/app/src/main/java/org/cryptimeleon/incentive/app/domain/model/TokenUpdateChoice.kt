@@ -1,9 +1,9 @@
 package org.cryptimeleon.incentive.app.domain.model
 
-import org.cryptimeleon.incentive.promotion.ZkpTokenUpdate
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata
 import org.cryptimeleon.math.structures.cartesian.Vector
 import java.math.BigInteger
+import java.util.*
 
 /**
  * Choices that the user is currently eligible for.
@@ -20,15 +20,16 @@ sealed class UpdateChoice() {
     }
 
     data class ZKP(
-        val update: ZkpTokenUpdate,
+        val updateId: UUID,
+        val updateDescription: String,
         val oldPoints: Vector<BigInteger>,
         val newPoints: Vector<BigInteger>,
         val metadata: ZkpTokenUpdateMetadata
     ) :
         UpdateChoice() {
-        override fun toUserUpdateChoice() = ZKP(update.tokenUpdateId)
+        override fun toUserUpdateChoice() = ZKP(updateId)
         override fun toString() =
-            "ZKP '${update.rewardDescription}'\n${oldPoints.print()} -> ${newPoints.print()}"
+            "ZKP '${updateDescription}'\n${oldPoints.print()} -> ${newPoints.print()}"
     }
 
     abstract fun toUserUpdateChoice(): UserUpdateChoice

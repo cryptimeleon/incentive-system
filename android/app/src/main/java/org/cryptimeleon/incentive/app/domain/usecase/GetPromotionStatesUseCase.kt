@@ -1,5 +1,6 @@
 package org.cryptimeleon.incentive.app.domain.usecase
 
+import androidx.compose.runtime.rememberUpdatedState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import org.cryptimeleon.incentive.app.domain.IBasketRepository
@@ -40,7 +41,8 @@ class GetPromotionStatesUseCase(
                     it.computeTokenUpdatesForPoints(tokenPoints, basketPoints, metadata)
                         .map { zkp ->
                             UpdateChoice.ZKP(
-                                update = zkp,
+                                updateId = zkp.tokenUpdateId,
+                                updateDescription = zkp.rewardDescription,
                                 oldPoints = tokenPoints,
                                 newPoints = zkp.computeSatisfyingNewPointsVector(
                                     tokenPoints,
@@ -50,7 +52,7 @@ class GetPromotionStatesUseCase(
                                 metadata = metadata
                             )
                         })
-                return@map PromotionState(it, basketPoints, tokenPoints, updates)
+                return@map PromotionState(it.promotionParameters.promotionId, it.promotionName, basketPoints, tokenPoints, updates)
             }
         }
 }
