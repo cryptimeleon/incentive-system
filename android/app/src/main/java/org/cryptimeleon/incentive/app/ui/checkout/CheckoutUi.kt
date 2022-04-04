@@ -35,19 +35,11 @@ fun CheckoutUi(navigateHome: () -> Unit) {
         )
     )
 
-    Scaffold(topBar = {
-        DefaultTopAppBar(
-            title = { Text(text = "Checkout") },
-            menuEnabled = false,
-            // TODO add back button?
-        )
-    }) {
-        CheckoutUi(
-            checkoutState,
-            checkoutViewModel::startPayAndRedeem,
-            navigateHome
-        )
-    }
+    CheckoutUi(
+        checkoutState,
+        checkoutViewModel::startPayAndRedeem,
+        navigateHome
+    )
 }
 
 @Composable
@@ -56,60 +48,67 @@ private fun CheckoutUi(
     triggerCheckout: () -> Unit,
     navigateHome: () -> Unit,
 ) {
-    when (checkoutState.payAndRedeemState) {
-        PayAndRedeemState.NOT_STARTED -> {
-            Column(
-                verticalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxSize()
-            ) {
-                LazyColumn {
-                    item { Text("Summary", style = MaterialTheme.typography.h4) }
-                    items(checkoutState.promotionStates) { promotionState ->
-                        Text(promotionState.promotionName, style = MaterialTheme.typography.h5)
-                        Text(promotionState.choiceDescription)
+    Scaffold(topBar = {
+        DefaultTopAppBar(
+            title = { Text(text = "Checkout") },
+            menuEnabled = false,
+            // TODO add back button?
+        )
+    }) {
+        when (checkoutState.payAndRedeemState) {
+            PayAndRedeemState.NOT_STARTED -> {
+                Column(
+                    verticalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxSize()
+                ) {
+                    LazyColumn {
+                        items(checkoutState.promotionStates) { promotionState ->
+                            Text(promotionState.promotionName, style = MaterialTheme.typography.h5)
+                            Text(promotionState.choiceDescription)
+                        }
+                    }
+                    Button(onClick = triggerCheckout, Modifier.fillMaxWidth()) {
+                        Text("Pay and Redeem")
                     }
                 }
-                Button(onClick = triggerCheckout, Modifier.fillMaxWidth()) {
-                    Text("Pay and Redeem")
+            }
+            PayAndRedeemState.FINISHED -> {
+                Column(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxSize(),
+                    verticalArrangement = Arrangement.SpaceBetween,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Column(
+                        Modifier.weight(1f),
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            "Successfully updated tokens!",
+                            style = MaterialTheme.typography.h5
+                        )
+                    }
+                    Button(onClick = navigateHome, Modifier.fillMaxWidth()) {
+                        Text("Navigate Home")
+                    }
                 }
             }
-        }
-        PayAndRedeemState.FINISHED -> {
-            Column(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxSize(),
-                verticalArrangement = Arrangement.SpaceBetween,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
+            else -> {
                 Column(
-                    Modifier.weight(1f),
-                    verticalArrangement = Arrangement.Center
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    CircularProgressIndicator()
+                    Spacer(modifier = Modifier.size(8.dp))
                     Text(
-                        "Successfully updated tokens!",
-                        style = MaterialTheme.typography.h5
+                        checkoutState.payAndRedeemState.toString(),
+                        style = MaterialTheme.typography.subtitle1
                     )
                 }
-                Button(onClick = navigateHome, Modifier.fillMaxWidth()) {
-                    Text("Navigate Home")
-                }
-            }
-        }
-        else -> {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                CircularProgressIndicator()
-                Spacer(modifier = Modifier.size(8.dp))
-                Text(
-                    checkoutState.payAndRedeemState.toString(),
-                    style = MaterialTheme.typography.subtitle1
-                )
             }
         }
     }

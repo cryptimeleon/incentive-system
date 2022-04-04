@@ -26,8 +26,6 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
@@ -37,7 +35,6 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedButton
-import androidx.compose.material.RadioButton
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
@@ -53,7 +50,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -62,13 +58,9 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import org.cryptimeleon.incentive.app.domain.model.Basket
 import org.cryptimeleon.incentive.app.domain.model.BasketItem
-import org.cryptimeleon.incentive.app.domain.model.PromotionState
-import org.cryptimeleon.incentive.app.domain.model.PromotionUserUpdateChoice
-import org.cryptimeleon.incentive.app.domain.model.UserUpdateChoice
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 import org.cryptimeleon.incentive.app.util.SLE
-import java.math.BigInteger
 import java.util.*
 
 val wrongId: String =
@@ -78,23 +70,14 @@ val currencyFormat: NumberFormat = NumberFormat.getCurrencyInstance(Locale.GERMA
 fun formatCents(valueCents: Int): String = currencyFormat.format(valueCents.toDouble() / 100)
 
 @Composable
-fun BasketUi(openSettings: () -> Unit, openBenchmark: () -> Unit, gotoCheckout: () -> Unit) {
+fun BasketUi(openSettings: () -> Unit, openBenchmark: () -> Unit, gotoRewards: () -> Unit) {
     val basketViewModel = hiltViewModel<BasketViewModel>()
     val basket: SLE<Basket> by basketViewModel.basket.collectAsState(initial = SLE.Loading())
-    val promotionStates: List<PromotionState> by basketViewModel.promotionStates.collectAsState(
-        initial = emptyList()
-    )
-    val userUpdateChoices: List<PromotionUserUpdateChoice> by basketViewModel.tokenUpdateChoices.collectAsState(
-        initial = emptyList()
-    )
 
     BasketUi(
         basketSle = basket,
-        promotionStates = promotionStates,
-        userTokenUpdateChoices = userUpdateChoices,
         setItemCount = basketViewModel::setItemCount,
-        setUserUpdateChoice = basketViewModel::setUpdateChoice,
-        pay = gotoCheckout,
+        pay = gotoRewards,
         discard = basketViewModel::onDiscardClicked,
         openSettings = openSettings,
         openBenchmark = openBenchmark
@@ -105,10 +88,7 @@ fun BasketUi(openSettings: () -> Unit, openBenchmark: () -> Unit, gotoCheckout: 
 @Composable
 private fun BasketUi(
     basketSle: SLE<Basket>,
-    promotionStates: List<PromotionState>,
-    userTokenUpdateChoices: List<PromotionUserUpdateChoice>,
     setItemCount: (String, Int) -> Unit,
-    setUserUpdateChoice: (promotionId: BigInteger, userUpdateChoice: UserUpdateChoice) -> Unit,
     pay: () -> Unit,
     discard: () -> Unit,
     openSettings: () -> Unit = {},
@@ -202,13 +182,6 @@ private fun BasketUi(
                                 )
                             }
                             item {
-                                BasketPromotion(
-                                    promotionStates = promotionStates,
-                                    userTokenUpdateChoices = userTokenUpdateChoices,
-                                    setUserUpdateChoice = setUserUpdateChoice
-                                )
-                            }
-                            item {
                                 Spacer(
                                     modifier = Modifier
                                         .size(32.dp)
@@ -254,48 +227,6 @@ private fun BasketUi(
                                 .fillMaxWidth()
                         )
                     }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun BasketPromotion(
-    promotionStates: List<PromotionState>,
-    userTokenUpdateChoices: List<PromotionUserUpdateChoice>,
-    setUserUpdateChoice: (promotionId: BigInteger, userUpdateChoice: UserUpdateChoice) -> Unit
-) {
-    promotionStates.forEach {
-        val selectedTokenUpdateChoice =
-            userTokenUpdateChoices.find { choice -> choice.promotionId == it.promotionId }?.userUpdateChoice
-        Text(text = it.promotionName, style = MaterialTheme.typography.h6)
-        Column(Modifier.selectableGroup()) {
-            it.qualifiedUpdates.forEach { updateChoice ->
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .selectable(
-                            selected = (updateChoice.toUserUpdateChoice() == selectedTokenUpdateChoice),
-                            onClick = {
-                                setUserUpdateChoice(
-                                    it.promotionId,
-                                    updateChoice.toUserUpdateChoice()
-                                )
-                            },
-                            role = Role.RadioButton
-                        ),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    RadioButton(
-                        selected = (updateChoice.toUserUpdateChoice() == selectedTokenUpdateChoice),
-                        onClick = null // Recommended since Row already handles clicks
-                    )
-                    Text(
-                        text = updateChoice.toString(),
-                        style = MaterialTheme.typography.body1.merge(),
-                        modifier = Modifier.padding(start = 16.dp)
-                    )
                 }
             }
         }
@@ -478,10 +409,7 @@ private fun BasketPreview() {
     CryptimeleonTheme {
         BasketUi(
             SLE.Success(testBasket),
-            emptyList(),
-            emptyList(),
-            { _, _ -> {} },
-            { _, _ -> {} },
+            { _, _ -> },
             {},
             {},
             {})
@@ -500,10 +428,7 @@ private fun BasketPreviewLoading() {
     CryptimeleonTheme {
         BasketUi(
             SLE.Loading(),
-            emptyList(),
-            emptyList(),
-            { _, _ -> {} },
-            { _, _ -> {} },
+            { _, _ -> },
             {},
             {},
             {})
@@ -522,10 +447,7 @@ private fun BasketPreviewEmpty() {
     CryptimeleonTheme {
         BasketUi(
             SLE.Success(emptyTestBasket),
-            emptyList(),
-            emptyList(),
-            { _, _ -> {} },
-            { _, _ -> {} },
+            { _, _ -> },
             {},
             {},
             {})
