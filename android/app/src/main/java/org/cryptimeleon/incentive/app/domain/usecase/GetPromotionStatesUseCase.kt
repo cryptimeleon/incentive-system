@@ -49,7 +49,8 @@ class GetPromotionStatesUseCase(
                                     basketPoints,
                                     metadata
                                 ).get(),
-                                metadata = metadata
+                                metadata = metadata,
+                                reward = zkp.rewardSideEffect
                             )
                         })
                 return@map PromotionState(it.promotionParameters.promotionId, it.promotionName, basketPoints, tokenPoints, updates)

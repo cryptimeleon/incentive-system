@@ -29,29 +29,21 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import org.cryptimeleon.incentive.app.domain.model.PromotionState
-import org.cryptimeleon.incentive.app.domain.model.PromotionUserUpdateChoice
-import org.cryptimeleon.incentive.app.domain.model.UpdateChoice
+import org.cryptimeleon.incentive.app.domain.model.Earn
+import org.cryptimeleon.incentive.app.domain.model.None
 import org.cryptimeleon.incentive.app.domain.model.UserUpdateChoice
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
-import org.cryptimeleon.incentive.promotion.EmptyTokenUpdateMetadata
-import org.cryptimeleon.math.structures.cartesian.Vector
 import java.math.BigInteger
 import java.util.*
 
 @Composable
 fun RewardsUi(gotoCheckout: () -> Unit) {
     val rewardsViewModel = hiltViewModel<RewardsViewModel>()
-    val promotionStates: List<PromotionState> by rewardsViewModel.promotionStates.collectAsState(
-        initial = emptyList()
+    val state: RewardsState by rewardsViewModel.state.collectAsState(
+        initial = RewardsState(emptyList())
     )
-    val userUpdateChoices: List<PromotionUserUpdateChoice> by rewardsViewModel.tokenUpdateChoices.collectAsState(
-        initial = emptyList()
-    )
-
     RewardsUi(
-        promotionStates = promotionStates,
-        userTokenUpdateChoices = userUpdateChoices,
+        state = state,
         setUserUpdateChoice = rewardsViewModel::setUpdateChoice,
         gotoCheckout = gotoCheckout,
     )
@@ -59,8 +51,7 @@ fun RewardsUi(gotoCheckout: () -> Unit) {
 
 @Composable
 private fun RewardsUi(
-    promotionStates: List<PromotionState>,
-    userTokenUpdateChoices: List<PromotionUserUpdateChoice>,
+    state: RewardsState,
     setUserUpdateChoice: (promotionId: BigInteger, userUpdateChoice: UserUpdateChoice) -> Unit,
     gotoCheckout: () -> Unit
 ) {
@@ -76,8 +67,7 @@ private fun RewardsUi(
                 .padding(16.dp)
         ) {
             RewardPromotionList(
-                promotionStates = promotionStates,
-                userTokenUpdateChoices = userTokenUpdateChoices,
+                state.promotionInfos,
                 setUserUpdateChoice = setUserUpdateChoice,
                 modifier = Modifier.weight(1f)
             )
@@ -90,8 +80,7 @@ private fun RewardsUi(
 
 @Composable
 fun RewardPromotionList(
-    promotionStates: List<PromotionState>,
-    userTokenUpdateChoices: List<PromotionUserUpdateChoice>,
+    promotionInfos: List<PromotionInfo>,
     setUserUpdateChoice: (promotionId: BigInteger, userUpdateChoice: UserUpdateChoice) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -103,26 +92,22 @@ fun RewardPromotionList(
             Text("Choose a Reward for every Promotion", style = MaterialTheme.typography.h4)
             Spacer(modifier = Modifier.height(16.dp))
         }
-        items(promotionStates) {
-            val selectedTokenUpdateChoice =
-                userTokenUpdateChoices.find { choice -> choice.promotionId == it.promotionId }?.userUpdateChoice
+        items(promotionInfos) { promotion ->
             Card() {
                 Column(modifier = Modifier.padding(8.dp)) {
-                    Text(text = it.promotionName, style = MaterialTheme.typography.h6)
+                    Text(text = promotion.promotionName, style = MaterialTheme.typography.h6)
                     Spacer(modifier = Modifier.height(8.dp))
                     Column(Modifier.selectableGroup()) {
-                        it.qualifiedUpdates.forEach { updateChoice ->
-                            val isSelected =
-                                (updateChoice.toUserUpdateChoice() == selectedTokenUpdateChoice)
+                        promotion.choices.forEach { choice ->
                             Row(
                                 Modifier
                                     .fillMaxWidth()
                                     .selectable(
-                                        selected = isSelected,
+                                        selected = choice.isSelected,
                                         onClick = {
                                             setUserUpdateChoice(
-                                                it.promotionId,
-                                                updateChoice.toUserUpdateChoice()
+                                                promotion.promotionId,
+                                                choice.userUpdateChoice
                                             )
                                         },
                                         role = Role.RadioButton
@@ -130,14 +115,30 @@ fun RewardPromotionList(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 RadioButton(
-                                    selected = (updateChoice.toUserUpdateChoice() == selectedTokenUpdateChoice),
+                                    selected = choice.isSelected,
                                     onClick = null // Recommended since Row already handles clicks
                                 )
-                                Text(
-                                    text = updateChoice.toString(),
-                                    style = MaterialTheme.typography.body1.merge(),
-                                    modifier = Modifier.padding(start = 16.dp)
-                                )
+                                Column() {
+                                    Text(
+                                        text = choice.humanReadableDescription,
+                                        style = MaterialTheme.typography.body1.merge(),
+                                        modifier = Modifier.padding(start = 16.dp)
+                                    )
+                                    if (choice.rewards.isPresent) {
+                                        Text(
+                                            text = choice.rewards.get().rewardTitle,
+                                            style = MaterialTheme.typography.body1.merge(),
+                                            modifier = Modifier.padding(start = 16.dp)
+                                        )
+                                    }
+                                    /*
+                                    Text(
+                                        text = choice.cryptographicDescription,
+                                        style = MaterialTheme.typography.body1.merge(),
+                                        modifier = Modifier.padding(start = 16.dp)
+                                    )
+                                     */
+                                }
                             }
                         }
                     }
@@ -158,27 +159,39 @@ fun RewardPromotionList(
 )
 fun BasketItemPreviewExpanded() {
     RewardsUi(
-        promotionStates = listOf(
-            PromotionState(
-                BigInteger.valueOf(1),
-                "Promotion for Preview",
-                Vector.of(BigInteger.valueOf(45)),
-                Vector.of(BigInteger.valueOf(3)),
-                listOf(
-                    UpdateChoice.None,
-                    UpdateChoice.Earn(Vector.of(BigInteger.valueOf(20))),
-                    UpdateChoice.ZKP(
-                        UUID.randomUUID(),
-                        "Some Update",
-                        Vector.of(BigInteger.valueOf(30)),
-                        Vector.of(BigInteger.valueOf(8)),
-                        EmptyTokenUpdateMetadata()
+        state = RewardsState(
+            listOf(
+                PromotionInfo(
+                    BigInteger.valueOf(1),
+                    "Promotion for Preview",
+                    listOf(
+                        Choice(
+                            "Nothing",
+                            "No cryptographic protocols are executed. The token remains unchanged.",
+                            Optional.empty(),
+                            None,
+                            true
+                        ),
+                        Choice(
+                            "Collect 10 points",
+                            "Use the fast-earn protocol to add [10 0] to the points vector of the token and update the SPSEQ signature accordingly",
+                            Optional.empty(),
+                            Earn,
+                            false
+                        ),
+                        Choice(
+                            "Get Teddy and collect 3 points",
+                            "Run the ZKP with id 0237452398 to get change the points vector from [32] to [35].",
+                            Optional.of(RewardDescription("Teddy")),
+                            Earn,
+                            false
+                        )
                     )
+
                 )
             )
         ),
-        userTokenUpdateChoices = emptyList(),
         setUserUpdateChoice = { _, _ -> },
-        {}
+        gotoCheckout = {}
     )
 }

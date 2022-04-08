@@ -1,5 +1,6 @@
 package org.cryptimeleon.incentive.app.domain.model
 
+import org.cryptimeleon.incentive.promotion.RewardSideEffect
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata
 import org.cryptimeleon.math.structures.cartesian.Vector
 import java.math.BigInteger
@@ -24,7 +25,8 @@ sealed class UpdateChoice() {
         val updateDescription: String,
         val oldPoints: Vector<BigInteger>,
         val newPoints: Vector<BigInteger>,
-        val metadata: ZkpTokenUpdateMetadata
+        val metadata: ZkpTokenUpdateMetadata,
+        val reward: RewardSideEffect
     ) :
         UpdateChoice() {
         override fun toUserUpdateChoice() = ZKP(updateId)
