@@ -64,7 +64,7 @@ class SetupViewModel @Inject constructor(
     fun startSetup() {
         uiScope.launch {
             withContext(Dispatchers.IO) {
-                // Load promotions TODO make this more efficient
+                // Load promotions TODO make this more efficient I gues some of this stuff can be done in parallel or in the background
                 promotionRepository.reloadPromotions()
                 val promotions = promotionRepository.promotions.first()
 

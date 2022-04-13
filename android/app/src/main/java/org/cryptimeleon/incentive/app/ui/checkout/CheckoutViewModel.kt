@@ -56,6 +56,7 @@ class CheckoutViewModel @Inject constructor(
                     promotionStates = checkoutPromotionStates,
                     basketState = BasketState(
                         "",
+                        "",
                         emptyList()
                     )
                 )
@@ -64,6 +65,7 @@ class CheckoutViewModel @Inject constructor(
                     promotionStates = checkoutPromotionStates,
                     basketState = BasketState(
                         "${basket.value}",
+                        basket.basketId.toString(),
                         basket.items.map { item ->
                             BasketItem(
                                 item.title,
@@ -93,6 +95,7 @@ data class CheckoutState(
 
 data class BasketState(
     val basketValue: String,
+    val basketId: String,
     val basketItems: List<BasketItem>
 )
 

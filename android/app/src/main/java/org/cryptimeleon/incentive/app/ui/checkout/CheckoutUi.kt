@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemState
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
+import java.util.*
 
 @Composable
 fun CheckoutUi(navigateHome: () -> Unit) {
@@ -33,7 +34,7 @@ fun CheckoutUi(navigateHome: () -> Unit) {
     val checkoutState: CheckoutState by checkoutViewModel.checkoutState.collectAsState(
         initial = CheckoutState(
             emptyList(),
-            BasketState("", emptyList())
+            BasketState("", "", emptyList())
         )
     )
     val payAndRedeemState: PayAndRedeemState by checkoutViewModel.payAndRedeemState.collectAsState(
@@ -59,7 +60,6 @@ private fun CheckoutUi(
         DefaultTopAppBar(
             title = { Text(text = "Checkout") },
             menuEnabled = false,
-            // TODO add back button?
         )
     }) {
         when (payAndRedeemState) {
@@ -67,52 +67,11 @@ private fun CheckoutUi(
                 SummaryUi(checkoutState, triggerCheckout)
             }
             PayAndRedeemState.FINISHED -> {
-                FinishedUi(navigateHome)
+                FinishedUi(checkoutState, navigateHome)
             }
             else -> {
                 PayProgressUi(payAndRedeemState)
             }
-        }
-    }
-}
-
-@Composable
-private fun PayProgressUi(payAndRedeemState: PayAndRedeemState) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        CircularProgressIndicator()
-        Spacer(modifier = Modifier.size(8.dp))
-        Text(
-            payAndRedeemState.toString(),
-            style = MaterialTheme.typography.subtitle1
-        )
-    }
-}
-
-@Composable
-private fun FinishedUi(navigateHome: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .padding(16.dp)
-            .fillMaxSize(),
-        verticalArrangement = Arrangement.SpaceBetween,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Column(
-            Modifier.weight(1f),
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                "Successfully updated tokens!",
-                style = MaterialTheme.typography.h5
-            )
-            // TOOD show rewards to claim and QR code of basketId
-        }
-        Button(onClick = navigateHome, Modifier.fillMaxWidth()) {
-            Text("Navigate Home")
         }
     }
 }
@@ -167,6 +126,54 @@ private fun SummaryUi(
     }
 }
 
+@Composable
+private fun PayProgressUi(payAndRedeemState: PayAndRedeemState) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        CircularProgressIndicator()
+        Spacer(modifier = Modifier.size(8.dp))
+        Text(
+            payAndRedeemState.toString(),
+            style = MaterialTheme.typography.subtitle1
+        )
+    }
+}
+
+@Composable
+private fun FinishedUi(checkoutState: CheckoutState, navigateHome: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.SpaceBetween,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Column(
+            Modifier.weight(1f),
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                "Successfully updated tokens!",
+                style = MaterialTheme.typography.h5
+            )
+            Spacer(modifier = Modifier.size(16.dp))
+            // TODO replace by QR code
+            Text(
+                "Your basket id for claiming rewards is: ${checkoutState.basketState.basketId}",
+                style = MaterialTheme.typography.h5
+            )
+            // TOOD show rewards to claim and QR code of basketId
+        }
+        Button(onClick = navigateHome, Modifier.fillMaxWidth()) {
+            Text("Navigate Home")
+        }
+    }
+}
+
+
 private val previewCheckoutState = CheckoutState(
     listOf(
         CheckoutPromotionState("First Promotion", "Become VIP Gold"),
@@ -174,6 +181,7 @@ private val previewCheckoutState = CheckoutState(
     ),
     BasketState(
         "25,00€",
+        UUID.randomUUID().toString(),
         listOf(
             BasketItem("Nutella", 2, "1,99€", "3,98 €"),
             BasketItem(
