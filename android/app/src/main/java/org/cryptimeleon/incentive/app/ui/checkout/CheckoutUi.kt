@@ -21,10 +21,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemState
+import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 import java.util.*
 
@@ -88,7 +90,13 @@ private fun SummaryUi(
             .fillMaxSize()
     ) {
         LazyColumn {
-            item { Text("Order Summary:") }
+            item {
+                Text(
+                    "Order Summary:",
+                    style = MaterialTheme.typography.h6,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
             items(checkoutState.basketState.basketItems) { basketItem ->
                 Row(Modifier.fillMaxWidth()) {
                     Text(basketItem.title, modifier = Modifier.weight(1f))
@@ -105,14 +113,18 @@ private fun SummaryUi(
             }
             item {
                 Row(Modifier.fillMaxWidth()) {
-                    Text("Total:", Modifier.weight(1f))
-                    Text(checkoutState.basketState.basketValue)
+                    Text(
+                        "Total:",
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Text(checkoutState.basketState.basketValue, fontWeight = FontWeight.SemiBold)
                 }
             }
             item {
                 Spacer(Modifier.size(16.dp))
             }
-            item { Text("Chosen Promotion Updates:") }
+            item { Text("Chosen Promotion Updates:", style = MaterialTheme.typography.h6) }
             items(checkoutState.promotionStates) { promotionState ->
                 Column(Modifier.padding(vertical = 8.dp)) {
                     Text(promotionState.promotionName)
@@ -194,38 +206,44 @@ private val previewCheckoutState = CheckoutState(
 @Preview
 @Composable
 fun CheckoutUiNotStartedPreview() {
-    Scaffold() {
-        CheckoutUi(
-            checkoutState = previewCheckoutState,
-            payAndRedeemState = PayAndRedeemState.NOT_STARTED,
-            triggerCheckout = {},
-            navigateHome = {},
-        )
+    CryptimeleonTheme() {
+        Scaffold() {
+            CheckoutUi(
+                checkoutState = previewCheckoutState,
+                payAndRedeemState = PayAndRedeemState.NOT_STARTED,
+                triggerCheckout = {},
+                navigateHome = {},
+            )
+        }
     }
 }
 
 @Preview
 @Composable
 fun CheckoutUiInProgressPreview() {
-    Scaffold() {
-        CheckoutUi(
-            checkoutState = previewCheckoutState,
-            payAndRedeemState = PayAndRedeemState.UPDATE_TOKENS,
-            triggerCheckout = {},
-            navigateHome = {},
-        )
+    CryptimeleonTheme() {
+        Scaffold() {
+            CheckoutUi(
+                checkoutState = previewCheckoutState,
+                payAndRedeemState = PayAndRedeemState.UPDATE_TOKENS,
+                triggerCheckout = {},
+                navigateHome = {},
+            )
+        }
     }
 }
 
 @Preview
 @Composable
 fun CheckoutUiFinishedPreview() {
-    Scaffold() {
-        CheckoutUi(
-            checkoutState = previewCheckoutState,
-            payAndRedeemState = PayAndRedeemState.FINISHED,
-            triggerCheckout = {},
-            navigateHome = {},
-        )
+    CryptimeleonTheme() {
+        Scaffold() {
+            CheckoutUi(
+                checkoutState = previewCheckoutState,
+                payAndRedeemState = PayAndRedeemState.FINISHED,
+                triggerCheckout = {},
+                navigateHome = {},
+            )
+        }
     }
 }
