@@ -2,6 +2,7 @@ package org.cryptimeleon.incentive.app.ui.checkout
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
@@ -30,13 +32,17 @@ fun CheckoutUi(navigateHome: () -> Unit) {
     val checkoutViewModel = hiltViewModel<CheckoutViewModel>()
     val checkoutState: CheckoutState by checkoutViewModel.checkoutState.collectAsState(
         initial = CheckoutState(
-            PayAndRedeemState.NOT_STARTED,
-            emptyList()
+            emptyList(),
+            BasketState("", emptyList())
         )
+    )
+    val payAndRedeemState: PayAndRedeemState by checkoutViewModel.payAndRedeemState.collectAsState(
+        initial = PayAndRedeemState.NOT_STARTED
     )
 
     CheckoutUi(
         checkoutState,
+        payAndRedeemState,
         checkoutViewModel::startPayAndRedeem,
         navigateHome
     )
@@ -45,6 +51,7 @@ fun CheckoutUi(navigateHome: () -> Unit) {
 @Composable
 private fun CheckoutUi(
     checkoutState: CheckoutState,
+    payAndRedeemState: PayAndRedeemState,
     triggerCheckout: () -> Unit,
     navigateHome: () -> Unit,
 ) {
@@ -55,78 +62,134 @@ private fun CheckoutUi(
             // TODO add back button?
         )
     }) {
-        when (checkoutState.payAndRedeemState) {
+        when (payAndRedeemState) {
             PayAndRedeemState.NOT_STARTED -> {
-                Column(
-                    verticalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxSize()
-                ) {
-                    LazyColumn {
-                        items(checkoutState.promotionStates) { promotionState ->
-                            Text(promotionState.promotionName, style = MaterialTheme.typography.h5)
-                            Text(promotionState.choiceDescription)
-                        }
-                    }
-                    Button(onClick = triggerCheckout, Modifier.fillMaxWidth()) {
-                        Text("Pay and Redeem")
-                    }
-                }
+                SummaryUi(checkoutState, triggerCheckout)
             }
             PayAndRedeemState.FINISHED -> {
-                Column(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxSize(),
-                    verticalArrangement = Arrangement.SpaceBetween,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Column(
-                        Modifier.weight(1f),
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            "Successfully updated tokens!",
-                            style = MaterialTheme.typography.h5
-                        )
-                    }
-                    Button(onClick = navigateHome, Modifier.fillMaxWidth()) {
-                        Text("Navigate Home")
-                    }
-                }
+                FinishedUi(navigateHome)
             }
             else -> {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    CircularProgressIndicator()
-                    Spacer(modifier = Modifier.size(8.dp))
-                    Text(
-                        checkoutState.payAndRedeemState.toString(),
-                        style = MaterialTheme.typography.subtitle1
-                    )
-                }
+                PayProgressUi(payAndRedeemState)
             }
         }
     }
 }
 
+@Composable
+private fun PayProgressUi(payAndRedeemState: PayAndRedeemState) {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        CircularProgressIndicator()
+        Spacer(modifier = Modifier.size(8.dp))
+        Text(
+            payAndRedeemState.toString(),
+            style = MaterialTheme.typography.subtitle1
+        )
+    }
+}
+
+@Composable
+private fun FinishedUi(navigateHome: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxSize(),
+        verticalArrangement = Arrangement.SpaceBetween,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Column(
+            Modifier.weight(1f),
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                "Successfully updated tokens!",
+                style = MaterialTheme.typography.h5
+            )
+            // TOOD show rewards to claim and QR code of basketId
+        }
+        Button(onClick = navigateHome, Modifier.fillMaxWidth()) {
+            Text("Navigate Home")
+        }
+    }
+}
+
+@Composable
+private fun SummaryUi(
+    checkoutState: CheckoutState,
+    triggerCheckout: () -> Unit
+) {
+    Column(
+        verticalArrangement = Arrangement.SpaceBetween,
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxSize()
+    ) {
+        LazyColumn {
+            item { Text("Order Summary:") }
+            items(checkoutState.basketState.basketItems) { basketItem ->
+                Row(Modifier.fillMaxWidth()) {
+                    Text(basketItem.title, modifier = Modifier.weight(1f))
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(basketItem.costTotal)
+                        Row {
+                            Text("${basketItem.count}x${basketItem.costSingle}")
+                        }
+                    }
+                }
+            }
+            item {
+                Divider(Modifier.padding(vertical = 8.dp))
+            }
+            item {
+                Row(Modifier.fillMaxWidth()) {
+                    Text("Total:", Modifier.weight(1f))
+                    Text(checkoutState.basketState.basketValue)
+                }
+            }
+            item {
+                Spacer(Modifier.size(16.dp))
+            }
+            item { Text("Chosen Promotion Updates:") }
+            items(checkoutState.promotionStates) { promotionState ->
+                Column(Modifier.padding(vertical = 8.dp)) {
+                    Text(promotionState.promotionName)
+                    Text(promotionState.choiceDescription)
+                }
+            }
+        }
+        Button(onClick = triggerCheckout, Modifier.fillMaxWidth()) {
+            Text("Pay and Redeem")
+        }
+    }
+}
+
+private val previewCheckoutState = CheckoutState(
+    listOf(
+        CheckoutPromotionState("First Promotion", "Become VIP Gold"),
+        CheckoutPromotionState("Second Promotion", "Free Pan")
+    ),
+    BasketState(
+        "25,00€",
+        listOf(
+            BasketItem("Nutella", 2, "1,99€", "3,98 €"),
+            BasketItem(
+                "Apple", 5, "0,25€", "1,25 €"
+            )
+        )
+    )
+)
 
 @Preview
 @Composable
 fun CheckoutUiNotStartedPreview() {
     Scaffold() {
         CheckoutUi(
-            checkoutState = CheckoutState(
-                PayAndRedeemState.NOT_STARTED,
-                listOf(
-                    CheckoutPromotionState("First Promotion", "Become VIP Gold"),
-                    CheckoutPromotionState("Second Promotion", "Free Pan")
-                )
-            ),
+            checkoutState = previewCheckoutState,
+            payAndRedeemState = PayAndRedeemState.NOT_STARTED,
             triggerCheckout = {},
             navigateHome = {},
         )
@@ -138,13 +201,8 @@ fun CheckoutUiNotStartedPreview() {
 fun CheckoutUiInProgressPreview() {
     Scaffold() {
         CheckoutUi(
-            checkoutState = CheckoutState(
-                PayAndRedeemState.PAY,
-                listOf(
-                    CheckoutPromotionState("First Promotion", "Become VIP Gold"),
-                    CheckoutPromotionState("Second Promotion", "Free Pan")
-                )
-            ),
+            checkoutState = previewCheckoutState,
+            payAndRedeemState = PayAndRedeemState.UPDATE_TOKENS,
             triggerCheckout = {},
             navigateHome = {},
         )
@@ -156,13 +214,8 @@ fun CheckoutUiInProgressPreview() {
 fun CheckoutUiFinishedPreview() {
     Scaffold() {
         CheckoutUi(
-            checkoutState = CheckoutState(
-                PayAndRedeemState.FINISHED,
-                listOf(
-                    CheckoutPromotionState("First Promotion", "Become VIP Gold"),
-                    CheckoutPromotionState("Second Promotion", "Free Pan")
-                )
-            ),
+            checkoutState = previewCheckoutState,
+            payAndRedeemState = PayAndRedeemState.FINISHED,
             triggerCheckout = {},
             navigateHome = {},
         )

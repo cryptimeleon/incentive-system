@@ -131,13 +131,11 @@ fun RewardPromotionList(
                                             modifier = Modifier.padding(start = 16.dp)
                                         )
                                     }
-                                    /*
                                     Text(
                                         text = choice.cryptographicDescription,
-                                        style = MaterialTheme.typography.body1.merge(),
+                                        style = MaterialTheme.typography.subtitle2,
                                         modifier = Modifier.padding(start = 16.dp)
                                     )
-                                     */
                                 }
                             }
                         }

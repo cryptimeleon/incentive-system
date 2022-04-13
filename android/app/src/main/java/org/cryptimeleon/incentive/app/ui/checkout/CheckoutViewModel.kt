@@ -19,6 +19,7 @@ import org.cryptimeleon.incentive.app.domain.usecase.AnalyzeUserTokenUpdatesUseC
 import org.cryptimeleon.incentive.app.domain.usecase.GetPromotionStatesUseCase
 import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemState
 import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemUseCase
+import org.cryptimeleon.incentive.app.util.formatCents
 import javax.inject.Inject
 
 @HiltViewModel
@@ -34,8 +35,9 @@ class CheckoutViewModel @Inject constructor(
         GetPromotionStatesUseCase(promotionRepository, cryptoRepository, basketRepository).invoke()
     private val tokenUpdateChoicesFlow: Flow<List<PromotionUserUpdateChoice>> =
         AnalyzeUserTokenUpdatesUseCase(promotionRepository, cryptoRepository, basketRepository)()
+    private val basket = basketRepository.basket
 
-    private val payAndRedeemState = MutableStateFlow(PayAndRedeemState.NOT_STARTED)
+    val payAndRedeemState = MutableStateFlow(PayAndRedeemState.NOT_STARTED)
     val checkoutState: Flow<CheckoutState> =
         tokenUpdateChoicesFlow.combine(
             promotionStatesFlow
@@ -48,11 +50,31 @@ class CheckoutViewModel @Inject constructor(
                     choice.toString()
                 )
             }
-        }.combine(payAndRedeemState) { checkoutPromotionStates, payAndRedeemState ->
-            CheckoutState(
-                payAndRedeemState = payAndRedeemState,
-                promotionStates = checkoutPromotionStates
-            )
+        }.combine(basket) { checkoutPromotionStates, basket ->
+            if (basket == null) {
+                CheckoutState(
+                    promotionStates = checkoutPromotionStates,
+                    basketState = BasketState(
+                        "",
+                        emptyList()
+                    )
+                )
+            } else {
+                CheckoutState(
+                    promotionStates = checkoutPromotionStates,
+                    basketState = BasketState(
+                        "${basket.value}",
+                        basket.items.map { item ->
+                            BasketItem(
+                                item.title,
+                                item.count,
+                                formatCents(item.price),
+                                formatCents(item.price * item.count)
+                            )
+                        }
+                    )
+                )
+            }
         }
 
     fun startPayAndRedeem() {
@@ -65,8 +87,20 @@ class CheckoutViewModel @Inject constructor(
 }
 
 data class CheckoutState(
-    val payAndRedeemState: PayAndRedeemState,
     val promotionStates: List<CheckoutPromotionState>,
+    val basketState: BasketState
+)
+
+data class BasketState(
+    val basketValue: String,
+    val basketItems: List<BasketItem>
+)
+
+data class BasketItem(
+    val title: String,
+    val count: Int,
+    val costSingle: String,
+    val costTotal: String,
 )
 
 // Description to display what happens for every state
