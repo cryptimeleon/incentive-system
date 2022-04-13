@@ -27,7 +27,7 @@ public class StreakTokenUpdateTimestamp extends ZkpTokenUpdateMetadata {
         this.timestamp = epochTimeStamp;
     }
 
-    StreakTokenUpdateTimestamp(Representation representation) {
+    public StreakTokenUpdateTimestamp(Representation representation) {
         ReprUtil.deserialize(this, representation);
     }
 
@@ -35,7 +35,7 @@ public class StreakTokenUpdateTimestamp extends ZkpTokenUpdateMetadata {
      * Compute a timestamp metadata for the current time/day.
      * @return timestamp
      */
-    static StreakTokenUpdateTimestamp now() {
+    public static StreakTokenUpdateTimestamp now() {
         LocalDate epoch = LocalDate.ofEpochDay(0);
         LocalDate now = LocalDate.now();
         return new StreakTokenUpdateTimestamp(ChronoUnit.DAYS.between(epoch, now));
