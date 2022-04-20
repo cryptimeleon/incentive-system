@@ -13,10 +13,10 @@ import java.util.UUID;
 // This is the cache for results of token updates that are held back util the user pays the basket.
 @Repository
 public class TokenUpdateResultRepository {
-    private Map<UUID, Map<BigInteger, TokenUpdateResult>> table;
+    private Map<UUID, Map<BigInteger, TokenUpdateResult>> tokenUpdateResultMap;
 
     public TokenUpdateResultRepository() {
-        table = new HashMap<>();
+        tokenUpdateResultMap = new HashMap<>();
     }
 
     public void insertZkpTokenUpdateResponse(UUID basketId, BigInteger promotionId, UUID tokenUpdateId, String serializedZkpUpdateResponse) {
@@ -29,17 +29,17 @@ public class TokenUpdateResultRepository {
 
     private void insert(UUID basketId, BigInteger promotionId, TokenUpdateResult entity) {
         Map<BigInteger, TokenUpdateResult> map;
-        if (table.containsKey(basketId)) {
-            map = table.get(basketId);
+        if (tokenUpdateResultMap.containsKey(basketId)) {
+            map = tokenUpdateResultMap.get(basketId);
         } else {
             map = new HashMap<>();
         }
         map.put(promotionId, entity);
-        table.put(basketId, map);
+        tokenUpdateResultMap.put(basketId, map);
     }
 
     public Map<BigInteger, TokenUpdateResult> getUpdateResults(UUID basketId) {
-        return table.get(basketId);
+        return tokenUpdateResultMap.get(basketId);
     }
 }
 
