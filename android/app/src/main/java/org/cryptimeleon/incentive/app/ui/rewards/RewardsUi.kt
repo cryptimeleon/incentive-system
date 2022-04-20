@@ -32,6 +32,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import org.cryptimeleon.incentive.app.domain.model.Earn
 import org.cryptimeleon.incentive.app.domain.model.None
 import org.cryptimeleon.incentive.app.domain.model.UserUpdateChoice
+import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 import java.math.BigInteger
 import java.util.*
@@ -156,40 +157,42 @@ fun RewardPromotionList(
     name = "BasketItem expanded"
 )
 fun BasketItemPreviewExpanded() {
-    RewardsUi(
-        state = RewardsState(
-            listOf(
-                PromotionInfo(
-                    BigInteger.valueOf(1),
-                    "Promotion for Preview",
-                    listOf(
-                        Choice(
-                            "Nothing",
-                            "No cryptographic protocols are executed. The token remains unchanged.",
-                            Optional.empty(),
-                            None,
-                            true
-                        ),
-                        Choice(
-                            "Collect 10 points",
-                            "Use the fast-earn protocol to add [10 0] to the points vector of the token and update the SPSEQ signature accordingly",
-                            Optional.empty(),
-                            Earn,
-                            false
-                        ),
-                        Choice(
-                            "Get Teddy and collect 3 points",
-                            "Run the ZKP with id 0237452398 to get change the points vector from [32] to [35].",
-                            Optional.of(RewardDescription("Teddy")),
-                            Earn,
-                            false
+    CryptimeleonTheme {
+        RewardsUi(
+            state = RewardsState(
+                listOf(
+                    PromotionInfo(
+                        BigInteger.valueOf(1),
+                        "Promotion for Preview",
+                        listOf(
+                            Choice(
+                                "Nothing",
+                                "No cryptographic protocols are executed. The token remains unchanged.",
+                                Optional.empty(),
+                                None,
+                                true
+                            ),
+                            Choice(
+                                "Collect 10 points",
+                                "Use the fast-earn protocol to add [10 0] to the points vector of the token and update the SPSEQ signature accordingly",
+                                Optional.empty(),
+                                Earn,
+                                false
+                            ),
+                            Choice(
+                                "Get Teddy and collect 3 points",
+                                "Run the ZKP with id 0237452398 to get change the points vector from [32] to [35].",
+                                Optional.of(RewardDescription("Teddy")),
+                                Earn,
+                                false
+                            )
                         )
-                    )
 
+                    )
                 )
-            )
-        ),
-        setUserUpdateChoice = { _, _ -> },
-        gotoCheckout = {}
-    )
+            ),
+            setUserUpdateChoice = { _, _ -> },
+            gotoCheckout = {}
+        )
+    }
 }
