@@ -7,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -15,13 +14,12 @@ import org.cryptimeleon.incentive.app.data.BasketRepository
 import org.cryptimeleon.incentive.app.data.CryptoRepository
 import org.cryptimeleon.incentive.app.data.PromotionRepository
 import org.cryptimeleon.incentive.app.domain.model.Basket
-import org.cryptimeleon.incentive.app.domain.model.PromotionState
+import org.cryptimeleon.incentive.app.domain.model.UserPromotionState
 import org.cryptimeleon.incentive.app.domain.model.PromotionUserUpdateChoice
 import org.cryptimeleon.incentive.app.domain.model.UserUpdateChoice
 import org.cryptimeleon.incentive.app.domain.usecase.AnalyzeUserTokenUpdatesUseCase
 import org.cryptimeleon.incentive.app.domain.usecase.GetPromotionStatesUseCase
 import org.cryptimeleon.incentive.app.util.SLE
-import org.cryptimeleon.incentive.crypto.model.PromotionParameters
 import timber.log.Timber
 import java.math.BigInteger
 import javax.inject.Inject
@@ -43,7 +41,7 @@ class BasketViewModel @Inject constructor(
         }
     }
 
-    val promotionStates: Flow<List<PromotionState>> = GetPromotionStatesUseCase(
+    val userPromotionStates: Flow<List<UserPromotionState>> = GetPromotionStatesUseCase(
         promotionRepository,
         cryptoRepository,
         basketRepository

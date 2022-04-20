@@ -39,8 +39,6 @@ interface IBasketRepository {
 
     /**
      * Pays the current basket.
-     *
-     * @return true if basket is paid after finished
      */
     suspend fun payCurrentBasket()
 

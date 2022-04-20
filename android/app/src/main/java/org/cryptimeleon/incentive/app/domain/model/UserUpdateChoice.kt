@@ -13,6 +13,10 @@ import kotlinx.serialization.modules.subclass
 import java.math.BigInteger
 import java.util.*
 
+/*
+ * Serializable data classes (to store them in the room database) for the choices a user
+ * made for its token update of a promotion.
+ */
 sealed interface UserUpdateChoice
 
 @Serializable
@@ -29,11 +33,15 @@ data class ZKP(
     @Serializable(with = UUIDSerializer::class) val tokenUpdateId: UUID
 ) : UserUpdateChoice
 
+/**
+ * Data class which combines the promotionId with the corresponding update choice of a user.
+ */
 data class PromotionUserUpdateChoice(
     val promotionId: BigInteger,
     val userUpdateChoice: UserUpdateChoice
 )
 
+// Serializer module that is configured to recover subclasses from above structure of data classes.
 val module = SerializersModule {
     polymorphic(UserUpdateChoice::class) {
         subclass(None::class)

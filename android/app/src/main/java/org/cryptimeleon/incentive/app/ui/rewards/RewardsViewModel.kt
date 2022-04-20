@@ -14,7 +14,7 @@ import org.cryptimeleon.incentive.app.data.BasketRepository
 import org.cryptimeleon.incentive.app.data.CryptoRepository
 import org.cryptimeleon.incentive.app.data.PromotionRepository
 import org.cryptimeleon.incentive.app.domain.model.Basket
-import org.cryptimeleon.incentive.app.domain.model.PromotionState
+import org.cryptimeleon.incentive.app.domain.model.UserPromotionState
 import org.cryptimeleon.incentive.app.domain.model.PromotionUserUpdateChoice
 import org.cryptimeleon.incentive.app.domain.model.UpdateChoice
 import org.cryptimeleon.incentive.app.domain.model.UserUpdateChoice
@@ -44,11 +44,11 @@ class RewardsViewModel @Inject constructor(
             cryptoRepository,
             basketRepository
         ).invoke()
-    ) { basket: Basket?, promotionStates: List<PromotionState>, promotionUserUpdates: List<PromotionUserUpdateChoice> ->
+    ) { basket: Basket?, userPromotionStates: List<UserPromotionState>, promotionUserUpdates: List<PromotionUserUpdateChoice> ->
         if (basket == null) {
             emptyList()
         } else {
-            promotionStates.filter { it.qualifiedUpdates.size > 1 }.map {
+            userPromotionStates.filter { it.qualifiedUpdates.size > 1 }.map {
                 PromotionInfo(
                     it.promotionId,
                     it.promotionName,

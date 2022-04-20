@@ -6,7 +6,7 @@ import java.math.BigInteger
 /**
  * Represents the current user state for a certain promotion.
  */
-data class PromotionState(
+data class UserPromotionState(
     val promotionId: BigInteger,
     val promotionName: String,
     val basketPoints: Vector<BigInteger>,

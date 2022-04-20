@@ -1,29 +1,33 @@
 package org.cryptimeleon.incentive.app.domain.usecase
 
-import androidx.compose.runtime.rememberUpdatedState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import org.cryptimeleon.incentive.app.domain.IBasketRepository
 import org.cryptimeleon.incentive.app.domain.ICryptoRepository
 import org.cryptimeleon.incentive.app.domain.IPromotionRepository
-import org.cryptimeleon.incentive.app.domain.model.PromotionState
+import org.cryptimeleon.incentive.app.domain.model.UserPromotionState
 import org.cryptimeleon.incentive.app.domain.model.UpdateChoice
 import org.cryptimeleon.incentive.app.util.toBigIntVector
 import org.cryptimeleon.incentive.crypto.model.Token
 
+/**
+ * Use case that returns a flow of all promotion states.
+ * A promotion state contains all relevant data and user state concerning a promotion which can be
+ * further reduced to the desired set of information.
+ */
 class GetPromotionStatesUseCase(
     private val promotionRepository: IPromotionRepository,
     private val cryptoRepository: ICryptoRepository,
     private val basketRepository: IBasketRepository
 ) {
 
-    operator fun invoke(): Flow<List<PromotionState>> =
+    operator fun invoke(): Flow<List<UserPromotionState>> =
         combine(
             promotionRepository.promotions,
             cryptoRepository.tokens,
             basketRepository.basket
         ) { promotions, tokens, basket ->
-            if (basket == null) return@combine emptyList<PromotionState>()
+            if (basket == null) return@combine emptyList<UserPromotionState>()
 
             return@combine promotions.map {
                 val token =
@@ -53,7 +57,13 @@ class GetPromotionStatesUseCase(
                                 reward = zkp.rewardSideEffect
                             )
                         })
-                return@map PromotionState(it.promotionParameters.promotionId, it.promotionName, basketPoints, tokenPoints, updates)
+                return@map UserPromotionState(
+                    it.promotionParameters.promotionId,
+                    it.promotionName,
+                    basketPoints,
+                    tokenPoints,
+                    updates
+                )
             }
         }
 }
