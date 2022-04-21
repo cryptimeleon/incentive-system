@@ -105,7 +105,7 @@ fun TokenCard(
             Row {
                 Text(
                     text = promotionState.title,
-                    style = MaterialTheme.typography.h4,
+                    style = MaterialTheme.typography.h5,
                     modifier = Modifier
                         .weight(1f)
                         .paddingFromBaseline(36.sp)
@@ -114,7 +114,7 @@ fun TokenCard(
                     is HazelPromotionState ->
                         Text(
                             text = "${promotionState.count}",
-                            style = MaterialTheme.typography.h4,
+                            style = MaterialTheme.typography.h5,
                             color = MaterialTheme.colors.secondary,
                             modifier = Modifier.paddingFromBaseline(36.sp)
                         )
@@ -122,14 +122,14 @@ fun TokenCard(
                     is VipPromotionState ->
                         Text(
                             text = "${promotionState.status}",
-                            style = MaterialTheme.typography.h4,
+                            style = MaterialTheme.typography.h5,
                             color = MaterialTheme.colors.secondary,
                             modifier = Modifier.paddingFromBaseline(36.sp)
                         )
                     is StreakPromotionState ->
                         Text(
                             text = "${promotionState.streak}",
-                            style = MaterialTheme.typography.h4,
+                            style = MaterialTheme.typography.h5,
                             color = MaterialTheme.colors.secondary,
                             modifier = Modifier.paddingFromBaseline(36.sp)
                         )
@@ -155,7 +155,7 @@ fun TokenCard(
                     )
                     Text(
                         text = "Rewards",
-                        style = MaterialTheme.typography.h5,
+                        style = MaterialTheme.typography.h6,
                         modifier = Modifier.weight(1f)
                     )
                 }

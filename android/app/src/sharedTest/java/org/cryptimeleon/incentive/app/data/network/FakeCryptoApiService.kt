@@ -1,6 +1,8 @@
 package org.cryptimeleon.incentive.app.data.network
 
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem
+import org.cryptimeleon.incentive.app.domain.model.BulkRequestDto
+import org.cryptimeleon.incentive.app.domain.model.BulkResponseDto
 import org.cryptimeleon.incentive.crypto.IncentiveSystem
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters
@@ -31,11 +33,14 @@ class FakeCryptoApiService(
         return runIssueJoin(joinRequest, promotionParameters, publicKey)
     }
 
-    override suspend fun runCreditEarn(
+    override suspend fun sendTokenUpdatesBatch(
         basketId: UUID,
-        promotionId: Int,
-        serializedEarnRequest: String
-    ): Response<String> {
+        bulkRequestDto: BulkRequestDto
+    ): Response<Unit> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun retrieveTokenUpdatesResults(basketId: UUID): Response<BulkResponseDto> {
         TODO("Not yet implemented")
     }
 

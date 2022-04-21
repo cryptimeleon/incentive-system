@@ -180,7 +180,6 @@ abstract class StreakZkpTokenUpdate extends ZkpTokenUpdate {
         return epochDays() == userEpochDay
                 || epochDaysOf(LocalDateTime.now().minusMinutes(USER_TIMESTAMP_THRESHOLD_MINUTES).toLocalDate()) == userEpochDay
                 || epochDaysOf(LocalDateTime.now().plusMinutes(USER_TIMESTAMP_THRESHOLD_MINUTES).toLocalDate()) == userEpochDay;
-
     }
 
     @Override

@@ -1,5 +1,7 @@
 package org.cryptimeleon.incentive.promotion;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion;
 import org.cryptimeleon.incentive.promotion.hazel.HazelTokenUpdate;
@@ -7,6 +9,7 @@ import org.cryptimeleon.incentive.promotion.streak.RangeProofStreakTokenUpdate;
 import org.cryptimeleon.incentive.promotion.streak.SpendStreakTokenUpdate;
 import org.cryptimeleon.incentive.promotion.streak.StandardStreakTokenUpdate;
 import org.cryptimeleon.incentive.promotion.streak.StreakPromotion;
+import org.cryptimeleon.incentive.promotion.streak.StreakTokenUpdateTimestamp;
 import org.cryptimeleon.incentive.promotion.vip.ProveVipTokenUpdate;
 import org.cryptimeleon.incentive.promotion.vip.UpgradeVipZkpTokenUpdate;
 import org.cryptimeleon.incentive.promotion.vip.VipPromotion;
@@ -16,8 +19,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Test that all Representables serialize and deserialize as expected.
@@ -140,5 +141,16 @@ public class RepresentationTests {
         ZkpTokenUpdate deserializedUpgradeVipZkpTokenUpdate = (ZkpTokenUpdate) ((RepresentableRepresentation) jsonConverter.deserialize(serializedRepresentation))
                 .recreateRepresentable();
         assertEquals(upgradeVipReward, deserializedUpgradeVipZkpTokenUpdate);
+    }
+
+    @Test
+    void metadataRepresentationTest() {
+        EmptyTokenUpdateMetadata emptyTokenUpdateMetadata = new EmptyTokenUpdateMetadata();
+        EmptyTokenUpdateMetadata restoredEmptyTokenUpdateMetadata = new EmptyTokenUpdateMetadata(emptyTokenUpdateMetadata.getRepresentation());
+        assertEquals(emptyTokenUpdateMetadata, restoredEmptyTokenUpdateMetadata);
+
+        StreakTokenUpdateTimestamp streakTokenUpdateTimestamp = StreakTokenUpdateTimestamp.now();
+        StreakTokenUpdateTimestamp restoredStreakTokenUpdateTimestamp = new StreakTokenUpdateTimestamp(streakTokenUpdateTimestamp.getRepresentation());
+        assertEquals(streakTokenUpdateTimestamp, restoredStreakTokenUpdateTimestamp);
     }
 }

@@ -16,8 +16,6 @@ public class Util {
 
     /**
      * Hash function to retrieve ZnElement gamma in spend-deduct
-     * TODO think about putting additional input to replace k
-     * TODO no, we have the new commitments in the hash
      *
      * @param zn    ZnElement to retrieve
      * @param dsid  dsid to hash

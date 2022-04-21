@@ -26,7 +26,6 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Button
 import androidx.compose.material.CircularProgressIndicator
@@ -71,14 +70,14 @@ val currencyFormat: NumberFormat = NumberFormat.getCurrencyInstance(Locale.GERMA
 fun formatCents(valueCents: Int): String = currencyFormat.format(valueCents.toDouble() / 100)
 
 @Composable
-fun BasketUi(openSettings: () -> Unit, openBenchmark: () -> Unit) {
+fun BasketUi(openSettings: () -> Unit, openBenchmark: () -> Unit, gotoRewards: () -> Unit) {
     val basketViewModel = hiltViewModel<BasketViewModel>()
     val basket: SLE<Basket> by basketViewModel.basket.collectAsState(initial = SLE.Loading())
 
     BasketUi(
         basketSle = basket,
         setItemCount = basketViewModel::setItemCount,
-        pay = basketViewModel::payAndRedeem,
+        pay = gotoRewards,
         discard = basketViewModel::onDiscardClicked,
         openSettings = openSettings,
         openBenchmark = openBenchmark
@@ -96,7 +95,6 @@ private fun BasketUi(
     openBenchmark: () -> Unit = {}
 ) {
     var expandedBasketItem by remember { mutableStateOf(wrongId) }
-    val lazyListState = rememberLazyListState()
 
     Scaffold(topBar = {
         DefaultTopAppBar(
@@ -107,94 +105,104 @@ private fun BasketUi(
         when (basketSle) {
             is SLE.Error -> TODO()
             is SLE.Loading -> LoadingSpinner()
-            is SLE.Success -> Column(
-                modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxHeight(),
-            ) {
+            is SLE.Success -> {
                 val basket = basketSle.data!!
                 if (basket.items.isNotEmpty()) {
                     val basketItemsCount = basket.items.map { it.count }.sum()
-                    Row() {
-                        AnimatedContent(targetState = basketItemsCount, transitionSpec = {
-                            if (targetState > initialState) {
-                                slideInVertically { height -> height } + fadeIn() with
-                                        slideOutVertically { height -> -height } + fadeOut()
-                            } else {
-                                slideInVertically { height -> -height } + fadeIn() with
-                                        slideOutVertically { height -> height } + fadeOut()
-                            }.using(
-                                SizeTransform(clip = false)
-                            )
-                        }) { targetItem ->
-                            Text(
-                                text = "$targetItem",
-                                style = MaterialTheme.typography.overline,
-                                fontSize = 14.sp
-                            )
+                    Column(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .padding(16.dp)
+                    ) {
+                        LazyColumn(modifier = Modifier.weight(1f)) {
+                            item {
+                                Row() {
+                                    AnimatedContent(
+                                        targetState = basketItemsCount,
+                                        transitionSpec = {
+                                            if (targetState > initialState) {
+                                                slideInVertically { height -> height } + fadeIn() with
+                                                        slideOutVertically { height -> -height } + fadeOut()
+                                            } else {
+                                                slideInVertically { height -> -height } + fadeIn() with
+                                                        slideOutVertically { height -> height } + fadeOut()
+                                            }.using(
+                                                SizeTransform(clip = false)
+                                            )
+                                        }) { targetItem ->
+                                        Text(
+                                            text = "$targetItem",
+                                            style = MaterialTheme.typography.overline,
+                                            fontSize = 14.sp
+                                        )
+                                    }
+                                    Text(
+                                        text = " Item${if (basketItemsCount > 1) "s" else ""} in your cart:",
+                                        style = MaterialTheme.typography.overline,
+                                        fontSize = 14.sp
+                                    )
+                                }
+                            }
+
+                            items(basket.items) { item ->
+                                Divider()
+                                BasketItem(
+                                    item = item,
+                                    expanded = expandedBasketItem == item.itemId,
+                                    onClick = {
+                                        expandedBasketItem =
+                                            if (expandedBasketItem == item.itemId) wrongId else item.itemId
+                                    },
+                                    setCount = { count ->
+                                        setItemCount(item.itemId, count)
+                                    },
+                                    modifier = Modifier.padding(vertical = 8.dp),
+                                )
+                            }
+                            item {
+                                Divider(thickness = 3.dp)
+                                Row(
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 8.dp)
+                                ) {
+                                    Text(
+                                        text = "Total",
+                                        style = MaterialTheme.typography.h5,
+                                    )
+                                    Text(
+                                        text = formatCents(basket.value),
+                                        style = MaterialTheme.typography.h5,
+                                    )
+                                }
+                                Spacer(
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                )
+                            }
+                            item {
+                                Spacer(
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                )
+                            }
                         }
-                        Text(
-                            text = " Item${if (basketItemsCount > 1) "s" else ""} in your cart:",
-                            style = MaterialTheme.typography.overline,
-                            fontSize = 14.sp
-                        )
-                    }
-                    LazyColumn(
-                        modifier = Modifier
-                            .padding(top = 8.dp),
-                        state = lazyListState
-                    ) {
-                        items(basket.items) { item ->
-                            Divider()
-                            BasketItem(
-                                item = item,
-                                expanded = expandedBasketItem == item.itemId,
-                                onClick = {
-                                    expandedBasketItem =
-                                        if (expandedBasketItem == item.itemId) wrongId else item.itemId
-                                },
-                                setCount = { count ->
-                                    setItemCount(item.itemId, count)
-                                },
-                                modifier = Modifier.padding(vertical = 8.dp),
-                            )
-                        }
-                    }
-                    Divider(thickness = 3.dp)
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp)
-                    ) {
-                        Text(
-                            text = "Total",
-                            style = MaterialTheme.typography.h5,
-                        )
-                        Text(
-                            text = formatCents(basket.value),
-                            style = MaterialTheme.typography.h5,
-                        )
-                    }
-                    Spacer(
-                        modifier = Modifier
-                            .size(32.dp)
-                            .weight(1f)
-                    )
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        OutlinedButton(
-                            modifier = Modifier.weight(1f),
-                            onClick = { discard() }
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            Text("Discard")
-                        }
-                        Button(
-                            modifier = Modifier.weight(1f),
-                            onClick = { pay() }
-                        ) {
-                            Text("Pay and Redeem")
+                            OutlinedButton(
+                                modifier = Modifier.weight(1f),
+                                onClick = discard
+                            ) {
+                                Text("Discard")
+                            }
+                            Button(
+                                modifier = Modifier.weight(1f),
+                                onClick = { pay() }
+                            ) {
+                                Text("Checkout")
+                            }
                         }
                     }
                 } else {
@@ -399,7 +407,12 @@ const val previewUiMode = Configuration.UI_MODE_NIGHT_NO
 )
 private fun BasketPreview() {
     CryptimeleonTheme {
-        BasketUi(SLE.Success(testBasket), { _, _ -> {} }, {}, {})
+        BasketUi(
+            SLE.Success(testBasket),
+            { _, _ -> },
+            {},
+            {},
+            {})
     }
 }
 
@@ -413,7 +426,12 @@ private fun BasketPreview() {
 )
 private fun BasketPreviewLoading() {
     CryptimeleonTheme {
-        BasketUi(SLE.Loading(), { _, _ -> {} }, {}, {})
+        BasketUi(
+            SLE.Loading(),
+            { _, _ -> },
+            {},
+            {},
+            {})
     }
 }
 
@@ -427,7 +445,12 @@ private fun BasketPreviewLoading() {
 )
 private fun BasketPreviewEmpty() {
     CryptimeleonTheme {
-        BasketUi(SLE.Success(emptyTestBasket), { _, _ -> {} }, {}, {})
+        BasketUi(
+            SLE.Success(emptyTestBasket),
+            { _, _ -> },
+            {},
+            {},
+            {})
     }
 }
 

@@ -3,10 +3,15 @@ package org.cryptimeleon.incentive.promotion;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.annotations.ReprUtil;
 
+import lombok.EqualsAndHashCode;
+
 /**
  * Class for sending no metadata with an update.
  * Chosen instead of using null since null could also be caused by an error.
+ * <p>
+ * This class should function like a Kotlin object, all instances are equal.
  */
+@EqualsAndHashCode(callSuper = false)
 public class EmptyTokenUpdateMetadata extends ZkpTokenUpdateMetadata {
     public EmptyTokenUpdateMetadata() {
     }

@@ -1,6 +1,10 @@
 package org.cryptimeleon.incentive.services.promotion;
 
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
+import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
+import org.cryptimeleon.incentive.client.dto.inc.EarnRequestDto;
+import org.cryptimeleon.incentive.client.dto.inc.SpendRequestDto;
+import org.cryptimeleon.incentive.client.dto.inc.TokenUpdateResultsDto;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.Setup;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
@@ -33,6 +37,7 @@ import org.springframework.web.reactive.function.BodyInserters;
 
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -51,7 +56,7 @@ public class PromotionServiceTest {
     @MockBean
     BasketRepository basketRepository;
 
-    UUID testBasketId = UUID.randomUUID();
+    UUID testBasketId = UUID.fromString("f09580eb-a3d6-4646-b6af-03cb0205af5b");
     Basket testBasket = new Basket(testBasketId, List.of(
             new BasketItem(UUID.randomUUID(), "Nutella", 200, 5),
             new BasketItem(UUID.randomUUID(), "Big Nutella", 100, 3)
@@ -159,21 +164,34 @@ public class PromotionServiceTest {
         var pointsToEarn = promotionToJoin.computeEarningsForBasket(testBasket);
 
         var earnRequest = incentiveSystem.generateEarnRequest(initialToken, pkp.getPk(), ukp);
-        var serializedEarnResponse = webClient.post()
-                .uri(uriBuilder -> uriBuilder.path("/earn").build())
-                .header("promotion-id", String.valueOf(promotionToJoin.getPromotionParameters().getPromotionId()))
-                .header("earn-request", jsonConverter.serialize(earnRequest.getRepresentation()))
-                .header("basket-id", testBasketId.toString())
+        webClient.post()
+                .uri(uriBuilder -> uriBuilder.path("/bulk-token-updates").build())
+                .header("basket-id", String.valueOf(testBasketId))
+                .body(BodyInserters.fromValue(
+                        new BulkRequestDto(
+                                List.of(new EarnRequestDto(promotionToJoin.getPromotionParameters().getPromotionId(),
+                                        jsonConverter.serialize(earnRequest.getRepresentation()))),
+                                Collections.emptyList())))
+                .exchange()
+                .expectStatus()
+                .isOk();
+
+        when(basketRepository.isBasketPayed(testBasketId)).thenReturn(true);
+
+        var resultsDto = webClient.post()
+                .uri(uriBuilder -> uriBuilder.path("/bulk-token-update-results").build())
+                .header("basket-id", String.valueOf(testBasketId))
                 .exchange()
                 .expectStatus()
                 .isOk()
-                .expectBody(String.class)
+                .expectBody(TokenUpdateResultsDto.class)
                 .returnResult().getResponseBody();
-
+        var serializedEarnResponse = resultsDto.getEarnTokenUpdateResultDtoList().get(0).getSerializedEarnResponse();
         SPSEQSignature spseqSignature = new SPSEQSignature(jsonConverter.deserialize(serializedEarnResponse), pp.getBg().getG1(), pp.getBg().getG2());
 
         Token earnedToken = incentiveSystem.handleEarnRequestResponse(promotionToJoin.getPromotionParameters(), earnRequest, spseqSignature, pointsToEarn, initialToken, pkp.getPk(), ukp);
 
+        /* TODO adapt these
         // Earn for non-existing basket
         webClient.post()
                 .uri(uriBuilder -> uriBuilder.path("/earn").build())
@@ -193,6 +211,11 @@ public class PromotionServiceTest {
                 .exchange()
                 .expectStatus()
                 .is4xxClientError();
+         */
+
+        // TODO continue from here
+        // new basket :)
+        when(basketRepository.isBasketPayed(testBasketId)).thenReturn(false);
 
         // Spend Deduct
         Vector<BigInteger> basketPoints = promotionToJoin.computeEarningsForBasket(testBasket);
@@ -202,26 +225,44 @@ public class PromotionServiceTest {
         var chosenReward = possibleRewards.get(0);
         var pointsAfterSpend = chosenReward.computeSatisfyingNewPointsVector(tokenPoints, basketPoints).orElseThrow();
 
-        var spendDeductTree = chosenReward.generateRelationTree(basketPoints);
+        var metadata = promotionToJoin.generateMetadataForUpdate();
+        var spendDeductTree = chosenReward.generateRelationTree(basketPoints, metadata);
         var tid = testBasket.getBasketId(pp.getBg().getZn());
 
         SpendRequest spendRequest = incentiveSystem.generateSpendRequest(promotionToJoin.getPromotionParameters(), earnedToken, pkp.getPk(), pointsAfterSpend, ukp, tid, spendDeductTree);
+        webClient.post()
+                .uri(uriBuilder -> uriBuilder.path("/bulk-token-updates").build())
+                .header("basket-id", String.valueOf(testBasketId))
+                .body(BodyInserters.fromValue(
+                        new BulkRequestDto(
+                                Collections.emptyList(),
+                                List.of(new SpendRequestDto(
+                                        promotionToJoin.getPromotionParameters().getPromotionId(),
+                                        chosenReward.getTokenUpdateId(),
+                                        jsonConverter.serialize(spendRequest.getRepresentation()),
+                                        jsonConverter.serialize(new RepresentableRepresentation(metadata))
+                                )))))
+                .exchange()
+                .expectStatus()
+                .isOk();
 
-        String serializedSpendResponse = webClient.post()
-                .uri(uriBuilder -> uriBuilder.path("/spend").build())
-                .header("promotion-id", String.valueOf(promotionToJoin.getPromotionParameters().getPromotionId()))
-                .header("spend-request", jsonConverter.serialize(spendRequest.getRepresentation()))
-                .header("basket-id", testBasketId.toString())
-                .header("reward-id", String.valueOf(chosenReward.getTokenUpdateId()))
+        when(basketRepository.isBasketPayed(testBasketId)).thenReturn(true);
+
+        resultsDto = webClient.post()
+                .uri(uriBuilder -> uriBuilder.path("/bulk-token-update-results").build())
+                .header("basket-id", String.valueOf(testBasketId))
                 .exchange()
                 .expectStatus()
                 .isOk()
-                .expectBody(String.class)
+                .expectBody(TokenUpdateResultsDto.class)
                 .returnResult().getResponseBody();
+        var serializedSpendResponse = resultsDto.getZkpTokenUpdateResultDtoList().get(0).getSerializedResponse();
 
         SpendResponse spendResponse = new SpendResponse(jsonConverter.deserialize(serializedSpendResponse), pp.getBg().getZn(), pp.getSpsEq());
         Token spentToken = incentiveSystem.handleSpendRequestResponse(promotionToJoin.getPromotionParameters(), spendResponse, spendRequest, earnedToken, pointsAfterSpend, pkp.getPk(), ukp);
 
+        /*
+        TODO these need to be changed!
         // Some invalid spend requests just to make sure
         // invalid promotion id
         webClient.post()
@@ -255,5 +296,6 @@ public class PromotionServiceTest {
                 .exchange()
                 .expectStatus()
                 .is4xxClientError();
+         */
     }
 }

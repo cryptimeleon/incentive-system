@@ -3,7 +3,6 @@ package org.cryptimeleon.incentive.services.basket;
 import org.cryptimeleon.incentive.services.basket.exceptions.*;
 import org.cryptimeleon.incentive.services.basket.model.Basket;
 import org.cryptimeleon.incentive.services.basket.model.Item;
-import org.cryptimeleon.incentive.services.basket.model.requests.PayBasketRequest;
 import org.cryptimeleon.incentive.services.basket.model.requests.PutItemRequest;
 import org.cryptimeleon.incentive.services.basket.model.requests.RedeemBasketRequest;
 import org.springframework.beans.factory.annotation.Value;
@@ -132,19 +131,24 @@ public class BasketController {
      * TODO add hashcode for integrity? At which state was the basket payed? (Avoid race condition between payment add adding 'free' items to basket.
      */
     @PostMapping("/basket/pay")
-    void payBasket(@RequestHeader("pay-secret") String clientPaySecret, @RequestBody PayBasketRequest payBasketRequest) throws BasketServiceException {
+    void payBasket(@RequestHeader("pay-secret") String clientPaySecret, @RequestHeader("basket-id") UUID basketId) throws BasketServiceException {
         if (!clientPaySecret.equals(paymentSecret)) {
             throw new BasketUnauthorizedException("You are not authorized to access '/basket/pay'!");
         }
-        basketService.payBasket(payBasketRequest.getBasketId(), payBasketRequest.getValue());
+        basketService.payBasket(basketId);
     }
 
     /**
      * Sets a basket to paid, TODO for development only.
      */
     @PostMapping("/basket/pay-dev")
-    void payBasket(@RequestBody PayBasketRequest payBasketRequest) throws BasketServiceException {
-        basketService.payBasket(payBasketRequest.getBasketId(), payBasketRequest.getValue());
+    void payBasket(@RequestHeader("basket-id") UUID basketId) throws BasketServiceException {
+        basketService.payBasket(basketId);
+    }
+
+    @PostMapping("/basket/lock")
+    void lockBasket(@RequestBody UUID basketId) throws BasketServiceException {
+        basketService.lockBasket(basketId);
     }
 
     /**

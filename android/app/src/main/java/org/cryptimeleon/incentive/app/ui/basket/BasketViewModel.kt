@@ -7,23 +7,28 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.cryptimeleon.incentive.app.data.BasketRepository
 import org.cryptimeleon.incentive.app.data.CryptoRepository
+import org.cryptimeleon.incentive.app.data.PromotionRepository
 import org.cryptimeleon.incentive.app.domain.model.Basket
+import org.cryptimeleon.incentive.app.domain.model.UserPromotionState
+import org.cryptimeleon.incentive.app.domain.model.PromotionUserUpdateChoice
+import org.cryptimeleon.incentive.app.domain.model.UserUpdateChoice
+import org.cryptimeleon.incentive.app.domain.usecase.AnalyzeUserTokenUpdatesUseCase
+import org.cryptimeleon.incentive.app.domain.usecase.GetPromotionStatesUseCase
 import org.cryptimeleon.incentive.app.util.SLE
-import org.cryptimeleon.incentive.crypto.model.PromotionParameters
 import timber.log.Timber
 import java.math.BigInteger
 import javax.inject.Inject
 
 @HiltViewModel
 class BasketViewModel @Inject constructor(
-    private val cryptoRepository: CryptoRepository,
+    cryptoRepository: CryptoRepository,
     private val basketRepository: BasketRepository,
+    private val promotionRepository: PromotionRepository,
     application: Application
 ) : AndroidViewModel(application) {
 
@@ -33,6 +38,23 @@ class BasketViewModel @Inject constructor(
             SLE.Error("Basket is null!")
         } else {
             SLE.Success(it)
+        }
+    }
+
+    val userPromotionStates: Flow<List<UserPromotionState>> = GetPromotionStatesUseCase(
+        promotionRepository,
+        cryptoRepository,
+        basketRepository
+    )()
+
+    val tokenUpdateChoices: Flow<List<PromotionUserUpdateChoice>> =
+        AnalyzeUserTokenUpdatesUseCase(promotionRepository, cryptoRepository, basketRepository)()
+
+    fun setUpdateChoice(promotionId: BigInteger, userUpdateChoice: UserUpdateChoice) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                promotionRepository.putUserUpdateChoice(promotionId, userUpdateChoice)
+            }
         }
     }
 
@@ -56,46 +78,6 @@ class BasketViewModel @Inject constructor(
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 basketRepository.discardCurrentBasket(true)
-            }
-        }
-    }
-
-    fun payAndRedeem() {
-        // TODO continue working on this functionality
-        // Store basket as it will be replaced by payment
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                when (val currentBasket = basket.first()) {
-                    is SLE.Success -> {
-                        val basket =
-                            currentBasket.data!! // cannot be null by constructor of Success
-
-                        if (basketRepository.payCurrentBasket()) {
-                            // Redeem basket
-                            cryptoRepository.runCreditEarn(
-                                basket.basketId,
-                                // TODO this needs to be adapted!
-                                PromotionParameters(BigInteger.ONE, 1),
-                                basket.value
-                            )
-
-                            withContext(Dispatchers.Main) {
-                                Toast.makeText(
-                                    getApplication(), "Successfully paid and redeemed basket!",
-                                    Toast.LENGTH_LONG
-                                ).show()
-                            }
-                        }
-                    }
-                    else -> {
-                        withContext(Dispatchers.Main) {
-                            Toast.makeText(
-                                getApplication(), "An error occurred",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
-                    }
-                }
             }
         }
     }

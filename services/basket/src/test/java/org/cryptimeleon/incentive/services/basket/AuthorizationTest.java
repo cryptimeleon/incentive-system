@@ -36,10 +36,10 @@ public class AuthorizationTest {
         var basket = queryBasket(webTestClient, basketId).getResponseBody();
 
         log.info("Unauthorized pay request results in UNAUTHORIZED");
-        payBasket(webTestClient, basketId, basket.getValue(), HttpStatus.UNAUTHORIZED, invalidPaySecret);
+        payBasket(webTestClient, basketId, HttpStatus.UNAUTHORIZED, invalidPaySecret);
 
         log.info("Payment works with valid secret");
-        payBasket(webTestClient, basketId, basket.getValue(), HttpStatus.OK, paymentSecret);
+        payBasket(webTestClient, basketId, HttpStatus.OK, paymentSecret);
 
         basket = queryBasket(webTestClient, basketId).getResponseBody();
         assertThat(basket.isPaid()).isTrue();

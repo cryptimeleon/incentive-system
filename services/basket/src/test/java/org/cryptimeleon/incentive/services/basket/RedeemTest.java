@@ -52,7 +52,7 @@ public class RedeemTest {
         redeemBasket(webTestClient, basketId, "Some Request", basket.getValue(), HttpStatus.BAD_REQUEST, redeemSecret);
 
         log.info("Pay basket");
-        payBasket(webTestClient, basketId, basket.getValue(), HttpStatus.OK, paymentSecret);
+        payBasket(webTestClient, basketId, HttpStatus.OK, paymentSecret);
         basket = queryBasket(webTestClient, basketId).getResponseBody();
         assertThat(basket.isPaid()).isTrue();
         assertThat(basket.isRedeemed()).isFalse();

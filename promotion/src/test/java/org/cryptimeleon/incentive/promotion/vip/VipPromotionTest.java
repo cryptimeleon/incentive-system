@@ -1,5 +1,8 @@
 package org.cryptimeleon.incentive.promotion.vip;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.cryptimeleon.incentive.promotion.RewardSideEffect;
 import org.cryptimeleon.incentive.promotion.model.Basket;
 import org.cryptimeleon.incentive.promotion.model.BasketItem;
@@ -9,9 +12,6 @@ import org.junit.jupiter.api.Test;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 
 class VipPromotionTest {
     VipPromotion vipPromotion = new VipPromotion(
@@ -27,8 +27,8 @@ class VipPromotionTest {
     );
 
     @Test
-    void doNotAllowEarnProtocol() {
-        assertFalse(vipPromotion.getFastEarnSupported());
+    void allowEarnProtocol() {
+        assertTrue(vipPromotion.getFastEarnSupported());
     }
 
     /**

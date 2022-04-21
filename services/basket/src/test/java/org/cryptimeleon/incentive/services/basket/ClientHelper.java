@@ -2,7 +2,6 @@ package org.cryptimeleon.incentive.services.basket;
 
 import org.cryptimeleon.incentive.services.basket.model.Basket;
 import org.cryptimeleon.incentive.services.basket.model.Item;
-import org.cryptimeleon.incentive.services.basket.model.requests.PayBasketRequest;
 import org.cryptimeleon.incentive.services.basket.model.requests.PutItemRequest;
 import org.cryptimeleon.incentive.services.basket.model.requests.RedeemBasketRequest;
 import org.springframework.http.HttpStatus;
@@ -82,16 +81,11 @@ public class ClientHelper {
                 .isEqualTo(expectedStatus);
     }
 
-    public static void payBasket(WebTestClient webTestClient, UUID basketId, long value, HttpStatus expectedStatus, String paySecret) {
-        var payRequest = new PayBasketRequest(basketId, value);
-        payBasket(webTestClient, payRequest, expectedStatus, paySecret);
-    }
-
-    static void payBasket(WebTestClient webTestClient, PayBasketRequest payBasketRequest, HttpStatus expectedStatus, String paySecret) {
+    public static void payBasket(WebTestClient webTestClient, UUID basketId, HttpStatus expectedStatus, String paySecret) {
         webTestClient.post()
                 .uri("/basket/pay")
                 .header("pay-secret", paySecret)
-                .body(BodyInserters.fromValue(payBasketRequest))
+                .header("basket-id", String.valueOf(basketId))
                 .exchange()
                 .expectStatus()
                 .isEqualTo(expectedStatus);

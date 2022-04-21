@@ -1,23 +1,35 @@
 package org.cryptimeleon.incentive.client.integrationtest;
 
 import lombok.extern.slf4j.Slf4j;
+import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentive.client.BasketClient;
 import org.cryptimeleon.incentive.client.IncentiveClient;
 import org.cryptimeleon.incentive.client.InfoClient;
+import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
+import org.cryptimeleon.incentive.client.dto.inc.EarnRequestDto;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse;
-import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion;
 import org.cryptimeleon.incentive.promotion.Promotion;
-import org.cryptimeleon.incentive.promotion.hazel.HazelTokenUpdate;
 import org.cryptimeleon.incentive.promotion.RewardSideEffect;
+import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion;
+import org.cryptimeleon.incentive.promotion.hazel.HazelTokenUpdate;
+import org.cryptimeleon.incentive.promotion.model.Basket;
+import org.cryptimeleon.incentive.promotion.model.BasketItem;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
+import org.cryptimeleon.math.structures.rings.RingElement;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test a full (correct) protocol flow.
@@ -25,7 +37,8 @@ import java.util.UUID;
 @Slf4j
 public class FullWorkflowTest extends IncentiveSystemIntegrationTest {
 
-    Promotion testPromotion = new HazelPromotion(HazelPromotion.generatePromotionParameters(),
+    Promotion testPromotion = new HazelPromotion(
+            HazelPromotion.generatePromotionParameters(),
             "Test Promotion",
             "Some Test Promotion",
             List.of(new HazelTokenUpdate(UUID.randomUUID(), "This is a test reward", new RewardSideEffect("Test Reward Sideffect"), 2)),
@@ -48,7 +61,7 @@ public class FullWorkflowTest extends IncentiveSystemIntegrationTest {
                 publicParameters.getSpsEq(),
                 publicParameters.getBg().getG1());
         var incentiveSystem = new IncentiveSystem(publicParameters);
-        incentiveClient.addPromotions(List.of(testPromotion)).block(Duration.ofSeconds(1)).getStatusCode().is2xxSuccessful();
+        assertTrue(incentiveClient.addPromotions(List.of(testPromotion)).block(Duration.ofSeconds(1)).getStatusCode().is2xxSuccessful());
 
         var userKeyPair = incentiveSystem.generateUserKeys();
 
@@ -63,31 +76,56 @@ public class FullWorkflowTest extends IncentiveSystemIntegrationTest {
         var token = incentiveSystem.handleJoinRequestResponse(testPromotion.getPromotionParameters(), providerPublicKey, userKeyPair, joinRequest, joinResponse);
 
         log.info("Create basket for testing credit-earn");
-        var basket = TestHelper.createBasketWithItems(basketUrl);
+        var basketDto = TestHelper.createBasketWithItems(basketUrl);
+        var items = basketClient.getItems().block(Duration.ofSeconds(1));
+
+        var basket = new Basket(
+                basketDto.getBasketID(),
+                basketDto.getItems().entrySet().stream()
+                        .map(stringIntegerEntry -> {
+                            var basketItem = Arrays.stream(items).filter(item -> item.getId().equals(stringIntegerEntry.getKey())).findAny().get();
+                            return new BasketItem(basketItem.getId(), basketItem.getTitle(), basketItem.getPrice(), stringIntegerEntry.getValue());
+                        })
+                        .collect(Collectors.toList())
+        );
 
         /*
-         * These test cases will be rewritten alongside their implementation in the app
         log.info("Test earn with unpaid basket should fail");
         assertThatExceptionOfType(RuntimeException.class).isThrownBy(() ->
-                incentiveClient.sendEarnRequest("Some request", basket.getBasketID()).block())
+                incentiveClient.sendBulkUpdates(basket.getBasketID(), new BulkRequestDto(List.of(new EarnRequestDto()), Collections.emptyList())).block())
                 .withCauseInstanceOf(IncentiveClientException.class);
-        basketClient.payBasket(basket.getBasketID(), basket.getValue(), paySecret).block();
+        */
+
 
         log.info("Run valid credit earn protocol");
         var earnRequest = incentiveSystem.generateEarnRequest(token, providerPublicKey, userKeyPair);
         var serializedEarnRequest = jsonConverter.serialize(earnRequest.getRepresentation());
-        var serializedSignature = incentiveClient.sendEarnRequest(serializedEarnRequest, basket.getBasketID()).block();
-        var signature = new SPSEQSignature(jsonConverter.deserialize(serializedSignature), publicParameters.getBg().getG1(), publicParameters.getBg().getG2());
+        incentiveClient.sendBulkUpdates(basket.getBasketId(),
+                new BulkRequestDto(
+                        List.of(new EarnRequestDto(testPromotion.getPromotionParameters().getPromotionId(), serializedEarnRequest)),
+                        Collections.emptyList()
+                )
+        ).block();
+
+        basketClient.payBasket(basket.getBasketId(), basketDto.getValue(), paySecret).block();
+
+        var serializedSignature = incentiveClient.retrieveBulkResults(basket.getBasketId()).block().getEarnTokenUpdateResultDtoList().get(0).getSerializedEarnResponse();
+        var signature = new SPSEQSignature(
+                jsonConverter.deserialize(serializedSignature),
+                publicParameters.getBg().getG1(),
+                publicParameters.getBg().getG2());
+        var basketValueForPromotion = testPromotion.computeEarningsForBasket(basket);
         var newToken = incentiveSystem.handleEarnRequestResponse(
                 testPromotion.getPromotionParameters(),
                 earnRequest,
                 signature,
-                Vector.of(BigInteger.valueOf(basket.getValue())),
+                basketValueForPromotion,
                 token,
                 providerPublicKey,
                 userKeyPair);
-        Assertions.assertEquals(newToken.getPoints().get(0).asInteger().longValueExact(), basket.getValue());
+        Assertions.assertEquals(newToken.getPoints().map(RingElement::asInteger), basketValueForPromotion);
 
+        /*
         log.info("Second earn with paid basket and same request should succeed");
         incentiveClient.sendEarnRequest(serializedEarnRequest, basket.getBasketID()).block();
 

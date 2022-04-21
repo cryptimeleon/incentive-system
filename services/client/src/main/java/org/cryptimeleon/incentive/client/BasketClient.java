@@ -69,17 +69,21 @@ public class BasketClient {
     }
 
     public Mono<Void> payBasket(UUID basketId, long value, String paymentSecret) {
-        var postPayBasketDto = new PostPayBasketDto(basketId, value);
-        return payBasket(postPayBasketDto, paymentSecret);
+        return payBasket(basketId, paymentSecret);
     }
 
-    public Mono<Void> payBasket(PostPayBasketDto postPayBasketDto, String paymentSecret) {
+    public Mono<Void> payBasket(UUID basketId, String paymentSecret) {
         return basketClient.post()
                 .uri("/basket/pay")
                 .header("pay-secret", paymentSecret)
-                .body(BodyInserters.fromValue(postPayBasketDto))
+                .header("basket-id", String.valueOf(basketId))
                 .retrieve()
                 .bodyToMono(Void.class);
+    }
+
+    @Deprecated
+    public Mono<Void> payBasket(PostPayBasketDto postPayBasketDto, String paymentSecret) {
+        return payBasket(postPayBasketDto.getBasketId(), paymentSecret);
     }
 
     public Mono<Void> redeemBasket(PostRedeemBasketDto postRedeemBasketDto, String redeemSecret) {
@@ -87,6 +91,15 @@ public class BasketClient {
                 .uri("/basket/redeem")
                 .header("redeem-secret", redeemSecret)
                 .body(BodyInserters.fromValue(postRedeemBasketDto))
+                .retrieve()
+                .bodyToMono(Void.class);
+    }
+
+    public Mono<Void> lockBasket(UUID basketId, String redeemSecret) {
+        return basketClient.post()
+                .uri("/basket/lock")
+                .header("redeem-secret", redeemSecret)
+                .body(BodyInserters.fromValue(basketId))
                 .retrieve()
                 .bodyToMono(Void.class);
     }

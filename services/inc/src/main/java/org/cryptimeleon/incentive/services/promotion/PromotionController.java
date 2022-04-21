@@ -2,6 +2,8 @@ package org.cryptimeleon.incentive.services.promotion;
 
 import io.swagger.annotations.ApiOperation;
 import lombok.AllArgsConstructor;
+import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
+import org.cryptimeleon.incentive.client.dto.inc.TokenUpdateResultsDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -53,24 +55,19 @@ public class PromotionController {
         return new ResponseEntity<>(promotionService.joinPromotion(promotionId, serializedJoinRequest, serializedUserPublicKey), HttpStatus.OK);
     }
 
-
-    @PostMapping("/earn")
-    public ResponseEntity<String> earnPoints(
-            @RequestHeader(name = "promotion-id") BigInteger promotionId,
-            @RequestHeader(name = "earn-request") String serializedEarnRequest,
-            @RequestHeader(name = "basket-id") UUID basketId
+    @PostMapping("/bulk-token-updates")
+    public void bulkUpdates(
+            @RequestHeader(name = "basket-id") UUID basketId,
+            @RequestBody BulkRequestDto bulkRequestDto
     ) {
-        return new ResponseEntity<>(promotionService.handleEarnRequest(promotionId, serializedEarnRequest, basketId), HttpStatus.OK);
+        promotionService.handleBulk(basketId, bulkRequestDto);
     }
 
-    @PostMapping("/spend")
-    public ResponseEntity<String> spendPoints(
-            @RequestHeader(name = "promotion-id") BigInteger promotionId,
-            @RequestHeader(name = "spend-request") String serializedSpendRequest,
-            @RequestHeader(name = "basket-id") UUID basketId,
-            @RequestHeader(name = "reward-id") UUID rewardId
+    @PostMapping("/bulk-token-update-results")
+    public ResponseEntity<TokenUpdateResultsDto> bulkResults(
+            @RequestHeader(name = "basket-id") UUID basketId
     ) {
-        return new ResponseEntity<>(promotionService.handleSpendRequest(promotionId, basketId, rewardId, serializedSpendRequest), HttpStatus.OK);
+        return new ResponseEntity<>(promotionService.retrieveBulkResults(basketId), HttpStatus.OK);
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

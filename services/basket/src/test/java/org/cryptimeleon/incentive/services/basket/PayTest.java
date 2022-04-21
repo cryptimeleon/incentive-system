@@ -27,14 +27,14 @@ public class PayTest {
     public void payTest(@Autowired WebTestClient webTestClient) {
         log.info("Error message for not existing basket");
         var wrongBasketId = UUID.randomUUID();
-        payBasket(webTestClient, wrongBasketId, 3, HttpStatus.NOT_FOUND, paymentSecret);
+        payBasket(webTestClient, wrongBasketId, HttpStatus.NOT_FOUND, paymentSecret);
 
         log.info("Creating new basket and adding items");
         var createResponse = createBasket(webTestClient);
         UUID basketId = createResponse.getResponseBody();
 
         log.info("Paying empty basket is not possible");
-        payBasket(webTestClient, basketId, 0, HttpStatus.BAD_REQUEST, paymentSecret);
+        payBasket(webTestClient, basketId, HttpStatus.BAD_REQUEST, paymentSecret);
 
         var itemsResponse = getItems(webTestClient);
         var items = itemsResponse.getResponseBody();
@@ -51,11 +51,8 @@ public class PayTest {
                 .containsEntry(secondTestItem.getId(), 1);
         assertThat(basket.isPaid()).isFalse();
 
-        log.info("Paying basket with wrong value not possible");
-        payBasket(webTestClient, basketId, basket.getValue() + 1, HttpStatus.BAD_REQUEST, paymentSecret);
-
-        log.info("Paying basket with correct parameters works");
-        payBasket(webTestClient, basketId, basket.getValue(), HttpStatus.OK, paymentSecret);
+        log.info("Paying basket works");
+        payBasket(webTestClient, basketId, HttpStatus.OK, paymentSecret);
         basket = queryBasket(webTestClient, basketId).getResponseBody();
         assertThat(basket.isPaid()).isTrue();
 
@@ -99,7 +96,7 @@ public class PayTest {
         redeemBasket(webTestClient, basketId, "Some Request", basket.getValue(), HttpStatus.BAD_REQUEST, redeemSecret);
 
         log.info("Pay basket");
-        payBasket(webTestClient, basketId, basket.getValue(), HttpStatus.OK, paymentSecret);
+        payBasket(webTestClient, basketId, HttpStatus.OK, paymentSecret);
         basket = queryBasket(webTestClient, basketId).getResponseBody();
         assertThat(basket.isPaid()).isTrue();
         assertThat(basket.isRedeemed()).isFalse();

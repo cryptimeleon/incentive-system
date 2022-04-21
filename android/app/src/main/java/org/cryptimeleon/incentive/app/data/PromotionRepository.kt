@@ -6,11 +6,15 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import org.cryptimeleon.incentive.app.data.database.promotion.PromotionDao
 import org.cryptimeleon.incentive.app.data.database.promotion.PromotionEntity
+import org.cryptimeleon.incentive.app.data.database.promotion.TokenUpdateUserChoiceEntity
 import org.cryptimeleon.incentive.app.data.network.PromotionApiService
 import org.cryptimeleon.incentive.app.domain.IPromotionRepository
+import org.cryptimeleon.incentive.app.domain.model.PromotionUserUpdateChoice
+import org.cryptimeleon.incentive.app.domain.model.UserUpdateChoice
 import org.cryptimeleon.incentive.promotion.Promotion
 import org.cryptimeleon.math.serialization.RepresentableRepresentation
 import org.cryptimeleon.math.serialization.converter.JSONConverter
+import java.math.BigInteger
 
 class PromotionRepository(
     private val promotionApiService: PromotionApiService,
@@ -27,6 +31,17 @@ class PromotionRepository(
             }
         }.flowOn(Dispatchers.IO)
 
+    override val userUpdateChoices: Flow<List<PromotionUserUpdateChoice>> =
+        promotionDao.observerUserTokenUpdateChoices()
+            .map { userUpdateChoiceEntities: List<TokenUpdateUserChoiceEntity> ->
+                userUpdateChoiceEntities.map {
+                    PromotionUserUpdateChoice(
+                        it.promotionId,
+                        it.userUpdateChoice
+                    )
+                }
+            }.flowOn(Dispatchers.IO)
+
     override suspend fun reloadPromotions() {
         val promotionsResponse = promotionApiService.getPromotions()
         if (promotionsResponse.isSuccessful) {
@@ -42,5 +57,9 @@ class PromotionRepository(
         } else {
             throw RuntimeException("Could not load promotions!")
         }
+    }
+
+    override suspend fun putUserUpdateChoice(promotionId: BigInteger, choice: UserUpdateChoice) {
+        promotionDao.putUserTokenUpdateChoice(TokenUpdateUserChoiceEntity(promotionId, choice))
     }
 }

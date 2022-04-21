@@ -8,4 +8,11 @@ data class Basket(
     val paid: Boolean,
     val redeemed: Boolean,
     val value: Int,
-)
+) {
+    fun toPromotionBasket(): org.cryptimeleon.incentive.promotion.model.Basket {
+        return org.cryptimeleon.incentive.promotion.model.Basket(
+            basketId,
+            items.map { it.toPromotionBasketItem() }
+        )
+    }
+}

@@ -1,6 +1,5 @@
 package org.cryptimeleon.incentive.promotion.vip;
 
-import lombok.EqualsAndHashCode;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.promotion.Promotion;
@@ -14,6 +13,8 @@ import org.cryptimeleon.math.structures.cartesian.Vector;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.UUID;
+
+import lombok.EqualsAndHashCode;
 
 /**
  * Promotion in which users can earn a VIP status (BRONZE/SILVER/GOLD) for spent money and prove their current status.
@@ -67,7 +68,7 @@ public class VipPromotion extends Promotion {
                         bronzeSideEffect,
                         silverSideEffect,
                         goldSideEffect),
-                false // No fast earn, all updates must be through ZKPs
+                true// No fast earn, all updates must be through ZKPs
         );
     }
 

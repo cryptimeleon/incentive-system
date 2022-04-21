@@ -92,4 +92,12 @@ public abstract class Promotion implements StandaloneRepresentable {
                 .filter(update -> update.computeSatisfyingNewPointsVector(tokenPoints, basketPoints, zkpTokenUpdateMetadata).isPresent())
                 .collect(Collectors.toList());
     }
+
+    /**
+     * Provide default metadata for this promotion.
+     * @return metadata
+     */
+    public ZkpTokenUpdateMetadata generateMetadataForUpdate() {
+        return new EmptyTokenUpdateMetadata();
+    }
 }

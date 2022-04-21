@@ -3,7 +3,6 @@ package org.cryptimeleon.incentive.services.promotion.repository;
 import org.cryptimeleon.incentive.client.BasketClient;
 import org.cryptimeleon.incentive.client.dto.BasketDto;
 import org.cryptimeleon.incentive.client.dto.BasketItemDto;
-import org.cryptimeleon.incentive.client.dto.PostRedeemBasketDto;
 import org.cryptimeleon.incentive.promotion.model.Basket;
 import org.cryptimeleon.incentive.promotion.model.BasketItem;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -35,6 +35,10 @@ public class BasketRepository {
                 .block(Duration.ofSeconds(1));
     }
 
+    public boolean isBasketPayed(UUID basketId) {
+        return Objects.requireNonNull(basketClient.getBasket(basketId).block(Duration.ofSeconds(1))).isPaid();
+    }
+
     public Basket getBasket(UUID basketId) {
         BasketDto basketDto = basketClient.getBasket(basketId).block(Duration.ofSeconds(1));
         BasketItemDto[] items = basketClient.getItems().block(Duration.ofSeconds(1));
@@ -47,16 +51,13 @@ public class BasketRepository {
                 basketDto.getItems().entrySet().stream()
                         .map(stringIntegerEntry -> {
                             var basketItem = Arrays.stream(items).filter(item -> item.getId().equals(stringIntegerEntry.getKey())).findAny().get();
-                            return new BasketItem(UUID.fromString(basketItem.getId()), basketItem.getTitle(), basketItem.getPrice(), stringIntegerEntry.getValue());
+                            return new BasketItem(basketItem.getId(), basketItem.getTitle(), basketItem.getPrice(), stringIntegerEntry.getValue());
                         })
                         .collect(Collectors.toList())
         );
     }
 
-
-    public void redeem(UUID basketId, String redeemRequestText, long value) {
-        var redeemRequest = new PostRedeemBasketDto(basketId, redeemRequestText, value);
-        basketClient.redeemBasket(redeemRequest, redeemSecret)
-                .block(Duration.ofSeconds(1));
+    public void lockBasket(UUID basketId) {
+        basketClient.lockBasket(basketId, redeemSecret).block();
     }
 }
