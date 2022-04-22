@@ -474,11 +474,19 @@ public class IncentiveSystem {
             throw new IllegalArgumentException("ZKP of the request is not valid!");
         }
 
-        /* Request is valid. Compute new blinded token and signature */
-        // Retrieve esk^*_prov via PRF
+        /* Request is valid. Compute new blinded token and signature
+        *
+        * Retrieve esk*_prov via PRF.
+        * Need to use double-spending ID of the spent token as well as the transaction ID in addition to preliminary commitment as input for the PRF
+        * to ensure that different spendings of the same token lead to different esk_prov.
+        * Also need to include object modelling the reward that the user chose to claim.
+        */
         var preimage = new ByteArrayAccumulator();
         preimage.escapeAndSeparate(commonInput.c0Pre);
         preimage.escapeAndSeparate(commonInput.c1Pre);
+        preimage.escapeAndSeparate(spendRequest.getDsid());
+        preimage.escapeAndSeparate(tid);
+
         var eskStarProv = pp.getPrfToZn().hashThenPrfToZn(providerKeyPair.getSk().getBetaProv(), new ByteArrayImplementation(preimage.extractBytes()), "eskStarProv");
 
         // Compute blind signature on new, still blinded commitment
