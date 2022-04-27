@@ -1,9 +1,10 @@
 package org.cryptimeleon.incentive.services.promotion.repository;
 
 import org.cryptimeleon.incentive.promotion.Promotion;
-import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect;
 import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion;
 import org.cryptimeleon.incentive.promotion.hazel.HazelTokenUpdate;
+import org.cryptimeleon.incentive.promotion.sideeffect.NoSideEffect;
+import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect;
 import org.cryptimeleon.incentive.promotion.streak.RangeProofStreakTokenUpdate;
 import org.cryptimeleon.incentive.promotion.streak.SpendStreakTokenUpdate;
 import org.cryptimeleon.incentive.promotion.streak.StandardStreakTokenUpdate;
@@ -31,18 +32,36 @@ public class PromotionRepository {
                             "Nutella Promotion",
                             "Earn one point for every jar of Nutella purchased!",
                             List.of(
-                                    new HazelTokenUpdate(UUID.randomUUID(), "Get a free Nutella for 4 points!", new RewardSideEffect("Free Nutella"), 4),
-                                    new HazelTokenUpdate(UUID.randomUUID(), "Get a free Big Nutella for 9 points!", new RewardSideEffect("Free Big nutella"), 9)
+                                    new HazelTokenUpdate(
+                                            UUID.randomUUID(),
+                                            "Get a free hazelnut spread for 4 points!",
+                                            new RewardSideEffect("0580082614202"),
+                                            4
+                                    ),
+                                    new HazelTokenUpdate(
+                                            UUID.randomUUID(),
+                                            "Get a free large hazelnut spread for 9 points!",
+                                            new RewardSideEffect("4499722672546"),
+                                            9
+                                    )
                             ),
-                            "nutella"
+                            "hazel"
                     ),
                     new HazelPromotion(
                             HazelPromotion.generatePromotionParameters(),
                             "General Promotion",
                             "Earn one point for every item you buy!",
                             List.of(
-                                    new HazelTokenUpdate(UUID.randomUUID(), "Get a free Teddy for 9 points!", new RewardSideEffect("Free Teddy"), 9),
-                                    new HazelTokenUpdate(UUID.randomUUID(), "Get a free Pan for 6 points!", new RewardSideEffect("Free Pan"), 6)
+                                    new HazelTokenUpdate(
+                                            UUID.randomUUID(),
+                                            "Get a free Teddy for 500 points!",
+                                            new RewardSideEffect("4460463579054"),
+                                            500),
+                                    new HazelTokenUpdate(
+                                            UUID.randomUUID(),
+                                            "Get a free Pan for 1000 points!",
+                                            new RewardSideEffect("0916751964193"),
+                                            1000)
                             ),
                             ""
                     ),
@@ -50,22 +69,45 @@ public class PromotionRepository {
                             VipPromotion.generatePromotionParameters(),
                             "VIP Promotion",
                             "You can reach the VIP status BRONZE, SILVER and Gold by collecting points for every purchase.",
-                            100_00,
+                            100_00, // costs are in cent, hence the _
                             200_00,
                             500_00,
-                            new RewardSideEffect("2% Discount"),
-                            new RewardSideEffect("5% Discount"),
-                            new RewardSideEffect("10% Discount")
+                            new RewardSideEffect("8445463753160"),
+                            new RewardSideEffect("0789590748887"),
+                            new RewardSideEffect("1393421332370")
                     ),
                     new StreakPromotion(
                             StreakPromotion.generatePromotionParameters(),
                             "Streak Promotion",
                             "Maintain a streak by shopping regularly. You lose your streak if you do not visit our store for 7 days in a row!",
                             List.of(
-                                    new StandardStreakTokenUpdate(UUID.randomUUID(), "Increase or reset your streak", new RewardSideEffect(""), 7),
-                                    new RangeProofStreakTokenUpdate(UUID.randomUUID(), "You get a free coffee if you're streak is at least 5.", new RewardSideEffect("Free Coffee"), 7, 5),
-                                    new SpendStreakTokenUpdate(UUID.randomUUID(), "Get a free teddy in exchange for a streak of 10.", new RewardSideEffect("Teddy Bear"), 7, 10),
-                                    new SpendStreakTokenUpdate(UUID.randomUUID(), "Get a free nonstick skillet exchange for a streak of 20.", new RewardSideEffect("Nonstick Skillet"), 7, 20)
+                                    new StandardStreakTokenUpdate(
+                                            UUID.randomUUID(),
+                                            "Increase or reset your streak",
+                                            new NoSideEffect(), // This is just the default update operation
+                                            7
+                                    ),
+                                    new RangeProofStreakTokenUpdate(
+                                            UUID.randomUUID(),
+                                            "You get a free coffee if you're streak is at least 5.",
+                                            new RewardSideEffect("2413860782644"),
+                                            7,
+                                            5
+                                    ),
+                                    new SpendStreakTokenUpdate(
+                                            UUID.randomUUID(),
+                                            "Get a free manicure set in exchange for a streak of 10.",
+                                            new RewardSideEffect("0750769787791"),
+                                            7,
+                                            10
+                                    ),
+                                    new SpendStreakTokenUpdate(
+                                            UUID.randomUUID(),
+                                            "Get a free knife set in exchange for a streak of 20.",
+                                            new RewardSideEffect("0182420525002"),
+                                            7,
+                                            20
+                                    )
                             ),
                             7
                     )
