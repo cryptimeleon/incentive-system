@@ -2,6 +2,7 @@ package org.cryptimeleon.incentive.services.basket;
 
 import org.cryptimeleon.incentive.services.basket.model.Basket;
 import org.cryptimeleon.incentive.services.basket.model.Item;
+import org.cryptimeleon.incentive.services.basket.model.RewardItem;
 import org.cryptimeleon.incentive.services.basket.model.requests.PutItemRequest;
 import org.cryptimeleon.incentive.services.basket.model.requests.RedeemBasketRequest;
 import org.springframework.http.HttpStatus;
@@ -9,6 +10,7 @@ import org.springframework.test.web.reactive.server.EntityExchangeResult;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
 
+import java.util.List;
 import java.util.UUID;
 
 public class ClientHelper {
@@ -56,6 +58,16 @@ public class ClientHelper {
                 .returnResult();
     }
 
+    public static EntityExchangeResult<RewardItem[]> getRewards(WebTestClient webTestClient) {
+        return webTestClient.get()
+                .uri("/reward-items")
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody(RewardItem[].class)
+                .returnResult();
+    }
+
     public static void putItem(WebTestClient webTestClient, UUID basketId, String itemId, int count, HttpStatus expectedStatus) {
         var putRequest = new PutItemRequest(basketId, itemId, count);
         putItem(webTestClient, putRequest, expectedStatus);
@@ -65,6 +77,17 @@ public class ClientHelper {
         webTestClient.put()
                 .uri("/basket/items")
                 .body(BodyInserters.fromValue(putItemRequest))
+                .exchange()
+                .expectStatus()
+                .isEqualTo(expectedStatus);
+    }
+
+    static void postRewards(WebTestClient webTestClient, String redeemSecret, UUID basketId, List<String> rewardIds, HttpStatus expectedStatus) {
+        webTestClient.post()
+                .uri("/basket/rewards")
+                .header("redeem-secret", redeemSecret)
+                .header("basket-id", basketId.toString())
+                .body(BodyInserters.fromValue(rewardIds))
                 .exchange()
                 .expectStatus()
                 .isEqualTo(expectedStatus);

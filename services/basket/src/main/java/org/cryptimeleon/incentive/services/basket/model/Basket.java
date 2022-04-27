@@ -5,9 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Model class representing a basket.
@@ -20,6 +18,8 @@ public class Basket {
     private UUID basketID;
     @ApiModelProperty(value = "${basketModel.items}")
     private Map<String, Integer> items;
+    @ApiModelProperty(value = "${basketModel.rewardItems}")
+    private List<String> rewardItems;
     @ApiModelProperty(value = "${basketModel.paid}")
     private boolean paid;
     @ApiModelProperty(value = "${basketModel.redeemed}")
@@ -35,6 +35,7 @@ public class Basket {
     public Basket(UUID id) {
         basketID = id;
         items = new HashMap<>();
+        rewardItems = new ArrayList<>();
         paid = false;
         locked = false;
         redeemed = false;

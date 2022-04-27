@@ -3,6 +3,7 @@ package org.cryptimeleon.incentive.services.basket;
 import org.cryptimeleon.incentive.services.basket.exceptions.*;
 import org.cryptimeleon.incentive.services.basket.model.Basket;
 import org.cryptimeleon.incentive.services.basket.model.Item;
+import org.cryptimeleon.incentive.services.basket.model.RewardItem;
 import org.cryptimeleon.incentive.services.basket.model.requests.PutItemRequest;
 import org.cryptimeleon.incentive.services.basket.model.requests.RedeemBasketRequest;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.annotation.PostConstruct;
+import java.util.List;
 import java.util.UUID;
 
 
@@ -75,6 +77,14 @@ public class BasketController {
             return new ResponseEntity<>(item, HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    /**
+     * Query all shopping items that can be purchased
+     */
+    @GetMapping("/reward-items")
+    RewardItem[] getAllRewardItems() {
+        return basketService.getRewardItems();
     }
 
     /**
@@ -164,6 +174,19 @@ public class BasketController {
             throw new BasketUnauthorizedException("You are not authorized to access '/basket/redeem'!");
         }
         basketService.redeemBasket(redeemRequest.getBasketId(), redeemRequest.getRedeemRequest(), redeemRequest.getValue());
+    }
+
+    /**
+     * Put rewards to basket
+     * @param clientRedeemSecret clients need this secret to authenticate themselves. Prohibit users from adding secrets
+     * @param rewardIds list of the ids of all rewards to add
+     */
+    @PostMapping("/basket/rewards")
+    void addRewardsToBasket(@RequestHeader("redeem-secret") String clientRedeemSecret, @RequestHeader("basket-id") UUID basketId, @RequestBody List<String> rewardIds) throws BasketServiceException {
+        if (!clientRedeemSecret.equals(redeemSecret)) {
+            throw new BasketUnauthorizedException("You are not authorized to access '/basket/redeem'!");
+        }
+        basketService.addRewardsToBasket(basketId, rewardIds);
     }
 
     /*

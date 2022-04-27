@@ -3,6 +3,7 @@ package org.cryptimeleon.incentive.services.basket;
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.cryptimeleon.incentive.services.basket.model.Item;
+import org.cryptimeleon.incentive.services.basket.model.RewardItem;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,7 +11,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
+import java.util.Arrays;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cryptimeleon.incentive.services.basket.ClientHelper.*;
@@ -128,5 +131,40 @@ public class BasketTest {
 
         log.info("Delete basket");
         deleteBasket(webTestClient, basketId);
+    }
+
+    /**
+     * Testing rewards that only can be added by clients that know the redeemSecret.
+     */
+    @Test
+    void rewardItemTest(@Autowired WebTestClient webTestClient) {
+        log.info("Creating new basket");
+        var createResponse = createBasket(webTestClient);
+
+        log.info("Create response: " + createResponse);
+        UUID basketId = createResponse.getResponseBody();
+
+        log.info("Querying all items");
+        var rewardsResponse = getRewards(webTestClient);
+        log.info("All reward items: " + rewardsResponse);
+
+        var rewards = rewardsResponse.getResponseBody();
+
+        log.info("Query basket before, assert no rewards present");
+        var basket = queryBasket(webTestClient, basketId).getResponseBody();
+        log.info("basket: " + basket);
+        assertThat(basket.getRewardItems()).hasSize(0);
+
+        log.info("Add rewards without valid secret needed for authentication");
+        postRewards(webTestClient, "wrong-secret", basketId, Arrays.stream(rewards).limit(2).map(RewardItem::toString).collect(Collectors.toList()), HttpStatus.UNAUTHORIZED);
+
+        log.info("Add rewards with valid secret");
+        var rewardsToAdd = Arrays.stream(rewards).limit(2).map(RewardItem::toString).collect(Collectors.toList());
+        postRewards(webTestClient, redeemSecret, basketId, rewardsToAdd, HttpStatus.OK);
+
+        log.info("Query basket, check that there are indeed two rewards");
+        basket = queryBasket(webTestClient, basketId).getResponseBody();
+        log.info("basket: " + basket);
+        assertThat(basket.getRewardItems()).containsExactly(rewardsToAdd.toArray(String[]::new));
     }
 }

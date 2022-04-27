@@ -4,6 +4,7 @@ import org.cryptimeleon.incentive.services.basket.exceptions.*;
 import org.cryptimeleon.incentive.services.basket.model.Basket;
 import org.cryptimeleon.incentive.services.basket.model.BasketItem;
 import org.cryptimeleon.incentive.services.basket.model.Item;
+import org.cryptimeleon.incentive.services.basket.model.RewardItem;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -20,12 +21,20 @@ public class BasketService {
 
     private final HashMap<UUID, Basket> basketMap;
     private final ArrayList<Item> items;
+    private final List<RewardItem> rewardItems;
     private final Map<String, Item> itemMap;
 
     /**
      * Initialize basket service with some shopping items
      */
     BasketService() {
+        this.rewardItems = new ArrayList<>(Arrays.asList(
+                new RewardItem("4460463579054", "Teddy Bear"),
+                new RewardItem("0916751964193", "Pan"),
+                new RewardItem("2413860782644", "Coffee"),
+                new RewardItem("0750769787791", "Knife Set")
+        )
+        );
         basketMap = new HashMap<>();
         items = new ArrayList<>(
                 Arrays.asList(
@@ -61,6 +70,10 @@ public class BasketService {
         return items.toArray(new Item[0]);
     }
 
+    public RewardItem[] getRewardItems() {
+        return rewardItems.toArray(new RewardItem[0]);
+    }
+
     public UUID createNewBasket() {
         var id = UUID.randomUUID();
         basketMap.put(id, new Basket(id));  // probability of same id negligible
@@ -75,6 +88,14 @@ public class BasketService {
 
     public void removeBasketWithId(UUID basketId) {
         basketMap.remove(basketId);
+    }
+
+    public void addRewardsToBasket(UUID basketId, List<String> rewardItemIds) throws BasketServiceException {
+        var basket = getBasketById(basketId);
+
+        if (isBasketImmutable(basket)) throw new BasketPaidException();
+
+        basket.setRewardItems(rewardItemIds);
     }
 
     public void setItemInBasket(UUID basketId, String itemId, int count) throws BasketServiceException {
