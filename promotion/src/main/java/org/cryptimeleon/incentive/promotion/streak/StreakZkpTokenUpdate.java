@@ -1,5 +1,6 @@
 package org.cryptimeleon.incentive.promotion.streak;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenPointsLeaf;
 import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenUpdateLeaf;
@@ -7,9 +8,8 @@ import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductAndNode;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdate;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
-import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect;
+import org.cryptimeleon.incentive.promotion.sideeffect.SideEffect;
 import org.cryptimeleon.math.serialization.Representation;
-import org.cryptimeleon.math.serialization.annotations.ReprUtil;
 import org.cryptimeleon.math.serialization.annotations.Represented;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 
@@ -26,6 +26,7 @@ import java.util.UUID;
  * Time unit is days since this is probably most natural to users, but could be extended to e.g. seconds.
  */
 @Getter
+@EqualsAndHashCode(callSuper = true)
 abstract class StreakZkpTokenUpdate extends ZkpTokenUpdate {
 
     // User public input metadata timestamps may be off by this threshold
@@ -36,18 +37,18 @@ abstract class StreakZkpTokenUpdate extends ZkpTokenUpdate {
     protected Integer intervalDays;
 
     public StreakZkpTokenUpdate(Representation representation) {
-        ReprUtil.deserialize(this, representation);
+        super(representation);
     }
 
     /**
      * @param rewardId          every reward is identified by a unique id. This is for example useful for the user to
      *                          tell the server which update it should verify
      * @param rewardDescription a short description text on what this ZKP update actually does to display in an application on the user side
-     * @param rewardSideEffect  the side effect of this update
+     * @param sideEffect        the side effect of this update
      * @param intervalDays      the interval in which the streak needs to be updates to not get lost.
      */
-    public StreakZkpTokenUpdate(UUID rewardId, String rewardDescription, RewardSideEffect rewardSideEffect, int intervalDays) {
-        super(rewardId, rewardDescription, rewardSideEffect);
+    public StreakZkpTokenUpdate(UUID rewardId, String rewardDescription, SideEffect sideEffect, int intervalDays) {
+        super(rewardId, rewardDescription, sideEffect);
         this.intervalDays = intervalDays;
     }
 
@@ -180,10 +181,5 @@ abstract class StreakZkpTokenUpdate extends ZkpTokenUpdate {
         return epochDays() == userEpochDay
                 || epochDaysOf(LocalDateTime.now().minusMinutes(USER_TIMESTAMP_THRESHOLD_MINUTES).toLocalDate()) == userEpochDay
                 || epochDaysOf(LocalDateTime.now().plusMinutes(USER_TIMESTAMP_THRESHOLD_MINUTES).toLocalDate()) == userEpochDay;
-    }
-
-    @Override
-    public Representation getRepresentation() {
-        return ReprUtil.serialize(this);
     }
 }

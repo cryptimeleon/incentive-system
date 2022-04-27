@@ -4,7 +4,7 @@ import lombok.EqualsAndHashCode;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductOrNode;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
-import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect;
+import org.cryptimeleon.incentive.promotion.sideeffect.SideEffect;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 
@@ -18,12 +18,13 @@ import java.util.UUID;
  */
 @EqualsAndHashCode(callSuper = true)
 public class StandardStreakTokenUpdate extends StreakZkpTokenUpdate {
+
     public StandardStreakTokenUpdate(Representation representation) {
         super(representation);
     }
 
-    public StandardStreakTokenUpdate(UUID rewardId, String rewardDescription, RewardSideEffect rewardSideEffect, int intervalDays) {
-        super(rewardId, rewardDescription, rewardSideEffect, intervalDays);
+    public StandardStreakTokenUpdate(UUID rewardId, String rewardDescription, SideEffect sideEffect, int intervalDays) {
+        super(rewardId, rewardDescription, sideEffect, intervalDays);
     }
 
     /**

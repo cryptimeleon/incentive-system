@@ -6,7 +6,7 @@ import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.promotion.Promotion;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdate;
 import org.cryptimeleon.incentive.promotion.model.Basket;
-import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect;
+import org.cryptimeleon.incentive.promotion.sideeffect.SideEffect;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.annotations.ReprUtil;
 import org.cryptimeleon.math.structures.cartesian.Vector;
@@ -55,9 +55,9 @@ public class VipPromotion extends Promotion {
                         int costBronze,
                         int costSilver,
                         int costGold,
-                        RewardSideEffect bronzeSideEffect,
-                        RewardSideEffect silverSideEffect,
-                        RewardSideEffect goldSideEffect) {
+                        SideEffect bronzeSideEffect,
+                        SideEffect silverSideEffect,
+                        SideEffect goldSideEffect) {
         super(promotionParameters,
                 promotionName,
                 promotionDescription,
@@ -86,9 +86,9 @@ public class VipPromotion extends Promotion {
             int costBronze,
             int costSilver,
             int costGold,
-            RewardSideEffect bronzeSideEffect,
-            RewardSideEffect silverSideEffect,
-            RewardSideEffect goldSideEffect) {
+            SideEffect bronzeSideEffect,
+            SideEffect silverSideEffect,
+            SideEffect goldSideEffect) {
 
         // Sanity check for costs
         assert costBronze < costSilver && costSilver < costGold;
@@ -96,9 +96,9 @@ public class VipPromotion extends Promotion {
         // Update ZKPs for every target level and updates for maintaining a VIP level and proving being VIP.
         // For NONE or if no side-effect desired use earn protocol
         return List.of(
-                new UpgradeVipZkpTokenUpdate(UUID.randomUUID(), "Get Bronze VIP Status", BRONZE, costBronze),
-                new UpgradeVipZkpTokenUpdate(UUID.randomUUID(), "Get Silver VIP Status", SILVER, costSilver),
-                new UpgradeVipZkpTokenUpdate(UUID.randomUUID(), "Get Gold VIP Status", GOLD, costGold),
+                new UpgradeVipZkpTokenUpdate(UUID.randomUUID(), "Get Bronze VIP Status", BRONZE, costBronze, bronzeSideEffect),
+                new UpgradeVipZkpTokenUpdate(UUID.randomUUID(), "Get Silver VIP Status", SILVER, costSilver, silverSideEffect),
+                new UpgradeVipZkpTokenUpdate(UUID.randomUUID(), "Get Gold VIP Status", GOLD, costGold, goldSideEffect),
                 new ProveVipTokenUpdate(UUID.randomUUID(), BRONZE, bronzeSideEffect),
                 new ProveVipTokenUpdate(UUID.randomUUID(), SILVER, silverSideEffect),
                 new ProveVipTokenUpdate(UUID.randomUUID(), GOLD, goldSideEffect)

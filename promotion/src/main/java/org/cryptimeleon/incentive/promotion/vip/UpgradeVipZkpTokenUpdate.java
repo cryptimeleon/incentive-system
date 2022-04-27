@@ -9,9 +9,8 @@ import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.incentive.promotion.EmptyTokenUpdateMetadata;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdate;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
-import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect;
+import org.cryptimeleon.incentive.promotion.sideeffect.SideEffect;
 import org.cryptimeleon.math.serialization.Representation;
-import org.cryptimeleon.math.serialization.annotations.ReprUtil;
 import org.cryptimeleon.math.serialization.annotations.Represented;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 
@@ -33,7 +32,7 @@ public class UpgradeVipZkpTokenUpdate extends ZkpTokenUpdate {
     private Integer accumulatedCost;
 
     public UpgradeVipZkpTokenUpdate(Representation representation) {
-        ReprUtil.deserialize(this, representation);
+        super(representation);
     }
 
     /**
@@ -45,10 +44,8 @@ public class UpgradeVipZkpTokenUpdate extends ZkpTokenUpdate {
      * @param toVipStatus       the target status as an integer (1-bronze, 2-silver, 3-gold)
      * @param accumulatedCost   the cost of reaching this VIP status (accumulated with the previous costs)
      */
-    public UpgradeVipZkpTokenUpdate(UUID rewardId, String rewardDescription, int toVipStatus, Integer accumulatedCost) {
-        // TODO we could add the advantage of having that VIP level to the side effect
-        // Yes, replace Side Effect by that!
-        super(rewardId, rewardDescription, new RewardSideEffect("Upgrade VIP status to " + toVipStatus));
+    public UpgradeVipZkpTokenUpdate(UUID rewardId, String rewardDescription, int toVipStatus, Integer accumulatedCost, SideEffect sideEffect) {
+        super(rewardId, rewardDescription, sideEffect);
         this.toVipStatus = toVipStatus;
         this.accumulatedCost = accumulatedCost;
     }
@@ -115,10 +112,5 @@ public class UpgradeVipZkpTokenUpdate extends ZkpTokenUpdate {
     @Override
     public boolean validateTokenUpdateMetadata(ZkpTokenUpdateMetadata zkpTokenUpdateMetadata) {
         return zkpTokenUpdateMetadata instanceof EmptyTokenUpdateMetadata;
-    }
-
-    @Override
-    public Representation getRepresentation() {
-        return ReprUtil.serialize(this);
     }
 }
