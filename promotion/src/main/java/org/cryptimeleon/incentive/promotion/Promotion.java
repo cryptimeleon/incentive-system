@@ -95,6 +95,7 @@ public abstract class Promotion implements StandaloneRepresentable {
 
     /**
      * Provide default metadata for this promotion.
+     *
      * @return metadata
      */
     public ZkpTokenUpdateMetadata generateMetadataForUpdate() {

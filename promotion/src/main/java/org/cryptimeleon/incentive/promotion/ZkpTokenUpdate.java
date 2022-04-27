@@ -3,6 +3,8 @@ package org.cryptimeleon.incentive.promotion;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
+import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect;
+import org.cryptimeleon.incentive.promotion.sideeffect.SideEffect;
 import org.cryptimeleon.math.serialization.StandaloneRepresentable;
 import org.cryptimeleon.math.serialization.annotations.Represented;
 import org.cryptimeleon.math.structures.cartesian.Vector;
@@ -30,7 +32,7 @@ public abstract class ZkpTokenUpdate implements StandaloneRepresentable {
     @Represented
     private String rewardDescription;
     @Represented
-    private RewardSideEffect rewardSideEffect;
+    private SideEffect sideEffect;
 
     /**
      * Empty constructor is needed for restoring represented objects using refletion.
@@ -42,12 +44,12 @@ public abstract class ZkpTokenUpdate implements StandaloneRepresentable {
      * @param rewardId          every reward is identified by a unique id. This is for example useful for the user to
      *                          tell the server which update it should verify
      * @param rewardDescription a short description text on what this ZKP update actually does to display in an application on the user side
-     * @param rewardSideEffect  the side effect of this update
+     * @param sideEffect        the side effect of this update
      */
-    public ZkpTokenUpdate(UUID rewardId, String rewardDescription, RewardSideEffect rewardSideEffect) {
+    public ZkpTokenUpdate(UUID rewardId, String rewardDescription, RewardSideEffect sideEffect) {
         this.tokenUpdateId = rewardId;
         this.rewardDescription = rewardDescription;
-        this.rewardSideEffect = rewardSideEffect;
+        this.sideEffect = sideEffect;
     }
 
     /**

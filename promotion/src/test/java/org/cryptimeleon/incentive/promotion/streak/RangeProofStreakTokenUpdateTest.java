@@ -1,7 +1,7 @@
 package org.cryptimeleon.incentive.promotion.streak;
 
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
-import org.cryptimeleon.incentive.promotion.RewardSideEffect;
+import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

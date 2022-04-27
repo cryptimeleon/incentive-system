@@ -1,5 +1,7 @@
 package org.cryptimeleon.incentive.promotion.streak;
 
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.annotations.ReprUtil;
@@ -7,9 +9,6 @@ import org.cryptimeleon.math.serialization.annotations.Represented;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 
 /**
  * User metadata for timestamps. This ensures that the user's public input is known to the verifier and avoids errors

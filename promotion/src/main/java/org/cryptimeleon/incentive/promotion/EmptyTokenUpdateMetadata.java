@@ -1,9 +1,8 @@
 package org.cryptimeleon.incentive.promotion;
 
+import lombok.EqualsAndHashCode;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.annotations.ReprUtil;
-
-import lombok.EqualsAndHashCode;
 
 /**
  * Class for sending no metadata with an update.

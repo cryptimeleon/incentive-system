@@ -1,11 +1,12 @@
 package org.cryptimeleon.incentive.promotion.vip;
 
+import lombok.EqualsAndHashCode;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.promotion.Promotion;
-import org.cryptimeleon.incentive.promotion.RewardSideEffect;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdate;
 import org.cryptimeleon.incentive.promotion.model.Basket;
+import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.annotations.ReprUtil;
 import org.cryptimeleon.math.structures.cartesian.Vector;
@@ -13,8 +14,6 @@ import org.cryptimeleon.math.structures.cartesian.Vector;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.UUID;
-
-import lombok.EqualsAndHashCode;
 
 /**
  * Promotion in which users can earn a VIP status (BRONZE/SILVER/GOLD) for spent money and prove their current status.
