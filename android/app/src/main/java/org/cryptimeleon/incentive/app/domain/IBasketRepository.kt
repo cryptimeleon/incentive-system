@@ -2,12 +2,14 @@ package org.cryptimeleon.incentive.app.domain
 
 import kotlinx.coroutines.flow.Flow
 import org.cryptimeleon.incentive.app.domain.model.Basket
+import org.cryptimeleon.incentive.app.domain.model.RewardItem
 import org.cryptimeleon.incentive.app.domain.model.ShoppingItem
 
 interface IBasketRepository {
 
     val basket: Flow<Basket?>
     val shoppingItems: Flow<List<ShoppingItem>>
+    val rewardItems: Flow<List<RewardItem>>
 
     /**
      * If there is no (active) basket, this function will create a new basket.
@@ -51,4 +53,9 @@ interface IBasketRepository {
      * Load shopping items from basket server and update them in the database accordingly
      */
     suspend fun refreshShoppingItems()
+
+    /**
+     * Load reward items from basket server and update them in the database accordingly
+     */
+    suspend fun refreshRewardItems()
 }

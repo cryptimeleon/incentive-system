@@ -14,14 +14,16 @@ import org.cryptimeleon.incentive.app.data.BasketRepository
 import org.cryptimeleon.incentive.app.data.CryptoRepository
 import org.cryptimeleon.incentive.app.data.PromotionRepository
 import org.cryptimeleon.incentive.app.domain.model.Basket
-import org.cryptimeleon.incentive.app.domain.model.UserPromotionState
 import org.cryptimeleon.incentive.app.domain.model.PromotionUserUpdateChoice
+import org.cryptimeleon.incentive.app.domain.model.RewardItem
 import org.cryptimeleon.incentive.app.domain.model.UpdateChoice
+import org.cryptimeleon.incentive.app.domain.model.UserPromotionState
 import org.cryptimeleon.incentive.app.domain.model.UserUpdateChoice
 import org.cryptimeleon.incentive.app.domain.usecase.AnalyzeUserTokenUpdatesUseCase
 import org.cryptimeleon.incentive.app.domain.usecase.GetPromotionStatesUseCase
+import org.cryptimeleon.incentive.promotion.sideeffect.NoSideEffect
+import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect
 import java.math.BigInteger
-import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
@@ -43,47 +45,60 @@ class RewardsViewModel @Inject constructor(
             promotionRepository,
             cryptoRepository,
             basketRepository
-        ).invoke()
-    ) { basket: Basket?, userPromotionStates: List<UserPromotionState>, promotionUserUpdates: List<PromotionUserUpdateChoice> ->
-        if (basket == null) {
-            emptyList()
-        } else {
-            userPromotionStates.filter { it.qualifiedUpdates.size > 1 }.map {
-                PromotionInfo(
-                    it.promotionId,
-                    it.promotionName,
-                    it.qualifiedUpdates.map { updateChoice ->
-                        val userUpdateChoice = updateChoice.toUserUpdateChoice()
-                        val isSelected =
-                            promotionUserUpdates.any { x -> x.promotionId == it.promotionId && x.userUpdateChoice == updateChoice.toUserUpdateChoice() }
-                        when (updateChoice) {
-                            is UpdateChoice.None -> Choice(
-                                "Nothing",
-                                "No cryptographic protocols are executed. The token remains unchanged.",
-                                Optional.empty(),
-                                userUpdateChoice,
-                                isSelected
-                            )
-                            is UpdateChoice.Earn -> Choice(
-                                "Collect ${updateChoice.pointsToEarn} points",
-                                "Use the fast-earn protocol to add ${updateChoice.pointsToEarn} to the points vector of the token and update the SPSEQ signature accordingly",
-                                Optional.empty(),
-                                userUpdateChoice,
-                                isSelected
-                            )
-                            is UpdateChoice.ZKP -> Choice(
-                                updateChoice.updateDescription,
-                                "Run the ZKP with id ${updateChoice.updateId} to get change the points vector from ${updateChoice.oldPoints} to ${updateChoice.newPoints}.",
-                                // TODO this is waiting for an updated reward API. We need to clearly distinguish between ZKPs with and without side-effects
-                                if (!updateChoice.reward.name.contains("VIP")) Optional.of(
-                                    RewardDescription(updateChoice.reward.name)
-                                ) else Optional.empty(),
-                                userUpdateChoice,
-                                isSelected
-                            )
+        ).invoke(),
+        basketRepository.rewardItems
+    ) { basket: Basket?, userPromotionStates: List<UserPromotionState>, promotionUserUpdates: List<PromotionUserUpdateChoice>, rewardItems: List<RewardItem> ->
+        when {
+            basket == null -> {
+                emptyList()
+            }
+            rewardItems.isEmpty() -> {
+                basketRepository.refreshRewardItems()
+                emptyList()
+            }
+            else -> {
+                userPromotionStates.filter { it.qualifiedUpdates.size > 1 }.map {
+                    PromotionInfo(
+                        it.promotionId,
+                        it.promotionName,
+                        it.qualifiedUpdates.map { updateChoice ->
+                            val userUpdateChoice = updateChoice.toUserUpdateChoice()
+                            val isSelected =
+                                promotionUserUpdates.any { x -> x.promotionId == it.promotionId && x.userUpdateChoice == updateChoice.toUserUpdateChoice() }
+                            when (updateChoice) {
+                                is UpdateChoice.None -> Choice(
+                                    "Nothing",
+                                    "No cryptographic protocols are executed. The token remains unchanged.",
+                                    NoChoiceSideEffect,
+                                    userUpdateChoice,
+                                    isSelected
+                                )
+                                is UpdateChoice.Earn -> Choice(
+                                    "Collect ${updateChoice.pointsToEarn} points",
+                                    "Use the fast-earn protocol to add ${updateChoice.pointsToEarn} to the points vector of the token and update the SPSEQ signature accordingly",
+                                    NoChoiceSideEffect,
+                                    userUpdateChoice,
+                                    isSelected
+                                )
+                                is UpdateChoice.ZKP -> Choice(
+                                    updateChoice.updateDescription,
+                                    "Run the ZKP with id ${updateChoice.updateId} to get change the points vector from ${updateChoice.oldPoints} to ${updateChoice.newPoints}.",
+                                    when (val sideEffect = updateChoice.sideEffect) {
+                                        is NoSideEffect -> NoChoiceSideEffect
+                                        is RewardSideEffect -> {
+                                            val rewardItem =
+                                                rewardItems.find { rewardItem -> rewardItem.id == sideEffect.rewardId }!!
+                                            RewardChoiceSideEffect(rewardItem.id, rewardItem.title)
+                                        }
+                                        else -> throw RuntimeException("Unexpected subtype of SideEffect")
+                                    },
+                                    userUpdateChoice,
+                                    isSelected
+                                )
+                            }
                         }
-                    }
-                )
+                    )
+                }
             }
         }
     }.map {
@@ -112,9 +127,11 @@ data class PromotionInfo(
 data class Choice(
     val humanReadableDescription: String,
     val cryptographicDescription: String,
-    val rewards: Optional<RewardDescription>,
+    val sideEffect: ChoiceSideEffect,
     val userUpdateChoice: UserUpdateChoice,
     val isSelected: Boolean
 )
 
-data class RewardDescription(val rewardTitle: String)
+sealed interface ChoiceSideEffect
+object NoChoiceSideEffect : ChoiceSideEffect
+data class RewardChoiceSideEffect(val id: String, val title: String) : ChoiceSideEffect

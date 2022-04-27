@@ -102,7 +102,7 @@ data class HazelPromotionState(
                     if (it is HazelTokenUpdate) {
                         HazelTokenUpdateState(
                             it.rewardDescription,
-                            it.rewardSideEffect.name,
+                            it.sideEffect.toString(),
                             count,
                             it.rewardCost
                         )
@@ -137,7 +137,7 @@ data class VipPromotionState(
                         is UpgradeVipZkpTokenUpdate -> {
                             UpgradeVipTokenUpdateState(
                                 it.rewardDescription,
-                                it.rewardSideEffect.name,
+                                it.sideEffect.toString(),
                                 points,
                                 it.accumulatedCost,
                                 VipStatus.fromInt(it.toVipStatus)
@@ -146,7 +146,7 @@ data class VipPromotionState(
                         is ProveVipTokenUpdate -> {
                             VipTokenUpdateState(
                                 it.rewardDescription,
-                                it.rewardSideEffect.name,
+                                it.sideEffect.toString(),
                                 vipStatus,
                                 VipStatus.fromInt(it.requiredStatus)
                             )
@@ -184,13 +184,13 @@ data class StreakPromotionState(
                         is StandardStreakTokenUpdate -> {
                             StandardStreakTokenUpdateState(
                                 it.rewardDescription,
-                                it.rewardSideEffect.name,
+                                it.sideEffect.toString(),
                             )
                         }
                         is RangeProofStreakTokenUpdate -> {
                             RangeProofStreakTokenUpdateState(
                                 it.rewardDescription,
-                                it.rewardSideEffect.name,
+                                it.sideEffect.toString(),
                                 it.lowerLimit,
                                 streak
                             )
@@ -198,7 +198,7 @@ data class StreakPromotionState(
                         is SpendStreakTokenUpdate -> {
                             SpendStreakTokenUpdateState(
                                 it.rewardDescription,
-                                it.rewardSideEffect.name,
+                                it.sideEffect.toString(),
                                 it.cost,
                                 streak
                             )
@@ -262,7 +262,7 @@ data class SpendStreakTokenUpdateState(
 ) : TokenUpdateState()
 
 enum class VipStatus(val statusValue: Int) {
-    NONE(0),
+    NONE(0), // do not delete this!
     BRONZE(1),
     SILVER(2),
     GOLD(3);

@@ -7,7 +7,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -15,11 +14,14 @@ import org.cryptimeleon.incentive.app.data.BasketRepository
 import org.cryptimeleon.incentive.app.data.CryptoRepository
 import org.cryptimeleon.incentive.app.data.PromotionRepository
 import org.cryptimeleon.incentive.app.domain.model.PromotionUserUpdateChoice
+import org.cryptimeleon.incentive.app.domain.model.RewardItem
+import org.cryptimeleon.incentive.app.domain.model.UpdateChoice
 import org.cryptimeleon.incentive.app.domain.usecase.AnalyzeUserTokenUpdatesUseCase
 import org.cryptimeleon.incentive.app.domain.usecase.GetPromotionStatesUseCase
 import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemState
 import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemUseCase
 import org.cryptimeleon.incentive.app.util.formatCents
+import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect
 import javax.inject.Inject
 
 @HiltViewModel

@@ -5,8 +5,8 @@ import kotlinx.coroutines.flow.combine
 import org.cryptimeleon.incentive.app.domain.IBasketRepository
 import org.cryptimeleon.incentive.app.domain.ICryptoRepository
 import org.cryptimeleon.incentive.app.domain.IPromotionRepository
-import org.cryptimeleon.incentive.app.domain.model.UserPromotionState
 import org.cryptimeleon.incentive.app.domain.model.UpdateChoice
+import org.cryptimeleon.incentive.app.domain.model.UserPromotionState
 import org.cryptimeleon.incentive.app.util.toBigIntVector
 import org.cryptimeleon.incentive.crypto.model.Token
 
@@ -54,7 +54,7 @@ class GetPromotionStatesUseCase(
                                     metadata
                                 ).get(),
                                 metadata = metadata,
-                                reward = zkp.rewardSideEffect
+                                sideEffect = zkp.sideEffect
                             )
                         })
                 return@map UserPromotionState(

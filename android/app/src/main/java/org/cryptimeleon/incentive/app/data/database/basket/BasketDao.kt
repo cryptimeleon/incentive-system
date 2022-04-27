@@ -27,12 +27,24 @@ interface BasketDao {
     @Query("DELETE FROM `basket-items`")
     suspend fun deleteAllBasketItems()
 
+    // Shopping items are not connected to basket, just a cache that mirrors all items a user can scan
+
     @Query("SELECT * FROM `shopping-items`")
     fun observeShoppingItems(): Flow<List<ShoppingItemEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertShoppingItems(shoppingItemsEntity: List<ShoppingItemEntity>)
+    suspend fun insertShoppingItems(shoppingItemEntities: List<ShoppingItemEntity>)
 
     @Query("DELETE FROM `shopping-items`")
     suspend fun deleteAllShoppingItems()
+
+    // Reward items are not connected to basket, just a cache that mirrors all rewards
+    @Query("SELECT * FROM `reward-items`")
+    fun observeRewardItems(): Flow<List<RewardItemEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertRewardItems(rewardItemEntities: List<RewardItemEntity>)
+
+    @Query("DELETE FROM `reward-items`")
+    suspend fun deleteAllRewardItems()
 }

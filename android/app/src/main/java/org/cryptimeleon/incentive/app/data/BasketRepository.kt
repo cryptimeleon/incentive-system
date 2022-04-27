@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.*
 import org.cryptimeleon.incentive.app.data.database.basket.BasketDao
 import org.cryptimeleon.incentive.app.data.database.basket.BasketEntity
 import org.cryptimeleon.incentive.app.data.database.basket.BasketItemEntity
+import org.cryptimeleon.incentive.app.data.database.basket.RewardItemEntity
 import org.cryptimeleon.incentive.app.data.database.basket.ShoppingItemEntity
 import org.cryptimeleon.incentive.app.data.network.BasketApiService
 import org.cryptimeleon.incentive.app.data.network.NetworkBasketItem
@@ -12,6 +13,7 @@ import org.cryptimeleon.incentive.app.data.network.NetworkShoppingItem
 import org.cryptimeleon.incentive.app.domain.IBasketRepository
 import org.cryptimeleon.incentive.app.domain.model.Basket
 import org.cryptimeleon.incentive.app.domain.model.BasketItem
+import org.cryptimeleon.incentive.app.domain.model.RewardItem
 import org.cryptimeleon.incentive.app.domain.model.ShoppingItem
 import timber.log.Timber
 
@@ -33,10 +35,22 @@ class BasketRepository(
             .map { items: List<ShoppingItemEntity> -> items.map { shoppingItemEntityToItem(it) } }
             .flowOn(Dispatchers.Default)
 
+    override val rewardItems: Flow<List<RewardItem>>
+        get() = basketDao.observeRewardItems()
+            .map { items: List<RewardItemEntity> -> items.map { RewardItem(it.id, it.title) } }
+            .flowOn(Dispatchers.Default)
+
     override suspend fun refreshShoppingItems() {
         basketDao.insertShoppingItems(
             basketApiService.getAllItems().body()!!
                 .map { networkShoppingItemToShoppingItemEntity(it) }
+        )
+    }
+
+    override suspend fun refreshRewardItems() {
+        basketDao.insertRewardItems(
+            basketApiService.getAllRewardItems().body()!!
+                .map { RewardItemEntity(it.id, it.title) }
         )
     }
 

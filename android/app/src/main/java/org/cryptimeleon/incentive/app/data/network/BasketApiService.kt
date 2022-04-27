@@ -10,30 +10,17 @@ import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.PUT
-import retrofit2.http.Path
-import retrofit2.http.Query
 import java.util.*
 
 interface BasketApiService {
     @GET("items")
     suspend fun getAllItems(): Response<List<NetworkShoppingItem>>
 
-    @GET("items/{id}")
-    suspend fun getItemById(
-        @Path(
-            value = "id",
-            encoded = true
-        ) id: String
-    ): Response<NetworkShoppingItem>
+    @GET("reward-items")
+    suspend fun getAllRewardItems(): Response<List<NetworkRewardItem>>
 
     @PUT("basket/items")
     suspend fun putItemToBasket(@Body networkBasketItem: NetworkBasketItem): Response<Unit>
-
-    @DELETE("basket/items")
-    suspend fun removeItemFromBasket(
-        @Header("basketId") basketId: UUID,
-        @Query("itemId") itemId: String
-    ): Response<Unit>
 
     @GET("basket/new")
     suspend fun getNewBasket(): Response<UUID>
@@ -49,7 +36,8 @@ interface BasketApiService {
     suspend fun deleteBasket(@Header("basketId") basketId: UUID): Response<Unit>
 }
 
-data class NetworkPayBody(val basketId: UUID, val value: Int)
+@Parcelize
+data class NetworkRewardItem(val id: String, val title: String) : Parcelable
 
 @Parcelize
 data class NetworkShoppingItem(val id: String, val price: Int, val title: String) : Parcelable
