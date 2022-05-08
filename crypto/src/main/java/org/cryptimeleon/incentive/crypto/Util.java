@@ -1,5 +1,6 @@
 package org.cryptimeleon.incentive.crypto;
 
+import org.cryptimeleon.math.hash.UniqueByteRepresentable;
 import org.cryptimeleon.math.hash.impl.ByteArrayAccumulator;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.groups.GroupElement;
@@ -24,13 +25,14 @@ public class Util {
      * @param cPre1 cPre1 to hash
      * @return hashed ZnElement gamma
      */
-    public static Zn.ZnElement hashGamma(Zn zn, GroupElement dsid, Zn.ZnElement tid, GroupElement cPre0, GroupElement cPre1) {
+    public static Zn.ZnElement hashGamma(Zn zn, GroupElement dsid, Zn.ZnElement tid, GroupElement cPre0, GroupElement cPre1, UniqueByteRepresentable userChoice) {
         var hashfunction = new HashIntoZn(zn);
         var accumulator = new ByteArrayAccumulator();
         accumulator.escapeAndSeparate(dsid.getUniqueByteRepresentation());
         accumulator.escapeAndSeparate(tid.getUniqueByteRepresentation());
         accumulator.escapeAndSeparate(cPre0.getUniqueByteRepresentation());
         accumulator.escapeAndSeparate(cPre1.getUniqueByteRepresentation());
+        accumulator.escapeAndSeparate(userChoice);
         return hashfunction.hash(accumulator.extractBytes());
     }
 

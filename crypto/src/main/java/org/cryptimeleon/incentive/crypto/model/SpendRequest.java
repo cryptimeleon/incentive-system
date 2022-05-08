@@ -51,6 +51,7 @@ public class SpendRequest implements Representable {
     @NonFinal
     SPSEQSignature sigma;
 
+
     /**
      * A constructor for the spend request based on a representation and additional data required to retrieve the
      * original values.
@@ -75,7 +76,8 @@ public class SpendRequest implements Representable {
         this.cTrace0 = groupG1.restoreVector(listRepr.get(6));
         this.cTrace1 = groupG1.restoreVector(listRepr.get(7));
 
-        var gamma = Util.hashGamma(zn, dsid, tid, cPre0, cPre1);
+        // using tid as user choice TODO change this once user choice generation is properly implemented, see issue 75
+        var gamma = Util.hashGamma(zn, dsid, tid, cPre0, cPre1, tid);
         var spendDeductCommonInput = new SpendDeductZkpCommonInput(gamma, c0, c1, dsid, cPre0, cPre1, commitmentC0, cTrace0, cTrace1);
         this.spendDeductZkp = fiatShamirProofSystem.restoreProof(spendDeductCommonInput, listRepr.get(8));
         this.sigma = new SPSEQSignature(listRepr.get(9), groupG1, groupG2);

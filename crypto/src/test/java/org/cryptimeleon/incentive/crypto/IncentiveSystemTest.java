@@ -131,6 +131,7 @@ public class IncentiveSystemTest {
          * transaction 3: user tries to spend 23 points
          *
          * TODO add token condition proof for testing this
+         * TODO after doing so, add hashedClaim PRFtoZn value as discussed in issue #75
 
         logger.info("Testing failing spend transaction with non-empty token.");
 
@@ -179,7 +180,8 @@ public class IncentiveSystemTest {
         var deserializedSpendRequest3 = new SpendRequest(serializedSpendRequest3, incSys.getPp(), spendDeductProofSystem, tid3);
 
         // provider handles spend request and generates spend response and information required for double-spending protection (which is discarded on the fly, since not needed in this test)
-        var spendResponse3 = incSys.generateSpendRequestResponse(promotionParameters, deserializedSpendRequest3, pkp, tid3, spendDeductTestZkp).getSpendResponse();
+        // using tid as user choice TODO change this once user choice generation is properly implemented, see issue 75
+        var spendResponse3 = incSys.generateSpendRequestResponse(promotionParameters, deserializedSpendRequest3, pkp, tid3, spendDeductTestZkp, tid3).getSpendResponse();
 
         // serialize and deserialize spend request to ensure that serialization does not break anything
         var serializedSpendResponse3 = spendResponse3.getRepresentation();

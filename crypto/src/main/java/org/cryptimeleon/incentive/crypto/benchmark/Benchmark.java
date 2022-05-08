@@ -180,7 +180,8 @@ public class Benchmark {
                     spendRequest,
                     providerKeyPair,
                     tid,
-                    spendDeductTree
+                    spendDeductTree,
+                    tid // using tid as user choice TODO change this once user choice generation is properly implemented, see issue 75
             );
             finish = Instant.now();
             tSpendResponse[i] = Duration.between(start, finish).toNanos();

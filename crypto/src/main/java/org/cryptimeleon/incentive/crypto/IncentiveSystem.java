@@ -24,6 +24,7 @@ import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkpWitnessIn
 import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellformednessCommonInput;
 import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellformednessProtocol;
 import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellformednessWitness;
+import org.cryptimeleon.math.hash.UniqueByteRepresentable;
 import org.cryptimeleon.math.hash.impl.ByteArrayAccumulator;
 import org.cryptimeleon.math.random.RandomGenerator;
 import org.cryptimeleon.math.structures.cartesian.Vector;
@@ -409,7 +410,8 @@ public class IncentiveSystem {
         /* Enable double-spending-protection by forcing usk and esk becoming public in that case
            If token is used twice in two different transactions, the provider observes (c0,c1), (c0',c1') with gamma!=gamma'
            Hence, the provider can easily retrieve usk and esk (using the Schnorr-trick, computing (c0-c0')/(gamma-gamma') for usk, analogously for esk). */
-        var gamma = Util.hashGamma(zp, dsid, tid, cPre0, cPre1);
+        // using tid as user choice TODO change this once user choice generation is properly implemented, see issue 75
+        var gamma = Util.hashGamma(zp, dsid, tid, cPre0, cPre1, tid);
         var c0 = usk.mul(gamma).add(token.getDoubleSpendRandomness0());
         var c1 = esk.mul(gamma).add(token.getDoubleSpendRandomness1());
 
@@ -440,17 +442,21 @@ public class IncentiveSystem {
      * React to a legitimate spend request to allow the user retrieving an updated token with the value decreased by k.
      * Returns additional data for double-spending protection.
      *
-     * @param spendRequest    the user's request
-     * @param providerKeyPair keypair of the provider
-     * @param tid             transaction id, should be verified by the provider
-     * @param spendDeductTree the zero knowledge proof to verify for this promotion
+     * @param spendRequest          the user's request
+     * @param promotionParameters   specifying the promotion that the user wants to spend his points on (i.e. her claim)
+     * @param providerKeyPair       keypair of the provider
+     * @param tid                   transaction id, should be verified by the provider
+     * @param spendDeductTree       the zero knowledge proof to verify for this promotion
+     * @param userChoice            byte representation of the user choice,
+     *                              influences the computation of challenge generator gamma and provider share esk_prov
      * @return tuple of response to send to the user and information required for double-spending protection
      */
     public DeductOutput generateSpendRequestResponse(PromotionParameters promotionParameters,
                                                      SpendRequest spendRequest,
                                                      ProviderKeyPair providerKeyPair,
                                                      ZnElement tid,
-                                                     SpendDeductTree spendDeductTree) {
+                                                     SpendDeductTree spendDeductTree,
+                                                     UniqueByteRepresentable userChoice) {
 
         /* Verify that the request is valid and well-formed */
 
@@ -459,7 +465,8 @@ public class IncentiveSystem {
                 spendRequest.getSigma(),
                 spendRequest.getCommitmentC0(),
                 pp.getG1Generator(),
-                pp.getG1Generator().pow(promotionParameters.getPromotionId()));
+                pp.getG1Generator().pow(promotionParameters.getPromotionId())
+        );
         if (!signatureValid) {
             throw new IllegalArgumentException("Signature of the request is not valid!");
         }
@@ -467,7 +474,8 @@ public class IncentiveSystem {
         // Validate ZKP
         var spendDeductZkp = new SpendDeductBooleanZkp(spendDeductTree, pp, promotionParameters, providerKeyPair.getPk());
         var fiatShamirProofSystem = new FiatShamirProofSystem(spendDeductZkp);
-        var gamma = Util.hashGamma(pp.getBg().getZn(), spendRequest.getDsid(), tid, spendRequest.getCPre0(), spendRequest.getCPre1());
+        // using tid as user choice TODO change this once user choice generation is properly implemented, see issue 75
+        var gamma = Util.hashGamma(pp.getBg().getZn(), spendRequest.getDsid(), tid, spendRequest.getCPre0(), spendRequest.getCPre1(), tid);
         var commonInput = new SpendDeductZkpCommonInput(spendRequest, gamma);
         var proofValid = fiatShamirProofSystem.checkProof(commonInput, spendRequest.getSpendDeductZkp());
         if (!proofValid) {
@@ -479,14 +487,16 @@ public class IncentiveSystem {
         * Retrieve esk*_prov via PRF.
         * Need to use double-spending ID of the spent token as well as the transaction ID in addition to preliminary commitment as input for the PRF
         * to ensure that different spendings of the same token lead to different esk_prov.
+        *
         * Also need to include object modelling the reward that the user chose to claim.
+        * This is done by including a PRFtoZn image hashedClaim of the hashed spend-deduct tree in the spend request.
         */
         var preimage = new ByteArrayAccumulator();
         preimage.escapeAndSeparate(commonInput.c0Pre);
         preimage.escapeAndSeparate(commonInput.c1Pre);
         preimage.escapeAndSeparate(spendRequest.getDsid());
         preimage.escapeAndSeparate(tid);
-
+        preimage.escapeAndSeparate(userChoice);
         var eskStarProv = pp.getPrfToZn().hashThenPrfToZn(providerKeyPair.getSk().getBetaProv(), new ByteArrayImplementation(preimage.extractBytes()), "eskStarProv");
 
         // Compute blind signature on new, still blinded commitment
@@ -513,7 +523,6 @@ public class IncentiveSystem {
      * @param spendRequest      the original request
      * @param token             the old token
      * @param providerPublicKey public key of the provider
-     * @param newPoints         new token's points vector
      * @param userKeyPair       keypair of the user
      * @return token with the value of the old token + k
      */

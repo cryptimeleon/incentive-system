@@ -116,7 +116,8 @@ public class SpendHelper {
         /* Enable double-spending-protection by forcing usk and esk becoming public in that case
            If token is used twice in two different transactions, the provider observes (c0,c1), (c0',c1') with gamma!=gamma'
            Hence, the provider can easily retrieve usk and esk (using the Schnorr-trick, computing (c0-c0')/(gamma-gamma') for usk, analogously for esk). */
-        var gamma = Util.hashGamma(zp, dsid, tid, cPre0, cPre1);
+        // using tid as user choice TODO change this once user choice generation is properly implemented, see issue 75
+        var gamma = Util.hashGamma(zp, dsid, tid, cPre0, cPre1, tid);
         var c0 = usk.mul(gamma).add(token.getDoubleSpendRandomness0());
         var c1 = esk.mul(gamma).add(token.getDoubleSpendRandomness1());
 
