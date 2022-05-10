@@ -95,14 +95,15 @@ public class Helper {
     ) {
         var spendRequest = incSys.generateSpendRequest(promP, token, pkp.getPk(), newPoints, ukp, tid, spendDeductTree);
 
-        var deductOutput = incSys.generateSpendRequestResponse(promP, spendRequest, pkp, tid, spendDeductTree);
+        // using tid as user choice TODO change this once user choice generation is properly implemented, see issue 75
+        var deductOutput = incSys.generateSpendRequestResponse(promP, spendRequest, pkp, tid, spendDeductTree, tid);
 
         var resultToken = incSys.handleSpendRequestResponse(promP, deductOutput.getSpendResponse(), spendRequest, token, newPoints, pkp.getPk(), ukp);
 
         var occuredTransaction = new Transaction(
                 true,
                 tid,
-                token.getPoints().get(0).asInteger().subtract(newPoints.get(0)), // for v1: difference in 0-th component taken as spend amount TODO make transaction API able to handle vectors
+                token.getPoints().get(0).asInteger().subtract(newPoints.get(0)), // for v1: difference in 0-th component taken as spend amount TODO adapt transaction API to new Spend-Deduct API
                 deductOutput.getDstag()
         );
 

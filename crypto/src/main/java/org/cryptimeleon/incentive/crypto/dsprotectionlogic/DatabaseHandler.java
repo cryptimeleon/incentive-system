@@ -116,7 +116,7 @@ public interface DatabaseHandler {
     long getTransactionCount();
 
     long getTokenCount();
-
+    
     long getDsTagCount();
 
     long getUserInfoCount();
