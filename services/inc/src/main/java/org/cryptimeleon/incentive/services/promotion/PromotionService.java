@@ -155,7 +155,8 @@ public class PromotionService {
         FiatShamirProofSystem spendDeductProofSystem = new FiatShamirProofSystem(
                 new SpendDeductBooleanZkp(spendDeductTree, pp, promotion.getPromotionParameters(), providerPublicKey)
         );
-        var spendRequest = new SpendRequest(jsonConverter.deserialize(serializedSpendRequest), pp, spendDeductProofSystem, tid);
+        // using tid as user choice TODO change this once user choice generation is properly implemented, see issue 75
+        var spendRequest = new SpendRequest(jsonConverter.deserialize(serializedSpendRequest), pp, spendDeductProofSystem, tid, tid);
 
         // Run deduct
         // using tid as user choice TODO change this once user choice generation is properly implemented, see issue 75

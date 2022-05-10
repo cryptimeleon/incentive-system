@@ -1,6 +1,5 @@
 package org.cryptimeleon.incentive.crypto.proof.spend.tree;
 
-import org.cryptimeleon.math.hash.UniqueByteRepresentable;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 
 import java.math.BigInteger;

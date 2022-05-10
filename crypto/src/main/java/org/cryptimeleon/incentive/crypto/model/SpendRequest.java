@@ -8,6 +8,7 @@ import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSyst
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentive.crypto.Util;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkpCommonInput;
+import org.cryptimeleon.math.hash.UniqueByteRepresentable;
 import org.cryptimeleon.math.serialization.ListRepresentation;
 import org.cryptimeleon.math.serialization.Representable;
 import org.cryptimeleon.math.serialization.Representation;
@@ -61,7 +62,7 @@ public class SpendRequest implements Representable {
      * @param fiatShamirProofSystem the fiat shamir proof system used to create the proof to be restored
      * @param tid                   the transaction id
      */
-    public SpendRequest(Representation repr, IncentivePublicParameters pp, FiatShamirProofSystem fiatShamirProofSystem, Zn.ZnElement tid) {
+    public SpendRequest(Representation repr, IncentivePublicParameters pp, FiatShamirProofSystem fiatShamirProofSystem, Zn.ZnElement tid, UniqueByteRepresentable userChoice) {
         var listRepr = repr.list();
         var zn = pp.getBg().getZn();
         var groupG1 = pp.getBg().getG1();
@@ -77,7 +78,7 @@ public class SpendRequest implements Representable {
         this.cTrace1 = groupG1.restoreVector(listRepr.get(7));
 
         // using tid as user choice TODO change this once user choice generation is properly implemented, see issue 75
-        var gamma = Util.hashGamma(zn, dsid, tid, cPre0, cPre1, tid);
+        var gamma = Util.hashGamma(zn, dsid, tid, cPre0, cPre1, userChoice);
         var spendDeductCommonInput = new SpendDeductZkpCommonInput(gamma, c0, c1, dsid, cPre0, cPre1, commitmentC0, cTrace0, cTrace1);
         this.spendDeductZkp = fiatShamirProofSystem.restoreProof(spendDeductCommonInput, listRepr.get(8));
         this.sigma = new SPSEQSignature(listRepr.get(9), groupG1, groupG2);

@@ -177,7 +177,8 @@ public class IncentiveSystemTest {
                 new SpendDeductBooleanZkp(
                         new TokenUpdateLeaf("TokenUpdateLeaf", zeros, ignore, ones, negatedSpendAmount),
                         incSys.getPp(), promotionParameters, pkp.getPk()));
-        var deserializedSpendRequest3 = new SpendRequest(serializedSpendRequest3, incSys.getPp(), spendDeductProofSystem, tid3);
+        // using tid as user choice TODO change this once user choice generation is properly implemented, see issue 75
+        var deserializedSpendRequest3 = new SpendRequest(serializedSpendRequest3, incSys.getPp(), spendDeductProofSystem, tid3, tid3);
 
         // provider handles spend request and generates spend response and information required for double-spending protection (which is discarded on the fly, since not needed in this test)
         // using tid as user choice TODO change this once user choice generation is properly implemented, see issue 75
