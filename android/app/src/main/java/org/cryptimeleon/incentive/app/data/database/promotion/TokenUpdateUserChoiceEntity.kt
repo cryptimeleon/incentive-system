@@ -31,7 +31,7 @@ data class TokenUpdateUserChoiceEntity(
 
             @JvmStatic
             @TypeConverter
-            fun toChoice(s: String): UserUpdateChoice = json.decodeFromString(s,)
+            fun toChoice(s: String): UserUpdateChoice = json.decodeFromString(s)
         }
     }
 }

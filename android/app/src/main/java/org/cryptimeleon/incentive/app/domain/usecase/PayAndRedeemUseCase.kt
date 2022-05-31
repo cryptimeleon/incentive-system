@@ -19,7 +19,6 @@ import org.cryptimeleon.incentive.crypto.model.EarnRequest
 import org.cryptimeleon.incentive.crypto.model.SpendRequest
 import org.cryptimeleon.incentive.crypto.model.SpendResponse
 import org.cryptimeleon.incentive.crypto.model.Token
-import org.cryptimeleon.incentive.promotion.Promotion
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata
 import org.cryptimeleon.math.serialization.RepresentableRepresentation
 import org.cryptimeleon.math.serialization.converter.JSONConverter

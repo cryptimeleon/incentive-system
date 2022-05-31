@@ -126,7 +126,7 @@ fun RewardPromotionList(
                                     )
                                     when (val sideEffect = choice.sideEffect) {
                                         is RewardChoiceSideEffect -> Text(
-                                            text = sideEffect.title,
+                                            text = "Reward Item: ${sideEffect.title}",
                                             style = MaterialTheme.typography.body1.merge(),
                                             modifier = Modifier.padding(start = 16.dp)
                                         )
