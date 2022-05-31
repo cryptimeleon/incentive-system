@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.UUID;
@@ -59,5 +60,9 @@ public class BasketRepository {
 
     public void lockBasket(UUID basketId) {
         basketClient.lockBasket(basketId, redeemSecret).block();
+    }
+
+    public void setRewardsOfBasket(UUID basketId, ArrayList<String> rewardIds) {
+        basketClient.setRewardsForBasket(basketId, rewardIds, redeemSecret).block();
     }
 }
