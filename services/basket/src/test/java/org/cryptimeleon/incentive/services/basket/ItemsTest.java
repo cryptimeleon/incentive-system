@@ -2,7 +2,6 @@ package org.cryptimeleon.incentive.services.basket;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.incentive.services.basket.model.Item;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -78,5 +77,14 @@ public class ItemsTest {
         var itemsResponse = getItems(webTestClient).getResponseBody();
 
         assertThat(itemsResponse).hasSize(0);
+    }
+
+    @Test
+    void getItemNonexistentIdTest(@Autowired WebTestClient webTestClient) {
+        webTestClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/items/{id}").build("12341234123"))
+                .exchange()
+                .expectStatus()
+                .isEqualTo(HttpStatus.NOT_FOUND);
     }
 }
