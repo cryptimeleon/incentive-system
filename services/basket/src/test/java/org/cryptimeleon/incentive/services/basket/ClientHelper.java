@@ -57,6 +57,7 @@ public class ClientHelper {
                 .expectStatus()
                 .isEqualTo(expectedStatus);
     }
+
     public static void deleteAllItems(WebTestClient webTestClient, String providerSecret, HttpStatus expectedStatus) {
         webTestClient.delete()
                 .uri("/items")
@@ -76,6 +77,16 @@ public class ClientHelper {
                 .returnResult();
     }
 
+    public static void newRewardItem(WebTestClient webTestClient, RewardItem rewardItem, String providerSecret, HttpStatus expectedStatus) {
+        webTestClient.post()
+                .uri("/reward-items")
+                .header("provider-secret", providerSecret)
+                .body(BodyInserters.fromValue(rewardItem))
+                .exchange()
+                .expectStatus()
+                .isEqualTo(expectedStatus);
+    }
+
     public static EntityExchangeResult<RewardItem[]> getRewards(WebTestClient webTestClient) {
         return webTestClient.get()
                 .uri("/reward-items")
@@ -84,6 +95,15 @@ public class ClientHelper {
                 .isOk()
                 .expectBody(RewardItem[].class)
                 .returnResult();
+    }
+
+    public static void deleteAllRewardItems(WebTestClient webTestClient, String providerSecret, HttpStatus expectedStatus) {
+        webTestClient.delete()
+                .uri("/reward-items")
+                .header("provider-secret", providerSecret)
+                .exchange()
+                .expectStatus()
+                .isEqualTo(expectedStatus);
     }
 
     public static void putItem(WebTestClient webTestClient, UUID basketId, String itemId, int count, HttpStatus expectedStatus) {
@@ -146,4 +166,5 @@ public class ClientHelper {
         var redeemRequest = new RedeemBasketRequest(basketId, request, value);
         redeemBasket(webTestClient, redeemRequest, expectedStatus, redeemSecret);
     }
+
 }

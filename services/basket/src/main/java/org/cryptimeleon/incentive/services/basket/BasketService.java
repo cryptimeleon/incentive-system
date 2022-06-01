@@ -8,8 +8,6 @@ import org.cryptimeleon.incentive.services.basket.model.RewardItem;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -28,20 +26,6 @@ public class BasketService {
      */
     BasketService() {
         this.rewardItems = new ArrayList<>(Arrays.asList(
-                // Hazelnut Spread Promotion
-                new RewardItem("0580082614202", "Hazelnut Spread"),
-                new RewardItem("4499722672546", "Large Hazelnut Spread"),
-                // General Promotion
-                new RewardItem("4460463579054", "Teddy Bear"),
-                new RewardItem("0916751964193", "Pan"),
-                // VIP Promotion
-                new RewardItem("8445463753160", "2% Discount"), // Do not work yet (no effect), but for the sake of being a prototype let's call it discount
-                new RewardItem("0789590748887", "5% Discount"),
-                new RewardItem("1393421332370", "10% Discount"),
-                // Streak Promotion
-                new RewardItem("2413860782644", "Coffee"),
-                new RewardItem("0750769787791", "Manicure Set"),
-                new RewardItem("0182420525002", "Knife Set")
         ));
         basketMap = new HashMap<>();
         itemMap = new HashMap<>();
@@ -51,12 +35,35 @@ public class BasketService {
         return itemMap.values().toArray(new Item[0]);
     }
 
+    private boolean hasItem(String itemId) {
+        return itemMap.containsKey(itemId);
+    }
+
+    public Item getItem(String id) {
+        return itemMap.get(id);
+    }
+
+    public void save(Item item) {
+        itemMap.put(item.getId(), item);
+        System.out.println(itemMap.containsKey(item.getId()));
+    }
+
+    public void deleteAllItems() {
+        itemMap.clear();
+    }
+
     public RewardItem[] getRewardItems() {
         return rewardItems.toArray(new RewardItem[0]);
     }
 
+    public void deleteAllRewardItems() {
+        rewardItems.clear();
+    }
+
     public void save(RewardItem rewardItem) {
-        rewardItems.add(rewardItem);
+        if (!rewardItems.contains(rewardItem)) {
+            rewardItems.add(rewardItem);
+        }
     }
 
     public UUID createNewBasket() {
@@ -148,23 +155,6 @@ public class BasketService {
                 .entrySet()
                 .stream()
                 .map((e) -> new BasketItem(itemMap.get(e.getKey()), e.getValue()));
-    }
-
-    private boolean hasItem(String itemId) {
-        return itemMap.containsKey(itemId);
-    }
-
-    public Item getItem(String id) {
-        return itemMap.get(id);
-    }
-
-    public void save(Item item) {
-        itemMap.put(item.getId(), item);
-        System.out.println(itemMap.containsKey(item.getId()));
-    }
-
-    public void deleteAllItems() {
-        itemMap.clear();
     }
 }
 

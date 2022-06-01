@@ -4,6 +4,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.incentive.client.BasketClient;
 import org.cryptimeleon.incentive.client.dto.BasketItemDto;
+import org.cryptimeleon.incentive.client.dto.RewardItemDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -54,6 +55,24 @@ public class BootstrapApplication {
                     519)
     };
 
+
+    private RewardItemDto[] rewardItems = {
+            // Hazelnut Spread Promotion
+            new RewardItemDto("0580082614202", "Hazelnut Spread"),
+            new RewardItemDto("4499722672546", "Large Hazelnut Spread"),
+            // General Promotion
+            new RewardItemDto("4460463579054", "Teddy Bear"),
+            new RewardItemDto("0916751964193", "Pan"),
+            // VIP Promotion
+            new RewardItemDto("8445463753160", "2% Discount"), // Do not work yet (no effect), but for the sake of being a prototype let's call it discount
+            new RewardItemDto("0789590748887", "5% Discount"),
+            new RewardItemDto("1393421332370", "10% Discount"),
+            // Streak Promotion
+            new RewardItemDto("2413860782644", "Coffee"),
+            new RewardItemDto("0750769787791", "Manicure Set"),
+            new RewardItemDto("0182420525002", "Knife Set")
+    };
+
     public static void main(String[] args) {
         SpringApplication.run(BootstrapApplication.class, args);
     }
@@ -68,10 +87,14 @@ public class BootstrapApplication {
         return args -> {
             waitForBasketServiceOrThrow(basketClient);
 
-            // Add basket items
             for (BasketItemDto item : defaultItems) {
                 System.out.println("adding " + item);
                 basketClient.newBasketItem(item, basketServiceProviderSecret).block();
+            }
+
+            for (RewardItemDto rewardItem : rewardItems) {
+                System.out.println("adding " + rewardItem);
+                basketClient.newRewardItem(rewardItem, basketServiceProviderSecret).block();
             }
         };
     }

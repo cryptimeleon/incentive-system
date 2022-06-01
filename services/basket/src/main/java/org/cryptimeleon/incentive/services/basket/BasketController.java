@@ -110,11 +110,20 @@ public class BasketController {
     }
 
     @PostMapping("/reward-items")
-    ResponseEntity<Void> newRewardItem(@RequestHeader("provider-secret") String providerSecretHeader, RewardItem rewardItem) {
+    ResponseEntity<Void> newRewardItem(@RequestHeader("provider-secret") String providerSecretHeader, @RequestBody RewardItem rewardItem) {
         if (providerSecretHeader == null || !providerSecretHeader.equals(providerSecret)) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
         basketService.save(rewardItem);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @DeleteMapping("/reward-items")
+    ResponseEntity<Void> deleteAllRewardItems(@RequestHeader("provider-secret") String providerSecretHeader) {
+        if (providerSecretHeader == null || !providerSecretHeader.equals(providerSecret)) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        basketService.deleteAllRewardItems();
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
