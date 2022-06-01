@@ -20,7 +20,6 @@ import java.util.stream.Stream;
 public class BasketService {
 
     private final HashMap<UUID, Basket> basketMap;
-    private final ArrayList<Item> items;
     private final List<RewardItem> rewardItems;
     private final Map<String, Item> itemMap;
 
@@ -45,42 +44,19 @@ public class BasketService {
                 new RewardItem("0182420525002", "Knife Set")
         ));
         basketMap = new HashMap<>();
-        items = new ArrayList<>(
-                Arrays.asList(
-                        new Item(
-                                "3941288190038",
-                                "Sweetened hazelnut cocoa spread",
-                                199),
-                        new Item(
-                                "1022525418053",
-                                "Tomato",
-                                29),
-                        new Item(
-                                "4621006331880",
-                                "Apple",
-                                59),
-                        new Item(
-                                "4536852654932",
-                                "Peach",
-                                99),
-                        new Item(
-                                "2936746557615",
-                                "Potatoes",
-                                299),
-                        new Item(
-                                "0680818152421",
-                                "Mango",
-                                119)
-                ));
-        itemMap = items.stream().collect(Collectors.toMap(Item::getId, Function.identity()));
+        itemMap = new HashMap<>();
     }
 
     public Item[] getItems() {
-        return items.toArray(new Item[0]);
+        return itemMap.values().toArray(new Item[0]);
     }
 
     public RewardItem[] getRewardItems() {
         return rewardItems.toArray(new RewardItem[0]);
+    }
+
+    public void save(RewardItem rewardItem) {
+        rewardItems.add(rewardItem);
     }
 
     public UUID createNewBasket() {
@@ -180,6 +156,15 @@ public class BasketService {
 
     public Item getItem(String id) {
         return itemMap.get(id);
+    }
+
+    public void save(Item item) {
+        itemMap.put(item.getId(), item);
+        System.out.println(itemMap.containsKey(item.getId()));
+    }
+
+    public void deleteAllItems() {
+        itemMap.clear();
     }
 }
 

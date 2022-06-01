@@ -48,6 +48,24 @@ public class ClientHelper {
                 .isEqualTo(HttpStatus.NO_CONTENT);
     }
 
+    public static void newItem(WebTestClient webTestClient, Item item, String providerSecret, HttpStatus expectedStatus) {
+        webTestClient.post()
+                .uri("/items")
+                .header("provider-secret", providerSecret)
+                .body(BodyInserters.fromValue(item))
+                .exchange()
+                .expectStatus()
+                .isEqualTo(expectedStatus);
+    }
+    public static void deleteAllItems(WebTestClient webTestClient, String providerSecret, HttpStatus expectedStatus) {
+        webTestClient.delete()
+                .uri("/items")
+                .header("provider-secret", providerSecret)
+                .exchange()
+                .expectStatus()
+                .isEqualTo(expectedStatus);
+    }
+
     public static EntityExchangeResult<Item[]> getItems(WebTestClient webTestClient) {
         return webTestClient.get()
                 .uri("/items")

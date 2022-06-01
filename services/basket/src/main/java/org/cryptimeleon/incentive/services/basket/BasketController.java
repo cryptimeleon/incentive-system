@@ -31,6 +31,10 @@ public class BasketController {
     @Value("${basket-service.redeem-secret}")
     private String redeemSecret;
 
+    @Value("${basket-service.provider-secret}")
+    private String providerSecret;
+
+
     public BasketController(BasketService basketService, @Value("${basket-service.pay-secret}") String paymentSecret, @Value("${basket-service.redeem-secret}") String redeemSecret) {
         this.basketService = basketService;
         this.paymentSecret = paymentSecret;
@@ -67,6 +71,24 @@ public class BasketController {
         return basketService.getItems();
     }
 
+    @PostMapping("/items")
+    ResponseEntity<Void> newItem(@RequestHeader("provider-secret") String providerSecretHeader, @RequestBody Item item) {
+        if (providerSecretHeader == null || !providerSecretHeader.equals(providerSecret)) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        basketService.save(item);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @DeleteMapping("/items")
+    ResponseEntity<Void> deleteAllItems(@RequestHeader("provider-secret") String providerSecretHeader) {
+        if (providerSecretHeader == null || !providerSecretHeader.equals(providerSecret)) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        basketService.deleteAllItems();
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
     /**
      * Query shopping item by id, e.g. EAN13
      */
@@ -85,6 +107,15 @@ public class BasketController {
     @GetMapping("/reward-items")
     RewardItem[] getAllRewardItems() {
         return basketService.getRewardItems();
+    }
+
+    @PostMapping("/reward-items")
+    ResponseEntity<Void> newRewardItem(@RequestHeader("provider-secret") String providerSecretHeader, RewardItem rewardItem) {
+        if (providerSecretHeader == null || !providerSecretHeader.equals(providerSecret)) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        basketService.save(rewardItem);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     /**
@@ -178,8 +209,9 @@ public class BasketController {
 
     /**
      * Put rewards to basket
+     *
      * @param clientRedeemSecret clients need this secret to authenticate themselves. Prohibit users from adding secrets
-     * @param rewardIds list of the ids of all rewards to add
+     * @param rewardIds          list of the ids of all rewards to add
      */
     @PostMapping("/basket/rewards")
     void addRewardsToBasket(@RequestHeader("redeem-secret") String clientRedeemSecret, @RequestHeader("basket-id") UUID basketId, @RequestBody List<String> rewardIds) throws BasketServiceException {

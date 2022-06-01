@@ -56,6 +56,15 @@ public class BasketClient {
                 .bodyToMono(BasketItemDto[].class);
     }
 
+    public Mono<Void> newBasketItem(BasketItemDto item, String providerSecret) {
+        return basketClient.post()
+                .uri("/items")
+                .header("provider-secret", providerSecret)
+                .body(BodyInserters.fromValue(item))
+                .retrieve()
+                .bodyToMono(Void.class);
+    }
+
     public Mono<Void> putItemToBasket(UUID basketId, String itemId, int count) {
         var putItemDto = new PutItemDto(basketId, itemId, count);
         return putItemToBasket(putItemDto);

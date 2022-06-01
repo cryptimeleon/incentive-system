@@ -4,7 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.api.Assertions;
 import org.cryptimeleon.incentive.services.basket.model.Item;
 import org.cryptimeleon.incentive.services.basket.model.RewardItem;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,35 +21,25 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.cryptimeleon.incentive.services.basket.ClientHelper.*;
 
 @Slf4j
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class BasketTest {
 
-    @Value("${basket-service.pay-secret}")
-    private String paymentSecret;
+    @Value("${basket-service.provider-secret}")
+    private String providerSecret;
 
     @Value("${basket-service.redeem-secret}")
     private String redeemSecret;
 
-    @Test
-    void helloWorldTest(@Autowired WebTestClient webClient) {
-        Assertions.assertThat(
-                webClient.get()
-                        .uri("/")
-                        .exchange()
-                        .expectStatus()
-                        .isOk()
-                        .expectBody(String.class)
-                        .returnResult().getResponseBody()).contains("Basket");
-    }
+    private final Item firstTestItem = new Item("23578", "First test item", 235);
+    private final Item secondTestItem = new Item("1234554", "Second test item", 123);
 
     @Test
-    void createDeleteBasketTest(@Autowired WebTestClient webClient) {
+    void createBasketTest(@Autowired WebTestClient webClient) {
         log.info("Creating new basket");
         var createResponse = createBasket(webClient);
-
         log.info("Create response: " + createResponse);
         UUID basketId = createResponse.getResponseBody();
-
         log.info("Querying basket");
         var basketResponse = queryBasket(webClient, basketId);
 
@@ -59,29 +51,28 @@ public class BasketTest {
         assertThat(basket.isPaid()).isFalse();
         assertThat(basket.isRedeemed()).isFalse();
         assertThat(basket.getBasketID()).isEqualByComparingTo(basketId);
+    }
 
-        log.info("Delete Basket");
+    @Test
+    void deleteBasketTest(@Autowired WebTestClient webClient) {
+        UUID basketId = createBasket(webClient).getResponseBody();
+
         deleteBasket(webClient, basketId);
 
-        log.info("Query deleted basket");
         queryBasket(webClient, basketId, HttpStatus.NOT_FOUND);
     }
 
     @Test
     void basketItemsTest(@Autowired WebTestClient webTestClient) {
+        log.info("Add items");
+        ClientHelper.newItem(webTestClient, firstTestItem, providerSecret, HttpStatus.OK);
+        ClientHelper.newItem(webTestClient, secondTestItem, providerSecret, HttpStatus.OK);
+
         log.info("Creating new basket");
         var createResponse = createBasket(webTestClient);
 
         log.info("Create response: " + createResponse);
         UUID basketId = createResponse.getResponseBody();
-
-        log.info("Querying all items");
-        var itemsResponse = getItems(webTestClient);
-        log.info("All items: " + itemsResponse);
-
-        var items = itemsResponse.getResponseBody();
-        var firstTestItem = items[0];
-        var secondTestItem = items[1];
 
         log.info("Query existing item");
         var firstItemOtherUri = webTestClient.get()
