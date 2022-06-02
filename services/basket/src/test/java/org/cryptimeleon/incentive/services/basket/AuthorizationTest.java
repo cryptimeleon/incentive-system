@@ -36,19 +36,19 @@ public class AuthorizationTest {
         var basket = queryBasket(webTestClient, basketId).getResponseBody();
 
         log.info("Unauthorized pay request results in UNAUTHORIZED");
-        payBasket(webTestClient, basketId, HttpStatus.UNAUTHORIZED, invalidPaySecret);
+        payBasket(webTestClient, basketId, invalidPaySecret, HttpStatus.UNAUTHORIZED);
 
         log.info("Payment works with valid secret");
-        payBasket(webTestClient, basketId, HttpStatus.OK, paymentSecret);
+        payBasket(webTestClient, basketId, paymentSecret, HttpStatus.OK);
 
         basket = queryBasket(webTestClient, basketId).getResponseBody();
         assertThat(basket.isPaid()).isTrue();
 
         log.info("Unauthorized redeem request results in UNAUTHORIZED");
-        redeemBasket(webTestClient, basketId, "Some Request", basket.getValue(), HttpStatus.UNAUTHORIZED, invalidRedeemSecret);
+        redeemBasket(webTestClient, basketId, "Some Request", basket.getValue(), invalidRedeemSecret, HttpStatus.UNAUTHORIZED);
 
         log.info("Redeeming works with valid secret");
-        redeemBasket(webTestClient, basketId, "Some Request", basket.getValue(), HttpStatus.OK, redeemSecret);
+        redeemBasket(webTestClient, basketId, "Some Request", basket.getValue(), redeemSecret, HttpStatus.OK);
         basket = queryBasket(webTestClient, basketId).getResponseBody();
         assertThat(basket.isRedeemed()).isTrue();
 

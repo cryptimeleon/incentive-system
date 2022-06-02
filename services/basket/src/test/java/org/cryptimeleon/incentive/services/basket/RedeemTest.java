@@ -1,7 +1,11 @@
 package org.cryptimeleon.incentive.services.basket;
 
 import lombok.extern.slf4j.Slf4j;
+import org.cryptimeleon.incentive.services.basket.model.Item;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -10,10 +14,10 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.cryptimeleon.incentive.services.basket.ClientHelper.*;
 
 @Slf4j
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class RedeemTest {
 
@@ -23,58 +27,68 @@ public class RedeemTest {
     @Value("${basket-service.redeem-secret}")
     private String redeemSecret;
 
+    @Value("${basket-service.provider-secret}")
+    private String providerSecret;
+
+    private final Item firstTestItem = new Item("23578", "First test item", 10);
+    private final Item secondTestItem = new Item("1234554", "Second test item", 20);
+
+    private UUID basketId;
+
+    @BeforeAll
+    void addTestItems(@Autowired WebTestClient webTestClient) {
+        ClientHelper.newItem(webTestClient, firstTestItem, providerSecret, HttpStatus.OK);
+        ClientHelper.newItem(webTestClient, secondTestItem, providerSecret, HttpStatus.OK);
+    }
+
+    @BeforeEach
+    void prepareReadyToPayBasket(@Autowired WebTestClient webTestClient) {
+        basketId = createBasket(webTestClient).getResponseBody();
+        ClientHelper.putItem(webTestClient, basketId, firstTestItem.getId(), 2, HttpStatus.OK);
+    }
+
     @Test
-    void redeemTest(@Autowired WebTestClient webTestClient) {
-        log.info("Error message for not existing basket");
-        var wrongBasketId = UUID.randomUUID();
-        redeemBasket(webTestClient, wrongBasketId, "Some Request", 3, HttpStatus.NOT_FOUND, redeemSecret);
+    void redeemPayedBasketTest(@Autowired WebTestClient webTestClient) {
+        payBasket(webTestClient, basketId, paymentSecret, HttpStatus.OK);
+        redeemBasket(webTestClient, basketId, "Some Request", 20, redeemSecret, HttpStatus.OK);
+    }
 
-        log.info("Create new basket and adding items");
-        var createResponse = createBasket(webTestClient);
-        UUID basketId = createResponse.getResponseBody();
+    @Test
+    void redeemPayedBasketInvalidRedeemSecretTest(@Autowired WebTestClient webTestClient) {
+        payBasket(webTestClient, basketId, paymentSecret, HttpStatus.OK);
+        redeemBasket(webTestClient, basketId, "Some Request", 20, "", HttpStatus.UNAUTHORIZED);
+        redeemBasket(webTestClient, basketId, "Some Request", 20, redeemSecret + "x", HttpStatus.UNAUTHORIZED);
+    }
 
-        var itemsResponse = getItems(webTestClient);
-        var items = itemsResponse.getResponseBody();
+    @Test
+    void redeemNotPayedBasketTest(@Autowired WebTestClient webTestClient) {
+        redeemBasket(webTestClient, basketId, "Some Request", 20, redeemSecret, HttpStatus.BAD_REQUEST);
+    }
 
-        var firstTestItem = items[0];
-        var secondTestItem = items[1];
+    @Test
+    void redeemNotExistingBasketTest(@Autowired WebTestClient webTestClient) {
+        redeemBasket(webTestClient, UUID.randomUUID(), "Some Request", 20, redeemSecret, HttpStatus.NOT_FOUND);
+    }
 
-        putItem(webTestClient, basketId, firstTestItem.getId(), 3, HttpStatus.OK);
-        putItem(webTestClient, basketId, secondTestItem.getId(), 1, HttpStatus.OK);
+    @Test
+    void redeemWithWrongValueTest(@Autowired WebTestClient webTestClient) {
+        payBasket(webTestClient, basketId, paymentSecret, HttpStatus.OK);
+        redeemBasket(webTestClient, basketId, "Some Request", 21, redeemSecret, HttpStatus.BAD_REQUEST);
+    }
 
-        var basket = queryBasket(webTestClient, basketId).getResponseBody();
-        assertThat(basket.getItems())
-                .containsEntry(firstTestItem.getId(), 3)
-                .containsEntry(secondTestItem.getId(), 1);
-        assertThat(basket.isRedeemed()).isFalse();
+    @Test
+    void reRedeemTest(@Autowired WebTestClient webTestClient) {
+        payBasket(webTestClient, basketId, paymentSecret, HttpStatus.OK);
+        redeemBasket(webTestClient, basketId, "Some Request", 20, redeemSecret, HttpStatus.OK);
 
-        log.info("Redeeming not paid basket not possible");
-        redeemBasket(webTestClient, basketId, "Some Request", basket.getValue(), HttpStatus.BAD_REQUEST, redeemSecret);
+        redeemBasket(webTestClient, basketId, "Some Request", 20, redeemSecret, HttpStatus.OK);
+    }
 
-        log.info("Pay basket");
-        payBasket(webTestClient, basketId, HttpStatus.OK, paymentSecret);
-        basket = queryBasket(webTestClient, basketId).getResponseBody();
-        assertThat(basket.isPaid()).isTrue();
-        assertThat(basket.isRedeemed()).isFalse();
+    @Test
+    void reRedeemChangedRequestTest(@Autowired WebTestClient webTestClient) {
+        payBasket(webTestClient, basketId, paymentSecret, HttpStatus.OK);
+        redeemBasket(webTestClient, basketId, "Some Request", 20, redeemSecret, HttpStatus.OK);
 
-        log.info("Redeeming with the wrong redeem value is prohibited");
-        redeemBasket(webTestClient, basketId, "Some Request", basket.getValue() + 1, HttpStatus.BAD_REQUEST, redeemSecret);
-
-        log.info("Payed basket can be redeemed");
-        redeemBasket(webTestClient, basketId, "Some Request", basket.getValue(), HttpStatus.OK, redeemSecret);
-        basket = queryBasket(webTestClient, basketId).getResponseBody();
-        assertThat(basket.isRedeemed()).isTrue();
-
-        log.info("Redeeming with the wrong redeem value is prohibited");
-        redeemBasket(webTestClient, basketId, "Some Request", basket.getValue() + 1, HttpStatus.BAD_REQUEST, redeemSecret);
-
-        log.info("Re-redeeming with the same request works");
-        redeemBasket(webTestClient, basketId, "Some Request", basket.getValue(), HttpStatus.OK, redeemSecret);
-
-        log.info("Re-redeeming with another request is prohibited");
-        redeemBasket(webTestClient, basketId, "Another Request", basket.getValue(), HttpStatus.BAD_REQUEST, redeemSecret);
-
-        log.info("Delete basket");
-        deleteBasket(webTestClient, basketId);
+        redeemBasket(webTestClient, basketId, "Another Request", 20, redeemSecret, HttpStatus.BAD_REQUEST);
     }
 }

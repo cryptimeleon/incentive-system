@@ -142,7 +142,7 @@ public class ClientHelper {
                 .isEqualTo(expectedStatus);
     }
 
-    public static void payBasket(WebTestClient webTestClient, UUID basketId, HttpStatus expectedStatus, String paySecret) {
+    public static void payBasket(WebTestClient webTestClient, UUID basketId, String paySecret, HttpStatus expectedStatus) {
         webTestClient.post()
                 .uri("/basket/pay")
                 .header("pay-secret", paySecret)
@@ -152,7 +152,7 @@ public class ClientHelper {
                 .isEqualTo(expectedStatus);
     }
 
-    static void redeemBasket(WebTestClient webTestClient, RedeemBasketRequest redeemRequest, HttpStatus expectedStatus, String redeemSecret) {
+    static void redeemBasket(WebTestClient webTestClient, RedeemBasketRequest redeemRequest, String redeemSecret, HttpStatus expectedStatus) {
         webTestClient.post()
                 .uri("/basket/redeem")
                 .header("redeem-secret", redeemSecret)
@@ -162,9 +162,9 @@ public class ClientHelper {
                 .isEqualTo(expectedStatus);
     }
 
-    static void redeemBasket(WebTestClient webTestClient, UUID basketId, String request, long value, HttpStatus expectedStatus, String redeemSecret) {
+    static void redeemBasket(WebTestClient webTestClient, UUID basketId, String request, long value, String redeemSecret, HttpStatus expectedStatus) {
         var redeemRequest = new RedeemBasketRequest(basketId, request, value);
-        redeemBasket(webTestClient, redeemRequest, expectedStatus, redeemSecret);
+        redeemBasket(webTestClient, redeemRequest, redeemSecret, expectedStatus);
     }
 
 }
