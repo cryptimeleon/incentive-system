@@ -22,7 +22,7 @@ public class PromotionController {
 
     private final PromotionService promotionService;
 
-    @Value("${provider.shared-secret}")
+    @Value("${incentive-service.provider-secret}")
     private String providerSecret;
 
     /**

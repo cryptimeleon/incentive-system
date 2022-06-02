@@ -39,7 +39,8 @@ public class PromotionTest {
     // Do not use real crypto repository since it automatically queries info service
     @MockBean
     private CryptoRepository cryptoRepository;
-    @Value("${provider.shared-secret}")
+
+    @Value("${incentive-service.provider-secret}")
     private String providerSecret;
 
     @BeforeEach

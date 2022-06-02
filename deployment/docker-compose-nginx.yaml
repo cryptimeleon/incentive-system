@@ -15,8 +15,9 @@ services:
       - "8012:8012"
     environment:
       - SPRING_PROFILES_ACTIVE=production
-      - BASKET_SERVICE_REDEEM_SECRET=${BASKET_REDEEM_SECRET}
       - PROVIDER_SHARED_SECRET=${SHARED_SECRET}
+      - BASKET_SERVICE_REDEEM_SECRET=${BASKET_REDEEM_SECRET}
+      - INCENTIVE_SERVICE_PROVIDER_SECRET=${INCENTIVE_PROVIDER_SECRET}
     networks:
       - provider
     hostname: promotionservice
@@ -31,7 +32,16 @@ services:
     networks:
       - provider
     hostname: basketservice
-networks:
+  bootstrapservice:
+    image: cryptimeleon/incentive-service-bootstrap:0.5.0
+    environment:
+      - SPRING_PROFILES_ACTIVE=production
+      - BASKET_SERVICE_PROVIDER_SECRET=${BASKET_PROVIDER_SECRET}
+      - INCENTIVE_SERVICE_PROVIDER_SECRET=${INCENTIVE_PROVIDER_SECRET}
+    networks:
+      - provider
+basket-service:
+  provider-secret=:networks:
   provider:
     driver: bridge
     ipam:

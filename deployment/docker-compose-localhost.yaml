@@ -25,10 +25,15 @@ services:
     networks:
       - provider
     hostname: basketservice
-
+  bootstrapservice:
+    image: cryptimeleon/incentive-service-bootstrap:0.5.0
+    environment:
+      - BASKET_SERVICE_URL=http://basketservice:8010/
+      - INCENTIVE_SERVICE_URL=http://promotionservice:8012/
+    networks:
+      - provider
 networks:
   provider:
     driver: bridge
     ipam:
       driver: default
-

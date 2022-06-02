@@ -77,7 +77,8 @@ public class PromotionServiceTest {
             "Test Description",
             List.of(testTokenUpdate),
             "Test");
-    @Value("${provider.shared-secret}")
+
+    @Value("${incentive-service.provider-secret}")
     private String providerSecret;
     // Use a MockBean to prevent the CryptoRepository from being created (and trying to connect to the info service)
     @MockBean

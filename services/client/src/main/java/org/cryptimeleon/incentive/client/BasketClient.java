@@ -12,7 +12,7 @@ import java.util.UUID;
  * Client calls for info service.
  * Can be used for testing and prototyping.
  */
-public class BasketClient {
+public class BasketClient implements AliveEndpoint{
 
     /**
      * Webclient configured with the url of the basket service

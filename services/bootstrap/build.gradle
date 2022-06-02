@@ -14,6 +14,8 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
     implementation project(":client") // needed to query public parameters from info service
+
+    implementation 'org.cryptimeleon.incentive:promotion'
 }
 
 test {
