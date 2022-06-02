@@ -25,8 +25,7 @@ public class BasketService {
      * Initialize basket service with some shopping items
      */
     BasketService() {
-        this.rewardItems = new ArrayList<>(Arrays.asList(
-        ));
+        this.rewardItems = new ArrayList<>();
         basketMap = new HashMap<>();
         itemMap = new HashMap<>();
     }

@@ -61,7 +61,7 @@ public class FullWorkflowTest extends IncentiveSystemIntegrationTest {
                 publicParameters.getSpsEq(),
                 publicParameters.getBg().getG1());
         var incentiveSystem = new IncentiveSystem(publicParameters);
-        assertTrue(incentiveClient.addPromotions(List.of(testPromotion), sharedSecret)
+        assertTrue(incentiveClient.addPromotions(List.of(testPromotion), incentiveProviderSecret)
                 .block(Duration.ofSeconds(1))
                 .getStatusCode()
                 .is2xxSuccessful());
