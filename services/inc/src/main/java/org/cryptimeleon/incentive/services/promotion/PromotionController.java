@@ -1,9 +1,10 @@
 package org.cryptimeleon.incentive.services.promotion;
 
 import io.swagger.annotations.ApiOperation;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.TokenUpdateResultsDto;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,10 +17,13 @@ import java.util.UUID;
  * The controller of this service that defines all REST endpoints.
  */
 @RestController
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class PromotionController {
 
-    private PromotionService promotionService;
+    private final PromotionService promotionService;
+
+    @Value("${provider.shared-secret}")
+    private String providerSecret;
 
     /**
      * Endpoint for alive testing etc.
@@ -40,11 +44,23 @@ public class PromotionController {
 
     @PostMapping("/promotions")
     @ApiOperation(value = "Add new Promotions")
-    public void addPromotions(@RequestBody List<String> serializedPromotions) {
-        // TODO authenticated endpoint
+    public ResponseEntity<Void> addPromotions(@RequestHeader("provider-secret") String providerSecretHeader, @RequestBody List<String> serializedPromotions) {
+        if (providerSecretHeader == null || !providerSecretHeader.equals(providerSecret)) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
         promotionService.addPromotions(serializedPromotions);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @DeleteMapping("/promotions")
+    @ApiOperation(value = "Add new Promotions")
+    public ResponseEntity<Void> deleteAllPromotions(@RequestHeader("provider-secret") String providerSecretHeader) {
+        if (providerSecretHeader == null || !providerSecretHeader.equals(providerSecret)) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        promotionService.deleteAllPromotions();
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
 
     @PostMapping("/join-promotion")
     public ResponseEntity<String> joinPromotion(

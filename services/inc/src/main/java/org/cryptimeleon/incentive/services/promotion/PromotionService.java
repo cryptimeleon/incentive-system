@@ -164,7 +164,7 @@ public class PromotionService {
         DeductOutput spendProviderOutput = incentiveSystem.generateSpendRequestResponse(promotion.getPromotionParameters(), spendRequest, new ProviderKeyPair(providerSecretKey, providerPublicKey), tid, spendDeductTree);
         // TODO process provider output
 
-        var result =jsonConverter.serialize(spendProviderOutput.getSpendResponse().getRepresentation());
+        var result = jsonConverter.serialize(spendProviderOutput.getSpendResponse().getRepresentation());
         log.info("SpendResult: " + result);
         tokenUpdateResultRepository.insertZkpTokenUpdateResponse(basketId, promotionId, zkpTokenUpdate.getTokenUpdateId(), result);
 
@@ -176,6 +176,10 @@ public class PromotionService {
             Promotion promotion = new HazelPromotion(jsonConverter.deserialize(serializedPromotion));
             promotionRepository.addPromotion(promotion);
         }
+    }
+
+    public void deleteAllPromotions() {
+        promotionRepository.deleteAllPromotions();
     }
 
     public void handleBulk(UUID basketId, BulkRequestDto bulkRequestDto) {

@@ -128,4 +128,8 @@ public class PromotionRepository {
             throw new IncentiveServiceException("PromotionId already used!");
         }
     }
+
+    public void deleteAllPromotions() {
+        promotions.clear();
+    }
 }
