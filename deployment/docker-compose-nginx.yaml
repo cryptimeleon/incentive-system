@@ -39,6 +39,9 @@ services:
       - SPRING_PROFILES_ACTIVE=production
       - BASKET_SERVICE_PROVIDER_SECRET=${BASKET_PROVIDER_SECRET}
       - INCENTIVE_SERVICE_PROVIDER_SECRET=${INCENTIVE_PROVIDER_SECRET}
+    depends_on:
+      - basketservice
+      - promotionservice
     networks:
       - provider
 networks:
