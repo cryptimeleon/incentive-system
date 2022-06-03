@@ -165,7 +165,7 @@ public class PromotionServiceTest {
         addPromotion(webClient, testPromotion, providerSecret, HttpStatus.OK);
         Token token = joinPromotion(webClient, incentiveSystem, pkp, ukp, testPromotion, HttpStatus.OK);
 
-        var earnRequest = generateAndSendEarnRequest(webClient,
+        generateAndSendEarnRequest(webClient,
                 incentiveSystem,
                 pkp,
                 ukp,
@@ -207,6 +207,31 @@ public class PromotionServiceTest {
         SpendRequest spendRequest = sendSingleSpendRequest(webTestClient, basketPoints, pointsAfterSpend, token, HttpStatus.OK);
         when(basketRepository.isBasketPayed(emptyTestBasket.getBasketId())).thenReturn(true);
         retrieveTokenAfterSpend(webTestClient, token, pointsAfterSpend, spendRequest);
+    }
+
+    @Test
+    void spendWithoutPaymentTest(@Autowired WebTestClient webTestClient) {
+        addPromotion(webTestClient, testPromotion, providerSecret, HttpStatus.OK);
+        var tokenPoints = Vector.of(BigInteger.valueOf(35));
+        var basketPoints = Vector.of(BigInteger.valueOf(0));
+        var pointsAfterSpend = testTokenUpdate.computeSatisfyingNewPointsVector(tokenPoints, basketPoints).orElseThrow();
+        var token = Helper.generateToken(
+                pp,
+                ukp,
+                pkp,
+                testPromotion.getPromotionParameters(),
+                tokenPoints
+        );
+
+        sendSingleSpendRequest(webTestClient, basketPoints, pointsAfterSpend, token, HttpStatus.OK);
+
+        // Not payed yet
+        webTestClient.post()
+                .uri(uriBuilder -> uriBuilder.path("/bulk-token-update-results").build())
+                .header("basket-id", String.valueOf(emptyTestBasket.getBasketId()))
+                .exchange()
+                .expectStatus()
+                .isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test

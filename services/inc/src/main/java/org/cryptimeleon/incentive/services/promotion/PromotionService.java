@@ -208,7 +208,7 @@ public class PromotionService {
 
     public TokenUpdateResultsDto retrieveBulkResults(UUID basketId) {
         if (!basketRepository.isBasketPayed(basketId)) {
-            throw new RuntimeException("Basket not payed");
+            throw new BasketNotPayedException();
         }
         var results = tokenUpdateResultRepository.getUpdateResults(basketId).values();
         log.info(String.valueOf(results));
