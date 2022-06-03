@@ -1,5 +1,6 @@
 package org.cryptimeleon.incentive.services.basket;
 
+import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.incentive.services.basket.exceptions.*;
 import org.cryptimeleon.incentive.services.basket.model.Basket;
 import org.cryptimeleon.incentive.services.basket.model.Item;
@@ -20,6 +21,7 @@ import java.util.UUID;
 /**
  * A REST controller that defines and handles all requests of the basket server.
  */
+@Slf4j
 @RestController
 public class BasketController {
 
@@ -35,10 +37,8 @@ public class BasketController {
     private String providerSecret;
 
 
-    public BasketController(BasketService basketService, @Value("${basket-service.pay-secret}") String paymentSecret, @Value("${basket-service.redeem-secret}") String redeemSecret) {
+    public BasketController(BasketService basketService) {
         this.basketService = basketService;
-        this.paymentSecret = paymentSecret;
-        this.redeemSecret = redeemSecret;
     }
 
     /**
@@ -51,6 +51,9 @@ public class BasketController {
         }
         if (redeemSecret.equals("")) {
             throw new IllegalArgumentException("Redeem secret is not set!");
+        }
+        if (providerSecret.equals("")) {
+            throw new IllegalArgumentException("Basket provider secret is not set!");
         }
     }
 

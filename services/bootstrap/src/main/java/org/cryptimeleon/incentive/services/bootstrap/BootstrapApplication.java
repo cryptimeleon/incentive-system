@@ -201,12 +201,12 @@ public class BootstrapApplication {
         return args -> {
             waitForBasketServiceOrThrow(basketClient);
             for (BasketItemDto item : defaultItems) {
-                System.out.println("adding " + item);
+                log.info("adding " + item);
                 basketClient.newBasketItem(item, basketServiceProviderSecret).block();
             }
 
             for (RewardItemDto rewardItem : rewardItems) {
-                System.out.println("adding " + rewardItem);
+                log.info("adding " + rewardItem);
                 basketClient.newRewardItem(rewardItem, basketServiceProviderSecret).block();
             }
 

@@ -29,6 +29,7 @@ services:
       - SPRING_PROFILES_ACTIVE=production
       - BASKET_SERVICE_REDEEM_SECRET=${BASKET_REDEEM_SECRET}
       - BASKET_SERVICE_PAY_SECRET=${BASKET_PAY_SECRET}
+      - BASKET_SERVICE_PROVIDER_SECRET=${BASKET_PROVIDER_SECRET}
     networks:
       - provider
     hostname: basketservice
@@ -40,8 +41,7 @@ services:
       - INCENTIVE_SERVICE_PROVIDER_SECRET=${INCENTIVE_PROVIDER_SECRET}
     networks:
       - provider
-basket-service:
-  provider-secret=:networks:
+networks:
   provider:
     driver: bridge
     ipam:
