@@ -138,79 +138,82 @@ class PayAndRedeemUseCase(
 
             Timber.i("Send requests")
             emit(PayAndRedeemState.SEND_REQUESTS)
-            cryptoRepository.sendTokenUpdatesBatch(
-                basketId, BulkRequestDto(
-                    earnUpdateRequestPairs.map { it.first },
-                    spendUpdateRequestPairs.map { it.first }
+            if (earnUpdateRequestPairs.isNotEmpty() || spendUpdateRequestPairs.isNotEmpty()) {
+                cryptoRepository.sendTokenUpdatesBatch(
+                    basketId, BulkRequestDto(
+                        earnUpdateRequestPairs.map { it.first },
+                        spendUpdateRequestPairs.map { it.first }
+                    )
                 )
-            )
+            }
 
             Timber.i("Pay basket")
             emit(PayAndRedeemState.PAY)
             basketRepository.payCurrentBasket()
 
+            // Process results / updates tokens
+            if (earnUpdateRequestPairs.isNotEmpty() || spendUpdateRequestPairs.isNotEmpty()) {
+                Timber.i("Retrieve responses")
+                emit(PayAndRedeemState.RETRIEVE_RESPONSES)
+                val updateResults = cryptoRepository.retrieveTokenUpdatesResults(basketId)
+                val pp = incentiveSystem.pp
 
-            Timber.i("Retrieve responses")
-            emit(PayAndRedeemState.RETRIEVE_RESPONSES)
-            val updateResults = cryptoRepository.retrieveTokenUpdatesResults(basketId)
-            val pp = incentiveSystem.pp
+                Timber.i("Update tokens")
+                emit(PayAndRedeemState.UPDATE_TOKENS)
 
-            Timber.i("Update tokens")
-            emit(PayAndRedeemState.UPDATE_TOKENS)
+                Timber.i("Earn updates")
+                updateResults.earnTokenUpdateResultDtoList.forEach { it ->
+                    val promotion =
+                        promotionParameters.find { promotion -> promotion.promotionParameters.promotionId == it.promotionId }!!
+                    Timber.i("Earn for promotion ${promotion.promotionParameters.promotionId}")
+                    val cache: EarnCache =
+                        earnUpdateRequestPairs.find { pair -> pair.second.promotionId == it.promotionId }!!.second
+                    val earnAmount = promotion.computeEarningsForBasket(basket.toPromotionBasket())
 
-            Timber.i("Earn updates")
-            updateResults.earnTokenUpdateResultDtoList.forEach { it ->
-                val promotion =
-                    promotionParameters.find { promotion -> promotion.promotionParameters.promotionId == it.promotionId }!!
-                Timber.i("Earn for promotion ${promotion.promotionParameters.promotionId}")
-                val cache: EarnCache =
-                    earnUpdateRequestPairs.find { pair -> pair.second.promotionId == it.promotionId }!!.second
-                val earnAmount = promotion.computeEarningsForBasket(basket.toPromotionBasket())
+                    val updatedToken = incentiveSystem.handleEarnRequestResponse(
+                        promotion.promotionParameters,
+                        cache.earnRequest,
+                        SPSEQSignature(
+                            jsonConverter.deserialize(it.serializedEarnResponse),
+                            pp.bg.g1,
+                            pp.bg.g2
+                        ),
+                        earnAmount,
+                        cache.token,
+                        cryptoMaterial.ppk,
+                        cryptoMaterial.ukp
+                    )
 
-                val updatedToken = incentiveSystem.handleEarnRequestResponse(
-                    promotion.promotionParameters,
-                    cache.earnRequest,
-                    SPSEQSignature(
-                        jsonConverter.deserialize(it.serializedEarnResponse),
-                        pp.bg.g1,
-                        pp.bg.g2
-                    ),
-                    earnAmount,
-                    cache.token,
-                    cryptoMaterial.ppk,
-                    cryptoMaterial.ukp
-                )
+                    cryptoRepository.putToken(promotion.promotionParameters, updatedToken)
+                }
+                Timber.i("Finished all earn-updates")
 
-                cryptoRepository.putToken(promotion.promotionParameters, updatedToken)
+                Timber.i("Spend updates")
+                updateResults.zkpTokenUpdateResultDtoList.forEach {
+                    val promotion =
+                        promotionParameters.find { promotion -> promotion.promotionParameters.promotionId == it.promotionId }!!
+                    Timber.i("Spend for promotion ${promotion.promotionParameters.promotionId}")
+
+                    val cache =
+                        spendUpdateRequestPairs.find { pair -> pair.second.promotionId == it.promotionId }!!.second
+
+                    val updatedToken = incentiveSystem.handleSpendRequestResponse(
+                        promotion.promotionParameters,
+                        SpendResponse(
+                            jsonConverter.deserialize(it.serializedResponse),
+                            pp.bg.zn,
+                            pp.spsEq
+                        ),
+                        cache.zkpRequest,
+                        cache.token,
+                        cache.newPointsVector,
+                        cryptoMaterial.ppk,
+                        cryptoMaterial.ukp
+                    )
+
+                    cryptoRepository.putToken(promotion.promotionParameters, updatedToken)
+                }
             }
-            Timber.i("Finished all earn-updates")
-
-            Timber.i("Spend updates")
-            updateResults.zkpTokenUpdateResultDtoList.forEach {
-                val promotion =
-                    promotionParameters.find { promotion -> promotion.promotionParameters.promotionId == it.promotionId }!!
-                Timber.i("Spend for promotion ${promotion.promotionParameters.promotionId}")
-
-                val cache =
-                    spendUpdateRequestPairs.find { pair -> pair.second.promotionId == it.promotionId }!!.second
-
-                val updatedToken = incentiveSystem.handleSpendRequestResponse(
-                    promotion.promotionParameters,
-                    SpendResponse(
-                        jsonConverter.deserialize(it.serializedResponse),
-                        pp.bg.zn,
-                        pp.spsEq
-                    ),
-                    cache.zkpRequest,
-                    cache.token,
-                    cache.newPointsVector,
-                    cryptoMaterial.ppk,
-                    cryptoMaterial.ukp
-                )
-
-                cryptoRepository.putToken(promotion.promotionParameters, updatedToken)
-            }
-
 
             Timber.i("Delete basket")
             basketRepository.discardCurrentBasket(true)

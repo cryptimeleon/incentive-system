@@ -63,7 +63,7 @@ class CheckoutViewModel @Inject constructor(
                 CheckoutState(
                     promotionStates = checkoutPromotionStates,
                     basketState = BasketState(
-                        "${basket.value}",
+                        formatCents(basket.value),
                         basket.basketId.toString(),
                         basket.items.map { item ->
                             BasketItem(
