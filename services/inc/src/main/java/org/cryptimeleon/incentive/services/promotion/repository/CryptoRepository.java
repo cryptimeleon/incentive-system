@@ -61,6 +61,7 @@ public class CryptoRepository {
         if (sharedSecret.equals("")) {
             throw new IllegalArgumentException("Provider shared secret is not set!");
         }
+        log.info("shared secret: {}", sharedSecret);
         init();
     }
 

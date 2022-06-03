@@ -199,6 +199,19 @@ public class BootstrapApplication {
     @Bean
     public CommandLineRunner run(BasketClient basketClient, IncentiveClient incentiveClient) {
         return args -> {
+            if (basketServiceProviderSecret.equals("")) {
+                log.error("basketServiceProviderSecret is empty!");
+                throw new RuntimeException();
+            }
+
+            if (promotionServiceProviderSecret.equals("")) {
+                log.error("promotionServiceProviderSecret is empty!");
+                throw new RuntimeException();
+            }
+
+            log.info("Basket service provider secret: {}", basketServiceProviderSecret);
+            log.info("Promotion service provider secret: {}", promotionServiceProviderSecret);
+
             waitForBasketServiceOrThrow(basketClient);
             for (BasketItemDto item : defaultItems) {
                 log.info("adding " + item);

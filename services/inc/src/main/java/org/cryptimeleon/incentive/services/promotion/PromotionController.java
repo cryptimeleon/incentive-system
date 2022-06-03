@@ -2,6 +2,7 @@ package org.cryptimeleon.incentive.services.promotion;
 
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.TokenUpdateResultsDto;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.PostConstruct;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.UUID;
@@ -16,6 +18,7 @@ import java.util.UUID;
 /**
  * The controller of this service that defines all REST endpoints.
  */
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 public class PromotionController {
@@ -25,6 +28,14 @@ public class PromotionController {
     @Value("${incentive-service.provider-secret}")
     private String providerSecret;
 
+    @PostConstruct
+    public void validateValue() {
+        if (providerSecret.equals("")) {
+            throw new IllegalArgumentException("Basket provider secret is not set!");
+        }
+
+        log.info("Provider secret: {}", providerSecret);
+    }
     /**
      * Endpoint for alive testing etc.
      */
