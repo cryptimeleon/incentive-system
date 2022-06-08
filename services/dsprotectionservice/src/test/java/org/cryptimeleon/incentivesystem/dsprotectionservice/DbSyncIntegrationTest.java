@@ -105,12 +105,14 @@ public class DbSyncIntegrationTest {
      * Syncing transactions into the DB, some of which spend the same token.
      * This should be detected as a double-spending attempt and result in cascading invalidations of transactions.
      * We use the graph from section 6 of the 2019 Updatable Anonymous Credentials paper for testing.
-     * <p>
+     *
      * Double-spending IDs dsid4 and dsid5 are computed during the double-spending detection.
      * This comes from the fact that until double-spending behaviour is detected,
      * it is actually not interesting which transaction produced which token.
+     *
+     * The PRFtoZn images hashedClaim that are used
      */
-    // @Test // TODO see https://github.com/cryptimeleon/incentive-system/issues/75
+    @Test
     void cascadingInvalidationsTest() {
         logger.info("Starting cascading invalidations test.");
 
@@ -157,7 +159,7 @@ public class DbSyncIntegrationTest {
                 pkp,
                 ukp,
                 new Vector<>(new BigInteger("9")), // initial token holds 10 points, we spend one in every transaction
-                incSys.getPp().getBg().getZn().getUniformlyRandomElement(),
+                incSys.getPp().getBg().getZn().getUniformlyRandomElement(), // random transaction ID
                 legacyZkpTree
         );
 
@@ -168,7 +170,7 @@ public class DbSyncIntegrationTest {
                 pkp,
                 ukp,
                 new Vector<>(new BigInteger("9")), // initial token holds 10 points, we spend one in every transaction
-                incSys.getPp().getBg().getZn().getUniformlyRandomElement(),
+                incSys.getPp().getBg().getZn().getUniformlyRandomElement(), // random transaction ID
                 legacyZkpTree
         );
 
@@ -179,7 +181,7 @@ public class DbSyncIntegrationTest {
                 pkp,
                 ukp,
                 new Vector<>(new BigInteger("8")), // initial token holds 10 points, we spend one in every transaction
-                incSys.getPp().getBg().getZn().getUniformlyRandomElement(),
+                incSys.getPp().getBg().getZn().getUniformlyRandomElement(), // random transaction ID
                 legacyZkpTree
         );
 
@@ -190,7 +192,7 @@ public class DbSyncIntegrationTest {
                 pkp,
                 ukp,
                 new Vector<>(new BigInteger("8")), // initial token holds 10 points, we spend one in every transaction
-                incSys.getPp().getBg().getZn().getUniformlyRandomElement(),
+                incSys.getPp().getBg().getZn().getUniformlyRandomElement(), // random transaction ID
                 legacyZkpTree
         );
 
@@ -201,7 +203,7 @@ public class DbSyncIntegrationTest {
                 pkp,
                 ukp,
                 new Vector<>(new BigInteger("7")), // initial token holds 10 points, we spend one in every transaction
-                incSys.getPp().getBg().getZn().getUniformlyRandomElement(),
+                incSys.getPp().getBg().getZn().getUniformlyRandomElement(), // random transaction ID
                 legacyZkpTree
         );
 
