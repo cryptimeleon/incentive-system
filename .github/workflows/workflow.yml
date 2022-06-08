@@ -10,7 +10,7 @@ defaults:
     shell: bash
 
 jobs:
-  build:
+  build-and-integration-test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout this repo
