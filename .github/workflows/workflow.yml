@@ -56,8 +56,10 @@ jobs:
   build-web:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - run: |
+      - name: Checkout this repo
+        uses: actions/checkout@v2
+      - name: Build vue project
+        run: |
           pushd web
           npm ci
           npm run build
