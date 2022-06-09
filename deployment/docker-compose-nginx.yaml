@@ -48,8 +48,6 @@ services:
     image: cryptimeleon/incentive-system-web:0.5.0
     ports:
       - "8080:80"
-    environment:
-      - NODE_ENV='production'
 networks:
   provider:
     driver: bridge
