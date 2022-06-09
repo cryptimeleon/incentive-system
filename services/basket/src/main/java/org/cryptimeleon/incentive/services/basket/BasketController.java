@@ -1,8 +1,10 @@
 package org.cryptimeleon.incentive.services.basket;
 
+import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.incentive.services.basket.exceptions.*;
 import org.cryptimeleon.incentive.services.basket.model.Basket;
 import org.cryptimeleon.incentive.services.basket.model.Item;
+import org.cryptimeleon.incentive.services.basket.model.RewardItem;
 import org.cryptimeleon.incentive.services.basket.model.requests.PutItemRequest;
 import org.cryptimeleon.incentive.services.basket.model.requests.RedeemBasketRequest;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,12 +14,14 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.annotation.PostConstruct;
+import java.util.List;
 import java.util.UUID;
 
 
 /**
  * A REST controller that defines and handles all requests of the basket server.
  */
+@Slf4j
 @RestController
 public class BasketController {
 
@@ -29,10 +33,12 @@ public class BasketController {
     @Value("${basket-service.redeem-secret}")
     private String redeemSecret;
 
-    public BasketController(BasketService basketService, @Value("${basket-service.pay-secret}") String paymentSecret, @Value("${basket-service.redeem-secret}") String redeemSecret) {
+    @Value("${basket-service.provider-secret}")
+    private String providerSecret;
+
+
+    public BasketController(BasketService basketService) {
         this.basketService = basketService;
-        this.paymentSecret = paymentSecret;
-        this.redeemSecret = redeemSecret;
     }
 
     /**
@@ -46,6 +52,13 @@ public class BasketController {
         if (redeemSecret.equals("")) {
             throw new IllegalArgumentException("Redeem secret is not set!");
         }
+        if (providerSecret.equals("")) {
+            throw new IllegalArgumentException("Basket provider secret is not set!");
+        }
+
+        log.info("Payment secret: {}", paymentSecret);
+        log.info("Redeem secret: {}", redeemSecret);
+        log.info("Provider secret: {}", providerSecret);
     }
 
     /**
@@ -65,6 +78,24 @@ public class BasketController {
         return basketService.getItems();
     }
 
+    @PostMapping("/items")
+    ResponseEntity<Void> newItem(@RequestHeader("provider-secret") String providerSecretHeader, @RequestBody Item item) {
+        if (providerSecretHeader == null || !providerSecretHeader.equals(providerSecret)) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        basketService.save(item);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @DeleteMapping("/items")
+    ResponseEntity<Void> deleteAllItems(@RequestHeader("provider-secret") String providerSecretHeader) {
+        if (providerSecretHeader == null || !providerSecretHeader.equals(providerSecret)) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        basketService.deleteAllItems();
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
     /**
      * Query shopping item by id, e.g. EAN13
      */
@@ -75,6 +106,32 @@ public class BasketController {
             return new ResponseEntity<>(item, HttpStatus.OK);
         }
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    /**
+     * Query all shopping items that can be purchased
+     */
+    @GetMapping("/reward-items")
+    RewardItem[] getAllRewardItems() {
+        return basketService.getRewardItems();
+    }
+
+    @PostMapping("/reward-items")
+    ResponseEntity<Void> newRewardItem(@RequestHeader("provider-secret") String providerSecretHeader, @RequestBody RewardItem rewardItem) {
+        if (providerSecretHeader == null || !providerSecretHeader.equals(providerSecret)) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        basketService.save(rewardItem);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @DeleteMapping("/reward-items")
+    ResponseEntity<Void> deleteAllRewardItems(@RequestHeader("provider-secret") String providerSecretHeader) {
+        if (providerSecretHeader == null || !providerSecretHeader.equals(providerSecret)) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        basketService.deleteAllRewardItems();
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     /**
@@ -128,7 +185,7 @@ public class BasketController {
 
     /**
      * Sets a basket to paid.
-     * TODO add hashcode for integrity? At which state was the basket payed? (Avoid race condition between payment add adding 'free' items to basket.
+     * TODO add hashcode for integrity? At which state was the basket paid? (Avoid race condition between payment add adding 'free' items to basket.
      */
     @PostMapping("/basket/pay")
     void payBasket(@RequestHeader("pay-secret") String clientPaySecret, @RequestHeader("basket-id") UUID basketId) throws BasketServiceException {
@@ -164,6 +221,20 @@ public class BasketController {
             throw new BasketUnauthorizedException("You are not authorized to access '/basket/redeem'!");
         }
         basketService.redeemBasket(redeemRequest.getBasketId(), redeemRequest.getRedeemRequest(), redeemRequest.getValue());
+    }
+
+    /**
+     * Put rewards to basket
+     *
+     * @param clientRedeemSecret clients need this secret to authenticate themselves. Prohibit users from adding secrets
+     * @param rewardIds          list of the ids of all rewards to add
+     */
+    @PostMapping("/basket/rewards")
+    void addRewardsToBasket(@RequestHeader("redeem-secret") String clientRedeemSecret, @RequestHeader("basket-id") UUID basketId, @RequestBody List<String> rewardIds) throws BasketServiceException {
+        if (!clientRedeemSecret.equals(redeemSecret)) {
+            throw new BasketUnauthorizedException("You are not authorized to access '/basket/redeem'!");
+        }
+        basketService.addRewardsToBasket(basketId, rewardIds);
     }
 
     /*

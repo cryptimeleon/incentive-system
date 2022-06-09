@@ -36,6 +36,10 @@ public class ProviderPublicKey implements Representable {
                 .deserialize(repr);
     }
 
+    public ProviderPublicKey(Representation repr, IncentivePublicParameters pp) {
+        this(repr, pp.getSpsEq(), pp.getBg().getG1());
+    }
+
     /**
      * Returns the full vector H of group elements which form the base for commitments. Length depends on promotion
      * parameters, since tokens can store a different number of points.

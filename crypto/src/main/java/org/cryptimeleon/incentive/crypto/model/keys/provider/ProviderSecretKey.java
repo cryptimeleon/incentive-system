@@ -5,6 +5,7 @@ import lombok.experimental.NonFinal;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignatureScheme;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSigningKey;
 import org.cryptimeleon.incentive.crypto.Setup;
+import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.math.prf.PrfKey;
 import org.cryptimeleon.math.prf.zn.HashThenPrfToZn;
@@ -41,6 +42,10 @@ public class ProviderSecretKey implements Representable {
                 .register(zn, "Zn")
                 .register(prfToZn.getLongAesPseudoRandomFunction()::restoreKey, "longAes")
                 .deserialize(repr);
+    }
+
+    public ProviderSecretKey(Representation repr, IncentivePublicParameters pp) {
+        this(repr, pp.getSpsEq(), pp.getBg().getZn(), pp.getPrfToZn());
     }
 
     /**

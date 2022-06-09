@@ -2,6 +2,7 @@ package org.cryptimeleon.incentive.services.basket;
 
 import org.cryptimeleon.incentive.services.basket.model.Basket;
 import org.cryptimeleon.incentive.services.basket.model.Item;
+import org.cryptimeleon.incentive.services.basket.model.RewardItem;
 import org.cryptimeleon.incentive.services.basket.model.requests.PutItemRequest;
 import org.cryptimeleon.incentive.services.basket.model.requests.RedeemBasketRequest;
 import org.springframework.http.HttpStatus;
@@ -9,6 +10,7 @@ import org.springframework.test.web.reactive.server.EntityExchangeResult;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
 
+import java.util.List;
 import java.util.UUID;
 
 public class ClientHelper {
@@ -46,6 +48,25 @@ public class ClientHelper {
                 .isEqualTo(HttpStatus.NO_CONTENT);
     }
 
+    public static void newItem(WebTestClient webTestClient, Item item, String providerSecret, HttpStatus expectedStatus) {
+        webTestClient.post()
+                .uri("/items")
+                .header("provider-secret", providerSecret)
+                .body(BodyInserters.fromValue(item))
+                .exchange()
+                .expectStatus()
+                .isEqualTo(expectedStatus);
+    }
+
+    public static void deleteAllItems(WebTestClient webTestClient, String providerSecret, HttpStatus expectedStatus) {
+        webTestClient.delete()
+                .uri("/items")
+                .header("provider-secret", providerSecret)
+                .exchange()
+                .expectStatus()
+                .isEqualTo(expectedStatus);
+    }
+
     public static EntityExchangeResult<Item[]> getItems(WebTestClient webTestClient) {
         return webTestClient.get()
                 .uri("/items")
@@ -54,6 +75,35 @@ public class ClientHelper {
                 .isOk()
                 .expectBody(Item[].class)
                 .returnResult();
+    }
+
+    public static void newRewardItem(WebTestClient webTestClient, RewardItem rewardItem, String providerSecret, HttpStatus expectedStatus) {
+        webTestClient.post()
+                .uri("/reward-items")
+                .header("provider-secret", providerSecret)
+                .body(BodyInserters.fromValue(rewardItem))
+                .exchange()
+                .expectStatus()
+                .isEqualTo(expectedStatus);
+    }
+
+    public static EntityExchangeResult<RewardItem[]> getRewards(WebTestClient webTestClient) {
+        return webTestClient.get()
+                .uri("/reward-items")
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody(RewardItem[].class)
+                .returnResult();
+    }
+
+    public static void deleteAllRewardItems(WebTestClient webTestClient, String providerSecret, HttpStatus expectedStatus) {
+        webTestClient.delete()
+                .uri("/reward-items")
+                .header("provider-secret", providerSecret)
+                .exchange()
+                .expectStatus()
+                .isEqualTo(expectedStatus);
     }
 
     public static void putItem(WebTestClient webTestClient, UUID basketId, String itemId, int count, HttpStatus expectedStatus) {
@@ -70,6 +120,17 @@ public class ClientHelper {
                 .isEqualTo(expectedStatus);
     }
 
+    static void postRewards(WebTestClient webTestClient, String redeemSecret, UUID basketId, List<String> rewardIds, HttpStatus expectedStatus) {
+        webTestClient.post()
+                .uri("/basket/rewards")
+                .header("redeem-secret", redeemSecret)
+                .header("basket-id", basketId.toString())
+                .body(BodyInserters.fromValue(rewardIds))
+                .exchange()
+                .expectStatus()
+                .isEqualTo(expectedStatus);
+    }
+
     static void deleteBasketItem(WebTestClient webTestClient, UUID basketId, String itemId, HttpStatus expectedStatus) {
         webTestClient.delete()
                 .uri(uriBuilder -> uriBuilder.path("/basket/items")
@@ -81,7 +142,7 @@ public class ClientHelper {
                 .isEqualTo(expectedStatus);
     }
 
-    public static void payBasket(WebTestClient webTestClient, UUID basketId, HttpStatus expectedStatus, String paySecret) {
+    public static void payBasket(WebTestClient webTestClient, UUID basketId, String paySecret, HttpStatus expectedStatus) {
         webTestClient.post()
                 .uri("/basket/pay")
                 .header("pay-secret", paySecret)
@@ -91,7 +152,7 @@ public class ClientHelper {
                 .isEqualTo(expectedStatus);
     }
 
-    static void redeemBasket(WebTestClient webTestClient, RedeemBasketRequest redeemRequest, HttpStatus expectedStatus, String redeemSecret) {
+    static void redeemBasket(WebTestClient webTestClient, RedeemBasketRequest redeemRequest, String redeemSecret, HttpStatus expectedStatus) {
         webTestClient.post()
                 .uri("/basket/redeem")
                 .header("redeem-secret", redeemSecret)
@@ -101,8 +162,9 @@ public class ClientHelper {
                 .isEqualTo(expectedStatus);
     }
 
-    static void redeemBasket(WebTestClient webTestClient, UUID basketId, String request, long value, HttpStatus expectedStatus, String redeemSecret) {
+    static void redeemBasket(WebTestClient webTestClient, UUID basketId, String request, long value, String redeemSecret, HttpStatus expectedStatus) {
         var redeemRequest = new RedeemBasketRequest(basketId, request, value);
-        redeemBasket(webTestClient, redeemRequest, expectedStatus, redeemSecret);
+        redeemBasket(webTestClient, redeemRequest, redeemSecret, expectedStatus);
     }
+
 }

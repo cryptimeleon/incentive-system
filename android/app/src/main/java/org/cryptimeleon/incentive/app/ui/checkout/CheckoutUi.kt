@@ -197,9 +197,9 @@ private val previewCheckoutState = CheckoutState(
         "25,00€",
         UUID.randomUUID().toString(),
         listOf(
-            BasketItem("Nutella", 2, "1,99€", "3,98 €"),
+            BasketItem("Nutella", 2, "1,99€", "3,98€"),
             BasketItem(
-                "Apple", 5, "0,25€", "1,25 €"
+                "Apple", 5, "0,25€", "1,25€"
             )
         )
     )

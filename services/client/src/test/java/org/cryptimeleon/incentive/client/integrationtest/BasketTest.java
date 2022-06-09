@@ -58,7 +58,7 @@ public class BasketTest extends IncentiveSystemIntegrationTest {
 
         basketClient.payBasket(basketId, basket.getValue(), paymentSecret).block();
 
-        log.info("Payed basket can be redeemed");
+        log.info("Paid basket can be redeemed");
         basketClient.redeemBasket(redeemRequest, redeemSecret).block();
         basket = basketClient.getBasket(basketId).block();
         assertThat(basket.isRedeemed()).isTrue();

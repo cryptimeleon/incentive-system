@@ -7,4 +7,5 @@ include ':client'
 include ':info'
 include ':inc'
 include ':dsprotectionservice'
+include ':bootstrap'
 

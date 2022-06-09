@@ -34,7 +34,11 @@ class FakeCryptoRepository(
     override suspend fun runIssueJoin(promotionParameters: PromotionParameters, dummy: Boolean) {
         if (!dummy) {
             val incentiveSystem = IncentiveSystem(pp)
-            val joinRequest = incentiveSystem.generateJoinRequest(providerKeyPair.pk, userKeyPair, promotionParameters)
+            val joinRequest = incentiveSystem.generateJoinRequest(
+                providerKeyPair.pk,
+                userKeyPair,
+                promotionParameters
+            )
             val joinResponse = incentiveSystem.generateJoinRequestResponse(
                 promotionParameters,
                 providerKeyPair,

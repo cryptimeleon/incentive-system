@@ -26,6 +26,12 @@ public abstract class IncentiveSystemIntegrationTest {
     @Value("${basket-service.pay-secret}")
     String paySecret;
 
+    @Value("${basket-service.provider-secret}")
+    String basketProviderSecret;
+
     @Value("${provider.shared-secret}")
     String sharedSecret;
+
+    @Value("${incentive-service.provider-secret}")
+    String incentiveProviderSecret;
 }

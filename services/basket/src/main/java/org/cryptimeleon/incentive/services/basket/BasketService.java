@@ -4,11 +4,10 @@ import org.cryptimeleon.incentive.services.basket.exceptions.*;
 import org.cryptimeleon.incentive.services.basket.model.Basket;
 import org.cryptimeleon.incentive.services.basket.model.BasketItem;
 import org.cryptimeleon.incentive.services.basket.model.Item;
+import org.cryptimeleon.incentive.services.basket.model.RewardItem;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -19,46 +18,51 @@ import java.util.stream.Stream;
 public class BasketService {
 
     private final HashMap<UUID, Basket> basketMap;
-    private final ArrayList<Item> items;
+    private final List<RewardItem> rewardItems;
     private final Map<String, Item> itemMap;
 
     /**
      * Initialize basket service with some shopping items
      */
     BasketService() {
+        this.rewardItems = new ArrayList<>();
         basketMap = new HashMap<>();
-        items = new ArrayList<>(
-                Arrays.asList(
-                        new Item(
-                                "3941288190038",
-                                "Sweetened hazelnut cocoa spread",
-                                199),
-                        new Item(
-                                "1022525418053",
-                                "Tomato",
-                                30),
-                        new Item(
-                                "4621006331880",
-                                "Apple",
-                                50),
-                        new Item(
-                                "4536852654932",
-                                "Peach",
-                                30),
-                        new Item(
-                                "2936746557615",
-                                "Potatoes",
-                                150),
-                        new Item(
-                                "0680818152421",
-                                "Mango",
-                                90)
-                ));
-        itemMap = items.stream().collect(Collectors.toMap(Item::getId, Function.identity()));
+        itemMap = new HashMap<>();
     }
 
     public Item[] getItems() {
-        return items.toArray(new Item[0]);
+        return itemMap.values().toArray(new Item[0]);
+    }
+
+    private boolean hasItem(String itemId) {
+        return itemMap.containsKey(itemId);
+    }
+
+    public Item getItem(String id) {
+        return itemMap.get(id);
+    }
+
+    public void save(Item item) {
+        itemMap.put(item.getId(), item);
+        System.out.println(itemMap.containsKey(item.getId()));
+    }
+
+    public void deleteAllItems() {
+        itemMap.clear();
+    }
+
+    public RewardItem[] getRewardItems() {
+        return rewardItems.toArray(new RewardItem[0]);
+    }
+
+    public void deleteAllRewardItems() {
+        rewardItems.clear();
+    }
+
+    public void save(RewardItem rewardItem) {
+        if (!rewardItems.contains(rewardItem)) {
+            rewardItems.add(rewardItem);
+        }
     }
 
     public UUID createNewBasket() {
@@ -75,6 +79,14 @@ public class BasketService {
 
     public void removeBasketWithId(UUID basketId) {
         basketMap.remove(basketId);
+    }
+
+    public void addRewardsToBasket(UUID basketId, List<String> rewardItemIds) throws BasketServiceException {
+        var basket = getBasketById(basketId);
+
+        if (isBasketImmutable(basket)) throw new BasketPaidException();
+
+        basket.setRewardItems(rewardItemIds);
     }
 
     public void setItemInBasket(UUID basketId, String itemId, int count) throws BasketServiceException {
@@ -142,14 +154,6 @@ public class BasketService {
                 .entrySet()
                 .stream()
                 .map((e) -> new BasketItem(itemMap.get(e.getKey()), e.getValue()));
-    }
-
-    private boolean hasItem(String itemId) {
-        return itemMap.containsKey(itemId);
-    }
-
-    public Item getItem(String id) {
-        return itemMap.get(id);
     }
 }
 

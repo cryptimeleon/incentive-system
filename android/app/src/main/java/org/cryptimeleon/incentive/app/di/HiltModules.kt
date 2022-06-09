@@ -64,11 +64,12 @@ class HiltApiModule {
     @Singleton
     @Provides
     fun provideCryptoApiService(): CryptoApiService {
-        val okHttpClient = OkHttpClient.Builder() // Increase timeouts for batch proofs during development
-            .connectTimeout(1, TimeUnit.MINUTES)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .writeTimeout(15, TimeUnit.SECONDS)
-            .build()
+        val okHttpClient =
+            OkHttpClient.Builder() // Increase timeouts for batch proofs during development
+                .connectTimeout(1, TimeUnit.MINUTES)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .writeTimeout(15, TimeUnit.SECONDS)
+                .build()
         return Retrofit.Builder()
             .client(okHttpClient)
             .addConverterFactory(ScalarsConverterFactory.create())

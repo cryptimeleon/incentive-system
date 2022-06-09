@@ -1,15 +1,11 @@
 package org.cryptimeleon.incentive.promotion;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion;
 import org.cryptimeleon.incentive.promotion.hazel.HazelTokenUpdate;
-import org.cryptimeleon.incentive.promotion.streak.RangeProofStreakTokenUpdate;
-import org.cryptimeleon.incentive.promotion.streak.SpendStreakTokenUpdate;
-import org.cryptimeleon.incentive.promotion.streak.StandardStreakTokenUpdate;
-import org.cryptimeleon.incentive.promotion.streak.StreakPromotion;
-import org.cryptimeleon.incentive.promotion.streak.StreakTokenUpdateTimestamp;
+import org.cryptimeleon.incentive.promotion.sideeffect.NoSideEffect;
+import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect;
+import org.cryptimeleon.incentive.promotion.streak.*;
 import org.cryptimeleon.incentive.promotion.vip.ProveVipTokenUpdate;
 import org.cryptimeleon.incentive.promotion.vip.UpgradeVipZkpTokenUpdate;
 import org.cryptimeleon.incentive.promotion.vip.VipPromotion;
@@ -19,6 +15,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Test that all Representables serialize and deserialize as expected.
@@ -68,10 +66,14 @@ public class RepresentationTests {
                 promotionParameters,
                 "Test Promotion",
                 "This is some Test Promtion",
-                List.of(),
+                List.of( // Test handling of representation for different subclasses of ZkpTokenUpdates
+                        new RangeProofStreakTokenUpdate(UUID.randomUUID(), "R1", new NoSideEffect(), 20, 4),
+                        new StandardStreakTokenUpdate(UUID.randomUUID(), "R5", new NoSideEffect(), 4)
+                ),
                 7
         );
-        StreakPromotion deserializedStreakPromotion = new StreakPromotion(streakPromotion.getRepresentation());
+        String jsonRep = jsonConverter.serialize(streakPromotion.getRepresentation());
+        StreakPromotion deserializedStreakPromotion = new StreakPromotion(jsonConverter.deserialize(jsonConverter.serialize(streakPromotion.getRepresentation())));
 
         assertEquals(streakPromotion, deserializedStreakPromotion);
     }
@@ -86,7 +88,7 @@ public class RepresentationTests {
 
     @Test
     void upgradeVipUpdateRepresentationTest() {
-        UpgradeVipZkpTokenUpdate upgradeVipReward = new UpgradeVipZkpTokenUpdate(UUID.randomUUID(), "Upgrade to 2", 2, 50);
+        UpgradeVipZkpTokenUpdate upgradeVipReward = new UpgradeVipZkpTokenUpdate(UUID.randomUUID(), "Upgrade to 2", 2, 50, new NoSideEffect());
         UpgradeVipZkpTokenUpdate deserializedUpgradeVipReward = new UpgradeVipZkpTokenUpdate(upgradeVipReward.getRepresentation());
 
         assertEquals(upgradeVipReward, deserializedUpgradeVipReward);
@@ -116,20 +118,12 @@ public class RepresentationTests {
         assertEquals(streakTokenUpdate, deserializedStreakTokenUpdate);
     }
 
-
-    @Test
-    void rewardSideEffectRepresentationTest() {
-        RewardSideEffect rewardSideEffect = new RewardSideEffect("Free Teddy");
-        RewardSideEffect deserializedRewardSideEffect = new RewardSideEffect(rewardSideEffect.getRepresentation());
-        assertEquals(rewardSideEffect, deserializedRewardSideEffect);
-    }
-
     /**
      * Test that generic rewards can be deserialized to the corresponding classes.
      */
     @Test
     void allZkpUpdatesRepresentationTest() {
-        UpgradeVipZkpTokenUpdate upgradeVipReward = new UpgradeVipZkpTokenUpdate(UUID.randomUUID(), "Upgrade to 2", 2, 50);
+        UpgradeVipZkpTokenUpdate upgradeVipReward = new UpgradeVipZkpTokenUpdate(UUID.randomUUID(), "Upgrade to 2", 2, 50, new NoSideEffect());
 
         // Needs to be casted to RepresentableRepresentation for the JsonConverter to correctly serialize it
         // getRepresentation() does not work, since the class is not encoded in the JSON string

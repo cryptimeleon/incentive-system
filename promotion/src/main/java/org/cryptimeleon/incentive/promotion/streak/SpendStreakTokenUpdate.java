@@ -3,8 +3,8 @@ package org.cryptimeleon.incentive.promotion.streak;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
-import org.cryptimeleon.incentive.promotion.RewardSideEffect;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
+import org.cryptimeleon.incentive.promotion.sideeffect.SideEffect;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.annotations.Represented;
 import org.cryptimeleon.math.structures.cartesian.Vector;
@@ -35,12 +35,12 @@ public class SpendStreakTokenUpdate extends StreakZkpTokenUpdate {
      * @param rewardId          every reward is identified by a unique id. This is for example useful for the user to
      *                          tell the server which update it should verify
      * @param rewardDescription a short description text on what this ZKP update actually does to display in an application on the user side
-     * @param rewardSideEffect  the side effect of this update
+     * @param sideEffect        the side effect of this update
      * @param intervalDays      the interval in which the streak needs to be updates to not get lost.
      * @param cost              the costs of the side effect in streak points
      */
-    public SpendStreakTokenUpdate(UUID rewardId, String rewardDescription, RewardSideEffect rewardSideEffect, int intervalDays, int cost) {
-        super(rewardId, rewardDescription, rewardSideEffect, intervalDays);
+    public SpendStreakTokenUpdate(UUID rewardId, String rewardDescription, SideEffect sideEffect, int intervalDays, int cost) {
+        super(rewardId, rewardDescription, sideEffect, intervalDays);
         this.cost = cost;
     }
 

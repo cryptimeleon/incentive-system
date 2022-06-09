@@ -35,7 +35,6 @@ import org.cryptimeleon.incentive.app.domain.model.UserUpdateChoice
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 import java.math.BigInteger
-import java.util.*
 
 @Composable
 fun RewardsUi(gotoCheckout: () -> Unit) {
@@ -125,12 +124,13 @@ fun RewardPromotionList(
                                         style = MaterialTheme.typography.body1.merge(),
                                         modifier = Modifier.padding(start = 16.dp)
                                     )
-                                    if (choice.rewards.isPresent) {
-                                        Text(
-                                            text = choice.rewards.get().rewardTitle,
+                                    when (val sideEffect = choice.sideEffect) {
+                                        is RewardChoiceSideEffect -> Text(
+                                            text = "Reward Item: ${sideEffect.title}",
                                             style = MaterialTheme.typography.body1.merge(),
                                             modifier = Modifier.padding(start = 16.dp)
                                         )
+                                        is NoChoiceSideEffect -> {}
                                     }
                                     Text(
                                         text = choice.cryptographicDescription,
@@ -168,21 +168,21 @@ fun BasketItemPreviewExpanded() {
                             Choice(
                                 "Nothing",
                                 "No cryptographic protocols are executed. The token remains unchanged.",
-                                Optional.empty(),
+                                NoChoiceSideEffect,
                                 None,
                                 true
                             ),
                             Choice(
                                 "Collect 10 points",
                                 "Use the fast-earn protocol to add [10 0] to the points vector of the token and update the SPSEQ signature accordingly",
-                                Optional.empty(),
+                                NoChoiceSideEffect,
                                 Earn,
                                 false
                             ),
                             Choice(
                                 "Get Teddy and collect 3 points",
                                 "Run the ZKP with id 0237452398 to get change the points vector from [32] to [35].",
-                                Optional.of(RewardDescription("Teddy")),
+                                RewardChoiceSideEffect("2897345987397", "Teddy Bear"),
                                 Earn,
                                 false
                             )

@@ -1,5 +1,6 @@
 package org.cryptimeleon.incentive.promotion.vip;
 
+import org.cryptimeleon.incentive.promotion.sideeffect.NoSideEffect;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.junit.jupiter.api.Test;
 
@@ -11,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class UpgradeVipZkpTokenUpdateTest {
 
-    UpgradeVipZkpTokenUpdate reward = new UpgradeVipZkpTokenUpdate(UUID.randomUUID(), "This is a test upgrade reward.", 2, 10);
+    UpgradeVipZkpTokenUpdate reward = new UpgradeVipZkpTokenUpdate(UUID.randomUUID(), "This is a test upgrade reward.", 2, 10, new NoSideEffect());
 
     /**
      * VIP status must not be the target status

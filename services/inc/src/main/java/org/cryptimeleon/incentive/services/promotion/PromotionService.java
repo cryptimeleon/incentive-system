@@ -2,6 +2,7 @@ package org.cryptimeleon.incentive.services.promotion;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
+import org.cryptimeleon.incentive.client.dto.inc.*;
 import org.cryptimeleon.incentive.crypto.model.DeductOutput;
 import org.cryptimeleon.incentive.crypto.model.EarnRequest;
 import org.cryptimeleon.incentive.crypto.model.SpendRequest;
@@ -16,7 +17,8 @@ import org.cryptimeleon.incentive.promotion.ZkpTokenUpdate;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
 import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion;
 import org.cryptimeleon.incentive.promotion.model.Basket;
-import org.cryptimeleon.incentive.client.dto.inc.*;
+import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect;
+import org.cryptimeleon.incentive.promotion.sideeffect.SideEffect;
 import org.cryptimeleon.incentive.services.promotion.repository.BasketRepository;
 import org.cryptimeleon.incentive.services.promotion.repository.CryptoRepository;
 import org.cryptimeleon.incentive.services.promotion.repository.PromotionRepository;
@@ -28,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -126,7 +129,7 @@ public class PromotionService {
         return jsonConverter.serialize(signature.getRepresentation());
     }
 
-    private String handleSpendRequest(BigInteger promotionId, UUID basketId, UUID rewardId, String serializedSpendRequest, String serializedMetadata) {
+    private SideEffect handleSpendRequest(BigInteger promotionId, UUID basketId, UUID rewardId, String serializedSpendRequest, String serializedMetadata) {
         log.info("SpendRequest:" + serializedSpendRequest);
 
         Promotion promotion = promotionRepository.getPromotion(promotionId).orElseThrow(() -> new IncentiveServiceException(String.format("promotionId %d not found", promotionId)));
@@ -155,7 +158,6 @@ public class PromotionService {
         FiatShamirProofSystem spendDeductProofSystem = new FiatShamirProofSystem(
                 new SpendDeductBooleanZkp(spendDeductTree, pp, promotion.getPromotionParameters(), providerPublicKey)
         );
-        // using tid as user choice TODO change this once user choice generation is properly implemented, see issue 75
         var spendRequest = new SpendRequest(jsonConverter.deserialize(serializedSpendRequest), pp, spendDeductProofSystem, tid, tid);
 
         // Run deduct
@@ -164,7 +166,11 @@ public class PromotionService {
 
         // TODO process provider output
 
-        return jsonConverter.serialize(spendProviderOutput.getSpendResponse().getRepresentation());
+        var result = jsonConverter.serialize(spendProviderOutput.getSpendResponse().getRepresentation());
+        log.info("SpendResult: " + result);
+        tokenUpdateResultRepository.insertZkpTokenUpdateResponse(basketId, promotionId, zkpTokenUpdate.getTokenUpdateId(), result);
+
+        return zkpTokenUpdate.getSideEffect();
     }
 
     public void addPromotions(List<String> serializedPromotions) {
@@ -174,20 +180,26 @@ public class PromotionService {
         }
     }
 
+    public void deleteAllPromotions() {
+        promotionRepository.deleteAllPromotions();
+    }
+
     public void handleBulk(UUID basketId, BulkRequestDto bulkRequestDto) {
-        // Can only perform zkp updates on baskets that are locked but not payed.
+        // Can only perform zkp updates on baskets that are locked but not paid.
         basketRepository.lockBasket(basketId);
-        if (basketRepository.isBasketPayed(basketId)) {
-            throw new RuntimeException("Basket already payed!");
+        if (basketRepository.isBasketPaid(basketId)) {
+            throw new RuntimeException("Basket already paid!");
         }
 
         log.info("Start bulk proofs");
+        var rewardIds = new ArrayList<String>();
         for (SpendRequestDto spendRequestDto : bulkRequestDto.getSpendRequestDtoList()) {
-            var result = handleSpendRequest(spendRequestDto.getPromotionId(), basketId, spendRequestDto.getTokenUpdateId(), spendRequestDto.getSerializedSpendRequest(), spendRequestDto.getSerializedMetadata());
-            log.info("SpendResult: " + result);
-            tokenUpdateResultRepository.insertZkpTokenUpdateResponse(basketId, spendRequestDto.getPromotionId(), spendRequestDto.getTokenUpdateId(), result);
-            // TODO apply side-effects
+            var sideEffect = handleSpendRequest(spendRequestDto.getPromotionId(), basketId, spendRequestDto.getTokenUpdateId(), spendRequestDto.getSerializedSpendRequest(), spendRequestDto.getSerializedMetadata());
+            if (sideEffect instanceof RewardSideEffect) {
+                rewardIds.add(((RewardSideEffect) sideEffect).getRewardId());
+            }
         }
+        basketRepository.setRewardsOfBasket(basketId, rewardIds);
         for (EarnRequestDto earnRequestDto : bulkRequestDto.getEarnRequestDtoList()) {
             var result = handleEarnRequest(earnRequestDto.getPromotionId(), earnRequestDto.getSerializedEarnRequest(), basketId);
             log.info("EarnResult: " + result);
@@ -197,8 +209,8 @@ public class PromotionService {
     }
 
     public TokenUpdateResultsDto retrieveBulkResults(UUID basketId) {
-        if (!basketRepository.isBasketPayed(basketId)) {
-            throw new RuntimeException("Basket not payed");
+        if (!basketRepository.isBasketPaid(basketId)) {
+            throw new BasketNotPaidException();
         }
         var results = tokenUpdateResultRepository.getUpdateResults(basketId).values();
         log.info(String.valueOf(results));

@@ -19,8 +19,8 @@ import java.util.stream.Collectors;
  * This class is abstract, concrete behaviour must be implemented in a subclass and its parameters.
  * Promotions are StandaloneRepresentable which allows wrapping them into a RepresentableRepresentation.
  */
-@EqualsAndHashCode
 @Getter
+@EqualsAndHashCode
 public abstract class Promotion implements StandaloneRepresentable {
 
     @Represented
@@ -95,6 +95,7 @@ public abstract class Promotion implements StandaloneRepresentable {
 
     /**
      * Provide default metadata for this promotion.
+     *
      * @return metadata
      */
     public ZkpTokenUpdateMetadata generateMetadataForUpdate() {

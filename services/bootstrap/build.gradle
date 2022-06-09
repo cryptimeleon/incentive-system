@@ -1,0 +1,23 @@
+plugins {
+    id 'org.springframework.boot'
+    id 'io.spring.dependency-management'
+}
+
+// lists all dependencies of the project in the format "configuration 'groupId:artifactId:version'"
+dependencies {
+    // testing and convenience
+    implementation 'junit:junit:4.12'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+    // spring boot dependencies
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    implementation project(":client") // needed to query public parameters from info service
+
+    implementation 'org.cryptimeleon.incentive:promotion'
+}
+
+test {
+    useJUnitPlatform()
+}

@@ -4,4 +4,4 @@ import java.text.DecimalFormat
 
 private val formatter = DecimalFormat("##.00€")
 
-fun formatCents(cents: Int) = formatter.format(cents)
+fun formatCents(cents: Int): String = formatter.format(cents / 100.0)

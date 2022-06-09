@@ -39,6 +39,7 @@ public class InfoService {
         if (sharedSecret.equals("")) {
             throw new IllegalArgumentException("Shared secret is not set.");
         }
+        log.info("Shared secret: {}", sharedSecret);
 
         log.info("Setting up a new incentive-system");
         if (useMcl) {

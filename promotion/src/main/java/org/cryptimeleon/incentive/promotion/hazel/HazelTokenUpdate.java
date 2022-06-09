@@ -5,11 +5,10 @@ import lombok.Getter;
 import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenUpdateLeaf;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.incentive.promotion.EmptyTokenUpdateMetadata;
-import org.cryptimeleon.incentive.promotion.RewardSideEffect;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdate;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
+import org.cryptimeleon.incentive.promotion.sideeffect.SideEffect;
 import org.cryptimeleon.math.serialization.Representation;
-import org.cryptimeleon.math.serialization.annotations.ReprUtil;
 import org.cryptimeleon.math.serialization.annotations.Represented;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 
@@ -24,15 +23,15 @@ import java.util.UUID;
  * This corresponds to the example from the IncentiveSystem paper, with the addition of including the points to earn to
  * avoid needing earn and spend at the same checkout.
  */
-@EqualsAndHashCode(callSuper = true)
 @Getter
+@EqualsAndHashCode(callSuper = true)
 public class HazelTokenUpdate extends ZkpTokenUpdate {
 
     @Represented
     private Integer rewardCost;
 
     public HazelTokenUpdate(Representation representation) {
-        ReprUtil.deserialize(this, representation);
+        super(representation);
     }
 
     /**
@@ -40,11 +39,11 @@ public class HazelTokenUpdate extends ZkpTokenUpdate {
      *
      * @param rewardId          an id to uniquely identify this update instance
      * @param rewardDescription a brief description of the update
-     * @param rewardSideEffect  the side effect of this update, i.e. what the user spends the points for in this case
+     * @param sideEffect        the side effect of this update, i.e. what the user spends the points for in this case
      * @param rewardCost        the number of points this update instance costs / that will be subtracted from the token
      */
-    public HazelTokenUpdate(UUID rewardId, String rewardDescription, RewardSideEffect rewardSideEffect, Integer rewardCost) {
-        super(rewardId, rewardDescription, rewardSideEffect);
+    public HazelTokenUpdate(UUID rewardId, String rewardDescription, SideEffect sideEffect, Integer rewardCost) {
+        super(rewardId, rewardDescription, sideEffect);
         this.rewardCost = rewardCost;
     }
 
@@ -93,10 +92,5 @@ public class HazelTokenUpdate extends ZkpTokenUpdate {
     @Override
     public boolean validateTokenUpdateMetadata(ZkpTokenUpdateMetadata zkpTokenUpdateMetadata) {
         return zkpTokenUpdateMetadata instanceof EmptyTokenUpdateMetadata;
-    }
-
-    @Override
-    public Representation getRepresentation() {
-        return ReprUtil.serialize(this);
     }
 }

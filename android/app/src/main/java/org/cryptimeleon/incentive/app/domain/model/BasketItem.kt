@@ -1,7 +1,6 @@
 package org.cryptimeleon.incentive.app.domain.model
 
 import org.cryptimeleon.incentive.promotion.model.BasketItem
-import java.util.*
 
 
 data class BasketItem(

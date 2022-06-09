@@ -3,7 +3,10 @@ package org.cryptimeleon.incentive.promotion;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
+import org.cryptimeleon.incentive.promotion.sideeffect.SideEffect;
+import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.StandaloneRepresentable;
+import org.cryptimeleon.math.serialization.annotations.ReprUtil;
 import org.cryptimeleon.math.serialization.annotations.Represented;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 
@@ -21,8 +24,8 @@ import java.util.UUID;
  * These ZKP  updates can be seen as the expressive and slow counterpart to the earn protocol. Furthermore, updates of
  * this kind will be registered in the double-spending protection database.
  */
-@EqualsAndHashCode
 @Getter
+@EqualsAndHashCode
 public abstract class ZkpTokenUpdate implements StandaloneRepresentable {
 
     @Represented
@@ -30,24 +33,25 @@ public abstract class ZkpTokenUpdate implements StandaloneRepresentable {
     @Represented
     private String rewardDescription;
     @Represented
-    private RewardSideEffect rewardSideEffect;
+    private SideEffect sideEffect;
 
     /**
      * Empty constructor is needed for restoring represented objects using refletion.
      */
-    protected ZkpTokenUpdate() {
+    protected ZkpTokenUpdate(Representation representation) {
+        ReprUtil.deserialize(this, representation);
     }
 
     /**
      * @param rewardId          every reward is identified by a unique id. This is for example useful for the user to
      *                          tell the server which update it should verify
      * @param rewardDescription a short description text on what this ZKP update actually does to display in an application on the user side
-     * @param rewardSideEffect  the side effect of this update
+     * @param sideEffect        the side effect of this update
      */
-    public ZkpTokenUpdate(UUID rewardId, String rewardDescription, RewardSideEffect rewardSideEffect) {
+    public ZkpTokenUpdate(UUID rewardId, String rewardDescription, SideEffect sideEffect) {
         this.tokenUpdateId = rewardId;
         this.rewardDescription = rewardDescription;
-        this.rewardSideEffect = rewardSideEffect;
+        this.sideEffect = sideEffect;
     }
 
     /**
@@ -96,4 +100,9 @@ public abstract class ZkpTokenUpdate implements StandaloneRepresentable {
      * @return whether the validation was successful or not
      */
     public abstract boolean validateTokenUpdateMetadata(ZkpTokenUpdateMetadata zkpTokenUpdateMetadata);
+
+    @Override
+    public Representation getRepresentation() {
+        return ReprUtil.serialize(this);
+    }
 }

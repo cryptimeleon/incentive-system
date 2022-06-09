@@ -7,6 +7,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Next Release
 
+- Add reward api to basket service (and integrate everywhere) + bootstrap data with external script [#101](https://github.com/cryptimeleon/incentive-system/pull/101)
 - Add checkout to app, lock mechanism to server and change server api to accept bulk requests [#86](https://github.com/cryptimeleon/incentive-system/pull/86)
 - Extract client-side pseudorandomness and include promotionId to PRF input [#76](https://github.com/cryptimeleon/incentive-system/pull/76)
 - Add streak and VIP promotion, polishing of the promotion api [71](https://github.com/cryptimeleon/incentive-system/pull/71)

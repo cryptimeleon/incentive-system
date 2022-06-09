@@ -6,11 +6,10 @@ import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenUpdateLeaf;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductAndNode;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.incentive.promotion.EmptyTokenUpdateMetadata;
-import org.cryptimeleon.incentive.promotion.RewardSideEffect;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdate;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
+import org.cryptimeleon.incentive.promotion.sideeffect.SideEffect;
 import org.cryptimeleon.math.serialization.Representation;
-import org.cryptimeleon.math.serialization.annotations.ReprUtil;
 import org.cryptimeleon.math.serialization.annotations.Represented;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 
@@ -22,15 +21,15 @@ import java.util.UUID;
  * Token update for proving the VIP status and increasing the counter to eventually reach the next VIP level.
  * Allows getting some side-effect for having that VIP level, e.g. some discount.
  */
-@EqualsAndHashCode(callSuper = true)
 @Getter
+@EqualsAndHashCode(callSuper = true)
 public class ProveVipTokenUpdate extends ZkpTokenUpdate {
 
     @Represented
     private Integer requiredStatus;
 
     public ProveVipTokenUpdate(Representation representation) {
-        ReprUtil.deserialize(this, representation);
+        super(representation);
     }
 
     /**
@@ -41,7 +40,7 @@ public class ProveVipTokenUpdate extends ZkpTokenUpdate {
      * @param requiredStatus the VIP level to prove
      * @param sideEffect     whatever the user gets for having that VIP level
      */
-    public ProveVipTokenUpdate(UUID rewardId, int requiredStatus, RewardSideEffect sideEffect) {
+    public ProveVipTokenUpdate(UUID rewardId, int requiredStatus, SideEffect sideEffect) {
         super(rewardId, "Reward for VIP level " + requiredStatus, sideEffect);
         this.requiredStatus = requiredStatus;
     }
@@ -102,10 +101,5 @@ public class ProveVipTokenUpdate extends ZkpTokenUpdate {
     @Override
     public boolean validateTokenUpdateMetadata(ZkpTokenUpdateMetadata zkpTokenUpdateMetadata) {
         return zkpTokenUpdateMetadata instanceof EmptyTokenUpdateMetadata;
-    }
-
-    @Override
-    public Representation getRepresentation() {
-        return ReprUtil.serialize(this);
     }
 }

@@ -1,6 +1,6 @@
 package org.cryptimeleon.incentive.promotion.vip;
 
-import org.cryptimeleon.incentive.promotion.RewardSideEffect;
+import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.junit.jupiter.api.Test;
 

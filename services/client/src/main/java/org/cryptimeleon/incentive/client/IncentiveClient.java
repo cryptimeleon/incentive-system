@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  * Client calls for incentive service.
  * Can be used for testing and prototyping.
  */
-public class IncentiveClient {
+public class IncentiveClient implements AliveEndpoint {
 
     /**
      * Webclient configured with the url of the issue service
@@ -51,7 +51,7 @@ public class IncentiveClient {
      */
     public Mono<String> sendJoinRequest(String serializedJoinRequest, String serializedUserPublicKey, BigInteger promotionId) {
         return incentiveClient.post()
-                .uri(uriBuilder -> uriBuilder.path("/join-promotion").build())
+                .uri("/join-promotion")
                 .header("promotion-id", String.valueOf(promotionId))
                 .header("user-public-key", serializedUserPublicKey)
                 .header("join-request", serializedJoinRequest)
@@ -61,7 +61,7 @@ public class IncentiveClient {
 
     public Mono<Void> sendBulkUpdates(UUID basketId, BulkRequestDto bulkRequestDto) {
         return incentiveClient.post()
-                .uri(uriBuilder -> uriBuilder.path("/bulk-token-updates").build())
+                .uri("/bulk-token-updates")
                 .header("basket-id", basketId.toString())
                 .body(BodyInserters.fromValue(bulkRequestDto))
                 .retrieve()
@@ -70,7 +70,7 @@ public class IncentiveClient {
 
     public Mono<TokenUpdateResultsDto> retrieveBulkResults(UUID basketId) {
         return incentiveClient.post()
-                .uri(uriBuilder -> uriBuilder.path("/bulk-token-update-results").build())
+                .uri("/bulk-token-update-results")
                 .header("basket-id", basketId.toString())
                 .retrieve()
                 .bodyToMono(TokenUpdateResultsDto.class);
@@ -79,7 +79,7 @@ public class IncentiveClient {
 
     public Mono<List<Promotion>> queryPromotions() {
         return incentiveClient.get()
-                .uri(uriBuilder -> uriBuilder.path("/promotions").build())
+                .uri("/promotions")
                 .retrieve()
                 .toEntityList(String.class)
                 .map(s ->
@@ -89,10 +89,19 @@ public class IncentiveClient {
                 );
     }
 
-    public Mono<ResponseEntity<Void>> addPromotions(List<Promotion> promotions) {
+    public Mono<ResponseEntity<Void>> addPromotions(List<Promotion> promotions, String providerSecret) {
         return incentiveClient.post()
-                .uri(uriBuilder -> uriBuilder.path("/promotions").build())
+                .uri("/promotions")
+                .header("provider-secret", providerSecret)
                 .body(BodyInserters.fromValue(promotions.stream().map(p -> jsonConverter.serialize(p.getRepresentation())).collect(Collectors.toList())))
+                .retrieve()
+                .toBodilessEntity();
+    }
+
+    public Mono<ResponseEntity<Void>> deleteAllPromotions(String providerSecret) {
+        return incentiveClient.delete()
+                .uri("/promotions")
+                .header("provider-secret", providerSecret)
                 .retrieve()
                 .toBodilessEntity();
     }

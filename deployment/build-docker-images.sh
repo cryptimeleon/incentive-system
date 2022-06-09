@@ -39,3 +39,12 @@ docker build \
   --build-arg APPLICATION=org.cryptimeleon.incentive.services.basket.BasketApplication \
   -t cryptimeleon/incentive-service-basket:$VERSION \
   -f services/Dockerfile .
+
+# bootstrap service
+DEPENDENCY_PATH=services/bootstrap/build/dependency
+mkdir -p $DEPENDENCY_PATH && (cd $DEPENDENCY_PATH; jar -xf ../libs/*.jar)
+docker build \
+  --build-arg DEPENDENCY=$DEPENDENCY_PATH \
+  --build-arg APPLICATION=org.cryptimeleon.incentive.services.bootstrap.BootstrapApplication \
+  -t cryptimeleon/incentive-service-bootstrap:$VERSION \
+  -f services/Dockerfile .

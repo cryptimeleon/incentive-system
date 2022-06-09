@@ -29,6 +29,10 @@ public class SpendResponse implements Representable {
         new ReprUtil(this).register(zn, "Zn").register(spseqSignatureScheme, "SPSEQ").deserialize(repr);
     }
 
+    public SpendResponse(Representation repr, IncentivePublicParameters pp) {
+        this(repr, pp.getBg().getZn(), pp.getSpsEq());
+    }
+
     @Override
     public Representation getRepresentation() {
         return ReprUtil.serialize(this);

@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -13,6 +14,7 @@ import java.util.UUID;
 public class BasketDto {
     private UUID basketID;
     private Map<String, Integer> items;
+    private List<String> rewardItems;
     private boolean paid;
     private boolean redeemed;
     private String redeemRequest;

@@ -7,7 +7,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -64,7 +63,7 @@ class CheckoutViewModel @Inject constructor(
                 CheckoutState(
                     promotionStates = checkoutPromotionStates,
                     basketState = BasketState(
-                        "${basket.value}",
+                        formatCents(basket.value),
                         basket.basketId.toString(),
                         basket.items.map { item ->
                             BasketItem(

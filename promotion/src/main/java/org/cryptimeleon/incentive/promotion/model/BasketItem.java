@@ -1,9 +1,9 @@
 package org.cryptimeleon.incentive.promotion.model;
 
-import java.util.UUID;
-
 import lombok.AllArgsConstructor;
 import lombok.Value;
+
+import java.util.UUID;
 
 /**
  * Data class that represents all items of a certain type that are in a basket.
