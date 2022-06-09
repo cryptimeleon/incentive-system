@@ -68,7 +68,7 @@ public class PayBasketTest {
 
 
     @Test
-    public void payedBasketImmutableTest(@Autowired WebTestClient webTestClient) {
+    public void paidBasketImmutableTest(@Autowired WebTestClient webTestClient) {
         UUID basketId = createBasket(webTestClient).getResponseBody();
         putItem(webTestClient, basketId, firstTestItem.getId(), 3, HttpStatus.OK);
         putItem(webTestClient, basketId, secondTestItem.getId(), 1, HttpStatus.OK);

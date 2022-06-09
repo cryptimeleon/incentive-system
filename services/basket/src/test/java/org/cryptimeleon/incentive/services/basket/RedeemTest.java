@@ -48,20 +48,20 @@ public class RedeemTest {
     }
 
     @Test
-    void redeemPayedBasketTest(@Autowired WebTestClient webTestClient) {
+    void redeemPaidBasketTest(@Autowired WebTestClient webTestClient) {
         payBasket(webTestClient, basketId, paymentSecret, HttpStatus.OK);
         redeemBasket(webTestClient, basketId, "Some Request", 20, redeemSecret, HttpStatus.OK);
     }
 
     @Test
-    void redeemPayedBasketInvalidRedeemSecretTest(@Autowired WebTestClient webTestClient) {
+    void redeemPaidBasketInvalidRedeemSecretTest(@Autowired WebTestClient webTestClient) {
         payBasket(webTestClient, basketId, paymentSecret, HttpStatus.OK);
         redeemBasket(webTestClient, basketId, "Some Request", 20, "", HttpStatus.UNAUTHORIZED);
         redeemBasket(webTestClient, basketId, "Some Request", 20, redeemSecret + "x", HttpStatus.UNAUTHORIZED);
     }
 
     @Test
-    void redeemNotPayedBasketTest(@Autowired WebTestClient webTestClient) {
+    void redeemNotPaidBasketTest(@Autowired WebTestClient webTestClient) {
         redeemBasket(webTestClient, basketId, "Some Request", 20, redeemSecret, HttpStatus.BAD_REQUEST);
     }
 

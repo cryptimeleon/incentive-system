@@ -185,7 +185,7 @@ public class BasketController {
 
     /**
      * Sets a basket to paid.
-     * TODO add hashcode for integrity? At which state was the basket payed? (Avoid race condition between payment add adding 'free' items to basket.
+     * TODO add hashcode for integrity? At which state was the basket paid? (Avoid race condition between payment add adding 'free' items to basket.
      */
     @PostMapping("/basket/pay")
     void payBasket(@RequestHeader("pay-secret") String clientPaySecret, @RequestHeader("basket-id") UUID basketId) throws BasketServiceException {

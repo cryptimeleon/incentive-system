@@ -185,10 +185,10 @@ public class PromotionService {
     }
 
     public void handleBulk(UUID basketId, BulkRequestDto bulkRequestDto) {
-        // Can only perform zkp updates on baskets that are locked but not payed.
+        // Can only perform zkp updates on baskets that are locked but not paid.
         basketRepository.lockBasket(basketId);
-        if (basketRepository.isBasketPayed(basketId)) {
-            throw new RuntimeException("Basket already payed!");
+        if (basketRepository.isBasketPaid(basketId)) {
+            throw new RuntimeException("Basket already paid!");
         }
 
         log.info("Start bulk proofs");
@@ -209,8 +209,8 @@ public class PromotionService {
     }
 
     public TokenUpdateResultsDto retrieveBulkResults(UUID basketId) {
-        if (!basketRepository.isBasketPayed(basketId)) {
-            throw new BasketNotPayedException();
+        if (!basketRepository.isBasketPaid(basketId)) {
+            throw new BasketNotPaidException();
         }
         var results = tokenUpdateResultRepository.getUpdateResults(basketId).values();
         log.info(String.valueOf(results));

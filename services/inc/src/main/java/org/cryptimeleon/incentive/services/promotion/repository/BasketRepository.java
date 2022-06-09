@@ -48,7 +48,7 @@ public class BasketRepository {
                 .block(Duration.ofSeconds(1));
     }
 
-    public boolean isBasketPayed(UUID basketId) {
+    public boolean isBasketPaid(UUID basketId) {
         return Objects.requireNonNull(basketClient.getBasket(basketId).block(Duration.ofSeconds(1))).isPaid();
     }
 

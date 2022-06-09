@@ -95,9 +95,9 @@ public class PromotionServiceTest {
         when(cryptoRepository.getProviderPublicKey()).thenReturn(pkp.getPk());
         when(cryptoRepository.getProviderSecretKey()).thenReturn(pkp.getSk());
         when(basketRepository.getBasket(testBasket.getBasketId())).thenReturn(testBasket);
-        when(basketRepository.isBasketPayed(testBasket.getBasketId())).thenReturn(false);
+        when(basketRepository.isBasketPaid(testBasket.getBasketId())).thenReturn(false);
         when(basketRepository.getBasket(emptyTestBasket.getBasketId())).thenReturn(emptyTestBasket);
-        when(basketRepository.isBasketPayed(emptyTestBasket.getBasketId())).thenReturn(false);
+        when(basketRepository.isBasketPaid(emptyTestBasket.getBasketId())).thenReturn(false);
 
         deleteAllPromotions(webTestClient, providerSecret, HttpStatus.OK);
     }
@@ -147,7 +147,7 @@ public class PromotionServiceTest {
                 testPromotion.getPromotionParameters().getPromotionId(),
                 testBasket.getBasketId(),
                 HttpStatus.OK);
-        when(basketRepository.isBasketPayed(testBasket.getBasketId())).thenReturn(true);
+        when(basketRepository.isBasketPaid(testBasket.getBasketId())).thenReturn(true);
         retrieveTokenAfterEarn(webClient,
                 incentiveSystem,
                 testPromotion,
@@ -205,7 +205,7 @@ public class PromotionServiceTest {
         );
 
         SpendRequest spendRequest = sendSingleSpendRequest(webTestClient, basketPoints, pointsAfterSpend, token, HttpStatus.OK);
-        when(basketRepository.isBasketPayed(emptyTestBasket.getBasketId())).thenReturn(true);
+        when(basketRepository.isBasketPaid(emptyTestBasket.getBasketId())).thenReturn(true);
         retrieveTokenAfterSpend(webTestClient, token, pointsAfterSpend, spendRequest);
     }
 
@@ -225,7 +225,7 @@ public class PromotionServiceTest {
 
         sendSingleSpendRequest(webTestClient, basketPoints, pointsAfterSpend, token, HttpStatus.OK);
 
-        // Not payed yet
+        // Not paid yet
         webTestClient.post()
                 .uri(uriBuilder -> uriBuilder.path("/bulk-token-update-results").build())
                 .header("basket-id", String.valueOf(emptyTestBasket.getBasketId()))
