@@ -48,3 +48,7 @@ docker build \
   --build-arg APPLICATION=org.cryptimeleon.incentive.services.bootstrap.BootstrapApplication \
   -t cryptimeleon/incentive-service-bootstrap:$VERSION \
   -f services/Dockerfile .
+
+pushd web
+docker build -t cryptimeleon/incentive-system-web:$VERSION .
+popd
