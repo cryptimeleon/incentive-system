@@ -52,3 +52,14 @@ jobs:
         run: |
           pushd android
           ./gradlew build
+
+  build-web:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v2
+      - name: Build vue project
+        run: |
+          pushd web
+          npm ci
+          npm run build
