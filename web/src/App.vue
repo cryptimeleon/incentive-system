@@ -1,14 +1,19 @@
 <template>
-  <LandingPage/>
+  <IncHeader/>
+  <div class="px-4 md:max-w-3xl md:mx-auto">
+    <LandingPage/>
+  </div>
 </template>
 
 <script>
 import LandingPage from "@/components/LandingPage";
+import IncHeader from "@/components/IncHeader"
 
 export default {
   name: 'App',
   components: {
     LandingPage,
+    IncHeader
   }
 }
 </script>
@@ -20,6 +25,5 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
 }
 </style>
