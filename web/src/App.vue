@@ -1,6 +1,6 @@
 <template>
   <IncHeader/>
-  <div class="px-4 md:max-w-3xl md:mx-auto">
+  <div class="max-w-3xl md:mx-auto px-4">
     <LandingPage/>
   </div>
 </template>
@@ -23,7 +23,6 @@ export default {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-align: center;
   color: #2c3e50;
 }
 </style>
