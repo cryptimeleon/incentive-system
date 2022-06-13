@@ -1,19 +1,24 @@
 <template>
-  <IncHeader/>
-  <div class="max-w-3xl md:mx-auto px-4">
-    <LandingPage/>
+  <div class="flex flex-col justify-between min-h-screen">
+    <IncHeader/>
+    <div class="grow max-w-4xl md:mx-auto px-4 self-start">
+      <LandingPage/>
+    </div>
+    <IncFooter/>
   </div>
 </template>
 
 <script>
 import LandingPage from "@/components/LandingPage";
 import IncHeader from "@/components/IncHeader"
+import IncFooter from "@/components/IncFooter"
 
 export default {
   name: 'App',
   components: {
     LandingPage,
-    IncHeader
+    IncHeader,
+    IncFooter
   }
 }
 </script>
