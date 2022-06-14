@@ -3,6 +3,11 @@ package org.cryptimeleon.incentivesystem.dsprotectionservice;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.model.DoubleSpendingTag;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
+import org.cryptimeleon.incentive.crypto.model.Transaction;
+import org.cryptimeleon.incentivesystem.dsprotectionservice.storage.DsTagEntryRepository;
+import org.cryptimeleon.incentivesystem.dsprotectionservice.storage.DsidRepository;
+import org.cryptimeleon.incentivesystem.dsprotectionservice.storage.TransactionEntryRepository;
+import org.cryptimeleon.incentivesystem.dsprotectionservice.storage.UserInfoRepository;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
@@ -10,6 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class DsprotectionService {
@@ -19,11 +27,17 @@ public class DsprotectionService {
 
     /**
      * Default constructor to be executed when an object of this class is used as a Spring bean.
+     * Autowired: actual parameters are collected from available Spring beans.
      */
     @Autowired
-    private DsprotectionService(CryptoRepository cr) {
+    private DsprotectionService(
+            CryptoRepository cr,
+            TransactionEntryRepository taEntryRepo,
+            DsidRepository dsidRepo,
+            DsTagEntryRepository dsTagEntryRepo,
+            UserInfoRepository uInfoRepo) {
         this.cryptoRepository = cr;
-        this.localDbHandler = new LocalDatabaseHandler(cryptoRepository.getPp());
+        this.localDbHandler = new LocalDatabaseHandler(cryptoRepository.getPp(), dsidRepo, taEntryRepo, dsTagEntryRepo, uInfoRepo);
     }
 
     /**
@@ -59,6 +73,11 @@ public class DsprotectionService {
                 k,
                 this.localDbHandler
         );
+    }
+
+    public List<TransactionDto> getAllTransactions() {
+        // return list, map all crypto transaction objects to data transfer objects (DTOs)
+        return this.localDbHandler.getAllTransactions().stream().map(TransactionDto::new).collect(Collectors.toList());
     }
 
     /**

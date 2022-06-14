@@ -1,6 +1,6 @@
 <template>
     <footer>
-        <p>Cryptimeleon (C) 2020-2022</p>
+        <p>Cryptimeleon 2020-2022</p>
         <router-link to="/about">About</router-link>
     </footer>
 </template>

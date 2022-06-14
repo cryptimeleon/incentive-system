@@ -11,7 +11,9 @@ import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import java.lang.reflect.Array;
 import java.math.BigInteger;
 import java.util.ArrayList;
 
@@ -23,6 +25,7 @@ public class LocalDatabaseHandler implements DatabaseHandler {
     TransactionEntryRepository transactionRepository;
     DsTagEntryRepository doubleSpendingTagRepository;
     UserInfoRepository userInfoRepository;
+
     private Logger logger = LoggerFactory.getLogger(LocalDatabaseHandler.class);
     private IncentivePublicParameters pp;
 
@@ -370,6 +373,27 @@ public class LocalDatabaseHandler implements DatabaseHandler {
         );
 
         return new UserInfo(upk, dsBlame, dsTrace);
+    }
+
+    /**
+     * Returns an array list containing all transactions that are contained in the database.
+     * Needed for double-spending protection service front-end to retrieve data from backend.
+     * @return array list of transactions
+     */
+    public ArrayList<Transaction> getAllTransactions() {
+        // query all transaction entries from database
+        ArrayList<TransactionEntry> taEntryList = (ArrayList<TransactionEntry>) transactionRepository.findAll();
+
+        // convert entries to crypto objects
+        ArrayList<Transaction> resultList = new ArrayList<>();
+        for(TransactionEntry taEntry:taEntryList) {
+            Transaction ta = convertTransactionEntry(taEntry);
+            resultList.add(ta);
+        }
+
+        // return result
+        return resultList;
+
     }
 
     /**
