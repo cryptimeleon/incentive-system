@@ -41,10 +41,6 @@ You can then use the `docker-compose.yaml` with the command `docker-compose -f d
 can then reach the services at the localhost ports described above. If you want to build docker images locally from your
 local code, you can use the command `./deployment/build-docker-images.sh`.
 
-## Changelog
-
-See [CHANGELOG.md](CHANGELOG.md).
-
 ## License
 
 Apache License 2.0, see [LICENSE](LICENSE) file.
