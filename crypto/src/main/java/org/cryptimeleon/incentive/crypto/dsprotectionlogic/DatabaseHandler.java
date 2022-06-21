@@ -1,10 +1,6 @@
 package org.cryptimeleon.incentive.crypto.dsprotectionlogic;
 
-import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
-import org.cryptimeleon.incentive.crypto.model.Transaction;
-import org.cryptimeleon.incentive.crypto.model.TransactionIdentifier;
-import org.cryptimeleon.incentive.crypto.model.UserInfo;
-import org.cryptimeleon.math.structures.groups.GroupElement;
+import org.cryptimeleon.incentive.crypto.model.*;
 
 import java.util.ArrayList;
 
@@ -33,13 +29,13 @@ public interface DatabaseHandler {
 
     Transaction getTransactionNode(TransactionIdentifier taId);
 
-    void addTokenNode(GroupElement dsid);
+    void addTokenNode(DoubleSpendingID dsid);
 
     // for making an edge from a transaction to a token node
-    void addTransactionTokenEdge(TransactionIdentifier taId, GroupElement dsid);
+    void addTransactionTokenEdge(TransactionIdentifier taId, DoubleSpendingID dsid);
 
     // for making an edge from a token to a transaction node
-    void addTokenTransactionEdge(GroupElement dsid, TransactionIdentifier taId);
+    void addTokenTransactionEdge(DoubleSpendingID dsid, TransactionIdentifier taId);
 
 
 
@@ -54,11 +50,11 @@ public interface DatabaseHandler {
 
     boolean containsTransactionNode(TransactionIdentifier taIdentifier);
 
-    boolean containsTokenNode(GroupElement dsid);
+    boolean containsTokenNode(DoubleSpendingID dsid);
 
-    boolean containsTransactionTokenEdge(TransactionIdentifier taId, GroupElement dsid);
+    boolean containsTransactionTokenEdge(TransactionIdentifier taId, DoubleSpendingID dsid);
 
-    boolean containsTokenTransactionEdge(GroupElement dsid, TransactionIdentifier taId);
+    boolean containsTokenTransactionEdge(DoubleSpendingID dsid, TransactionIdentifier taId);
 
 
 
@@ -79,12 +75,12 @@ public interface DatabaseHandler {
      * @param userInfo user info
      * @param dsid     double-spending ID identifying the token
      */
-    void addAndLinkUserInfo(UserInfo userInfo, GroupElement dsid);
+    void addAndLinkUserInfo(UserInfo userInfo, DoubleSpendingID dsid);
 
     /**
      * Retrieves the user info associated to the passed double-spending ID.
      */
-    UserInfo getUserInfo(GroupElement dsid);
+    UserInfo getUserInfo(DoubleSpendingID dsid);
 
 
 
@@ -96,12 +92,13 @@ public interface DatabaseHandler {
     /**
      * Retrieves all transactions that have consumed the passed double-spending ID.
      */
-    ArrayList<Transaction> getConsumingTransactions(GroupElement dsid);
+    ArrayList<Transaction> getConsumingTransactions(DoubleSpendingID dsid);
 
     /**
      * Retrieves the double-spending ID of the token that was consumed in the transaction with the passed identifier.
+     * @return
      */
-    GroupElement getConsumedTokenDsid(TransactionIdentifier taId, IncentivePublicParameters pp);
+    DoubleSpendingID getConsumedTokenDsid(TransactionIdentifier taId, IncentivePublicParameters pp);
 
 
     /**

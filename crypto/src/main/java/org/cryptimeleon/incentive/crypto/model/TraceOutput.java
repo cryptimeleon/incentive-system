@@ -15,7 +15,7 @@ public class TraceOutput {
     /**
      * Remainder token of T
      */
-    GroupElement dsidStar;
+    GroupElement dsidStarGroupElement;
 
     /**
      * ElGamal secret key associated to the remainder token of T,

@@ -465,7 +465,7 @@ public class IncentiveSystem {
                 spendRequest.getSigma(),
                 spendRequest.getCommitmentC0(),
                 pp.getG1Generator(),
-                pp.getG1Generator().pow(promotionParameters.getPromotionId())
+                pp.getG1Generator().pow(promotionParameters.getPromotionId()) // Verify token from correct promotion
         );
         if (!signatureValid) {
             throw new IllegalArgumentException("Signature of the request is not valid!");
@@ -690,7 +690,7 @@ public class IncentiveSystem {
      * @param spendAmount point amount spent
      * @param dbHandler   reference to the object handling the database connectivity
      */
-    public void dbSync(ZnElement tid, GroupElement dsid, DoubleSpendingTag dsTag, BigInteger spendAmount, DatabaseHandler dbHandler) {
+    public void dbSync(ZnElement tid, DoubleSpendingID dsid, DoubleSpendingTag dsTag, BigInteger spendAmount, DatabaseHandler dbHandler) {
         System.out.println("Started database synchronization process.");
         // shorthands for readability
         ZnElement gamma = dsTag.getGamma();
@@ -779,14 +779,14 @@ public class IncentiveSystem {
             System.out.println("Retrieving consumed token data (including user info).");
 
             // retrieve double-spending ID of token consumed by transaction and the corresponding user info
-            GroupElement consumedDsid = dbHandler.getConsumedTokenDsid(currentTaId, this.pp);
+            DoubleSpendingID consumedDsid = dbHandler.getConsumedTokenDsid(currentTaId, this.pp);
             UserInfo consumedDsidUserInfo = dbHandler.getUserInfo(consumedDsid); // cannot be null since user info is always computed for invalidated transactions before needed
 
             System.out.println("Tracing remainder token.");
 
             // use Trace to compute remainder token's dsid (remainder token: token that resulted from the currently considered transaction)
             TraceOutput traceOutput = this.trace(this.pp, consumedDsidUserInfo.getDsTrace(), ta.getDsTag());
-            GroupElement dsidStar = traceOutput.getDsidStar();
+            DoubleSpendingID dsidStar = new DoubleSpendingID(traceOutput.getDsidStarGroupElement(), dsid.getPromotionId());
 
             System.out.println("Traced remainder token.");
 
