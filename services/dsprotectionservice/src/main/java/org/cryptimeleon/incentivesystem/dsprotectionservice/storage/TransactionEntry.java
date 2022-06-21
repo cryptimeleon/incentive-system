@@ -51,53 +51,13 @@ public class TransactionEntry {
     }
 
     /**
-     * Constructs a transaction entry from a serialized transaction representation (crypto object).
-     * Note that the association with a double-spending tag is done subsequently.
-     *
-     * @param serializedTransaction serialized representation of a transaction
-     * @param pp                    public parameters of the incentive system
-     */
-    public TransactionEntry(String serializedTransaction, IncentivePublicParameters pp) {
-        // deserialize transaction object (from crypto)
-        JSONConverter jsonConverter = new JSONConverter();
-        Representation taRepresentation = jsonConverter.deserialize(serializedTransaction);
-        Transaction ta = new Transaction(taRepresentation, pp);
-
-        // create transaction entry object
-        this.isValid = ta.getIsValid();
-        this.serializedTransactionIDRepr = jsonConverter.serialize(ta.getTransactionID().getRepresentation());
-        this.k = ta.getK().toString();
-    }
-
-    /**
-     * All args constructor. Note that the ID  of the transaction is auto-generated.
-     */
-    public TransactionEntry(boolean isValid, String tid, String k, long dsTagEntryId, long producedDsidEntryID, long consumedDsidEntryId) {
-        this.isValid = isValid;
-        this.serializedTransactionIDRepr = tid;
-        this.k = k;
-        this.dsTagEntryId = dsTagEntryId;
-        this.producedDsidEntryId = producedDsidEntryID;
-        this.consumedDsidEntryId = consumedDsidEntryId;
-    }
-
-    /**
      * Auto-generates the entry for a transaction, links to consuming/consumed dsids as well as double-spending tags are not set.
      */
     public TransactionEntry(Transaction ta) {
         this.isValid = ta.getIsValid();
         this.serializedTransactionIDRepr = Util.computeSerializedRepresentation(ta.getTransactionID());
         this.k = ta.getK().toString();
-    }
-
-    /**
-     * Constructor without IDs of produced and consumed tokens.
-     */
-    public TransactionEntry(boolean isValid, String tid, String k, long dsTagEntryId) {
-        this.isValid = isValid;
-        this.serializedTransactionIDRepr = tid;
-        this.k = k;
-        this.dsTagEntryId = dsTagEntryId;
+        this.promotionId = ta.getPromotionId().toString();
     }
 
     /**
