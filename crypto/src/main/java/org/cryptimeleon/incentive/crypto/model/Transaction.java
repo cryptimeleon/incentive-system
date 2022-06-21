@@ -1,6 +1,7 @@
 package org.cryptimeleon.incentive.crypto.model;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Value;
 import lombok.experimental.NonFinal;
 import org.cryptimeleon.math.serialization.ListRepresentation;
@@ -18,6 +19,7 @@ import java.math.BigInteger;
  * and thus not a field of the transaction class (DRY principle).
  */
 @Value
+@Builder(toBuilder=true)
 @AllArgsConstructor
 public class Transaction implements Representable {
     @NonFinal
