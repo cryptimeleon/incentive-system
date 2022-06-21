@@ -29,13 +29,6 @@ public class LocalDatabaseHandler implements DatabaseHandler {
     private Logger logger = LoggerFactory.getLogger(LocalDatabaseHandler.class);
     private IncentivePublicParameters pp;
 
-    public LocalDatabaseHandler(IncentivePublicParameters pp) {
-        this.pp = pp;
-    }
-
-    /**
-     * Additional constructor for testing, allows to instantiate repository fields with hash map based mock repositories.
-     */
     public LocalDatabaseHandler(
             IncentivePublicParameters pp,
             DsidRepository dsidRepo,
