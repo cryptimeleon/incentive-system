@@ -10,6 +10,7 @@ import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 
 import javax.persistence.*;
+import java.math.BigInteger;
 
 /**
  * Data class representing a Spend-transaction.
@@ -34,6 +35,8 @@ public class TransactionEntry {
     private String serializedTransactionIDRepr; // identifier for this transaction on protocol-level
 
     private String k; // number of points spent in this transaction
+
+    private String promotionId;
 
     private long dsTagEntryId; // ID of the entry for the double-spending tag of the transaction (data associated to a spend transaction that is required to trace double-spending)
 

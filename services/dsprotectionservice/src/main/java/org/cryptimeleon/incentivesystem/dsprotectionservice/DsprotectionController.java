@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.math.BigInteger;
 import java.util.List;
 
 /**
@@ -57,10 +58,11 @@ public class DsprotectionController {
             @RequestHeader(value = "tid") String serializedTidRepr,
             @RequestHeader(value = "dsid") String serializedDsidRepr,
             @RequestHeader(value = "dstag") String serializedDsTagRepr,
+            @RequestHeader(value = "promotion-id") BigInteger promotionId,
             @RequestHeader(value = "k") String spendAmount
     ) {
         // trigger dbSync in Service class (which triggers it in IncentiveSystem instance)
-        dsprotectionService.dbSync(serializedTidRepr, serializedDsidRepr, serializedDsTagRepr, spendAmount);
+        dsprotectionService.dbSync(serializedTidRepr, serializedDsidRepr, serializedDsTagRepr, promotionId, spendAmount);
 
         // send response
         return new ResponseEntity<>("Sent transaction data was recorded in database.", HttpStatus.OK);
