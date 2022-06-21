@@ -120,11 +120,10 @@ public class TestDatabaseHandler implements DatabaseHandler {
      * Retrieves the double-spending ID of the token that was consumed in the transaction with the passed identifier.
      *
      * @param taId
-     * @param pp
      * @return // TODO refactor not needed pp!
      */
     @Override
-    public GroupElement getConsumedTokenDsid(TransactionIdentifier taId, IncentivePublicParameters pp) {
+    public GroupElement getConsumedTokenDsid(TransactionIdentifier taId) {
         return edgesFromTokenToTransactions
                 .entrySet().stream()
                 .filter(entry -> entry.getValue().contains(taId))

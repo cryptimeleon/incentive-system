@@ -1,6 +1,5 @@
 package org.cryptimeleon.incentive.crypto.dsprotectionlogic;
 
-import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.Transaction;
 import org.cryptimeleon.incentive.crypto.model.TransactionIdentifier;
 import org.cryptimeleon.incentive.crypto.model.UserInfo;
@@ -103,7 +102,7 @@ public interface DatabaseHandler {
      *
      * @return
      */
-    GroupElement getConsumedTokenDsid(TransactionIdentifier taId, IncentivePublicParameters pp);
+    GroupElement getConsumedTokenDsid(TransactionIdentifier taId);
 
 
     /**
