@@ -3,7 +3,6 @@ package org.cryptimeleon.incentivesystem.dsprotectionservice;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.model.DoubleSpendingTag;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
-import org.cryptimeleon.incentive.crypto.model.Transaction;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.storage.DsTagEntryRepository;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.storage.DsidRepository;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.storage.TransactionEntryRepository;
@@ -15,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,9 +44,10 @@ public class DsprotectionService {
      * @param serializedTidRepr   serialized transaction identifier representation
      * @param serializedDsidRepr  serialized double-spending ID representation
      * @param serializedDsTagRepr serialized double-spending tag representation
+     * @param promotionId
      * @param spendAmount         amount of points spent in the transaction
      */
-    public void dbSync(String serializedTidRepr, String serializedDsidRepr, String serializedDsTagRepr, String spendAmount) {
+    public void dbSync(String serializedTidRepr, String serializedDsidRepr, String serializedDsTagRepr, BigInteger promotionId, String spendAmount) {
         // deserialize and restore data
         JSONConverter jsonConverter = new JSONConverter();
         IncentivePublicParameters pp = cryptoRepository.getPp();
@@ -71,6 +70,7 @@ public class DsprotectionService {
                 dsid,
                 dsTag,
                 k,
+                promotionId,
                 this.localDbHandler
         );
     }

@@ -36,6 +36,7 @@ public class DbSyncIntegrationTest {
         logger.info("Setup incentive system and database handler for the test.");
         var pp = IncentiveSystem.setup(256, Setup.BilinearGroupChoice.Debug);
         var incSys = new IncentiveSystem(pp);
+        var promotionId = BigInteger.ONE;
         var dbHandler = new LocalDatabaseHandler(
                 incSys.getPp(),
                 new MockDsidEntryRepository(),
@@ -62,6 +63,7 @@ public class DbSyncIntegrationTest {
                 dsid1,
                 ta1.getDsTag(),
                 ta1.getK(),
+                promotionId,
                 dbHandler
         );
         incSys.dbSync(
@@ -69,6 +71,7 @@ public class DbSyncIntegrationTest {
                 dsid2,
                 ta2.getDsTag(),
                 ta2.getK(),
+                promotionId,
                 dbHandler
         );
 
@@ -119,6 +122,7 @@ public class DbSyncIntegrationTest {
         logger.info("Setup incentive system, provider and user key pair and database handler for the test.");
         var pp = IncentiveSystem.setup(256, Setup.BilinearGroupChoice.Debug);
         var incSys = new IncentiveSystem(pp);
+        var promotionId = BigInteger.ONE;
 
         var pkp = Setup.providerKeyGen(incSys.getPp());
 
@@ -224,6 +228,7 @@ public class DbSyncIntegrationTest {
                 dsid2,
                 t2Prime.getDsTag(),
                 t2Prime.getK(),
+                promotionId,
                 dbHandler
         );
         logger.info("Syncing t1 which spent dsid1");
@@ -232,6 +237,7 @@ public class DbSyncIntegrationTest {
                 dsid1,
                 t1.getDsTag(),
                 t1.getK(),
+                promotionId,
                 dbHandler
         );
         logger.info("Syncing t3 which spent dsid3");
@@ -240,6 +246,7 @@ public class DbSyncIntegrationTest {
                 dsid3,
                 t3.getDsTag(),
                 t3.getK(),
+                promotionId,
                 dbHandler
         );
         logger.info("Done syncing honest transactions.");
@@ -264,6 +271,7 @@ public class DbSyncIntegrationTest {
                 dsid1,
                 t1Prime.getDsTag(),
                 t1.getK(),
+                promotionId,
                 dbHandler
         );
         logger.info("Syncing t2 which spent dsid2");
@@ -272,6 +280,7 @@ public class DbSyncIntegrationTest {
                 dsid2,
                 t2.getDsTag(),
                 t2Prime.getK(),
+                promotionId,
                 dbHandler
         );
         logger.info("Done syncing transactions and dsids to database.");

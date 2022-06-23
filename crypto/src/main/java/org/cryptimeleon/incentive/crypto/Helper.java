@@ -104,6 +104,7 @@ public class Helper {
                 true,
                 tid,
                 token.getPoints().get(0).asInteger().subtract(newPoints.get(0)), // for v1: difference in 0-th component taken as spend amount TODO adapt transaction API to new Spend-Deduct API
+                promP.getPromotionId(),
                 deductOutput.getDstag()
         );
 
@@ -124,6 +125,7 @@ public class Helper {
                 valid,
                 usedZn.getUniformlyRandomElement(),
                 BigInteger.ONE,
+                BigInteger.ONE, // Promotion ID (same promotion)
                 new DoubleSpendingTag(
                         usedZn.getUniformlyRandomElement(),
                         usedZn.getUniformlyRandomElement(),
