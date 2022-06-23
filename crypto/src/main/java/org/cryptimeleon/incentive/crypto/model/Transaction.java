@@ -1,8 +1,6 @@
 package org.cryptimeleon.incentive.crypto.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Value;
+import lombok.*;
 import lombok.experimental.NonFinal;
 import org.cryptimeleon.math.serialization.ListRepresentation;
 import org.cryptimeleon.math.serialization.Representable;

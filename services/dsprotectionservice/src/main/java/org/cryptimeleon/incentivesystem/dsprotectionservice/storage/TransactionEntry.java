@@ -3,14 +3,10 @@ package org.cryptimeleon.incentivesystem.dsprotectionservice.storage;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
-import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.Transaction;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.Util;
-import org.cryptimeleon.math.serialization.Representation;
-import org.cryptimeleon.math.serialization.converter.JSONConverter;
 
 import javax.persistence.*;
-import java.math.BigInteger;
 
 /**
  * Data class representing a Spend-transaction.
