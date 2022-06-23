@@ -33,6 +33,10 @@ public class Transaction implements Representable {
     BigInteger k; // number of points spent in this transaction ("spend amount")
 
     @NonFinal
+    @Represented
+    BigInteger promotionId;
+
+    @NonFinal
     DoubleSpendingTag dsTag; // data associated to a spend transaction that is required to trace double-spending, this contains challenge generation helper value gamma
 
     public Transaction(Representation repr, IncentivePublicParameters pp) {

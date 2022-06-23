@@ -336,6 +336,7 @@ public class LocalDatabaseHandler implements DatabaseHandler {
                 taEntry.isValid(),
                 this.pp.getBg().getZn().restoreElement(transactionIDRepr),
                 new BigInteger(taEntry.getK()),
+                new BigInteger(taEntry.getPromotionId()),
                 new DoubleSpendingTag(
                         this.pp,
                         taDsTagEntry.getSerializedC0Repr(),
