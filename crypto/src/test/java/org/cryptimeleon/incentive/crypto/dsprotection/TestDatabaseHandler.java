@@ -1,7 +1,9 @@
 package org.cryptimeleon.incentive.crypto.dsprotection;
 
 import org.cryptimeleon.incentive.crypto.dsprotectionlogic.DatabaseHandler;
-import org.cryptimeleon.incentive.crypto.model.*;
+import org.cryptimeleon.incentive.crypto.model.Transaction;
+import org.cryptimeleon.incentive.crypto.model.TransactionIdentifier;
+import org.cryptimeleon.incentive.crypto.model.UserInfo;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 
 import java.util.ArrayList;
@@ -168,5 +170,13 @@ public class TestDatabaseHandler implements DatabaseHandler {
     @Override
     public long getUserInfoCount() {
         return userInfoMap.size();
+    }
+
+    public long getValidTransactionCount() {
+        return transactionNodes.stream().filter(Transaction::getIsValid).count();
+    }
+
+    public long getInvalidTransactionCount() {
+        return getTransactionCount() - getValidTransactionCount();
     }
 }

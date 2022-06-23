@@ -49,48 +49,90 @@ public class DsProtectionTest {
     @Test
     void singleSpendOperation() {
         Token token = genToken(promotionParameters);
-        Zn.ZnElement tid = pp.getBg().getZn().getUniformlyRandomElement(); // Public
-        SpendResult spendResult = simulateSpendDeduct(promotionParameters, token, tid);
 
-        incentiveSystem.dbSync(tid, spendResult.getDsid(), spendResult.doubleSpendingTag, BigInteger.ONE, dbHandler);
-        assertThat(dbHandler.containsTokenNode(spendResult.getDsid())).isTrue();
-        assertThat(dbHandler.getTokenCount()).isEqualTo(1);
+        spendTokenUniformTidAndDbSync(token);
+
         assertThat(dbHandler.getTransactionCount()).isEqualTo(1);
-        assertThat(dbHandler.getDsTagCount()).isEqualTo(1);
-        assertThat(dbHandler.getUserInfoCount()).isEqualTo(0);
+        assertThat(dbHandler.getInvalidTransactionCount()).isEqualTo(0);
     }
 
     @Test
     void doubleSpend() {
         Token token = genToken(promotionParameters);
-        Zn.ZnElement tid = pp.getBg().getZn().getUniformlyRandomElement();
-        SpendResult spendResult = simulateSpendDeduct(promotionParameters, token, tid);
-        Zn.ZnElement tidDs = pp.getBg().getZn().getUniformlyRandomElement();
-        SpendResult spendResultDs = simulateSpendDeduct(promotionParameters, token, tidDs);
 
-        incentiveSystem.dbSync(tid, spendResult.getDsid(), spendResult.doubleSpendingTag, BigInteger.ONE, dbHandler);
-        incentiveSystem.dbSync(tidDs, spendResultDs.getDsid(), spendResultDs.doubleSpendingTag, BigInteger.ONE, dbHandler);
+        spendTokenUniformTidAndDbSync(token);
+        spendTokenUniformTidAndDbSync(token);
 
-        assertThat(dbHandler.getUserInfoCount()).isEqualTo(2);
+        assertThat(dbHandler.getTransactionCount()).isEqualTo(2);
+        assertThat(dbHandler.getInvalidTransactionCount()).isEqualTo(1);
     }
 
     @Test
     void tripleSpend() {
         Token token = genToken(promotionParameters);
-        Zn.ZnElement tid = pp.getBg().getZn().getUniformlyRandomElement(); // Public
-        SpendResult spendResult = simulateSpendDeduct(promotionParameters, token, tid);
-        Zn.ZnElement tidDs = pp.getBg().getZn().getUniformlyRandomElement();
-        SpendResult spendResultDs = simulateSpendDeduct(promotionParameters, token, tidDs);
-        Zn.ZnElement tidDss = pp.getBg().getZn().getUniformlyRandomElement();
-        SpendResult spendResultDss = simulateSpendDeduct(promotionParameters, token, tidDss);
 
-        incentiveSystem.dbSync(tid, spendResult.getDsid(), spendResult.doubleSpendingTag, BigInteger.ONE, dbHandler);
-        incentiveSystem.dbSync(tidDs, spendResultDs.getDsid(), spendResultDs.doubleSpendingTag, BigInteger.ONE, dbHandler);
-        incentiveSystem.dbSync(tidDss, spendResultDss.getDsid(), spendResultDss.doubleSpendingTag, BigInteger.ONE, dbHandler);
+        spendTokenUniformTidAndDbSync(token);
+        spendTokenUniformTidAndDbSync(token);
+        spendTokenUniformTidAndDbSync(token);
 
-        assertThat(dbHandler.getUserInfoCount()).isEqualTo(3);
+        assertThat(dbHandler.getTransactionCount()).isEqualTo(3);
+        assertThat(dbHandler.getInvalidTransactionCount()).isEqualTo(2);
     }
 
+    @Test
+    void doubleSpendAfterValidChain() {
+        int VALID_SPEND_CHAIN_LENGTH = 5;
+        Token tokenToDoubleSpend = genToken(promotionParameters);
+        spendAndDbSyncChain(VALID_SPEND_CHAIN_LENGTH, tokenToDoubleSpend);
+
+        spendTokenUniformTidAndDbSync(tokenToDoubleSpend);
+
+        assertThat(dbHandler.getTransactionCount()).isEqualTo(VALID_SPEND_CHAIN_LENGTH + 1);
+        assertThat(dbHandler.getInvalidTransactionCount()).isEqualTo(1);
+    }
+
+    @Test
+    void doubleSpendWithInvalidChain() {
+        int INVALID_SPEND_CHAIN_LENGTH = 5;
+        Token tokenToDoubleSpend = genToken(promotionParameters);
+        spendTokenUniformTidAndDbSync(tokenToDoubleSpend);
+        spendAndDbSyncChain(INVALID_SPEND_CHAIN_LENGTH, tokenToDoubleSpend);
+
+
+        assertThat(dbHandler.getTransactionCount()).isEqualTo(INVALID_SPEND_CHAIN_LENGTH + 1);
+        assertThat(dbHandler.getInvalidTransactionCount()).isEqualTo(INVALID_SPEND_CHAIN_LENGTH);
+    }
+
+    @Test
+    void doubleSpendingTransactionAfterSuccessors() {
+        Token tokenToDoubleSpend = genToken(promotionParameters);
+        spendTokenUniformTidAndDbSync(tokenToDoubleSpend);
+
+        // Double spending with dbsync executed later
+        Zn.ZnElement tidDss = pp.getBg().getZn().getUniformlyRandomElement();
+        SpendResult spendResultDss = simulateSpendDeduct(promotionParameters, tokenToDoubleSpend, tidDss);
+        // Continue with double spending token, should be invalidated later
+        spendTokenUniformTidAndDbSync(spendResultDss.tokenAfterSpend);
+        // DBSync asynchronous for double spending
+        incentiveSystem.dbSync(tidDss, spendResultDss.getDsid(), spendResultDss.doubleSpendingTag, BigInteger.ONE, promotionParameters.getPromotionId(), dbHandler);
+
+        assertThat(dbHandler.getTransactionCount()).isEqualTo(3);
+        assertThat(dbHandler.getInvalidTransactionCount()).isEqualTo(2);
+    }
+
+    private void spendAndDbSyncChain(int chainLength, Token token) {
+        Token newToken = token;
+        for (int i = 0; i < chainLength; i++) {
+            newToken = spendTokenUniformTidAndDbSync(newToken);
+        }
+    }
+
+    private Token spendTokenUniformTidAndDbSync(Token token) {
+        Zn.ZnElement tidDss = pp.getBg().getZn().getUniformlyRandomElement();
+        SpendResult spendResultDss = simulateSpendDeduct(promotionParameters, token, tidDss);
+        incentiveSystem.dbSync(tidDss, spendResultDss.getDsid(), spendResultDss.doubleSpendingTag, BigInteger.ONE, promotionParameters.getPromotionId(), dbHandler);
+        return spendResultDss.tokenAfterSpend;
+    }
 
     private Token genToken(PromotionParameters promotionParameters) {
         BigInteger TOKEN_INITIAL_VALUE = BigInteger.valueOf(1000); // Large enough to allow all spend transactions
@@ -112,7 +154,7 @@ public class DsProtectionTest {
     static
     class SpendResult {
         DoubleSpendingTag doubleSpendingTag;
-        Token token;
+        Token tokenAfterSpend;
         GroupElement dsid;
     }
 }
