@@ -786,7 +786,7 @@ public class IncentiveSystem {
 
             // use Trace to compute remainder token's dsid (remainder token: token that resulted from the currently considered transaction)
             TraceOutput traceOutput = this.trace(this.pp, consumedDsidUserInfo.getDsTrace(), ta.getDsTag());
-            GroupElement dsidStar = traceOutput.getDsidStarGroupElement();
+            GroupElement dsidStar = traceOutput.getDsidStar();
 
             System.out.println("Traced remainder token.");
 
