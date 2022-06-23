@@ -1,6 +1,5 @@
 package org.cryptimeleon.incentive.crypto.dsprotectionlogic;
 
-import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.Transaction;
 import org.cryptimeleon.incentive.crypto.model.TransactionIdentifier;
 import org.cryptimeleon.incentive.crypto.model.UserInfo;
@@ -100,8 +99,10 @@ public interface DatabaseHandler {
 
     /**
      * Retrieves the double-spending ID of the token that was consumed in the transaction with the passed identifier.
+     *
+     * @return
      */
-    GroupElement getConsumedTokenDsid(TransactionIdentifier taId, IncentivePublicParameters pp);
+    GroupElement getConsumedTokenDsid(TransactionIdentifier taId);
 
 
     /**

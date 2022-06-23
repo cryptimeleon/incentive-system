@@ -465,7 +465,7 @@ public class IncentiveSystem {
                 spendRequest.getSigma(),
                 spendRequest.getCommitmentC0(),
                 pp.getG1Generator(),
-                pp.getG1Generator().pow(promotionParameters.getPromotionId())
+                pp.getG1Generator().pow(promotionParameters.getPromotionId()) // Verify token from correct promotion
         );
         if (!signatureValid) {
             throw new IllegalArgumentException("Signature of the request is not valid!");
@@ -779,7 +779,7 @@ public class IncentiveSystem {
             System.out.println("Retrieving consumed token data (including user info).");
 
             // retrieve double-spending ID of token consumed by transaction and the corresponding user info
-            GroupElement consumedDsid = dbHandler.getConsumedTokenDsid(currentTaId, this.pp);
+            GroupElement consumedDsid = dbHandler.getConsumedTokenDsid(currentTaId);
             UserInfo consumedDsidUserInfo = dbHandler.getUserInfo(consumedDsid); // cannot be null since user info is always computed for invalidated transactions before needed
 
             System.out.println("Tracing remainder token.");

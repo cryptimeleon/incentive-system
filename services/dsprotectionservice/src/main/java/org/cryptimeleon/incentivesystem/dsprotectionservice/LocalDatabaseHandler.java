@@ -11,9 +11,7 @@ import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import java.lang.reflect.Array;
 import java.math.BigInteger;
 import java.util.ArrayList;
 
@@ -29,13 +27,6 @@ public class LocalDatabaseHandler implements DatabaseHandler {
     private Logger logger = LoggerFactory.getLogger(LocalDatabaseHandler.class);
     private IncentivePublicParameters pp;
 
-    public LocalDatabaseHandler(IncentivePublicParameters pp) {
-        this.pp = pp;
-    }
-
-    /**
-     * Additional constructor for testing, allows to instantiate repository fields with hash map based mock repositories.
-     */
     public LocalDatabaseHandler(
             IncentivePublicParameters pp,
             DsidRepository dsidRepo,
@@ -278,9 +269,10 @@ public class LocalDatabaseHandler implements DatabaseHandler {
 
     /**
      * Retrieves the double-spending ID of the token that was consumed in the transaction with the passed identifier.
+     * @return
      */
     @Override
-    public GroupElement getConsumedTokenDsid(TransactionIdentifier taId, IncentivePublicParameters pp) {
+    public GroupElement getConsumedTokenDsid(TransactionIdentifier taId) {
         // find transaction entry
         TransactionEntry taEntry = findTransactionEntryWithTaIdentifier(taId);
 
