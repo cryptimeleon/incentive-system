@@ -15,6 +15,7 @@ import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellform
 import org.cryptimeleon.incentive.promotion.Promotion;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdate;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
+import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion;
 import org.cryptimeleon.incentive.promotion.model.Basket;
 import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect;
 import org.cryptimeleon.incentive.promotion.sideeffect.SideEffect;
