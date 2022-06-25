@@ -5,6 +5,7 @@ import org.cryptimeleon.incentive.promotion.Promotion;
 import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion;
 import org.cryptimeleon.incentive.promotion.hazel.HazelTokenUpdate;
 import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect;
+import org.cryptimeleon.incentive.promotion.streak.StreakPromotion;
 import org.cryptimeleon.incentive.services.promotion.repository.CryptoRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,12 +31,12 @@ public class PromotionTest {
             "First Test Description",
             List.of(new HazelTokenUpdate(UUID.randomUUID(), "Reward", new RewardSideEffect("Yay"), 2)),
             "Test");
-    private final Promotion secondTestPromotion = new HazelPromotion(
+    private final Promotion secondTestPromotion = new StreakPromotion(
             HazelPromotion.generatePromotionParameters(),
             "Second Test Promotion",
             "Second Test Description",
             List.of(new HazelTokenUpdate(UUID.randomUUID(), "Reward", new RewardSideEffect("Yay"), 2)),
-            "Test");
+            7);
     // Do not use real crypto repository since it automatically queries info service
     @MockBean
     private CryptoRepository cryptoRepository;
