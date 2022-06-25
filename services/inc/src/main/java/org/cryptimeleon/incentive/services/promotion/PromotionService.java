@@ -15,7 +15,6 @@ import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellform
 import org.cryptimeleon.incentive.promotion.Promotion;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdate;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
-import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion;
 import org.cryptimeleon.incentive.promotion.model.Basket;
 import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect;
 import org.cryptimeleon.incentive.promotion.sideeffect.SideEffect;
@@ -175,9 +174,14 @@ public class PromotionService {
 
     public void addPromotions(List<String> serializedPromotions) {
         for (String serializedPromotion : serializedPromotions) {
-            Promotion promotion = new HazelPromotion(jsonConverter.deserialize(serializedPromotion));
+            Promotion promotion = recreatePromotionFromRepresentation(serializedPromotion);
             promotionRepository.addPromotion(promotion);
         }
+    }
+
+    private Promotion recreatePromotionFromRepresentation(String serializedPromotion) {
+        RepresentableRepresentation representableRepresentation = (RepresentableRepresentation) jsonConverter.deserialize(serializedPromotion);
+        return (Promotion) representableRepresentation.recreateRepresentable();
     }
 
     public void deleteAllPromotions() {
