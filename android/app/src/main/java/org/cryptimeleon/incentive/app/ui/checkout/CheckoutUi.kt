@@ -5,11 +5,14 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
@@ -30,7 +33,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemState
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
-import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 import java.util.*
 
 @Composable
@@ -62,12 +64,7 @@ private fun CheckoutUi(
     triggerCheckout: () -> Unit,
     navigateHome: () -> Unit,
 ) {
-    Scaffold(topBar = {
-        DefaultTopAppBar(
-            title = { Text(text = "Checkout") },
-            menuEnabled = false,
-        )
-    }) {
+    Scaffold(modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars)) {
         Box(Modifier.padding(it)) {
             when (payAndRedeemState) {
                 PayAndRedeemState.NOT_STARTED -> {
@@ -98,7 +95,14 @@ private fun SummaryUi(
         LazyColumn {
             item {
                 Text(
-                    "Order Summary:",
+                    "Summary",
+                    style = MaterialTheme.typography.headlineMedium,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
+            item {
+                Text(
+                    "Basket:",
                     style = MaterialTheme.typography.headlineSmall,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
@@ -124,7 +128,10 @@ private fun SummaryUi(
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.weight(1f)
                     )
-                    Text(checkoutState.basketState.basketValue, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        checkoutState.basketState.basketValue,
+                        fontWeight = FontWeight.SemiBold
+                    )
                 }
             }
             item {
