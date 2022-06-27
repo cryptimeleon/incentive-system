@@ -12,6 +12,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.ShoppingBasket
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
@@ -26,10 +28,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.insets.LocalWindowInsets
-import com.google.accompanist.insets.ProvideWindowInsets
 import com.google.accompanist.insets.rememberInsetsPaddingValues
 import com.google.accompanist.insets.ui.BottomNavigation
-import com.google.accompanist.insets.ui.Scaffold
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import dagger.hilt.android.AndroidEntryPoint
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
@@ -44,11 +44,11 @@ class MainActivity : ComponentActivity() {
         MainNavigationScreen.Basket,
     )
 
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
-
         setContent {
             // Update the system bars to be translucent
             val systemUiController = rememberSystemUiController()
@@ -56,24 +56,22 @@ class MainActivity : ComponentActivity() {
             SideEffect {
                 systemUiController.setSystemBarsColor(
                     Color.Transparent,
-                    darkIcons = false // depends on what background color is used
+                    darkIcons = useDarkIcons// depends on what background color is used
                 )
             }
 
             CryptimeleonTheme {
-                ProvideWindowInsets {
-                    val navController = rememberNavController()
-                    Scaffold(
-                        bottomBar = {
-                            CryptimeleonBottomBar(navController)
-                        }
-                    ) { innerPadding ->
-                        NavGraph(
-                            navController = navController,
-                            finishActivity = { finish() },
-                            innerPadding = innerPadding
-                        )
+                val navController = rememberNavController()
+                Scaffold(
+                    bottomBar = {
+                        CryptimeleonBottomBar(navController)
                     }
+                ) { innerPadding ->
+                    NavGraph(
+                        navController = navController,
+                        finishActivity = { finish() },
+                        innerPadding = innerPadding
+                    )
                 }
             }
         }

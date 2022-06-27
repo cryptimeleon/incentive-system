@@ -64,6 +64,7 @@ fun Dashboard(
         Column(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier
+                .padding(it)
                 .verticalScroll(rememberScrollState())
         ) {
             Spacer(modifier = Modifier.height(0.dp))

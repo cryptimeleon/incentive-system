@@ -1,55 +1,77 @@
 package org.cryptimeleon.incentive.app.ui.common
 
-import androidx.compose.material.DropdownMenu
-import androidx.compose.material.DropdownMenuItem
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.Text
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SmallTopAppBar
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import com.google.accompanist.insets.LocalWindowInsets
-import com.google.accompanist.insets.rememberInsetsPaddingValues
-import com.google.accompanist.insets.ui.TopAppBar
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
 fun DefaultTopAppBar(
     onOpenSettings: () -> Unit = {},
     onOpenBenchmark: () -> Unit = {},
     title: @Composable () -> Unit = { Text("Cryptimeleon Rewards") },
-    navigationIcon: @Composable (() -> Unit)? = null,
+    navigationIcon: @Composable (() -> Unit) = {},
     menuEnabled: Boolean = true
 ) {
     var showMenu by remember { mutableStateOf(false) }
 
-    TopAppBar(
-        title = title,
-        contentPadding = rememberInsetsPaddingValues(
-            LocalWindowInsets.current.statusBars,
-            applyBottom = false,
-        ),
-        navigationIcon = navigationIcon,
-        actions = {
-            if (menuEnabled) {
-                IconButton(onClick = { showMenu = !showMenu }) {
-                    Icon(Icons.Default.Settings, "Menu Icon")
-                }
-                DropdownMenu(
-                    expanded = showMenu,
-                    onDismissRequest = { showMenu = false }
-                ) {
-                    DropdownMenuItem(onClick = onOpenSettings) {
-                        Text("Settings")
+    Box(
+        modifier = Modifier.background(
+            TopAppBarDefaults.smallTopAppBarColors().containerColor(
+                scrollFraction = 0f
+            ).value
+        )
+    ) {
+        SmallTopAppBar(
+            title = title,
+            navigationIcon = navigationIcon,
+            modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars),
+            actions = {
+                if (menuEnabled) {
+                    IconButton(onClick = { showMenu = !showMenu }) {
+                        Icon(Icons.Default.Settings, "Menu Icon")
                     }
-                    DropdownMenuItem(onClick = onOpenBenchmark) {
-                        Text("Benchmark")
+                    DropdownMenu(
+                        expanded = showMenu,
+                        onDismissRequest = { showMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            onClick = onOpenSettings,
+                            text = { Text("Settings") }
+                        )
+                        DropdownMenuItem(
+                            onClick = onOpenBenchmark,
+                            text = { Text("Benchmark") }
+                        )
                     }
                 }
             }
-        }
-    )
+        )
+    }
+}
+
+@Preview
+@Composable
+fun TopAppBarPreview() {
+    MaterialTheme {
+        DefaultTopAppBar()
+    }
 }
