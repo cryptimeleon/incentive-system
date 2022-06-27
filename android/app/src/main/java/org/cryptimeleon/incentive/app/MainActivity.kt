@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBars
@@ -59,10 +60,12 @@ class MainActivity : ComponentActivity() {
         setContent {
             // Update the system bars to be translucent
             val systemUiController = rememberSystemUiController()
+            val darkTheme = isSystemInDarkTheme()
+
             SideEffect {
                 systemUiController.setSystemBarsColor(
                     Color.Transparent,
-                    darkIcons = true // depends on what background color is used
+                    darkIcons = !darkTheme // depends on what background color is used
                 )
             }
 
