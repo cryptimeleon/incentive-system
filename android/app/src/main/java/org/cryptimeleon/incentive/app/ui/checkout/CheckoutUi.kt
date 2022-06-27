@@ -1,6 +1,7 @@
 package org.cryptimeleon.incentive.app.ui.checkout
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,12 +12,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Button
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Divider
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -52,6 +54,7 @@ fun CheckoutUi(navigateHome: () -> Unit) {
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CheckoutUi(
     checkoutState: CheckoutState,
@@ -65,15 +68,17 @@ private fun CheckoutUi(
             menuEnabled = false,
         )
     }) {
-        when (payAndRedeemState) {
-            PayAndRedeemState.NOT_STARTED -> {
-                SummaryUi(checkoutState, triggerCheckout)
-            }
-            PayAndRedeemState.FINISHED -> {
-                FinishedUi(checkoutState, navigateHome)
-            }
-            else -> {
-                PayProgressUi(payAndRedeemState)
+        Box(Modifier.padding(it)) {
+            when (payAndRedeemState) {
+                PayAndRedeemState.NOT_STARTED -> {
+                    SummaryUi(checkoutState, triggerCheckout)
+                }
+                PayAndRedeemState.FINISHED -> {
+                    FinishedUi(checkoutState, navigateHome)
+                }
+                else -> {
+                    PayProgressUi(payAndRedeemState)
+                }
             }
         }
     }
@@ -94,7 +99,7 @@ private fun SummaryUi(
             item {
                 Text(
                     "Order Summary:",
-                    style = MaterialTheme.typography.h6,
+                    style = MaterialTheme.typography.headlineSmall,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
             }
@@ -125,7 +130,12 @@ private fun SummaryUi(
             item {
                 Spacer(Modifier.size(16.dp))
             }
-            item { Text("Chosen Promotion Updates:", style = MaterialTheme.typography.h6) }
+            item {
+                Text(
+                    "Chosen Promotion Updates:",
+                    style = MaterialTheme.typography.headlineSmall
+                )
+            }
             items(checkoutState.promotionStates) { promotionState ->
                 Column(Modifier.padding(vertical = 8.dp)) {
                     Text(promotionState.promotionName)
@@ -151,7 +161,7 @@ private fun PayProgressUi(payAndRedeemState: PayAndRedeemState) {
         Spacer(modifier = Modifier.size(8.dp))
         Text(
             payAndRedeemState.toString(),
-            style = MaterialTheme.typography.subtitle1
+            style = MaterialTheme.typography.labelMedium
         )
     }
 }
@@ -171,13 +181,13 @@ private fun FinishedUi(checkoutState: CheckoutState, navigateHome: () -> Unit) {
         ) {
             Text(
                 "Successfully updated tokens!",
-                style = MaterialTheme.typography.h5
+                style = MaterialTheme.typography.headlineSmall
             )
             Spacer(modifier = Modifier.size(16.dp))
             // TODO replace by QR code
             Text(
                 "Your basket id for claiming rewards is: ${checkoutState.basketState.basketId}",
-                style = MaterialTheme.typography.h5
+                style = MaterialTheme.typography.headlineSmall
             )
             // TOOD show rewards to claim and QR code of basketId
         }
@@ -205,6 +215,7 @@ private val previewCheckoutState = CheckoutState(
     )
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview
 @Composable
 fun CheckoutUiNotStartedPreview() {
@@ -220,6 +231,7 @@ fun CheckoutUiNotStartedPreview() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview
 @Composable
 fun CheckoutUiInProgressPreview() {
@@ -235,6 +247,7 @@ fun CheckoutUiInProgressPreview() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Preview
 @Composable
 fun CheckoutUiFinishedPreview() {
