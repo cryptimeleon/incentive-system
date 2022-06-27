@@ -8,14 +8,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -26,6 +27,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.insets.navigationBarsHeight
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Settings(onUpClicked: () -> Unit) {
     val viewModel = hiltViewModel<SettingsViewModel>()
@@ -95,7 +97,7 @@ fun CryptoItem(title: String, info: String) {
     Column {
         Text(
             title,
-            style = MaterialTheme.typography.h5
+            style = MaterialTheme.typography.headlineSmall
         )
         if (info == "") {
             CircularProgressIndicator(
@@ -104,7 +106,7 @@ fun CryptoItem(title: String, info: String) {
         } else {
             Text(
                 info,
-                style = MaterialTheme.typography.body2
+                style = MaterialTheme.typography.bodyMedium
             )
         }
     }
