@@ -17,13 +17,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedButton
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -64,6 +65,7 @@ fun ScanScreen(openSettings: () -> Unit, openBenchmark: () -> Unit) {
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ScannerScreen(
     openBenchmark: () -> Unit,
@@ -115,6 +117,7 @@ private fun ScannerScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ScannedItemCard(
     state: ScanResultState,
@@ -127,12 +130,11 @@ private fun ScannedItemCard(
         modifier = modifier
             .padding(16.dp)
             .fillMaxWidth(),
-        elevation = 8.dp
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = state.shoppingItem.title,
-                style = MaterialTheme.typography.h5
+                style = MaterialTheme.typography.headlineSmall
             )
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -140,11 +142,11 @@ private fun ScannedItemCard(
             ) {
                 Text(
                     text = state.priceSingle,
-                    style = MaterialTheme.typography.body1
+                    style = MaterialTheme.typography.bodyMedium
                 )
                 Text(
                     text = "Total: ${state.priceTotal}",
-                    style = MaterialTheme.typography.body1
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
 
