@@ -22,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 
 @Composable
 fun DefaultTopAppBar(
@@ -71,7 +72,7 @@ fun DefaultTopAppBar(
 @Preview
 @Composable
 fun TopAppBarPreview() {
-    MaterialTheme {
+    CryptimeleonTheme {
         DefaultTopAppBar()
     }
 }
