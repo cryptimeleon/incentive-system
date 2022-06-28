@@ -84,6 +84,7 @@ private fun ScannerScreen(
     }) {
         Box(
             modifier = Modifier
+                .padding(it)
                 .fillMaxSize()
         ) {
             CameraPermission {

@@ -63,8 +63,9 @@ private fun CheckoutUi(
     payAndRedeemState: PayAndRedeemState,
     triggerCheckout: () -> Unit,
     navigateHome: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Scaffold(modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars)) {
+    Scaffold(modifier = modifier.windowInsetsPadding(WindowInsets.statusBars)) {
         Box(Modifier.padding(it)) {
             when (payAndRedeemState) {
                 PayAndRedeemState.NOT_STARTED -> {
@@ -222,50 +223,41 @@ private val previewCheckoutState = CheckoutState(
     )
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Preview
 @Composable
 fun CheckoutUiNotStartedPreview() {
     CryptimeleonTheme() {
-        Scaffold() {
-            CheckoutUi(
-                checkoutState = previewCheckoutState,
-                payAndRedeemState = PayAndRedeemState.NOT_STARTED,
-                triggerCheckout = {},
-                navigateHome = {},
-            )
-        }
+        CheckoutUi(
+            checkoutState = previewCheckoutState,
+            payAndRedeemState = PayAndRedeemState.NOT_STARTED,
+            triggerCheckout = {},
+            navigateHome = {},
+        )
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Preview
 @Composable
 fun CheckoutUiInProgressPreview() {
     CryptimeleonTheme() {
-        Scaffold() {
-            CheckoutUi(
-                checkoutState = previewCheckoutState,
-                payAndRedeemState = PayAndRedeemState.UPDATE_TOKENS,
-                triggerCheckout = {},
-                navigateHome = {},
-            )
-        }
+        CheckoutUi(
+            checkoutState = previewCheckoutState,
+            payAndRedeemState = PayAndRedeemState.UPDATE_TOKENS,
+            triggerCheckout = {},
+            navigateHome = {},
+        )
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Preview
 @Composable
 fun CheckoutUiFinishedPreview() {
     CryptimeleonTheme() {
-        Scaffold() {
-            CheckoutUi(
-                checkoutState = previewCheckoutState,
-                payAndRedeemState = PayAndRedeemState.FINISHED,
-                triggerCheckout = {},
-                navigateHome = {},
-            )
-        }
+        CheckoutUi(
+            checkoutState = previewCheckoutState,
+            payAndRedeemState = PayAndRedeemState.FINISHED,
+            triggerCheckout = {},
+            navigateHome = {},
+        )
     }
 }
