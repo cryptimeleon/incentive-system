@@ -5,21 +5,25 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.material.Button
-import androidx.compose.material.Card
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.RadioButton
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -33,7 +37,6 @@ import org.cryptimeleon.incentive.app.domain.model.Earn
 import org.cryptimeleon.incentive.app.domain.model.None
 import org.cryptimeleon.incentive.app.domain.model.UserUpdateChoice
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
-import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 import java.math.BigInteger
 
 @Composable
@@ -49,21 +52,18 @@ fun RewardsUi(gotoCheckout: () -> Unit) {
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RewardsUi(
     state: RewardsState,
     setUserUpdateChoice: (promotionId: BigInteger, userUpdateChoice: UserUpdateChoice) -> Unit,
     gotoCheckout: () -> Unit
 ) {
-    Scaffold(topBar = {
-        DefaultTopAppBar(
-            title = { Text("Checkout - Rewards") },
-            menuEnabled = false
-        )
-    }) {
+    Scaffold(modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars)) {
         Column(
             modifier = Modifier
                 .fillMaxHeight()
+                .padding(it)
                 .padding(16.dp)
         ) {
             RewardPromotionList(
@@ -78,6 +78,7 @@ private fun RewardsUi(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RewardPromotionList(
     promotionInfos: List<PromotionInfo>,
@@ -89,13 +90,19 @@ fun RewardPromotionList(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
-            Text("Choose a Reward for every Promotion", style = MaterialTheme.typography.h4)
+            Text(
+                "Choose a Reward for every Promotion",
+                style = MaterialTheme.typography.headlineMedium
+            )
             Spacer(modifier = Modifier.height(16.dp))
         }
         items(promotionInfos) { promotion ->
             Card() {
                 Column(modifier = Modifier.padding(8.dp)) {
-                    Text(text = promotion.promotionName, style = MaterialTheme.typography.h6)
+                    Text(
+                        text = promotion.promotionName,
+                        style = MaterialTheme.typography.headlineSmall
+                    )
                     Spacer(modifier = Modifier.height(8.dp))
                     Column(Modifier.selectableGroup()) {
                         promotion.choices.forEach { choice ->
@@ -121,20 +128,20 @@ fun RewardPromotionList(
                                 Column() {
                                     Text(
                                         text = choice.humanReadableDescription,
-                                        style = MaterialTheme.typography.body1.merge(),
+                                        style = MaterialTheme.typography.bodyMedium.merge(),
                                         modifier = Modifier.padding(start = 16.dp)
                                     )
                                     when (val sideEffect = choice.sideEffect) {
                                         is RewardChoiceSideEffect -> Text(
                                             text = "Reward Item: ${sideEffect.title}",
-                                            style = MaterialTheme.typography.body1.merge(),
+                                            style = MaterialTheme.typography.bodyMedium.merge(),
                                             modifier = Modifier.padding(start = 16.dp)
                                         )
                                         is NoChoiceSideEffect -> {}
                                     }
                                     Text(
                                         text = choice.cryptographicDescription,
-                                        style = MaterialTheme.typography.subtitle2,
+                                        style = MaterialTheme.typography.labelMedium,
                                         modifier = Modifier.padding(start = 16.dp)
                                     )
                                 }

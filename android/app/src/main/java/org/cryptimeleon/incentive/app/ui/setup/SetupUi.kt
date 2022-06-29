@@ -6,9 +6,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -48,7 +48,7 @@ private fun SetupUi(feedback: String) {
     ) {
         CircularProgressIndicator()
         Spacer(modifier = Modifier.size(8.dp))
-        Text(feedback, style = MaterialTheme.typography.subtitle1)
+        Text(feedback, style = MaterialTheme.typography.bodyMedium)
     }
 }
 

@@ -14,16 +14,16 @@ import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Card
-import androidx.compose.material.Divider
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.Icon
-import androidx.compose.material.LinearProgressIndicator
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Redeem
+import androidx.compose.material3.Card
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -47,6 +47,7 @@ fun Dashboard(openSettings: () -> Unit, openBenchmark: () -> Unit) {
     Dashboard(dashboardState = state, openSettings = openSettings, openBenchmark = openBenchmark)
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Dashboard(
     dashboardState: DashboardState,
@@ -63,6 +64,7 @@ fun Dashboard(
         Column(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier
+                .padding(it)
                 .verticalScroll(rememberScrollState())
         ) {
             Spacer(modifier = Modifier.height(0.dp))
@@ -80,7 +82,7 @@ fun Dashboard(
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TokenCard(
     promotionState: PromotionState,
@@ -92,7 +94,6 @@ fun TokenCard(
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .wrapContentHeight(),
-        elevation = 4.dp,
         onClick = { toggleExpanded(promotionState.id) },
     ) {
         Column(
@@ -105,7 +106,7 @@ fun TokenCard(
             Row {
                 Text(
                     text = promotionState.title,
-                    style = MaterialTheme.typography.h5,
+                    style = MaterialTheme.typography.headlineSmall,
                     modifier = Modifier
                         .weight(1f)
                         .paddingFromBaseline(36.sp)
@@ -114,30 +115,30 @@ fun TokenCard(
                     is HazelPromotionState ->
                         Text(
                             text = "${promotionState.count}",
-                            style = MaterialTheme.typography.h5,
-                            color = MaterialTheme.colors.secondary,
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.secondary,
                             modifier = Modifier.paddingFromBaseline(36.sp)
                         )
                     // TODO find nicer visualization
                     is VipPromotionState ->
                         Text(
                             text = "${promotionState.status}",
-                            style = MaterialTheme.typography.h5,
-                            color = MaterialTheme.colors.secondary,
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.secondary,
                             modifier = Modifier.paddingFromBaseline(36.sp)
                         )
                     is StreakPromotionState ->
                         Text(
                             text = "${promotionState.streak}",
-                            style = MaterialTheme.typography.h5,
-                            color = MaterialTheme.colors.secondary,
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.secondary,
                             modifier = Modifier.paddingFromBaseline(36.sp)
                         )
                 }
             }
             Text(
                 text = promotionState.description,
-                style = MaterialTheme.typography.body1,
+                style = MaterialTheme.typography.bodyMedium,
             )
             if (expandedPromotion == promotionState.id) {
                 Row(
@@ -146,16 +147,16 @@ fun TokenCard(
                     modifier = Modifier.padding(bottom = 4.dp, top = 4.dp)
                 ) {
                     Icon(
-                        Icons.Outlined.Redeem,
+                        imageVector = Icons.Outlined.Redeem,
                         contentDescription = "Rewards Icon",
-                        tint = MaterialTheme.colors.primary,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier
                             .requiredSize(32.dp)
                             .padding(end = 8.dp)
                     )
                     Text(
                         text = "Rewards",
-                        style = MaterialTheme.typography.h6,
+                        style = MaterialTheme.typography.headlineSmall,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -167,16 +168,16 @@ fun TokenCard(
                         is HazelTokenUpdateState -> {
                             Text(
                                 text = rewardState.sideEffect,
-                                style = MaterialTheme.typography.body1,
+                                style = MaterialTheme.typography.bodyMedium,
                             )
                             LinearProgressIndicator(
                                 progress = if (rewardState.current > rewardState.goal) 1f else rewardState.current / (rewardState.goal * 1.0f),
-                                color = MaterialTheme.colors.secondary,
+                                color = MaterialTheme.colorScheme.secondary,
                                 modifier = Modifier.fillMaxWidth()
                             )
                             Text(
                                 text = "${rewardState.goal}",
-                                style = MaterialTheme.typography.body1,
+                                style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier.align(Alignment.End)
                             )
@@ -184,11 +185,11 @@ fun TokenCard(
                         is VipTokenUpdateState -> {
                             Text(
                                 text = "Advantage for ${rewardState.requiredStatus} VIP",
-                                style = MaterialTheme.typography.body1,
+                                style = MaterialTheme.typography.bodyMedium,
                             )
                             Text(
                                 text = rewardState.sideEffect,
-                                style = MaterialTheme.typography.body1,
+                                style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier.align(Alignment.End),
                             )
@@ -196,16 +197,16 @@ fun TokenCard(
                         is UpgradeVipTokenUpdateState -> {
                             Text(
                                 text = rewardState.sideEffect,
-                                style = MaterialTheme.typography.body1,
+                                style = MaterialTheme.typography.bodyMedium,
                             )
                             LinearProgressIndicator(
                                 progress = if (rewardState.currentPoints > rewardState.requiredPoints) 1f else rewardState.currentPoints / (rewardState.requiredPoints * 1.0f),
-                                color = MaterialTheme.colors.secondary,
+                                color = MaterialTheme.colorScheme.secondary,
                                 modifier = Modifier.fillMaxWidth()
                             )
                             Text(
                                 text = "${rewardState.requiredPoints}",
-                                style = MaterialTheme.typography.body1,
+                                style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier.align(Alignment.End)
                             )
@@ -213,17 +214,17 @@ fun TokenCard(
                         is SpendStreakTokenUpdateState -> {
                             Text(
                                 text = rewardState.sideEffect,
-                                style = MaterialTheme.typography.body1,
+                                style = MaterialTheme.typography.bodyMedium,
                             )
                             // TODO handle 'out of streak', add this to state!
                             LinearProgressIndicator(
                                 progress = if (rewardState.currentStreak > rewardState.requiredStreak) 1f else rewardState.currentStreak / (rewardState.requiredStreak * 1.0f),
-                                color = MaterialTheme.colors.secondary,
+                                color = MaterialTheme.colorScheme.secondary,
                                 modifier = Modifier.fillMaxWidth()
                             )
                             Text(
                                 text = "${rewardState.requiredStreak}",
-                                style = MaterialTheme.typography.body1,
+                                style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier.align(Alignment.End)
                             )
@@ -231,16 +232,16 @@ fun TokenCard(
                         is RangeProofStreakTokenUpdateState -> {
                             Text(
                                 text = rewardState.sideEffect,
-                                style = MaterialTheme.typography.body1,
+                                style = MaterialTheme.typography.bodyMedium,
                             )
                             LinearProgressIndicator(
                                 progress = if (rewardState.currentStreak > rewardState.requiredStreak) 1f else rewardState.currentStreak / (rewardState.requiredStreak * 1.0f),
-                                color = MaterialTheme.colors.secondary,
+                                color = MaterialTheme.colorScheme.secondary,
                                 modifier = Modifier.fillMaxWidth()
                             )
                             Text(
                                 text = "${rewardState.requiredStreak}",
-                                style = MaterialTheme.typography.body1,
+                                style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier.align(Alignment.End)
                             )

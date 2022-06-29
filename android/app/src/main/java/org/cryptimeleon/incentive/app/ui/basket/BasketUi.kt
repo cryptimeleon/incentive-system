@@ -27,21 +27,22 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Divider
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedButton
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Remove
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -84,7 +85,10 @@ fun BasketUi(openSettings: () -> Unit, openBenchmark: () -> Unit, gotoRewards: (
     )
 }
 
-@OptIn(ExperimentalAnimationApi::class, ExperimentalMaterialApi::class)
+@OptIn(
+    ExperimentalAnimationApi::class, ExperimentalMaterialApi::class,
+    ExperimentalMaterial3Api::class
+)
 @Composable
 private fun BasketUi(
     basketSle: SLE<Basket>,
@@ -102,130 +106,132 @@ private fun BasketUi(
             onOpenBenchmark = openBenchmark
         )
     }) {
-        when (basketSle) {
-            is SLE.Error -> TODO()
-            is SLE.Loading -> LoadingSpinner()
-            is SLE.Success -> {
-                val basket = basketSle.data!!
-                if (basket.items.isNotEmpty()) {
-                    val basketItemsCount = basket.items.map { it.count }.sum()
-                    Column(
-                        modifier = Modifier
-                            .fillMaxHeight()
-                            .padding(16.dp)
-                    ) {
-                        LazyColumn(modifier = Modifier.weight(1f)) {
-                            item {
-                                Row() {
-                                    AnimatedContent(
-                                        targetState = basketItemsCount,
-                                        transitionSpec = {
-                                            if (targetState > initialState) {
-                                                slideInVertically { height -> height } + fadeIn() with
-                                                        slideOutVertically { height -> -height } + fadeOut()
-                                            } else {
-                                                slideInVertically { height -> -height } + fadeIn() with
-                                                        slideOutVertically { height -> height } + fadeOut()
-                                            }.using(
-                                                SizeTransform(clip = false)
+        Box(modifier = Modifier.padding(it)) {
+            when (basketSle) {
+                is SLE.Error -> TODO()
+                is SLE.Loading -> LoadingSpinner()
+                is SLE.Success -> {
+                    val basket = basketSle.data!!
+                    if (basket.items.isNotEmpty()) {
+                        val basketItemsCount = basket.items.map { it.count }.sum()
+                        Column(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .padding(16.dp)
+                        ) {
+                            LazyColumn(modifier = Modifier.weight(1f)) {
+                                item {
+                                    Row() {
+                                        AnimatedContent(
+                                            targetState = basketItemsCount,
+                                            transitionSpec = {
+                                                if (targetState > initialState) {
+                                                    slideInVertically { height -> height } + fadeIn() with
+                                                            slideOutVertically { height -> -height } + fadeOut()
+                                                } else {
+                                                    slideInVertically { height -> -height } + fadeIn() with
+                                                            slideOutVertically { height -> height } + fadeOut()
+                                                }.using(
+                                                    SizeTransform(clip = false)
+                                                )
+                                            }) { targetItem ->
+                                            Text(
+                                                text = "$targetItem",
+                                                style = MaterialTheme.typography.labelMedium,
+                                                fontSize = 14.sp
                                             )
-                                        }) { targetItem ->
+                                        }
                                         Text(
-                                            text = "$targetItem",
-                                            style = MaterialTheme.typography.overline,
+                                            text = " Item${if (basketItemsCount > 1) "s" else ""} in your cart:",
+                                            style = MaterialTheme.typography.labelMedium,
                                             fontSize = 14.sp
                                         )
                                     }
-                                    Text(
-                                        text = " Item${if (basketItemsCount > 1) "s" else ""} in your cart:",
-                                        style = MaterialTheme.typography.overline,
-                                        fontSize = 14.sp
-                                    )
                                 }
-                            }
 
-                            items(basket.items) { item ->
-                                Divider()
-                                BasketItem(
-                                    item = item,
-                                    expanded = expandedBasketItem == item.itemId,
-                                    onClick = {
-                                        expandedBasketItem =
-                                            if (expandedBasketItem == item.itemId) wrongId else item.itemId
-                                    },
-                                    setCount = { count ->
-                                        setItemCount(item.itemId, count)
-                                    },
-                                    modifier = Modifier.padding(vertical = 8.dp),
-                                )
-                            }
-                            item {
-                                Divider(thickness = 3.dp)
-                                Row(
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(vertical = 8.dp)
-                                ) {
-                                    Text(
-                                        text = "Total",
-                                        style = MaterialTheme.typography.h5,
-                                    )
-                                    Text(
-                                        text = formatCents(basket.value),
-                                        style = MaterialTheme.typography.h5,
+                                items(basket.items) { item ->
+                                    Divider()
+                                    BasketItem(
+                                        item = item,
+                                        expanded = expandedBasketItem == item.itemId,
+                                        onClick = {
+                                            expandedBasketItem =
+                                                if (expandedBasketItem == item.itemId) wrongId else item.itemId
+                                        },
+                                        setCount = { count ->
+                                            setItemCount(item.itemId, count)
+                                        },
+                                        modifier = Modifier.padding(vertical = 8.dp),
                                     )
                                 }
-                                Spacer(
-                                    modifier = Modifier
-                                        .size(32.dp)
-                                )
+                                item {
+                                    Divider(thickness = 3.dp)
+                                    Row(
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = 8.dp)
+                                    ) {
+                                        Text(
+                                            text = "Total",
+                                            style = MaterialTheme.typography.headlineSmall,
+                                        )
+                                        Text(
+                                            text = formatCents(basket.value),
+                                            style = MaterialTheme.typography.headlineSmall,
+                                        )
+                                    }
+                                    Spacer(
+                                        modifier = Modifier
+                                            .size(32.dp)
+                                    )
+                                }
+                                item {
+                                    Spacer(
+                                        modifier = Modifier
+                                            .size(32.dp)
+                                    )
+                                }
                             }
-                            item {
-                                Spacer(
-                                    modifier = Modifier
-                                        .size(32.dp)
-                                )
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                OutlinedButton(
+                                    modifier = Modifier.weight(1f),
+                                    onClick = discard
+                                ) {
+                                    Text("Discard")
+                                }
+                                Button(
+                                    modifier = Modifier.weight(1f),
+                                    onClick = { pay() }
+                                ) {
+                                    Text("Checkout")
+                                }
                             }
                         }
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    } else {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .fillMaxHeight(),
+                            verticalArrangement = Arrangement.Center
                         ) {
-                            OutlinedButton(
-                                modifier = Modifier.weight(1f),
-                                onClick = discard
-                            ) {
-                                Text("Discard")
-                            }
-                            Button(
-                                modifier = Modifier.weight(1f),
-                                onClick = { pay() }
-                            ) {
-                                Text("Checkout")
-                            }
+                            Text(
+                                text = "Basket is empty!",
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.headlineSmall,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                            )
+                            Text(
+                                text = "Open the scanner to items to your basket!",
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                            )
                         }
-                    }
-                } else {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .fillMaxHeight(),
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = "Basket is empty!",
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.h5,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                        )
-                        Text(
-                            text = "Open the scanner to items to your basket!",
-                            textAlign = TextAlign.Center,
-                            style = MaterialTheme.typography.subtitle1,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                        )
                     }
                 }
             }
@@ -247,7 +253,7 @@ private fun LoadingSpinner() {
         Text(
             text = "Loading basket...",
             textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.subtitle1,
+            style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier
                 .fillMaxWidth()
         )
@@ -280,21 +286,21 @@ private fun BasketItem(
             ) {
                 Text(
                     item.title,
-                    style = MaterialTheme.typography.body1,
+                    style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Normal,
                     modifier = Modifier.weight(1f)
                 )
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         text = formatCents(item.price * item.count),
-                        style = MaterialTheme.typography.body2,
+                        style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Normal,
                         modifier = Modifier
                             .align(Alignment.End)
                     )
                     Text(
                         text = "${item.count} x ${formatCents(item.price)}",
-                        style = MaterialTheme.typography.body2,
+                        style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier
                             .align(Alignment.End)
                     )
@@ -322,7 +328,7 @@ private fun BasketItemControlRow(
         ) {
             Icon(
                 Icons.Outlined.Delete,
-                tint = MaterialTheme.colors.secondary,
+                tint = MaterialTheme.colorScheme.secondary,
                 contentDescription = "Delete"
             )
         }
@@ -330,7 +336,7 @@ private fun BasketItemControlRow(
             modifier = Modifier
                 .border(
                     1.dp,
-                    color = MaterialTheme.colors.secondary,
+                    color = MaterialTheme.colorScheme.secondary,
                     shape = RoundedCornerShape(16.dp)
                 )
                 .wrapContentWidth()
@@ -343,20 +349,20 @@ private fun BasketItemControlRow(
                 ) {
                     Icon(
                         Icons.Outlined.Remove,
-                        tint = MaterialTheme.colors.secondary,
+                        tint = MaterialTheme.colorScheme.secondary,
                         contentDescription = "Subtract"
                     )
                 }
                 Text(
                     text = "$count",
-                    style = MaterialTheme.typography.subtitle1
+                    style = MaterialTheme.typography.bodyMedium
                 )
                 IconButton(
                     onClick = { setCount(count + 1) },
                 ) {
                     Icon(
                         Icons.Outlined.Add,
-                        tint = MaterialTheme.colors.secondary,
+                        tint = MaterialTheme.colorScheme.secondary,
                         contentDescription = "Add"
                     )
                 }
