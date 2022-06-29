@@ -93,9 +93,13 @@ public class IncentiveClient implements AliveEndpoint {
         return incentiveClient.post()
                 .uri("/promotions")
                 .header("provider-secret", providerSecret)
-                .body(BodyInserters.fromValue(promotions.stream().map(p -> jsonConverter.serialize(p.getRepresentation())).collect(Collectors.toList())))
+                .body(BodyInserters.fromValue(serializedPromotionsRepresentable(promotions)))
                 .retrieve()
                 .toBodilessEntity();
+    }
+
+    private List<String> serializedPromotionsRepresentable(List<Promotion> promotions) {
+        return promotions.stream().map(p -> jsonConverter.serialize(new RepresentableRepresentation(p))).collect(Collectors.toList());
     }
 
     public Mono<ResponseEntity<Void>> deleteAllPromotions(String providerSecret) {

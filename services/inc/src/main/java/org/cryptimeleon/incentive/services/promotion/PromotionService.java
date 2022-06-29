@@ -175,9 +175,14 @@ public class PromotionService {
 
     public void addPromotions(List<String> serializedPromotions) {
         for (String serializedPromotion : serializedPromotions) {
-            Promotion promotion = new HazelPromotion(jsonConverter.deserialize(serializedPromotion));
+            Promotion promotion = recreatePromotionFromRepresentation(serializedPromotion);
             promotionRepository.addPromotion(promotion);
         }
+    }
+
+    private Promotion recreatePromotionFromRepresentation(String serializedPromotion) {
+        RepresentableRepresentation representableRepresentation = (RepresentableRepresentation) jsonConverter.deserialize(serializedPromotion);
+        return (Promotion) representableRepresentation.recreateRepresentable();
     }
 
     public void deleteAllPromotions() {
