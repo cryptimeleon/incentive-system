@@ -687,10 +687,10 @@ public class IncentiveSystem {
      * @param tid         transaction ID
      * @param dsid        double-spending ID of used token
      * @param dsTag       double-spending tag of used token (contains challenge generator gamma)
-     * @param spendAmount point amount spent
+     * @param userChoice  string representing the reward that the user chose
      * @param dbHandler   reference to the object handling the database connectivity
      */
-    public void dbSync(ZnElement tid, GroupElement dsid, DoubleSpendingTag dsTag, BigInteger spendAmount, BigInteger promotionId, DatabaseHandler dbHandler) {
+    public void dbSync(ZnElement tid, GroupElement dsid, DoubleSpendingTag dsTag, String userChoice, BigInteger promotionId, DatabaseHandler dbHandler) {
         System.out.println("Started database synchronization process.");
         // shorthands for readability
         ZnElement gamma = dsTag.getGamma();
@@ -706,7 +706,7 @@ public class IncentiveSystem {
         if (!transactionWasAlreadyKnown) {
             System.out.println("Transaction not found in database, will be added.");
             // add a corresponding transaction node to DB (which also contains the dstag)
-            Transaction ta = new Transaction(true, tid, spendAmount, promotionId, dsTag); // first parameter: validity of the transaction
+            Transaction ta = new Transaction(true, tid, userChoice, promotionId, dsTag); // first parameter: validity of the transaction
             dbHandler.addTransactionNode(ta);
         }
 

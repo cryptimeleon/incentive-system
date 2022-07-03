@@ -62,7 +62,7 @@ public class DbSyncIntegrationTest {
                 ta1.getTransactionID(),
                 dsid1,
                 ta1.getDsTag(),
-                ta1.getK(),
+                ta1.getUserChoice(),
                 promotionId,
                 dbHandler
         );
@@ -70,7 +70,7 @@ public class DbSyncIntegrationTest {
                 ta2.getTransactionID(),
                 dsid2,
                 ta2.getDsTag(),
-                ta2.getK(),
+                ta2.getUserChoice(),
                 promotionId,
                 dbHandler
         );
@@ -227,7 +227,7 @@ public class DbSyncIntegrationTest {
                 t2Prime.getTaIdentifier().getTid(),
                 dsid2,
                 t2Prime.getDsTag(),
-                t2Prime.getK(),
+                t2Prime.getUserChoice(),
                 promotionId,
                 dbHandler
         );
@@ -236,7 +236,7 @@ public class DbSyncIntegrationTest {
                 t1.getTaIdentifier().getTid(),
                 dsid1,
                 t1.getDsTag(),
-                t1.getK(),
+                t1.getUserChoice(),
                 promotionId,
                 dbHandler
         );
@@ -245,7 +245,7 @@ public class DbSyncIntegrationTest {
                 t3.getTaIdentifier().getTid(),
                 dsid3,
                 t3.getDsTag(),
-                t3.getK(),
+                t3.getUserChoice(),
                 promotionId,
                 dbHandler
         );
@@ -270,7 +270,7 @@ public class DbSyncIntegrationTest {
                 t1Prime.getTaIdentifier().getTid(),
                 dsid1,
                 t1Prime.getDsTag(),
-                t1.getK(),
+                t1.getUserChoice(),
                 promotionId,
                 dbHandler
         );
@@ -279,7 +279,7 @@ public class DbSyncIntegrationTest {
                 t2.getTaIdentifier().getTid(),
                 dsid2,
                 t2.getDsTag(),
-                t2Prime.getK(),
+                t2Prime.getUserChoice(),
                 promotionId,
                 dbHandler
         );

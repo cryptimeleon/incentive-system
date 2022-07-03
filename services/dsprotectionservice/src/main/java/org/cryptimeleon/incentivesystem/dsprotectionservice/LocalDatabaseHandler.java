@@ -327,7 +327,7 @@ public class LocalDatabaseHandler implements DatabaseHandler {
         return new Transaction(
                 taEntry.isValid(),
                 this.pp.getBg().getZn().restoreElement(transactionIDRepr),
-                new BigInteger(taEntry.getK()),
+                taEntry.getUserChoice(),
                 new BigInteger(taEntry.getPromotionId()),
                 new DoubleSpendingTag(
                         this.pp,

@@ -30,7 +30,7 @@ public class Transaction implements Representable {
 
     @NonFinal
     @Represented
-    BigInteger k; // number of points spent in this transaction ("spend amount")
+    String userChoice; // string representing the reward the user wants to claim with this spend transaction
 
     @NonFinal
     @Represented
@@ -69,7 +69,7 @@ public class Transaction implements Representable {
     public String toString() {
         return this.isValid.toString() + " "
                 + this.transactionID.toString() + " "
-                + this.k.toString() + " "
+                + this.userChoice + " "
                 + this.dsTag.toString() + " ";
     }
 }
