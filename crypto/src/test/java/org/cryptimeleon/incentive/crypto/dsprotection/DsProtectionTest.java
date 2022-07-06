@@ -114,7 +114,7 @@ public class DsProtectionTest {
         // Continue with double spending token, should be invalidated later
         spendTokenUniformTidAndDbSync(spendResultDss.tokenAfterSpend);
         // DBSync asynchronous for double spending
-        incentiveSystem.dbSync(tidDss, spendResultDss.getDsid(), spendResultDss.doubleSpendingTag, BigInteger.ONE, promotionParameters.getPromotionId(), dbHandler);
+        incentiveSystem.dbSync(tidDss, spendResultDss.getDsid(), spendResultDss.doubleSpendingTag, "teddy bear", promotionParameters.getPromotionId(), dbHandler);
 
         assertThat(dbHandler.getTransactionCount()).isEqualTo(3);
         assertThat(dbHandler.getInvalidTransactionCount()).isEqualTo(2);
@@ -130,7 +130,7 @@ public class DsProtectionTest {
     private Token spendTokenUniformTidAndDbSync(Token token) {
         Zn.ZnElement tidDss = pp.getBg().getZn().getUniformlyRandomElement();
         SpendResult spendResultDss = simulateSpendDeduct(promotionParameters, token, tidDss);
-        incentiveSystem.dbSync(tidDss, spendResultDss.getDsid(), spendResultDss.doubleSpendingTag, BigInteger.ONE, promotionParameters.getPromotionId(), dbHandler);
+        incentiveSystem.dbSync(tidDss, spendResultDss.getDsid(), spendResultDss.doubleSpendingTag, "teddy bear", promotionParameters.getPromotionId(), dbHandler);
         return spendResultDss.tokenAfterSpend;
     }
 

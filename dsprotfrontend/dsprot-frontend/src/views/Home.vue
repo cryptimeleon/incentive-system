@@ -29,16 +29,14 @@
         /*
         * Fills transactions array with the dummy data for now.
         * Later: connect to backend API (Spring Boot) to grab real transaction data.
-        * Need to code an endpoint for that, see GitHub issue #105.
+        * Endpoint for that already coded, see GitHub issue #105.
         */
         async created() {
             /*
             * Fetch transaction list (as array of JSON objects) from backend.
             *
             * Transaction is a triplet 
-            * transaction ID, validity and amount of points spent.
-            * The spent amount is replaced with something describing the user's reward choice 
-            * after the double-spending protection service has been made compatible with multiple promotions.
+            * transaction ID, validity and reward that the user claimed with the respective spend transaction.
             */
             const transactionsRes = await fetch('api/transactions')
             this.transactions = await transactionsRes.json()

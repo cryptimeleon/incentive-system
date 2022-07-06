@@ -30,7 +30,7 @@ public class TransactionEntry {
 
     private String serializedTransactionIDRepr; // identifier for this transaction on protocol-level
 
-    private String k; // number of points spent in this transaction
+    private String userChoice; // string describing/identifying the reward that the user wants to claim with this spend transaction ("teddy bear", "vip bronze", ...)
 
     private String promotionId;
 
@@ -52,7 +52,7 @@ public class TransactionEntry {
     public TransactionEntry(Transaction ta) {
         this.isValid = ta.getIsValid();
         this.serializedTransactionIDRepr = Util.computeSerializedRepresentation(ta.getTransactionID());
-        this.k = ta.getK().toString();
+        this.userChoice = ta.getUserChoice();
         this.promotionId = ta.getPromotionId().toString();
     }
 

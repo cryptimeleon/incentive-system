@@ -103,7 +103,7 @@ public class Helper {
         var occuredTransaction = new Transaction(
                 true,
                 tid,
-                token.getPoints().get(0).asInteger().subtract(newPoints.get(0)), // for v1: difference in 0-th component taken as spend amount TODO adapt transaction API to new Spend-Deduct API
+                "teddy bear",
                 promP.getPromotionId(),
                 deductOutput.getDstag()
         );
@@ -124,7 +124,7 @@ public class Helper {
         return new Transaction(
                 valid,
                 usedZn.getUniformlyRandomElement(),
-                BigInteger.ONE,
+                "teddy bear",
                 BigInteger.ONE, // Promotion ID (same promotion)
                 new DoubleSpendingTag(
                         usedZn.getUniformlyRandomElement(),
