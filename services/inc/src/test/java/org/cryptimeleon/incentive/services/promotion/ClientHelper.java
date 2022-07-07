@@ -34,10 +34,16 @@ public class ClientHelper {
         webClient.post()
                 .uri("/promotions")
                 .header("provider-secret", providerSecret)
-                .body(BodyInserters.fromValue(List.of(jsonConverter.serialize(promotionToAdd.getRepresentation()))))
+                .body(BodyInserters.fromValue(
+                        serializePromotionsWithType(promotionToAdd)
+                ))
                 .exchange()
                 .expectStatus()
                 .isEqualTo(expectedStatus);
+    }
+
+    private static List<String> serializePromotionsWithType(Promotion promotionToAdd) {
+        return List.of(jsonConverter.serialize(new RepresentableRepresentation(promotionToAdd)));
     }
 
     static List<Promotion> getPromotions(@Autowired WebTestClient webClient) {

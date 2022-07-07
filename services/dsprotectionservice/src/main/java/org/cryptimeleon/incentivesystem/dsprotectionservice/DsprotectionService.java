@@ -45,9 +45,9 @@ public class DsprotectionService {
      * @param serializedDsidRepr  serialized double-spending ID representation
      * @param serializedDsTagRepr serialized double-spending tag representation
      * @param promotionId
-     * @param spendAmount         amount of points spent in the transaction
+     * @param userChoice          representing the type of reward that the user chose
      */
-    public void dbSync(String serializedTidRepr, String serializedDsidRepr, String serializedDsTagRepr, BigInteger promotionId, String spendAmount) {
+    public void dbSync(String serializedTidRepr, String serializedDsidRepr, String serializedDsTagRepr, BigInteger promotionId, String userChoice) {
         // deserialize and restore data
         JSONConverter jsonConverter = new JSONConverter();
         IncentivePublicParameters pp = cryptoRepository.getPp();
@@ -61,7 +61,6 @@ public class DsprotectionService {
                 jsonConverter.deserialize(serializedDsTagRepr),
                 pp
         );
-        BigInteger k = new BigInteger(spendAmount);
 
         // actual call to dbSync
         IncentiveSystem theIncSys = cryptoRepository.getIncSys();
@@ -69,7 +68,7 @@ public class DsprotectionService {
                 tid,
                 dsid,
                 dsTag,
-                k,
+                userChoice,
                 promotionId,
                 this.localDbHandler
         );
