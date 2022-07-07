@@ -1,11 +1,11 @@
 <template>
     <div :key="ta.tid" v-for="ta in transactions">
-        <Transaction :transaction="ta" />
+        <TransactionUI :transaction="ta" />
     </div>
 </template>
 
 <script>
-    import Transaction from "./Transaction.vue"
+    import TransactionUI from "./Transaction.vue"
 
     export default {
         name: 'TransactionList',
@@ -13,7 +13,7 @@
             transactions: Array
         },
         components: {
-            Transaction
+            TransactionUI
         }
     }
 </script>  

@@ -4,7 +4,7 @@
 </template>
 
 <script>
-    import TransactionList from "./components/dsprot/TransactionList.vue"
+    import TransactionList from "./TransactionList.vue"
 
     export default {
         name: 'DsProtMain',
