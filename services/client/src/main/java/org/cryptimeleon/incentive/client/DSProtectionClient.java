@@ -7,6 +7,9 @@ import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -22,11 +25,14 @@ public class DSProtectionClient {
 
     private WebClient dsProtectionClient; // the underlying web client making the requests
 
+    @Value("${dsprotection-service.url}")
+    private String dsProtectionServiceURL;
+
     private static final String DBSYNC_PATH = "/dbsync";
 
-    public DSProtectionClient(String dsProtectionServiceURL) {
-        logger.info("Creating a client that sends queries to " + dsProtectionServiceURL);
-        this.dsProtectionClient = WebClientHelper.buildWebClient(dsProtectionServiceURL);
+    public DSProtectionClient() {
+        logger.info("Creating a client that sends queries to " + "http://localhost:8004");
+        this.dsProtectionClient = WebClientHelper.buildWebClient("http://localhost:8004"); // TODO remove hard-coded URL
     }
 
     /**
@@ -38,12 +44,13 @@ public class DSProtectionClient {
      * @param userChoice  represents the reward that the user claimed with this transaction
      * @return server response (success or failure report)
      */
-    public String dbSync(Zn.ZnElement tid, GroupElement dsid, DoubleSpendingTag dstag, String userChoice) {
+    public String dbSync(Zn.ZnElement tid, GroupElement dsid, DoubleSpendingTag dstag, BigInteger promotionId, String userChoice) {
         // marshall transaction data
         JSONConverter jsonConverter = new JSONConverter();
         String serializedTid = Helper.computeSerializedRepresentation(tid);
         String serializedDsidRepr = Helper.computeSerializedRepresentation(dsid);
         String serializedDsTagRepr = Helper.computeSerializedRepresentation(dstag);
+        String serializedPromotionId = promotionId.toString();
 
         // make POST request
         Mono<String> dbSyncResponse = this.dsProtectionClient.post()
@@ -51,6 +58,7 @@ public class DSProtectionClient {
                 .header("tid", serializedTid)
                 .header("dsid", serializedDsidRepr)
                 .header("dstag", serializedDsTagRepr)
+                .header("promotion-id", serializedPromotionId)
                 .header("userchoice", userChoice)
                 .retrieve()
                 .bodyToMono(String.class);

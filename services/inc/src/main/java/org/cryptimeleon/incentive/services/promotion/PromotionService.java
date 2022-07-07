@@ -53,11 +53,18 @@ public class PromotionService {
     private TokenUpdateResultRepository tokenUpdateResultRepository;
 
     @Autowired
-    private PromotionService(CryptoRepository cryptoRepository, PromotionRepository promotionRepository, BasketRepository basketRepository, TokenUpdateResultRepository tokenUpdateResultRepository) {
+    private PromotionService(
+            CryptoRepository cryptoRepository,
+            PromotionRepository promotionRepository,
+            BasketRepository basketRepository,
+            TokenUpdateResultRepository tokenUpdateResultRepository
+    ) {
         this.cryptoRepository = cryptoRepository;
         this.promotionRepository = promotionRepository;
         this.basketRepository = basketRepository;
         this.tokenUpdateResultRepository = tokenUpdateResultRepository;
+
+        this.dsProtectionClient = new DSProtectionClient();
     }
 
 
@@ -166,13 +173,18 @@ public class PromotionService {
         // using tid as user choice TODO change this once user choice generation is properly implemented, see issue 75
         DeductOutput spendProviderOutput = incentiveSystem.generateSpendRequestResponse(promotion.getPromotionParameters(), spendRequest, new ProviderKeyPair(providerSecretKey, providerPublicKey), tid, spendDeductTree, tid);
 
-        // send transaction data to double-spending protection service
-        dsProtectionClient.dbSync(
-                tid,
-                spendRequest.getDsid(),
-                spendProviderOutput.getDstag(),
-                tid.toString() // TODO change this once user choice generation is properly implemented
-        );
+        try {
+            // send transaction data to double-spending protection service
+            dsProtectionClient.dbSync(
+                    tid,
+                    spendRequest.getDsid(),
+                    spendProviderOutput.getDstag(),
+                    promotionId,
+                    tid.toString() // TODO change this once user choice generation is properly implemented
+            );
+        } catch(Exception e) {
+            System.out.println("Could not store transaction data in double-spending protection database: " + e.getMessage());
+        }
 
         var result = jsonConverter.serialize(spendProviderOutput.getSpendResponse().getRepresentation());
         log.info("SpendResult: " + result);

@@ -33,7 +33,8 @@ public class DsprotectionService {
             TransactionEntryRepository taEntryRepo,
             DsidRepository dsidRepo,
             DsTagEntryRepository dsTagEntryRepo,
-            UserInfoRepository uInfoRepo) {
+            UserInfoRepository uInfoRepo
+    ) {
         this.cryptoRepository = cr;
         this.localDbHandler = new LocalDatabaseHandler(cryptoRepository.getPp(), dsidRepo, taEntryRepo, dsTagEntryRepo, uInfoRepo);
     }
