@@ -2,6 +2,7 @@ package org.cryptimeleon.incentive.services.promotion;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
+import org.cryptimeleon.incentive.client.DSProtectionClient;
 import org.cryptimeleon.incentive.client.dto.inc.*;
 import org.cryptimeleon.incentive.crypto.model.DeductOutput;
 import org.cryptimeleon.incentive.crypto.model.EarnRequest;
@@ -42,6 +43,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class PromotionService {
+    private DSProtectionClient dsProtectionClient; // object handling the connectivity to the double-spending protection database
 
     private final JSONConverter jsonConverter = new JSONConverter();
 
@@ -164,7 +166,12 @@ public class PromotionService {
         // using tid as user choice TODO change this once user choice generation is properly implemented, see issue 75
         DeductOutput spendProviderOutput = incentiveSystem.generateSpendRequestResponse(promotion.getPromotionParameters(), spendRequest, new ProviderKeyPair(providerSecretKey, providerPublicKey), tid, spendDeductTree, tid);
 
-        // TODO process provider output
+        dsProtectionClient.dbSync(
+                tid,
+                spendRequest.getDsid(),
+                spendProviderOutput.getDstag(),
+                tid.toString() // TODO change this once user choice generation is properly implemented
+        );
 
         var result = jsonConverter.serialize(spendProviderOutput.getSpendResponse().getRepresentation());
         log.info("SpendResult: " + result);

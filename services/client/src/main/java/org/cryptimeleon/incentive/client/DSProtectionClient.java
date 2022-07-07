@@ -35,16 +35,15 @@ public class DSProtectionClient {
      * @param tid         transaction ID
      * @param dsid        double-spending ID
      * @param dstag       double-spending tag
-     * @param spendAmount amount of points spent in this transaction
+     * @param userChoice  represents the reward that the user claimed with this transaction
      * @return server response (success or failure report)
      */
-    public String dbSync(Zn.ZnElement tid, GroupElement dsid, DoubleSpendingTag dstag, BigInteger spendAmount) {
+    public String dbSync(Zn.ZnElement tid, GroupElement dsid, DoubleSpendingTag dstag, String userChoice) {
         // marshall transaction data
         JSONConverter jsonConverter = new JSONConverter();
         String serializedTid = Helper.computeSerializedRepresentation(tid);
         String serializedDsidRepr = Helper.computeSerializedRepresentation(dsid);
         String serializedDsTagRepr = Helper.computeSerializedRepresentation(dstag);
-        String serializedSpendAmout = spendAmount.toString();
 
         // make POST request
         Mono<String> dbSyncResponse = this.dsProtectionClient.post()
@@ -52,7 +51,7 @@ public class DSProtectionClient {
                 .header("tid", serializedTid)
                 .header("dsid", serializedDsidRepr)
                 .header("dstag", serializedDsTagRepr)
-                .header("k", serializedSpendAmout)
+                .header("userchoice", userChoice)
                 .retrieve()
                 .bodyToMono(String.class);
 
