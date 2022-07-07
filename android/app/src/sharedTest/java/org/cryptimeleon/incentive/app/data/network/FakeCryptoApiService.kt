@@ -53,7 +53,7 @@ class FakeCryptoApiService(
         promotionParameters: PromotionParameters,
         publicKey: String,
     ): Response<String> {
-        val userPublicKey = UserPublicKey(jsonConverter.deserialize(publicKey), pp.bg.g1)
+        val userPublicKey = UserPublicKey(jsonConverter.deserialize(publicKey), pp)
         val joinResponse = incentiveSystem.generateJoinRequestResponse(
             promotionParameters,
             providerKeyPair,

@@ -10,7 +10,6 @@ import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair
 import org.junit.After
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -44,14 +43,14 @@ abstract class BaseCryptoRepositoryTest {
     @Test
     fun testCryptoAssets() = runBlocking {
         assertThat(cryptoRepository.cryptoMaterial.first()).isNull()
-        assertTrue(cryptoRepository.refreshCryptoMaterial())
+        cryptoRepository.refreshCryptoMaterial()
         assertThat(cryptoRepository.cryptoMaterial.first()).isNotNull()
     }
 
     @Test
     fun testTokensAndIssueJoin() = runBlocking {
         // Fetch pp
-        assertTrue(cryptoRepository.refreshCryptoMaterial())
+        cryptoRepository.refreshCryptoMaterial()
 
         assertThat(cryptoRepository.tokens.first()).isEmpty()
         cryptoRepository.runIssueJoin(firstPromotionParameters, dummy = true)
