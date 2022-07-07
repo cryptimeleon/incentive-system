@@ -11,6 +11,7 @@ import org.cryptimeleon.incentive.app.data.database.crypto.CryptoTokenEntity
 import org.cryptimeleon.incentive.app.data.network.CryptoApiService
 import org.cryptimeleon.incentive.app.data.network.InfoApiService
 import org.cryptimeleon.incentive.app.domain.ICryptoRepository
+import org.cryptimeleon.incentive.app.domain.RefreshCryptoMaterialException
 import org.cryptimeleon.incentive.app.domain.model.BulkRequestDto
 import org.cryptimeleon.incentive.app.domain.model.BulkResponseDto
 import org.cryptimeleon.incentive.app.domain.model.CryptoMaterial
@@ -118,49 +119,64 @@ class CryptoRepository(
         )
     }
 
-    override suspend fun refreshCryptoMaterial(): Boolean {
+    override suspend fun deleteAll() {
+        cryptoDao.deleteTokens()
+        cryptoDao.deleteCryptoMaterial()
+    }
+
+    override suspend fun refreshCryptoMaterial() {
         val oldSerializedCryptoAsset = cryptoDao.observeCryptoMaterial().first()
+        val (remotePP: String, remotePPK: String) = queryRemoteCryptoMaterial()
 
-        val ppResponse = infoApiService.getPublicParameters()
-        val ppkResponse = infoApiService.getProviderPublicKey()
-
-        if (!ppResponse.isSuccessful || ppResponse.body() == "") {
-            Timber.e(ppResponse.errorBody().toString())
-            return false
+        if (needToResetCryptoData(oldSerializedCryptoAsset, remotePP, remotePPK)) {
+            deleteAll()
+            generateAndStoreNewCryptoAssets(remotePP, remotePPK)
         }
+    }
 
-        if (!ppkResponse.isSuccessful || ppkResponse.body() == "") {
-            Timber.e(ppkResponse.errorBody().toString())
-            return false
+    private suspend fun generateAndStoreNewCryptoAssets(
+        remotePP: String,
+        remotePPK: String
+    ) {
+        val pp = IncentivePublicParameters(jsonConverter.deserialize(remotePP))
+        val incentiveSystem = IncentiveSystem(pp)
+        val providerPublicKey = ProviderPublicKey(jsonConverter.deserialize(remotePPK), pp)
+        val userKeyPair = incentiveSystem.generateUserKeys()
+        val newCryptoAsset = CryptoMaterial(pp, providerPublicKey, userKeyPair)
+
+        cryptoDao.insertCryptoMaterial(toSerializedCryptoAsset(newCryptoAsset))
+    }
+
+    private fun needToResetCryptoData(
+        oldSerializedCryptoAsset: CryptoMaterialEntity?,
+        remotePP: String,
+        remotePPK: String
+    ) = oldSerializedCryptoAsset == null ||
+            oldSerializedCryptoAsset.serializedPublicParameters != remotePP ||
+            oldSerializedCryptoAsset.serializedProviderPublicKey != remotePPK
+
+    private suspend fun queryRemoteCryptoMaterial(): Pair<String, String> {
+        try {
+            val ppResponse = infoApiService.getPublicParameters()
+            val ppkResponse = infoApiService.getProviderPublicKey()
+
+            if (!ppResponse.isSuccessful || ppResponse.body() == "") {
+                Timber.e(ppResponse.errorBody().toString())
+                throw RefreshCryptoMaterialException(ppResponse.errorBody().toString())
+            }
+
+            if (!ppkResponse.isSuccessful || ppkResponse.body() == "") {
+                Timber.e(ppkResponse.errorBody().toString())
+                throw RefreshCryptoMaterialException(ppkResponse.errorBody().toString())
+            }
+
+            val remotePP = ppResponse.body().toString()
+            val remotePPK = ppkResponse.body().toString()
+            return Pair(remotePP, remotePPK)
+        } catch (e: Exception) {
+            Timber.e(e)
+            throw RefreshCryptoMaterialException(e.toString())
         }
-
-        if (oldSerializedCryptoAsset == null ||
-            oldSerializedCryptoAsset.serializedPublicParameters != ppResponse.body() ||
-            oldSerializedCryptoAsset.serializedProviderPublicKey != ppkResponse.body()
-        ) {
-            // First query or new pp -> invalidate all
-            Timber.i("Updating crypto assets")
-            val jsonConverter = JSONConverter()
-            val publicParameters =
-                IncentivePublicParameters(jsonConverter.deserialize(ppResponse.body()))
-            val incentiveSystem = IncentiveSystem(publicParameters)
-            val providerPublicKey = ProviderPublicKey(
-                jsonConverter.deserialize(ppkResponse.body()),
-                publicParameters.spsEq,
-                publicParameters.bg.g1
-            )
-            val userKeyPair = incentiveSystem.generateUserKeys()
-            val newCryptoAsset = CryptoMaterial(
-                publicParameters,
-                providerPublicKey,
-                userKeyPair,
-            )
-
-            cryptoDao.insertCryptoMaterial(toSerializedCryptoAsset(newCryptoAsset))
-            return true
-        }
-
-        return false
     }
 
     /**
@@ -186,17 +202,15 @@ class CryptoRepository(
                 IncentivePublicParameters(jsonConverter.deserialize(cryptoMaterialEntity.serializedPublicParameters))
             val ppk = ProviderPublicKey(
                 jsonConverter.deserialize(cryptoMaterialEntity.serializedProviderPublicKey),
-                pp.spsEq,
-                pp.bg.g1
+                pp
             )
             val upk = UserPublicKey(
                 jsonConverter.deserialize(cryptoMaterialEntity.serializedUserPublicKey),
-                pp.bg.g1
+                pp
             )
             val usk = UserSecretKey(
                 jsonConverter.deserialize(cryptoMaterialEntity.serializedUserSecretKey),
-                pp.bg.zn,
-                pp.prfToZn
+                pp
             )
             return CryptoMaterial(
                 pp,

@@ -19,4 +19,10 @@ interface CryptoDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertToken(cryptoTokenEntity: CryptoTokenEntity)
+
+    @Query("DELETE FROM tokens")
+    suspend fun deleteTokens()
+
+    @Query("DELETE FROM crypto_material")
+    suspend fun deleteCryptoMaterial()
 }

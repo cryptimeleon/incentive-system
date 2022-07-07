@@ -83,13 +83,15 @@ class BasketRepository(
         basketDao.insertBasketItems(basketItems)
     }
 
-    override suspend fun ensureActiveBasket(): Boolean {
-        val basket = basket.first()
-
-        if (basket == null || !basketApiService.getBasketContent(basket.basketId).isSuccessful) {
-            return createNewBasket()
+    override suspend fun ensureActiveBasket() {
+        if (needNewBasket()) {
+            createNewBasket()
         }
-        return true
+    }
+
+    private suspend fun needNewBasket(): Boolean {
+        val basket = basket.first()
+        return basket == null || !basketApiService.getBasketContent(basket.basketId).isSuccessful
     }
 
     private suspend fun putItemIntoCurrentBasket(shoppingItem: ShoppingItem, amount: Int): Boolean {
@@ -125,9 +127,9 @@ class BasketRepository(
         return shoppingItems.first().find { it.id == itemId }
     }
 
-    override suspend fun createNewBasket(): Boolean {
+    override suspend fun createNewBasket() {
         val createBasketResponse = basketApiService.getNewBasket()
-        if (!createBasketResponse.isSuccessful) return false
+        if (!createBasketResponse.isSuccessful) throw Exception("Could not create basket")
         val basketID = createBasketResponse.body()!!
         val basket = Basket(
             value = 0,
@@ -137,7 +139,6 @@ class BasketRepository(
             items = listOf()
         )
         basketDao.setBasketEntity(basketToEntity(basket))
-        return true
     }
 
     override suspend fun putItemIntoCurrentBasket(itemId: String, amount: Int): Boolean {
@@ -147,13 +148,13 @@ class BasketRepository(
         return true
     }
 
-    override suspend fun discardCurrentBasket(delete: Boolean): Boolean {
+    override suspend fun discardCurrentBasket(delete: Boolean) {
         val basket = basket.first()
         if (basket != null) {
             basketApiService.deleteBasket(basket.basketId)
         }
         basketDao.deleteAllBasketItems()
-        return createNewBasket()
+        createNewBasket()
     }
 
     override suspend fun payCurrentBasket() {
