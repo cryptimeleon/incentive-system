@@ -26,9 +26,8 @@ class FakeCryptoRepository(
     override val cryptoMaterial: Flow<CryptoMaterial?>
         get() = _cryptoMaterial
 
-    override suspend fun refreshCryptoMaterial(): Boolean {
+    override suspend fun refreshCryptoMaterial() {
         _cryptoMaterial.value = CryptoMaterial(pp, providerKeyPair.pk, userKeyPair)
-        return true
     }
 
     override suspend fun runIssueJoin(promotionParameters: PromotionParameters, dummy: Boolean) {
@@ -67,6 +66,10 @@ class FakeCryptoRepository(
     }
 
     override suspend fun putToken(promotionParameters: PromotionParameters, token: Token) {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun deleteAll() {
         TODO("Not yet implemented")
     }
 }

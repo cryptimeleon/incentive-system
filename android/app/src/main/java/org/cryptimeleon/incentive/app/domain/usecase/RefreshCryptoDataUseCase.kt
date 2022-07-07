@@ -35,15 +35,15 @@ class RefreshCryptoDataUseCase(
         if (currentCryptoMaterial == updatedCryptoMaterial && updatedCryptoMaterial != null) {
             // Nothing changed -> Dummy Token
             promotions.forEach {
-                Timber.i("Start dummy token for ", it)
+                Timber.i("Start dummy token for $it")
                 cryptoRepository.runIssueJoin(it.promotionParameters, true)
-                Timber.i("Retrieved dummy token for ", it)
+                Timber.i("Retrieved dummy token for $it")
             }
         } else {
             promotions.forEach {
-                Timber.i("Start token for ", it)
+                Timber.i("Start token for $it")
                 cryptoRepository.runIssueJoin(it.promotionParameters)
-                Timber.i("Retrieved token for ", it)
+                Timber.i("Retrieved token for $it")
             }
         }
     }
