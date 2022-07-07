@@ -4,13 +4,10 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.cryptimeleon.incentive.app.data.CryptoRepository
 import org.cryptimeleon.incentive.app.data.PromotionRepository
 import org.cryptimeleon.incentive.crypto.model.Token
@@ -35,14 +32,6 @@ class DashboardViewModel @Inject constructor(
     application: Application
 ) :
     AndroidViewModel(application) {
-
-    init {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                promotionRepository.reloadPromotions()
-            }
-        }
-    }
 
     val state: StateFlow<DashboardState> = promotionRepository.promotions
         .combine(cryptoRepository.tokens) { promotions: List<Promotion>, tokens: List<Token> ->
