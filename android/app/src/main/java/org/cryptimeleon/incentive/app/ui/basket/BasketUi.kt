@@ -108,7 +108,19 @@ private fun BasketUi(
     }) {
         Box(modifier = Modifier.padding(it)) {
             when (basketSle) {
-                is SLE.Error -> TODO()
+                is SLE.Error -> Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        "Error, no basket!",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        "Ensure you have an active internet connection and restart the app!",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    // TODO refresh button?
+                }
                 is SLE.Loading -> LoadingSpinner()
                 is SLE.Success -> {
                     val basket = basketSle.data!!
@@ -459,6 +471,26 @@ private fun BasketPreviewEmpty() {
             {})
     }
 }
+
+@ExperimentalMaterialApi
+@ExperimentalAnimationApi
+@Composable
+@Preview(
+    uiMode = previewUiMode,
+    showBackground = true,
+    name = "Error Basket"
+)
+private fun BasketPreviewError() {
+    CryptimeleonTheme {
+        BasketUi(
+            SLE.Error(),
+            { _, _ -> },
+            {},
+            {},
+            {})
+    }
+}
+
 
 @ExperimentalAnimationApi
 @ExperimentalMaterialApi
