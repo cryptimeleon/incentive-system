@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.cryptimeleon.incentive.app.data.CryptoRepository
 import org.cryptimeleon.incentive.app.data.PromotionRepository
+import org.cryptimeleon.incentive.app.util.NetworkMonitor
 import org.cryptimeleon.incentive.crypto.model.Token
 import org.cryptimeleon.incentive.promotion.Promotion
 import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion
@@ -32,6 +33,7 @@ import javax.inject.Inject
 class DashboardViewModel @Inject constructor(
     cryptoRepository: CryptoRepository,
     promotionRepository: PromotionRepository,
+    val networkMonitor: NetworkMonitor,
     application: Application
 ) :
     AndroidViewModel(application) {

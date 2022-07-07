@@ -1,6 +1,7 @@
 package org.cryptimeleon.incentive.app.di
 
 import android.content.Context
+import android.net.ConnectivityManager
 import androidx.room.Room
 import dagger.Module
 import dagger.Provides
@@ -18,6 +19,7 @@ import org.cryptimeleon.incentive.app.data.network.BasketApiService
 import org.cryptimeleon.incentive.app.data.network.CryptoApiService
 import org.cryptimeleon.incentive.app.data.network.InfoApiService
 import org.cryptimeleon.incentive.app.data.network.PromotionApiService
+import org.cryptimeleon.incentive.app.util.NetworkMonitor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
@@ -32,6 +34,14 @@ private const val PROMOTION_BASE_URL = "https://incentives.cs.upb.de/promotion/"
 @Module
 @InstallIn(SingletonComponent::class)
 class HiltApiModule {
+
+    @Provides
+    fun provideConnectivityManager(@ApplicationContext context: Context): ConnectivityManager =
+        context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+    @Provides
+    fun provideNetworkMonitor(connectivityManager: ConnectivityManager): NetworkMonitor =
+        NetworkMonitor(connectivityManager)
 
     @Singleton
     @Provides

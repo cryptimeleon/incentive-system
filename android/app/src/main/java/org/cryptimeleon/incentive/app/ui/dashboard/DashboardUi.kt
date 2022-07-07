@@ -1,13 +1,14 @@
 package org.cryptimeleon.incentive.app.ui.dashboard
 
 import android.content.res.Configuration
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.paddingFromBaseline
 import androidx.compose.foundation.layout.requiredSize
@@ -23,6 +24,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -39,18 +41,26 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
+import org.cryptimeleon.incentive.app.util.ConnectionState
 
 @Composable
 fun Dashboard(openSettings: () -> Unit, openBenchmark: () -> Unit) {
     val dashboardViewModel = hiltViewModel<DashboardViewModel>()
+    val networkState by dashboardViewModel.networkMonitor.connectionState.collectAsState(initial = ConnectionState.Available)
     val state by dashboardViewModel.state.collectAsState(DashboardState(emptyList()))
-    Dashboard(dashboardState = state, openSettings = openSettings, openBenchmark = openBenchmark)
+    Dashboard(
+        dashboardState = state,
+        networkState = networkState,
+        openSettings = openSettings,
+        openBenchmark = openBenchmark
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Dashboard(
     dashboardState: DashboardState,
+    networkState: ConnectionState = ConnectionState.Available,
     openSettings: () -> Unit = {},
     openBenchmark: () -> Unit = {}
 ) {
@@ -67,7 +77,24 @@ fun Dashboard(
                 .padding(it)
                 .verticalScroll(rememberScrollState())
         ) {
-            Spacer(modifier = Modifier.height(0.dp))
+            AnimatedVisibility(
+                visible = networkState == ConnectionState.Unavailable,
+                enter = expandVertically(expandFrom = Alignment.Top),
+                exit = shrinkVertically(shrinkTowards = Alignment.Top)
+            ) {
+                Surface(
+                    color = MaterialTheme.colorScheme.errorContainer,
+                ) {
+                    Text(
+                        "No Internet Connection!",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .fillMaxWidth()
+                    )
+                }
+            }
             for (promotionState in dashboardState.promotionStates) {
                 TokenCard(
                     promotionState = promotionState,
@@ -77,7 +104,6 @@ fun Dashboard(
                     }
                 )
             }
-            Spacer(modifier = Modifier.height(0.dp))
         }
     }
 }
@@ -325,6 +351,27 @@ fun DashboardPreview() {
             )
         }
         Dashboard(dashboardState)
+    }
+}
+
+@Composable
+@Preview(
+    showBackground = true,
+    name = "Dashboard Preview not internet with Scaffold",
+    uiMode = uiMode,
+)
+fun DashboardDisconnectedPreview() {
+    CryptimeleonTheme {
+        val dashboardState = remember {
+            DashboardState(
+                listOf(
+                    firstPromotionState,
+                    thirdPromotionState,
+                    secondPromotionState,
+                )
+            )
+        }
+        Dashboard(dashboardState, ConnectionState.Unavailable)
     }
 }
 
