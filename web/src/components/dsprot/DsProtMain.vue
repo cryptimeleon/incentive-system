@@ -1,4 +1,5 @@
 <template>
+    <p>Double-spending Protection Service</p>
     {{helloMessage}}
     <TransactionList :transactions="transactions"/>
 </template>
