@@ -59,6 +59,10 @@ public class CryptoRepository {
 
                 // deserializing retrieved values
                 this.pp = new IncentivePublicParameters(jsonConverter.deserialize(serializedPublicParameters));
+
+                // creating the incentive system
+                this.incSys = new IncentiveSystem(pp);
+
                 break; // if values were received and deserialized successfully, no more attempts are needed
             } catch (Exception e) {
                 // exceptions are caught and ignored until the final connection attempt has failed

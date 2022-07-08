@@ -175,7 +175,7 @@ public class PromotionService {
 
         try {
             // send transaction data to double-spending protection service
-            dsProtectionClient.dbSync(
+            String responseText = dsProtectionClient.dbSync(
                     tid,
                     spendRequest.getDsid(),
                     spendProviderOutput.getDstag(),
