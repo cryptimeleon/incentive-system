@@ -50,7 +50,7 @@ public class DsprotectionController {
      * @param serializedTidRepr   serialized representation of transaction ID
      * @param serializedDsidRepr  serialized representation of double-spending protection ID
      * @param serializedDsTagRepr serialized representation of double-spending tag
-     * @param spendAmount         points spent in this transaction
+     * @param userChoice          represents reward that user claimed with this promotion
      * @return success or error message as HTTP response
      */
     @PostMapping("/dbsync")
@@ -59,10 +59,10 @@ public class DsprotectionController {
             @RequestHeader(value = "dsid") String serializedDsidRepr,
             @RequestHeader(value = "dstag") String serializedDsTagRepr,
             @RequestHeader(value = "promotion-id") BigInteger promotionId,
-            @RequestHeader(value = "k") String spendAmount
+            @RequestHeader(value = "userchoice") String userChoice
     ) {
         // trigger dbSync in Service class (which triggers it in IncentiveSystem instance)
-        dsprotectionService.dbSync(serializedTidRepr, serializedDsidRepr, serializedDsTagRepr, promotionId, spendAmount);
+        dsprotectionService.dbSync(serializedTidRepr, serializedDsidRepr, serializedDsTagRepr, promotionId, userChoice);
 
         // send response
         return new ResponseEntity<>("Sent transaction data was recorded in database.", HttpStatus.OK);

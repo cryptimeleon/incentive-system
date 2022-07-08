@@ -2,6 +2,7 @@ package org.cryptimeleon.incentive.services.promotion;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
+import org.cryptimeleon.incentive.client.DSProtectionClient;
 import org.cryptimeleon.incentive.client.dto.inc.*;
 import org.cryptimeleon.incentive.crypto.model.DeductOutput;
 import org.cryptimeleon.incentive.crypto.model.EarnRequest;
@@ -27,6 +28,7 @@ import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
@@ -42,6 +44,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class PromotionService {
+    private DSProtectionClient dsProtectionClient; // object handling the connectivity to the double-spending protection database
 
     private final JSONConverter jsonConverter = new JSONConverter();
 
@@ -51,11 +54,18 @@ public class PromotionService {
     private TokenUpdateResultRepository tokenUpdateResultRepository;
 
     @Autowired
-    private PromotionService(CryptoRepository cryptoRepository, PromotionRepository promotionRepository, BasketRepository basketRepository, TokenUpdateResultRepository tokenUpdateResultRepository) {
+    private PromotionService(
+            CryptoRepository cryptoRepository,
+            PromotionRepository promotionRepository,
+            BasketRepository basketRepository,
+            TokenUpdateResultRepository tokenUpdateResultRepository,
+            DSProtectionClient dsProtectionClient
+    ) {
         this.cryptoRepository = cryptoRepository;
         this.promotionRepository = promotionRepository;
         this.basketRepository = basketRepository;
         this.tokenUpdateResultRepository = tokenUpdateResultRepository;
+        this.dsProtectionClient = dsProtectionClient;
     }
 
 
@@ -164,7 +174,18 @@ public class PromotionService {
         // using tid as user choice TODO change this once user choice generation is properly implemented, see issue 75
         DeductOutput spendProviderOutput = incentiveSystem.generateSpendRequestResponse(promotion.getPromotionParameters(), spendRequest, new ProviderKeyPair(providerSecretKey, providerPublicKey), tid, spendDeductTree, tid);
 
-        // TODO process provider output
+        try { // TODO: make this call asynchronous in the future: put transaction into a queue and batch-send them like every minute
+            // send transaction data to double-spending protection service
+            String responseText = dsProtectionClient.dbSync(
+                    tid,
+                    spendRequest.getDsid(),
+                    spendProviderOutput.getDstag(),
+                    promotionId,
+                    tid.toString() // TODO change this once user choice generation is properly implemented
+            );
+        } catch(Exception e) {
+            System.out.println("Could not store transaction data in double-spending protection database: " + e.getMessage());
+        }
 
         var result = jsonConverter.serialize(spendProviderOutput.getSpendResponse().getRepresentation());
         log.info("SpendResult: " + result);
