@@ -37,7 +37,7 @@ class TokenDsidHashTest {
         String serializedDsid = jsonConverter.serialize(token.computeDsid(pp).getRepresentation());
         String manualHashString = hashAndEncodeHexString(serializedDsid);
 
-        assertThat(hash).isEqualToIgnoringCase(manualHahsString);
+        assertThat(hash).isEqualToIgnoringCase(manualHashString);
     }
 
     // Manual implementation as it could be done in JS; agnostic of cryptimeleon
