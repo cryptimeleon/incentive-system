@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -24,7 +22,6 @@ import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 fun SetupUi(onFinished: () -> Unit) {
     val setupViewModel = hiltViewModel<SetupViewModel>()
     val setupFinished by setupViewModel.navigateToInfo.observeAsState(false)
-    val feedback by setupViewModel.feedbackText.observeAsState("")
 
     LaunchedEffect(false) {
         setupViewModel.startSetup()
@@ -36,11 +33,11 @@ fun SetupUi(onFinished: () -> Unit) {
         }
     }
 
-    SetupUi(feedback = feedback)
+    SetupUi()
 }
 
 @Composable
-private fun SetupUi(feedback: String) {
+private fun SetupUi() {
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
@@ -48,14 +45,13 @@ private fun SetupUi(feedback: String) {
     ) {
         CircularProgressIndicator()
         Spacer(modifier = Modifier.size(8.dp))
-        Text(feedback, style = MaterialTheme.typography.bodyMedium)
     }
 }
 
 @Composable
 fun SetupUiPreview() {
     CryptimeleonTheme {
-        SetupUi(feedback = "Loading Public Parameters")
+        SetupUi()
     }
 }
 
