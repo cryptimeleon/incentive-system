@@ -116,7 +116,6 @@ public class Helper {
      *
      * @param valid whether the generated transaction shall be valid or not
      */
-    // TODO: make spend amount random once basket server endpoint is implemented
     public static Transaction generateRandomTransaction(IncentivePublicParameters pp, boolean valid) {
         Zn usedZn = pp.getBg().getZn();
         Group usedG1 = pp.getBg().getG1();

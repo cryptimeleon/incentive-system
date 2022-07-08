@@ -7,6 +7,9 @@ import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -35,16 +38,16 @@ public class DSProtectionClient {
      * @param tid         transaction ID
      * @param dsid        double-spending ID
      * @param dstag       double-spending tag
-     * @param spendAmount amount of points spent in this transaction
+     * @param userChoice  represents the reward that the user claimed with this transaction
      * @return server response (success or failure report)
      */
-    public String dbSync(Zn.ZnElement tid, GroupElement dsid, DoubleSpendingTag dstag, BigInteger spendAmount) {
+    public String dbSync(Zn.ZnElement tid, GroupElement dsid, DoubleSpendingTag dstag, BigInteger promotionId, String userChoice) {
         // marshall transaction data
         JSONConverter jsonConverter = new JSONConverter();
         String serializedTid = Helper.computeSerializedRepresentation(tid);
         String serializedDsidRepr = Helper.computeSerializedRepresentation(dsid);
         String serializedDsTagRepr = Helper.computeSerializedRepresentation(dstag);
-        String serializedSpendAmout = spendAmount.toString();
+        String serializedPromotionId = promotionId.toString();
 
         // make POST request
         Mono<String> dbSyncResponse = this.dsProtectionClient.post()
@@ -52,7 +55,8 @@ public class DSProtectionClient {
                 .header("tid", serializedTid)
                 .header("dsid", serializedDsidRepr)
                 .header("dstag", serializedDsTagRepr)
-                .header("k", serializedSpendAmout)
+                .header("promotion-id", serializedPromotionId)
+                .header("userchoice", userChoice)
                 .retrieve()
                 .bodyToMono(String.class);
 
