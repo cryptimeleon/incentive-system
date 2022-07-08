@@ -70,7 +70,7 @@ abstract class BaseCryptoRepositoryTest {
     }
 
     @Test
-    fun testTokensAndIssueJoinDoNotReplaceIfPresent() = runBlocking {
+    fun testTokensAndIssueJoinDoNotReplaceIfPresent(): Unit = runBlocking {
         cryptoRepository.refreshCryptoMaterial()
 
         cryptoRepository.runIssueJoin(firstPromotionParameters)
@@ -78,7 +78,7 @@ abstract class BaseCryptoRepositoryTest {
         cryptoRepository.runIssueJoin(firstPromotionParameters, replaceIfPresent = false)
 
         val tokensAfterNonReplacingInsert = cryptoRepository.tokens.first()
-        assertThat(tokensAfterNonReplacingInsert).containsExactly(tokensAfterInsert)
+        assertThat(tokensAfterNonReplacingInsert).containsExactlyElementsIn(tokensAfterInsert)
     }
 
     @Test
