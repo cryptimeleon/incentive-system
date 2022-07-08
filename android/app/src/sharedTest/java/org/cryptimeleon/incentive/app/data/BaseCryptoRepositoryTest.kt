@@ -49,17 +49,45 @@ abstract class BaseCryptoRepositoryTest {
 
     @Test
     fun testTokensAndIssueJoin() = runBlocking {
-        // Fetch pp
         cryptoRepository.refreshCryptoMaterial()
 
         assertThat(cryptoRepository.tokens.first()).isEmpty()
-        cryptoRepository.runIssueJoin(firstPromotionParameters, dummy = true)
-        assertThat(cryptoRepository.tokens.first()).isEmpty()
-        cryptoRepository.runIssueJoin(firstPromotionParameters, dummy = false)
-        assertThat(cryptoRepository.tokens.first()).hasSize(1)
-        cryptoRepository.runIssueJoin(secondPromotionParameters, dummy = false)
-        assertThat(cryptoRepository.tokens.first()).hasSize(2)
-        cryptoRepository.runIssueJoin(firstPromotionParameters, dummy = false)
+        cryptoRepository.runIssueJoin(firstPromotionParameters)
+        val tokensAfterInsert = cryptoRepository.tokens.first()
+        assertThat(tokensAfterInsert).hasSize(1)
+    }
+
+    @Test
+    fun testTokensAndIssueJoinReplaceIfPresent() = runBlocking {
+        cryptoRepository.refreshCryptoMaterial()
+
+        cryptoRepository.runIssueJoin(firstPromotionParameters)
+        val tokensAfterInsert = cryptoRepository.tokens.first()
+        cryptoRepository.runIssueJoin(firstPromotionParameters, replaceIfPresent = true)
+
+        val tokensAfterNonReplacingInsert = cryptoRepository.tokens.first()
+        assertThat(tokensAfterNonReplacingInsert).containsNoneIn(tokensAfterInsert)
+    }
+
+    @Test
+    fun testTokensAndIssueJoinDoNotReplaceIfPresent() = runBlocking {
+        cryptoRepository.refreshCryptoMaterial()
+
+        cryptoRepository.runIssueJoin(firstPromotionParameters)
+        val tokensAfterInsert = cryptoRepository.tokens.first()
+        cryptoRepository.runIssueJoin(firstPromotionParameters, replaceIfPresent = false)
+
+        val tokensAfterNonReplacingInsert = cryptoRepository.tokens.first()
+        assertThat(tokensAfterNonReplacingInsert).containsExactly(tokensAfterInsert)
+    }
+
+    @Test
+    fun testMultiplePromotionsAreKeptSeparately() = runBlocking {
+        cryptoRepository.refreshCryptoMaterial()
+
+        cryptoRepository.runIssueJoin(firstPromotionParameters)
+        cryptoRepository.runIssueJoin(secondPromotionParameters)
+
         assertThat(cryptoRepository.tokens.first()).hasSize(2)
     }
 }
