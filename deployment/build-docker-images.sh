@@ -54,7 +54,7 @@ DEPENDENCY_PATH=services/dsprotectionservice/build/dependency
 mkdir -p $DEPENDENCY_PATH && (cd $DEPENDENCY_PATH; jar -xf ../libs/*.jar)
 docker build \
   --build-arg DEPENDENCY=$DEPENDENCY_PATH \
-  --build-arg APPLICATION=org.cryptimeleon.incentive.services.dsprotectionservice.DsprotectionApplication \
+  --build-arg APPLICATION=org.cryptimeleon.incentivesystem.dsprotectionservice.DsprotectionApplication \
   -t cryptimeleon/incentive-service-dsprotection:$VERSION \
   -f services/Dockerfile .
 
