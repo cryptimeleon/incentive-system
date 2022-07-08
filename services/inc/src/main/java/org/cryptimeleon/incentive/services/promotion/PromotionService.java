@@ -174,7 +174,7 @@ public class PromotionService {
         // using tid as user choice TODO change this once user choice generation is properly implemented, see issue 75
         DeductOutput spendProviderOutput = incentiveSystem.generateSpendRequestResponse(promotion.getPromotionParameters(), spendRequest, new ProviderKeyPair(providerSecretKey, providerPublicKey), tid, spendDeductTree, tid);
 
-        try {
+        try { // TODO: make this call asynchronous in the future: put transaction into a queue and batch-send them like every minute
             // send transaction data to double-spending protection service
             String responseText = dsProtectionClient.dbSync(
                     tid,
