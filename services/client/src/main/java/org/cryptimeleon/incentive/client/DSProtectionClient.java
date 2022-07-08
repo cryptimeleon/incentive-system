@@ -25,14 +25,11 @@ public class DSProtectionClient {
 
     private WebClient dsProtectionClient; // the underlying web client making the requests
 
-    @Value("${dsprotection-service.url}")
-    private String dsProtectionServiceURL;
-
     private static final String DBSYNC_PATH = "/dbsync";
 
-    public DSProtectionClient() {
-        logger.info("Creating a client that sends queries to " + "http://localhost:8004");
-        this.dsProtectionClient = WebClientHelper.buildWebClient("http://localhost:8004"); // TODO remove hard-coded URL
+    public DSProtectionClient(String dsProtectionServiceURL) {
+        logger.info("Creating a client that sends queries to " + dsProtectionServiceURL);
+        this.dsProtectionClient = WebClientHelper.buildWebClient(dsProtectionServiceURL);
     }
 
     /**

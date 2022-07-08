@@ -28,6 +28,7 @@ import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
@@ -57,14 +58,14 @@ public class PromotionService {
             CryptoRepository cryptoRepository,
             PromotionRepository promotionRepository,
             BasketRepository basketRepository,
-            TokenUpdateResultRepository tokenUpdateResultRepository
+            TokenUpdateResultRepository tokenUpdateResultRepository,
+            DSProtectionClient dsProtectionClient
     ) {
         this.cryptoRepository = cryptoRepository;
         this.promotionRepository = promotionRepository;
         this.basketRepository = basketRepository;
         this.tokenUpdateResultRepository = tokenUpdateResultRepository;
-
-        this.dsProtectionClient = new DSProtectionClient();
+        this.dsProtectionClient = dsProtectionClient;
     }
 
 
