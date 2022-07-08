@@ -8,7 +8,6 @@ import org.cryptimeleon.incentive.app.domain.ICryptoRepository
 import org.cryptimeleon.incentive.app.domain.IPromotionRepository
 import org.cryptimeleon.incentive.app.domain.model.CryptoMaterial
 import org.cryptimeleon.incentive.promotion.Promotion
-import timber.log.Timber
 
 class RefreshCryptoDataUseCase(
     val cryptoRepository: ICryptoRepository,
@@ -19,9 +18,11 @@ class RefreshCryptoDataUseCase(
     private var updatedCryptoMaterial: CryptoMaterial? = null
 
     suspend operator fun invoke() {
-        Timber.i("Started")
-        val startTime = System.currentTimeMillis()
+        loadPromotionsAndCryptoMaterialParallel()
+        joinAllPromotions(forceStoreTokens = !isDummy())
+    }
 
+    private suspend fun loadPromotionsAndCryptoMaterialParallel() {
         coroutineScope {
             val loadPromotions = async {
                 promotionRepository.reloadPromotions()
@@ -34,31 +35,22 @@ class RefreshCryptoDataUseCase(
             }
             awaitAll(loadCryptoMaterial, loadPromotions)
         }
-        // TODO! new promotions?! Maybe only dummy for promotions for which we already have a token!
-        // How about a database method? (e.g. insert without replace)
-        if (currentCryptoMaterial == updatedCryptoMaterial && updatedCryptoMaterial != null) {
-            // Nothing changed -> Dummy Token
-            coroutineScope {
-                promotions.map {
-                    async {
-                        Timber.i("Start dummy token for $it")
-                        cryptoRepository.runIssueJoin(it.promotionParameters, true)
-                        Timber.i("Finished dummy token for $it")
-                    }
-                }.awaitAll()
-            }
-        } else {
-            coroutineScope {
-                promotions.map {
-                    async {
-                        Timber.i("Start token for $it")
-                        cryptoRepository.runIssueJoin(it.promotionParameters)
-                        Timber.i("Retrieved token for $it")
-                    }
-                }.awaitAll()
-            }
+    }
+
+    private fun isDummy() =
+        currentCryptoMaterial == updatedCryptoMaterial && updatedCryptoMaterial != null
+
+
+    private suspend fun joinAllPromotions(forceStoreTokens: Boolean) {
+        coroutineScope {
+            promotions.map {
+                async {
+                    cryptoRepository.runIssueJoin(
+                        it.promotionParameters,
+                        replaceIfPresent = forceStoreTokens
+                    )
+                }
+            }.awaitAll()
         }
-        val totalMillis = System.currentTimeMillis() - startTime
-        Timber.i("Finished withing " + totalMillis + "miliseconds")
     }
 }
