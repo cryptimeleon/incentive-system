@@ -55,7 +55,10 @@ class CryptoRepository(
         }.flowOn(Dispatchers.Default)
 
 
-    override suspend fun runIssueJoin(promotionParameters: PromotionParameters, dummy: Boolean) {
+    override suspend fun runIssueJoin(
+        promotionParameters: PromotionParameters,
+        replaceIfPresent: Boolean
+    ) {
         val cryptoMaterial = cryptoMaterial.first()!!
         val pp = cryptoMaterial.pp
         val providerPublicKey = cryptoMaterial.ppk
@@ -77,7 +80,6 @@ class CryptoRepository(
             )
         }
 
-
         val token = incentiveSystem.handleJoinRequestResponse(
             promotionParameters,
             providerPublicKey,
@@ -85,8 +87,10 @@ class CryptoRepository(
             joinRequest,
             JoinResponse(jsonConverter.deserialize(joinResponse.body()), pp)
         )
-        if (!dummy) {
+        if (replaceIfPresent) {
             cryptoDao.insertToken(toCryptoTokenEntity(token))
+        } else {
+            cryptoDao.insertTokenIfNotPresent(toCryptoTokenEntity(token))
         }
     }
 
@@ -129,6 +133,7 @@ class CryptoRepository(
         val (remotePP: String, remotePPK: String) = queryRemoteCryptoMaterial()
 
         if (needToResetCryptoData(oldSerializedCryptoAsset, remotePP, remotePPK)) {
+            Timber.d("Deleting all crypto data since PP or PPK have changed")
             deleteAll()
             generateAndStoreNewCryptoAssets(remotePP, remotePPK)
         }

@@ -22,7 +22,11 @@ interface ICryptoRepository {
      */
     @Throws(RefreshCryptoMaterialException::class)
     suspend fun refreshCryptoMaterial()
-    suspend fun runIssueJoin(promotionParameters: PromotionParameters, dummy: Boolean = false)
+    suspend fun runIssueJoin(
+        promotionParameters: PromotionParameters,
+        replaceIfPresent: Boolean = true
+    )
+
 
     // Results are stored at the server's side until basket is payed
     suspend fun sendTokenUpdatesBatch(basketId: UUID, bulkRequestDto: BulkRequestDto)

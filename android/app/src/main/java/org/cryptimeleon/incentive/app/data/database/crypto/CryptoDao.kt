@@ -20,6 +20,9 @@ interface CryptoDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertToken(cryptoTokenEntity: CryptoTokenEntity)
 
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertTokenIfNotPresent(cryptoTokenEntity: CryptoTokenEntity)
+
     @Query("DELETE FROM tokens")
     suspend fun deleteTokens()
 
