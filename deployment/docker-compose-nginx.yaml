@@ -39,6 +39,7 @@ services:
       - "8004:8004"
     environment:
       - SPRING_PROFILES_ACTIVE=production
+      - JAVA_TOOL_OPTIONS=-Xms512m -Xmx2048m
     networks:
       - provider
     hostname: dsprotectionservice
