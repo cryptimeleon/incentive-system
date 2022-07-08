@@ -14,7 +14,7 @@ import java.security.NoSuchAlgorithmException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class TokenDsidHashTest {
+class TokenDsidHashMakerTest {
     JSONConverter jsonConverter = new JSONConverter();
     IncentivePublicParameters pp = Setup.trustedSetup(128, Setup.BilinearGroupChoice.Debug);
     PromotionParameters promotionParameters = IncentiveSystem.generatePromotionParameters(1);
@@ -25,15 +25,15 @@ class TokenDsidHashTest {
 
     @Test
     void smokeTest() {
-        String hash = TokenDsidHash.computeTokenHash(token, pp);
-        String shortHash = TokenDsidHash.shortHash(hash);
+        String hash = TokenDsidHashMaker.hashToken(token, pp);
+        String shortHash = TokenDsidHashMaker.shortHash(hash);
         System.out.println(hash);
         System.out.println(shortHash);
     }
 
     @Test
     void compareWithManualHash() throws NoSuchAlgorithmException {
-        String hash = TokenDsidHash.computeTokenHash(token, pp);
+        String hash = TokenDsidHashMaker.hashToken(token, pp);
         String serializedDsid = jsonConverter.serialize(token.computeDsid(pp).getRepresentation());
         String manualHashString = hashAndEncodeHexString(serializedDsid);
 
