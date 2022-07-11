@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemState
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
+import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 import java.util.*
 
 @Composable
@@ -63,9 +64,15 @@ private fun CheckoutUi(
     payAndRedeemState: PayAndRedeemState,
     triggerCheckout: () -> Unit,
     navigateHome: () -> Unit,
-    modifier: Modifier = Modifier
 ) {
-    Scaffold(modifier = modifier.windowInsetsPadding(WindowInsets.statusBars)) {
+    val title = when (payAndRedeemState) {
+        PayAndRedeemState.NOT_STARTED -> "Summary"
+        PayAndRedeemState.FINISHED -> "Finished"
+        else -> "Processing"
+    }
+    Scaffold(
+        topBar = { DefaultTopAppBar(title = { Text("Checkout: $title") }, menuEnabled = false) },
+    ) {
         Box(Modifier.padding(it)) {
             when (payAndRedeemState) {
                 PayAndRedeemState.NOT_STARTED -> {

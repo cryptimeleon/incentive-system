@@ -4,32 +4,28 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.material.Card
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -37,6 +33,7 @@ import org.cryptimeleon.incentive.app.domain.model.Earn
 import org.cryptimeleon.incentive.app.domain.model.None
 import org.cryptimeleon.incentive.app.domain.model.UserUpdateChoice
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
+import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 import java.math.BigInteger
 
 @Composable
@@ -59,7 +56,14 @@ private fun RewardsUi(
     setUserUpdateChoice: (promotionId: BigInteger, userUpdateChoice: UserUpdateChoice) -> Unit,
     gotoCheckout: () -> Unit
 ) {
-    Scaffold(modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars)) {
+    Scaffold(
+        topBar = {
+            DefaultTopAppBar(
+                title = { Text("Checkout: Choose Rewards") },
+                menuEnabled = false
+            )
+        },
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxHeight()
@@ -72,89 +76,83 @@ private fun RewardsUi(
                 modifier = Modifier.weight(1f)
             )
             Button(onClick = gotoCheckout, modifier = Modifier.fillMaxWidth()) {
-                Text("Summary")
+                Text("Continue")
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun RewardPromotionList(
     promotionInfos: List<PromotionInfo>,
     setUserUpdateChoice: (promotionId: BigInteger, userUpdateChoice: UserUpdateChoice) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    LazyColumn(
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2),
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        item {
-            Text(
-                "Choose a Reward for every Promotion",
-                style = MaterialTheme.typography.headlineMedium
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-        }
-        items(promotionInfos) { promotion ->
-            Card() {
-                Column(modifier = Modifier.padding(8.dp)) {
-                    Text(
-                        text = promotion.promotionName,
-                        style = MaterialTheme.typography.headlineSmall
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Column(Modifier.selectableGroup()) {
-                        promotion.choices.forEach { choice ->
-                            Row(
-                                Modifier
-                                    .fillMaxWidth()
-                                    .selectable(
-                                        selected = choice.isSelected,
-                                        onClick = {
-                                            setUserUpdateChoice(
-                                                promotion.promotionId,
-                                                choice.userUpdateChoice
-                                            )
-                                        },
-                                        role = Role.RadioButton
-                                    ),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                RadioButton(
-                                    selected = choice.isSelected,
-                                    onClick = null // Recommended since Row already handles clicks
-                                )
-                                Column() {
-                                    Text(
-                                        text = choice.humanReadableDescription,
-                                        style = MaterialTheme.typography.bodyMedium.merge(),
-                                        modifier = Modifier.padding(start = 16.dp)
-                                    )
-                                    when (val sideEffect = choice.sideEffect) {
-                                        is RewardChoiceSideEffect -> Text(
-                                            text = "Reward Item: ${sideEffect.title}",
-                                            style = MaterialTheme.typography.bodyMedium.merge(),
-                                            modifier = Modifier.padding(start = 16.dp)
-                                        )
-                                        is NoChoiceSideEffect -> {}
-                                    }
-                                    Text(
-                                        text = choice.cryptographicDescription,
-                                        style = MaterialTheme.typography.labelMedium,
-                                        modifier = Modifier.padding(start = 16.dp)
-                                    )
-                                }
-                            }
-                        }
-                    }
-
+        promotionInfos.forEach { promotion ->
+            item(span = { GridItemSpan(2) }) {
+                Text(
+                    text = promotion.promotionName,
+                    style = MaterialTheme.typography.headlineSmall
+                )
+            }
+            promotion.choices.forEach { choice ->
+                item() {
+                    RewardChoiceCard(setUserUpdateChoice, promotion, choice)
                 }
             }
+
         }
-        item { Spacer(Modifier.height(16.dp)) }
+    }
+
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+private fun RewardChoiceCard(
+    setUserUpdateChoice: (promotionId: BigInteger, userUpdateChoice: UserUpdateChoice) -> Unit,
+    promotion: PromotionInfo,
+    choice: Choice
+) {
+    Card(
+        onClick = {
+            setUserUpdateChoice(
+                promotion.promotionId,
+                choice.userUpdateChoice
+            )
+        },
+        backgroundColor = if (choice.isSelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
+        modifier = Modifier
+            .defaultMinSize(minHeight = 100.dp)
+            .fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(8.dp), Arrangement.spacedBy(8.dp)) {
+            Text(
+                text = choice.humanReadableDescription,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold,
+            )
+            when (val sideEffect = choice.sideEffect) {
+                is RewardChoiceSideEffect -> Row {
+                    Icon(Icons.Default.CardGiftcard, contentDescription = "Gift icon")
+                    Text(
+                        text = sideEffect.title,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(start = 16.dp)
+                    )
+                }
+                is NoChoiceSideEffect -> {}
+            }
+        }
     }
 }
+
 
 @ExperimentalMaterialApi
 @ExperimentalAnimationApi
