@@ -33,14 +33,13 @@ public class BootstrapClient {
 
     private BootstrapData getBootstrapDataFor(BootstrapDataChoice bootstrapDataChoice) {
         switch (bootstrapDataChoice) {
-            case DEFAULT -> {
+            case DEFAULT:
                 return DefaultBootstrapData.bootstrapData;
-            }
-            case DEMO -> {
+            case DEMO:
                 return DemoBootstrapData.bootstrapData;
-            }
+            default:
+                throw new RuntimeException("Could not find bootstrap data for BootstrapDataChoice" + bootstrapDataChoice.name());
         }
-        throw new RuntimeException("Could not find bootstrap data for BootstrapDataChoice" + bootstrapDataChoice.name());
     }
 
     private void publishBasketItems(BasketItemDto[] basketItems) {
