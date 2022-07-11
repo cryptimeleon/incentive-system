@@ -155,6 +155,20 @@ public class BasketController {
     }
 
     /**
+     * Query a basket by its id in url
+     * TODO we need this for QR code scanning for demos
+     * TODO normally, the request header version of this request would be used in some provider side app
+     */
+    @GetMapping("/basket")
+    ResponseEntity<Basket> getBasketFromUrl(@RequestParam UUID basketId) throws BasketServiceException {
+        var basket = basketService.getBasketById(basketId);
+        var basketValue = basketService.getBasketValue(basket);
+        basket.setValue(basketValue);
+
+        return new ResponseEntity<>(basket, HttpStatus.OK);
+    }
+
+    /**
      * Delete a basket using its id
      */
     @DeleteMapping("/basket")
