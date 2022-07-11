@@ -7,7 +7,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.cryptimeleon.incentive.app.data.BasketRepository
@@ -19,6 +21,7 @@ import org.cryptimeleon.incentive.app.domain.usecase.GetPromotionStatesUseCase
 import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemState
 import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemUseCase
 import org.cryptimeleon.incentive.app.util.formatCents
+import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
@@ -35,6 +38,11 @@ class CheckoutViewModel @Inject constructor(
     private val tokenUpdateChoicesFlow: Flow<List<PromotionUserUpdateChoice>> =
         AnalyzeUserTokenUpdatesUseCase(promotionRepository, cryptoRepository, basketRepository)()
     private val basket = basketRepository.basket
+
+    // store basketId since a new one is retrieved after payment
+    private val _paidBasketId: MutableStateFlow<UUID?> = MutableStateFlow(null)
+    public val paidBasketId: StateFlow<UUID?>
+        get() = _paidBasketId
 
     val payAndRedeemState = MutableStateFlow(PayAndRedeemState.NOT_STARTED)
     val checkoutState: Flow<CheckoutState> =
@@ -81,6 +89,8 @@ class CheckoutViewModel @Inject constructor(
     fun startPayAndRedeem() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
+                // Store basket ID since use case will retrieve a new one
+                _paidBasketId.value = basket.first()?.basketId
                 payAndRedeemUseCase.invoke().collect { payAndRedeemState.emit(it) }
             }
         }

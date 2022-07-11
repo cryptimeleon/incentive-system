@@ -65,10 +65,12 @@ fun CheckoutUi(navigateHome: () -> Unit) {
     val payAndRedeemState: PayAndRedeemState by checkoutViewModel.payAndRedeemState.collectAsState(
         initial = PayAndRedeemState.NOT_STARTED
     )
+    val paidBasketId: UUID? by checkoutViewModel.paidBasketId.collectAsState()
 
     CheckoutUi(
         checkoutState,
         payAndRedeemState,
+        paidBasketId,
         checkoutViewModel::startPayAndRedeem,
         navigateHome
     )
@@ -79,6 +81,7 @@ fun CheckoutUi(navigateHome: () -> Unit) {
 private fun CheckoutUi(
     checkoutState: CheckoutState,
     payAndRedeemState: PayAndRedeemState,
+    paidBasketId: UUID? = null,
     triggerCheckout: () -> Unit,
     navigateHome: () -> Unit,
     modifier: Modifier = Modifier
@@ -90,7 +93,7 @@ private fun CheckoutUi(
                     SummaryUi(checkoutState, triggerCheckout)
                 }
                 PayAndRedeemState.FINISHED -> {
-                    FinishedUi(checkoutState, navigateHome)
+                    FinishedUi(checkoutState, paidBasketId, navigateHome)
                 }
                 else -> {
                     PayProgressUi(payAndRedeemState)
@@ -193,7 +196,11 @@ private fun PayProgressUi(payAndRedeemState: PayAndRedeemState) {
 }
 
 @Composable
-private fun FinishedUi(checkoutState: CheckoutState, navigateHome: () -> Unit) {
+private fun FinishedUi(
+    checkoutState: CheckoutState,
+    paidBasketId: UUID?,
+    navigateHome: () -> Unit
+) {
     Column(
         modifier = Modifier
             .padding(16.dp)
@@ -225,7 +232,7 @@ private fun FinishedUi(checkoutState: CheckoutState, navigateHome: () -> Unit) {
                         .fillMaxWidth()
                 ) {
                     val image by generateBasketQRCode(
-                        basketId = checkoutState.basketState.basketId,
+                        basketId = paidBasketId!!.toString(),
                         fg = MaterialTheme.colorScheme.onSecondaryContainer,
                         bg = MaterialTheme.colorScheme.secondaryContainer,
                     )
