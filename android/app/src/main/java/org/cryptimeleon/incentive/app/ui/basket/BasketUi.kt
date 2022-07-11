@@ -22,9 +22,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Remove
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -47,6 +49,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import androidx.hilt.navigation.compose.hiltViewModel
 import org.cryptimeleon.incentive.app.domain.model.Basket
 import org.cryptimeleon.incentive.app.domain.model.BasketItem
@@ -62,7 +65,12 @@ val currencyFormat: NumberFormat = NumberFormat.getCurrencyInstance(Locale.GERMA
 fun formatCents(valueCents: Int): String = currencyFormat.format(valueCents.toDouble() / 100)
 
 @Composable
-fun BasketUi(openSettings: () -> Unit, openBenchmark: () -> Unit, gotoRewards: () -> Unit) {
+fun BasketUi(
+    openScanner: () -> Unit,
+    openSettings: () -> Unit,
+    openBenchmark: () -> Unit,
+    gotoRewards: () -> Unit
+) {
     val basketViewModel = hiltViewModel<BasketViewModel>()
     val basket: SLE<Basket> by basketViewModel.basket.collectAsState(initial = SLE.Loading())
 
@@ -71,23 +79,24 @@ fun BasketUi(openSettings: () -> Unit, openBenchmark: () -> Unit, gotoRewards: (
         setItemCount = basketViewModel::setItemCount,
         pay = gotoRewards,
         discard = basketViewModel::onDiscardClicked,
+        openScanner = openScanner,
         openSettings = openSettings,
         openBenchmark = openBenchmark
     )
 }
 
 @OptIn(
-    ExperimentalAnimationApi::class, ExperimentalMaterialApi::class,
     ExperimentalMaterial3Api::class
 )
 @Composable
 private fun BasketUi(
     basketSle: SLE<Basket>,
-    setItemCount: (String, Int) -> Unit,
-    pay: () -> Unit,
-    discard: () -> Unit,
+    setItemCount: (String, Int) -> Unit = { _, _ -> },
+    pay: () -> Unit = {},
+    discard: () -> Unit = {},
+    openScanner: () -> Unit = {},
     openSettings: () -> Unit = {},
-    openBenchmark: () -> Unit = {}
+    openBenchmark: () -> Unit = {},
 ) {
     var expandedBasketItem by remember { mutableStateOf(wrongId) }
 
@@ -105,113 +114,139 @@ private fun BasketUi(
                 is SLE.Success -> {
                     val basket = basketSle.data!!
                     if (basket.items.isNotEmpty()) {
-                        val basketItemsCount = basket.items.map { it.count }.sum()
-                        Column(
-                            modifier = Modifier
-                                .fillMaxHeight()
-                                .padding(16.dp)
-                        ) {
-                            LazyColumn(modifier = Modifier.weight(1f)) {
-                                item {
-                                    Row(Modifier.fillMaxWidth(), Arrangement.End) {
-                                        Text(
-                                            "Preis",
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = MaterialTheme.colorScheme.onBackground.copy(
-                                                alpha = 0.6F
-                                            )
-                                        )
-                                    }
-                                }
-                                items(basket.items) { item ->
-                                    Divider()
-                                    BasketItem(
-                                        item = item,
-                                        expanded = expandedBasketItem == item.itemId,
-                                        onClick = {
-                                            expandedBasketItem =
-                                                if (expandedBasketItem == item.itemId) wrongId else item.itemId
-                                        },
-                                        setCount = { count ->
-                                            setItemCount(item.itemId, count)
-                                        },
-                                        modifier = Modifier.padding(vertical = 8.dp),
-                                    )
-                                }
-                                item {
-                                    Divider(thickness = 3.dp)
-                                    Row(
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(vertical = 8.dp)
-                                    ) {
-                                        Text(
-                                            text = "Total ($basketItemsCount)",
-                                            style = MaterialTheme.typography.headlineSmall,
-                                        )
-                                        Text(
-                                            text = formatCents(basket.value),
-                                            style = MaterialTheme.typography.headlineSmall,
-                                        )
-                                    }
-                                    Spacer(
-                                        modifier = Modifier
-                                            .size(32.dp)
-                                    )
-                                }
-                                item {
-                                    Spacer(
-                                        modifier = Modifier
-                                            .size(32.dp)
-                                    )
-                                }
-                            }
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(16.dp)
-                            ) {
-                                OutlinedButton(
-                                    modifier = Modifier.weight(1f),
-                                    onClick = discard
-                                ) {
-                                    Text("Discard")
-                                }
-                                Button(
-                                    modifier = Modifier.weight(1f),
-                                    onClick = { pay() }
-                                ) {
-                                    Text("Checkout")
-                                }
-                            }
-                        }
+                        BasketNotEmptyView(basket, expandedBasketItem, setItemCount, discard, pay)
                     } else {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .fillMaxHeight(),
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                text = "Basket is empty!",
-                                textAlign = TextAlign.Center,
-                                style = MaterialTheme.typography.headlineSmall,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                            )
-                            Text(
-                                text = "Open the scanner to items to your basket!",
-                                textAlign = TextAlign.Center,
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                            )
-                        }
+                        BasketEmptyView(openScanner)
                     }
                 }
             }
         }
     }
 }
+
+@Composable
+private fun BasketNotEmptyView(
+    basket: Basket,
+    expandedBasketItem: String,
+    setItemCount: (String, Int) -> Unit,
+    discard: () -> Unit,
+    pay: () -> Unit
+) {
+    var expandedBasketItem1 = expandedBasketItem
+    val basketItemsCount = basket.items.map { it.count }.sum()
+    Column(
+        modifier = Modifier
+            .fillMaxHeight()
+            .padding(16.dp)
+    ) {
+        LazyColumn(modifier = Modifier.weight(1f)) {
+            item {
+                Row(Modifier.fillMaxWidth(), Arrangement.End) {
+                    Text(
+                        "Preis",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onBackground.copy(
+                            alpha = 0.6F
+                        )
+                    )
+                }
+            }
+            items(basket.items) { item ->
+                Divider()
+                BasketItem(
+                    item = item,
+                    expanded = expandedBasketItem1 == item.itemId,
+                    onClick = {
+                        expandedBasketItem1 =
+                            if (expandedBasketItem1 == item.itemId) wrongId else item.itemId
+                    },
+                    setCount = { count ->
+                        setItemCount(item.itemId, count)
+                    },
+                    modifier = Modifier.padding(vertical = 8.dp),
+                )
+            }
+            item {
+                Divider(thickness = 3.dp)
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                ) {
+                    Text(
+                        text = "Total (${basketItemsCount})",
+                        style = MaterialTheme.typography.headlineSmall,
+                    )
+                    Text(
+                        text = formatCents(basket.value),
+                        style = MaterialTheme.typography.headlineSmall,
+                    )
+                }
+                Spacer(
+                    modifier = Modifier
+                        .size(32.dp)
+                )
+            }
+            item {
+                Spacer(
+                    modifier = Modifier
+                        .size(32.dp)
+                )
+            }
+        }
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            OutlinedButton(
+                modifier = Modifier.weight(1f),
+                onClick = discard
+            ) {
+                Text("Discard")
+            }
+            Button(
+                modifier = Modifier.weight(1f),
+                onClick = { pay() }
+            ) {
+                Text("Checkout")
+            }
+        }
+    }
+}
+
+@Composable
+private fun BasketEmptyView(openScanner: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+
+    ) {
+        Text(
+            text = "🛒",
+            style = MaterialTheme.typography.headlineLarge.copy(fontSize = 14.em),
+            fontWeight = FontWeight.SemiBold,
+        )
+        Text(
+            text = "Basket is empty!",
+            style = MaterialTheme.typography.headlineLarge,
+            fontWeight = FontWeight.SemiBold,
+        )
+        Spacer(modifier = Modifier.size(16.dp))
+        Button(onClick = openScanner) {
+            Icon(
+                Icons.Default.Add,
+                contentDescription = "Plus Icon",
+                modifier = Modifier.size(ButtonDefaults.IconSize)
+            )
+            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+            Text("Add Items")
+        }
+    }
+}
+
 
 @Composable
 private fun LoadingSpinner() {
@@ -374,10 +409,7 @@ private fun BasketPreview() {
     CryptimeleonTheme {
         BasketUi(
             SLE.Success(testBasket),
-            { _, _ -> },
-            {},
-            {},
-            {})
+        )
     }
 }
 
@@ -393,10 +425,7 @@ private fun BasketPreviewLoading() {
     CryptimeleonTheme {
         BasketUi(
             SLE.Loading(),
-            { _, _ -> },
-            {},
-            {},
-            {})
+        )
     }
 }
 
@@ -412,10 +441,7 @@ private fun BasketPreviewEmpty() {
     CryptimeleonTheme {
         BasketUi(
             SLE.Success(emptyTestBasket),
-            { _, _ -> },
-            {},
-            {},
-            {})
+        )
     }
 }
 
