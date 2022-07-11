@@ -144,6 +144,8 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+        } else {
+            Box(modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars))
         }
     }
 }
