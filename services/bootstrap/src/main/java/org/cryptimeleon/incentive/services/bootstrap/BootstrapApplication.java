@@ -65,7 +65,7 @@ public class BootstrapApplication {
             waitForIncentiveServiceOrThrow(incentiveClient);
 
             BootstrapClient bootstrapClient = new BootstrapClient(basketServiceProviderSecret, promotionServiceProviderSecret, basketClient, incentiveClient);
-            bootstrapClient.publishBootstrapData(DefaultBootstrapData.bootstrapData);
+            bootstrapClient.publishBootstrapData(BootstrapDataChoice.DEMO);
         };
     }
 

@@ -24,10 +24,23 @@ public class BootstrapClient {
         this.incentiveClient = incentiveClient;
     }
 
-    public void publishBootstrapData(BootstrapData bootstrapData) {
+    public void publishBootstrapData(BootstrapDataChoice bootstrapDataChoice) {
+        BootstrapData bootstrapData = getBootstrapDataFor(bootstrapDataChoice);
         publishBasketItems(bootstrapData.basketItems);
         publishRewardItems(bootstrapData.rewardItems);
         publishPromotions(bootstrapData.promotions);
+    }
+
+    private BootstrapData getBootstrapDataFor(BootstrapDataChoice bootstrapDataChoice) {
+        switch (bootstrapDataChoice) {
+            case DEFAULT -> {
+                return DefaultBootstrapData.bootstrapData;
+            }
+            case DEMO -> {
+                return DemoBootstrapData.bootstrapData;
+            }
+        }
+        throw new RuntimeException("Could not find bootstrap data for BootstrapDataChoice" + bootstrapDataChoice.name());
     }
 
     private void publishBasketItems(BasketItemDto[] basketItems) {
