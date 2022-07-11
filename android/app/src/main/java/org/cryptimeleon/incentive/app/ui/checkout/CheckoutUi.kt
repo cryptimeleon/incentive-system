@@ -15,18 +15,21 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -185,18 +188,26 @@ private fun FinishedUi(checkoutState: CheckoutState, navigateHome: () -> Unit) {
     ) {
         Column(
             Modifier.weight(1f),
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                "Successfully updated tokens!",
-                style = MaterialTheme.typography.headlineSmall
+                "Success! 🎉",
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.SemiBold,
             )
-            Spacer(modifier = Modifier.size(16.dp))
-            // TODO replace by QR code
-            Text(
-                "Your basket id for claiming rewards is: ${checkoutState.basketState.basketId}",
-                style = MaterialTheme.typography.headlineSmall
-            )
+            Spacer(modifier = Modifier.size(36.dp))
+            Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = MaterialTheme.colorScheme.secondaryContainer,
+            ) {
+                Text(
+                    checkoutState.basketState.basketId.uppercase(Locale.getDefault()),
+                    style = MaterialTheme.typography.bodySmall,
+                    fontFamily = FontFamily.Monospace,
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
             // TOOD show rewards to claim and QR code of basketId
         }
         Button(onClick = navigateHome, Modifier.fillMaxWidth()) {
