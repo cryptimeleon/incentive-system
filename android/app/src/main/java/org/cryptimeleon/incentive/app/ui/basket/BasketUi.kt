@@ -2,15 +2,8 @@ package org.cryptimeleon.incentive.app.ui.basket
 
 import android.content.res.Configuration
 import android.icu.text.NumberFormat
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.with
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -30,7 +23,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Remove
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -55,7 +47,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import org.cryptimeleon.incentive.app.domain.model.Basket
 import org.cryptimeleon.incentive.app.domain.model.BasketItem
@@ -102,6 +93,7 @@ private fun BasketUi(
 
     Scaffold(topBar = {
         DefaultTopAppBar(
+            title = { Text("My Basket") },
             onOpenSettings = openSettings,
             onOpenBenchmark = openBenchmark
         )
@@ -121,34 +113,16 @@ private fun BasketUi(
                         ) {
                             LazyColumn(modifier = Modifier.weight(1f)) {
                                 item {
-                                    Row() {
-                                        AnimatedContent(
-                                            targetState = basketItemsCount,
-                                            transitionSpec = {
-                                                if (targetState > initialState) {
-                                                    slideInVertically { height -> height } + fadeIn() with
-                                                            slideOutVertically { height -> -height } + fadeOut()
-                                                } else {
-                                                    slideInVertically { height -> -height } + fadeIn() with
-                                                            slideOutVertically { height -> height } + fadeOut()
-                                                }.using(
-                                                    SizeTransform(clip = false)
-                                                )
-                                            }) { targetItem ->
-                                            Text(
-                                                text = "$targetItem",
-                                                style = MaterialTheme.typography.labelMedium,
-                                                fontSize = 14.sp
-                                            )
-                                        }
+                                    Row(Modifier.fillMaxWidth(), Arrangement.End) {
                                         Text(
-                                            text = " Item${if (basketItemsCount > 1) "s" else ""} in your cart:",
-                                            style = MaterialTheme.typography.labelMedium,
-                                            fontSize = 14.sp
+                                            "Preis",
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onBackground.copy(
+                                                alpha = 0.6F
+                                            )
                                         )
                                     }
                                 }
-
                                 items(basket.items) { item ->
                                     Divider()
                                     BasketItem(
@@ -173,7 +147,7 @@ private fun BasketUi(
                                             .padding(vertical = 8.dp)
                                     ) {
                                         Text(
-                                            text = "Total",
+                                            text = "Total ($basketItemsCount)",
                                             style = MaterialTheme.typography.headlineSmall,
                                         )
                                         Text(
@@ -285,22 +259,16 @@ private fun BasketItem(
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Text(
-                    item.title,
-                    style = MaterialTheme.typography.bodyMedium,
+                    "${item.count} x ${item.title}",
+                    style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Normal,
                     modifier = Modifier.weight(1f)
                 )
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         text = formatCents(item.price * item.count),
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Normal,
-                        modifier = Modifier
-                            .align(Alignment.End)
-                    )
-                    Text(
-                        text = "${item.count} x ${formatCents(item.price)}",
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.SemiBold,
                         modifier = Modifier
                             .align(Alignment.End)
                     )
@@ -323,15 +291,6 @@ private fun BasketItemControlRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-        IconButton(
-            onClick = { setCount(0) },
-        ) {
-            Icon(
-                Icons.Outlined.Delete,
-                tint = MaterialTheme.colorScheme.secondary,
-                contentDescription = "Delete"
-            )
-        }
         Box(
             modifier = Modifier
                 .border(
