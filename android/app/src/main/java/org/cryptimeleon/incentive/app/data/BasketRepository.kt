@@ -149,7 +149,7 @@ class BasketRepository(
 
     override suspend fun discardCurrentBasket(delete: Boolean): Boolean {
         val basket = basket.first()
-        if (basket != null) {
+        if (delete && basket != null) {
             basketApiService.deleteBasket(basket.basketId)
         }
         basketDao.deleteAllBasketItems()
