@@ -215,8 +215,8 @@ class PayAndRedeemUseCase(
                 }
             }
 
-            Timber.i("Delete basket")
-            basketRepository.discardCurrentBasket(true)
+            Timber.i("Discard basket")
+            basketRepository.discardCurrentBasket(false)
 
             Timber.i("Finished Pay and Redeem")
             emit(PayAndRedeemState.FINISHED)

@@ -2,7 +2,6 @@ package org.cryptimeleon.incentive.services.basket;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.incentive.services.basket.model.Item;
-import org.cryptimeleon.incentive.services.basket.model.RewardItem;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -12,9 +11,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
-import java.util.Arrays;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cryptimeleon.incentive.services.basket.ClientHelper.*;
@@ -34,6 +31,20 @@ public class BasketTest {
     void addTestItems(@Autowired WebTestClient webTestClient) {
         ClientHelper.newItem(webTestClient, firstTestItem, providerSecret, HttpStatus.OK);
         ClientHelper.newItem(webTestClient, secondTestItem, providerSecret, HttpStatus.OK);
+    }
+
+    @Test
+    void queryBasketQueryParamTest(@Autowired WebTestClient webTestClient) {
+        UUID basketId = createBasket(webTestClient).getResponseBody();
+
+        queryBasketUrlParam(webTestClient, basketId, HttpStatus.OK);
+    }
+
+    @Test
+    void queryBasketHeaderParamTest(@Autowired WebTestClient webTestClient) {
+        UUID basketId = createBasket(webTestClient).getResponseBody();
+
+        queryBasket(webTestClient, basketId, HttpStatus.OK);
     }
 
     @Test

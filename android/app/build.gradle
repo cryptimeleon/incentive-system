@@ -155,6 +155,10 @@ dependencies {
     // Icons
     implementation "androidx.compose.material:material-icons-extended:$rootProject.composeVersion"
 
+    // QR https://mvnrepository.com/artifact/com.google.zxing/core
+    implementation 'com.journeyapps:zxing-android-embedded:4.3.0'
+    implementation("com.google.zxing:core:3.5.0")
+
     // Permissions
     implementation "com.google.accompanist:accompanist-permissions:0.16.1"
 

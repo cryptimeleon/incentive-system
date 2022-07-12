@@ -39,6 +39,16 @@ public class ClientHelper {
                 .returnResult();
     }
 
+    public static EntityExchangeResult<Basket> queryBasketUrlParam(WebTestClient webClient, UUID basketId, HttpStatus expectedStatus) {
+        return webClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/basket").queryParam("basketId", String.valueOf(basketId)).build())
+                .exchange()
+                .expectStatus()
+                .isEqualTo(expectedStatus)
+                .expectBody(Basket.class)
+                .returnResult();
+    }
+
     static void deleteBasket(WebTestClient webClient, UUID basketId) {
         webClient.delete()
                 .uri("/basket")
