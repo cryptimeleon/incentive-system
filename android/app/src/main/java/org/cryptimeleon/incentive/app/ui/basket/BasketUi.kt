@@ -176,7 +176,7 @@ private fun BasketNotEmptyView(
             }
             item {
                 Divider()
-                BasketSummaryRow(basketItemsCount, basket)
+                BasketSummaryRow(basketItemsCount, basket.value)
                 Spacer(
                     modifier = Modifier
                         .size(32.dp)
@@ -201,9 +201,9 @@ private fun BasketNotEmptyView(
 }
 
 @Composable
-private fun BasketSummaryRow(
+fun BasketSummaryRow(
     basketItemsCount: Int,
-    basket: Basket
+    basketValue: Int
 ) {
     Row(
         horizontalArrangement = Arrangement.End,
@@ -217,7 +217,7 @@ private fun BasketSummaryRow(
             style = MaterialTheme.typography.bodyLarge,
         )
         Text(
-            text = formatCents(basket.value),
+            text = formatCents(basketValue),
             fontWeight = FontWeight.SemiBold,
             style = MaterialTheme.typography.bodyLarge,
         )
