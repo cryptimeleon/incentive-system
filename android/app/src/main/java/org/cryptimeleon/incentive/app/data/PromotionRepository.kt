@@ -14,6 +14,7 @@ import org.cryptimeleon.incentive.app.domain.model.UserUpdateChoice
 import org.cryptimeleon.incentive.promotion.Promotion
 import org.cryptimeleon.math.serialization.RepresentableRepresentation
 import org.cryptimeleon.math.serialization.converter.JSONConverter
+import timber.log.Timber
 import java.math.BigInteger
 
 class PromotionRepository(
@@ -46,6 +47,7 @@ class PromotionRepository(
         val promotionsResponse = promotionApiService.getPromotions()
         if (promotionsResponse.isSuccessful) {
             val promotionEntities = promotionsResponse.body()!!.map { promotionString ->
+                Timber.d(promotionString)
                 val promotion =
                     (jsonConverter.deserialize(promotionString) as RepresentableRepresentation).recreateRepresentable() as Promotion
                 PromotionEntity(
@@ -53,6 +55,7 @@ class PromotionRepository(
                     promotionString
                 )
             }
+            promotionDao.deletePromotions()
             promotionDao.insertPromotions(promotionEntities)
         } else {
             throw RuntimeException("Could not load promotions!")

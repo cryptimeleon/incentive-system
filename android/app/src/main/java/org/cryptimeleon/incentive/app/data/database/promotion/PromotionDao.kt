@@ -14,6 +14,9 @@ interface PromotionDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertPromotions(promotionEntities: List<PromotionEntity>)
 
+    @Query("DELETE FROM promotions")
+    fun deletePromotions()
+
     @Query("SELECT * FROM `token-update-user-choices`")
     fun observerUserTokenUpdateChoices(): Flow<List<TokenUpdateUserChoiceEntity>>
 

@@ -25,37 +25,47 @@ class FakeCryptoRepository(
     private val _cryptoMaterial: MutableStateFlow<CryptoMaterial?> = MutableStateFlow(null)
     override val cryptoMaterial: Flow<CryptoMaterial?>
         get() = _cryptoMaterial
+    private val incentiveSystem = IncentiveSystem(pp)
 
-    override suspend fun refreshCryptoMaterial(): Boolean {
+    override suspend fun refreshCryptoMaterial() {
         _cryptoMaterial.value = CryptoMaterial(pp, providerKeyPair.pk, userKeyPair)
-        return true
     }
 
-    override suspend fun runIssueJoin(promotionParameters: PromotionParameters, dummy: Boolean) {
-        if (!dummy) {
-            val incentiveSystem = IncentiveSystem(pp)
-            val joinRequest = incentiveSystem.generateJoinRequest(
-                providerKeyPair.pk,
-                userKeyPair,
-                promotionParameters
-            )
-            val joinResponse = incentiveSystem.generateJoinRequestResponse(
-                promotionParameters,
-                providerKeyPair,
-                userKeyPair.pk.upk,
-                joinRequest
-            )
-            val token = incentiveSystem.handleJoinRequestResponse(
-                promotionParameters,
-                providerKeyPair.pk,
-                userKeyPair,
-                joinRequest,
-                joinResponse
-            )
-            _tokens.value =
-                _tokens.value.filter { it.promotionId != promotionParameters.promotionId }
-                    .plus(token)
+    override suspend fun runIssueJoin(
+        promotionParameters: PromotionParameters,
+        replaceIfPresent: Boolean
+    ) {
+        val token = joinPromotion(promotionParameters)!!
+        if (replaceIfPresent) {
+            _tokens.value = _tokens.value
+                .filter { it.promotionId != promotionParameters.promotionId }
+                .plus(token)
+        } else if (_tokens.value.any { it.promotionId != promotionParameters.promotionId }) {
+            _tokens.value = _tokens.value.plus(token)
+        } else {
+            // Dummy token
         }
+    }
+
+    private fun joinPromotion(promotionParameters: PromotionParameters): Token? {
+        val joinRequest = incentiveSystem.generateJoinRequest(
+            providerKeyPair.pk,
+            userKeyPair,
+            promotionParameters
+        )
+        val joinResponse = incentiveSystem.generateJoinRequestResponse(
+            promotionParameters,
+            providerKeyPair,
+            userKeyPair.pk.upk,
+            joinRequest
+        )
+        return incentiveSystem.handleJoinRequestResponse(
+            promotionParameters,
+            providerKeyPair.pk,
+            userKeyPair,
+            joinRequest,
+            joinResponse
+        )
     }
 
     override suspend fun sendTokenUpdatesBatch(basketId: UUID, bulkRequestDto: BulkRequestDto) {
@@ -67,6 +77,10 @@ class FakeCryptoRepository(
     }
 
     override suspend fun putToken(promotionParameters: PromotionParameters, token: Token) {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun deleteAll() {
         TODO("Not yet implemented")
     }
 }

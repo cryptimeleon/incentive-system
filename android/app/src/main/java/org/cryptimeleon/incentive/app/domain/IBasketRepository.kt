@@ -13,15 +13,13 @@ interface IBasketRepository {
 
     /**
      * If there is no (active) basket, this function will create a new basket.
-     *
-     * @return true if the function was successful and an active basket can be assumed to exist.
      */
-    suspend fun ensureActiveBasket(): Boolean
+    suspend fun ensureActiveBasket()
 
     /**
      * Creates a new basket and invalidates all other baskets
      */
-    suspend fun createNewBasket(): Boolean
+    suspend fun createNewBasket()
 
     /**
      * Put an item with a given amount to the basket.
@@ -37,7 +35,7 @@ interface IBasketRepository {
      * @param delete only deletes basket on server side if delete set to true
      * @return true if successful
      */
-    suspend fun discardCurrentBasket(delete: Boolean = false): Boolean
+    suspend fun discardCurrentBasket(delete: Boolean = false)
 
     /**
      * Pays the current basket.
