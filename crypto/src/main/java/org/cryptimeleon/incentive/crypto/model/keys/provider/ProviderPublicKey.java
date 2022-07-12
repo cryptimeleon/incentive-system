@@ -29,6 +29,7 @@ public class ProviderPublicKey implements Representable {
         this.h = h;
     }
 
+    @Deprecated
     public ProviderPublicKey(Representation repr, SPSEQSignatureScheme spseqSignatureScheme, Group group1) {
         new ReprUtil(this)
                 .register(spseqSignatureScheme, "SPSEQScheme")

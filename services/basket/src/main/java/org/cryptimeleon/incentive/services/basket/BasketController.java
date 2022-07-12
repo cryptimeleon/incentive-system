@@ -144,9 +144,24 @@ public class BasketController {
 
     /**
      * Query a basket by its id
+     * <p>
+     * TODO we need this for QR code scanning for demos
+     * TODO normally, the request header version of this request would be used in some provider side app
      */
     @GetMapping("/basket")
-    ResponseEntity<Basket> getBasket(@RequestHeader UUID basketId) throws BasketServiceException {
+    ResponseEntity<Basket> getBasket(
+            @RequestHeader(required = false, name = "basketId") UUID basketIdHeader,
+            @RequestParam(required = false, name = "basketId") UUID basketIdParam
+    ) throws BasketServiceException {
+        UUID basketId;
+        if (basketIdHeader != null) {
+            basketId = basketIdHeader;
+        } else if (basketIdParam != null) {
+            basketId = basketIdParam;
+        } else {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
         var basket = basketService.getBasketById(basketId);
         var basketValue = basketService.getBasketValue(basket);
         basket.setValue(basketValue);

@@ -36,6 +36,7 @@ public class ProviderSecretKey implements Representable {
         this.betaProv = betaProv;
     }
 
+    @Deprecated
     public ProviderSecretKey(Representation repr, SPSEQSignatureScheme spseqSignatureScheme, Zn zn, HashThenPrfToZn prfToZn) {
         new ReprUtil(this)
                 .register(spseqSignatureScheme, "SPSEQ")
