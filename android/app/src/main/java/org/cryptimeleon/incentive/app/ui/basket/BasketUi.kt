@@ -2,15 +2,8 @@ package org.cryptimeleon.incentive.app.ui.basket
 
 import android.content.res.Configuration
 import android.icu.text.NumberFormat
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.with
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -29,17 +22,17 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Remove
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -55,13 +48,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.em
 import androidx.hilt.navigation.compose.hiltViewModel
 import org.cryptimeleon.incentive.app.domain.model.Basket
 import org.cryptimeleon.incentive.app.domain.model.BasketItem
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 import org.cryptimeleon.incentive.app.util.SLE
+import timber.log.Timber
 import java.util.*
 
 val wrongId: String =
@@ -71,7 +65,12 @@ val currencyFormat: NumberFormat = NumberFormat.getCurrencyInstance(Locale.GERMA
 fun formatCents(valueCents: Int): String = currencyFormat.format(valueCents.toDouble() / 100)
 
 @Composable
-fun BasketUi(openSettings: () -> Unit, openBenchmark: () -> Unit, gotoRewards: () -> Unit) {
+fun BasketUi(
+    openScanner: () -> Unit,
+    openSettings: () -> Unit,
+    openBenchmark: () -> Unit,
+    gotoRewards: () -> Unit
+) {
     val basketViewModel = hiltViewModel<BasketViewModel>()
     val basket: SLE<Basket> by basketViewModel.basket.collectAsState(initial = SLE.Loading())
 
@@ -79,29 +78,28 @@ fun BasketUi(openSettings: () -> Unit, openBenchmark: () -> Unit, gotoRewards: (
         basketSle = basket,
         setItemCount = basketViewModel::setItemCount,
         pay = gotoRewards,
-        discard = basketViewModel::onDiscardClicked,
+        openScanner = openScanner,
         openSettings = openSettings,
         openBenchmark = openBenchmark
     )
 }
 
 @OptIn(
-    ExperimentalAnimationApi::class, ExperimentalMaterialApi::class,
     ExperimentalMaterial3Api::class
 )
 @Composable
 private fun BasketUi(
     basketSle: SLE<Basket>,
-    setItemCount: (String, Int) -> Unit,
-    pay: () -> Unit,
-    discard: () -> Unit,
+    setItemCount: (String, Int) -> Unit = { _, _ -> },
+    pay: () -> Unit = {},
+    openScanner: () -> Unit = {},
     openSettings: () -> Unit = {},
-    openBenchmark: () -> Unit = {}
+    openBenchmark: () -> Unit = {},
 ) {
-    var expandedBasketItem by remember { mutableStateOf(wrongId) }
 
     Scaffold(topBar = {
         DefaultTopAppBar(
+            title = { Text("My Basket") },
             onOpenSettings = openSettings,
             onOpenBenchmark = openBenchmark
         )
@@ -124,132 +122,141 @@ private fun BasketUi(
                 is SLE.Loading -> LoadingSpinner()
                 is SLE.Success -> {
                     val basket = basketSle.data!!
-                    if (basket.items.isNotEmpty()) {
-                        val basketItemsCount = basket.items.map { it.count }.sum()
-                        Column(
-                            modifier = Modifier
-                                .fillMaxHeight()
-                                .padding(16.dp)
-                        ) {
-                            LazyColumn(modifier = Modifier.weight(1f)) {
-                                item {
-                                    Row() {
-                                        AnimatedContent(
-                                            targetState = basketItemsCount,
-                                            transitionSpec = {
-                                                if (targetState > initialState) {
-                                                    slideInVertically { height -> height } + fadeIn() with
-                                                            slideOutVertically { height -> -height } + fadeOut()
-                                                } else {
-                                                    slideInVertically { height -> -height } + fadeIn() with
-                                                            slideOutVertically { height -> height } + fadeOut()
-                                                }.using(
-                                                    SizeTransform(clip = false)
-                                                )
-                                            }) { targetItem ->
-                                            Text(
-                                                text = "$targetItem",
-                                                style = MaterialTheme.typography.labelMedium,
-                                                fontSize = 14.sp
-                                            )
-                                        }
-                                        Text(
-                                            text = " Item${if (basketItemsCount > 1) "s" else ""} in your cart:",
-                                            style = MaterialTheme.typography.labelMedium,
-                                            fontSize = 14.sp
-                                        )
-                                    }
-                                }
-
-                                items(basket.items) { item ->
-                                    Divider()
-                                    BasketItem(
-                                        item = item,
-                                        expanded = expandedBasketItem == item.itemId,
-                                        onClick = {
-                                            expandedBasketItem =
-                                                if (expandedBasketItem == item.itemId) wrongId else item.itemId
-                                        },
-                                        setCount = { count ->
-                                            setItemCount(item.itemId, count)
-                                        },
-                                        modifier = Modifier.padding(vertical = 8.dp),
-                                    )
-                                }
-                                item {
-                                    Divider(thickness = 3.dp)
-                                    Row(
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(vertical = 8.dp)
-                                    ) {
-                                        Text(
-                                            text = "Total",
-                                            style = MaterialTheme.typography.headlineSmall,
-                                        )
-                                        Text(
-                                            text = formatCents(basket.value),
-                                            style = MaterialTheme.typography.headlineSmall,
-                                        )
-                                    }
-                                    Spacer(
-                                        modifier = Modifier
-                                            .size(32.dp)
-                                    )
-                                }
-                                item {
-                                    Spacer(
-                                        modifier = Modifier
-                                            .size(32.dp)
-                                    )
-                                }
-                            }
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(16.dp)
-                            ) {
-                                OutlinedButton(
-                                    modifier = Modifier.weight(1f),
-                                    onClick = discard
-                                ) {
-                                    Text("Discard")
-                                }
-                                Button(
-                                    modifier = Modifier.weight(1f),
-                                    onClick = { pay() }
-                                ) {
-                                    Text("Checkout")
-                                }
-                            }
-                        }
+                    if (basket.items.isEmpty()) {
+                        BasketEmptyView(openScanner)
                     } else {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .fillMaxHeight(),
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Text(
-                                text = "Basket is empty!",
-                                textAlign = TextAlign.Center,
-                                style = MaterialTheme.typography.headlineSmall,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                            )
-                            Text(
-                                text = "Open the scanner to items to your basket!",
-                                textAlign = TextAlign.Center,
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                            )
-                        }
+                        BasketNotEmptyView(basket, setItemCount, pay)
                     }
                 }
             }
         }
     }
 }
+
+@Composable
+private fun BasketNotEmptyView(
+    basket: Basket,
+    setItemCount: (String, Int) -> Unit,
+    pay: () -> Unit
+) {
+    var expandedBasketItem by remember { mutableStateOf(wrongId) }
+
+    val basketItemsCount = basket.items.map { it.count }.sum()
+    Column(
+        modifier = Modifier
+            .fillMaxHeight()
+            .padding(16.dp)
+    ) {
+        LazyColumn(modifier = Modifier.weight(1f)) {
+            item {
+                Row(Modifier.fillMaxWidth(), Arrangement.End) {
+                    Text(
+                        "Price",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onBackground.copy(
+                            alpha = 0.6F
+                        )
+                    )
+                }
+            }
+            items(basket.items) { item ->
+                Divider()
+                BasketItem(
+                    item = item,
+                    expanded = expandedBasketItem == item.itemId,
+                    onClick = {
+                        Timber.i("On click ${item.itemId}")
+                        expandedBasketItem =
+                            if (expandedBasketItem == item.itemId) wrongId else item.itemId
+                    },
+                    setCount = { count ->
+                        setItemCount(item.itemId, count)
+                    },
+                )
+            }
+            item {
+                Divider()
+                BasketSummaryRow(basketItemsCount, basket)
+                Spacer(
+                    modifier = Modifier
+                        .size(32.dp)
+                )
+            }
+            item {
+                Spacer(
+                    modifier = Modifier
+                        .size(32.dp)
+                )
+            }
+        }
+        Column() {
+            Button(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = pay
+            ) {
+                Text("Checkout")
+            }
+        }
+    }
+}
+
+@Composable
+private fun BasketSummaryRow(
+    basketItemsCount: Int,
+    basket: Basket
+) {
+    Row(
+        horizontalArrangement = Arrangement.End,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+    ) {
+        val pluralAppendix = if (basketItemsCount > 1) "s" else ""
+        Text(
+            text = "Total (${basketItemsCount} Item${pluralAppendix}): ",
+            style = MaterialTheme.typography.bodyLarge,
+        )
+        Text(
+            text = formatCents(basket.value),
+            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.bodyLarge,
+        )
+    }
+}
+
+@Composable
+private fun BasketEmptyView(openScanner: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .fillMaxHeight(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+
+    ) {
+        Text(
+            text = "🛒",
+            style = MaterialTheme.typography.headlineLarge.copy(fontSize = 14.em),
+            fontWeight = FontWeight.SemiBold,
+        )
+        Text(
+            text = "Basket is empty!",
+            style = MaterialTheme.typography.headlineLarge,
+            fontWeight = FontWeight.SemiBold,
+        )
+        Spacer(modifier = Modifier.size(16.dp))
+        Button(onClick = openScanner) {
+            Icon(
+                Icons.Default.Add,
+                contentDescription = "Plus Icon",
+                modifier = Modifier.size(ButtonDefaults.IconSize)
+            )
+            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+            Text("Add Items")
+        }
+    }
+}
+
 
 @Composable
 private fun LoadingSpinner() {
@@ -272,17 +279,15 @@ private fun LoadingSpinner() {
     }
 }
 
-@OptIn(ExperimentalAnimationApi::class, ExperimentalMaterialApi::class)
 @Composable
 private fun BasketItem(
     item: BasketItem,
     expanded: Boolean,
     onClick: () -> Unit,
     setCount: (Int) -> Unit,
-    modifier: Modifier = Modifier
 ) {
     Surface(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight()
             .animateContentSize()
@@ -291,28 +296,22 @@ private fun BasketItem(
     {
         Column(
             verticalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(vertical = 8.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Text(
-                    item.title,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Normal,
+                    "${item.count} x ${item.title}",
+                    style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.weight(1f)
                 )
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         text = formatCents(item.price * item.count),
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Normal,
-                        modifier = Modifier
-                            .align(Alignment.End)
-                    )
-                    Text(
-                        text = "${item.count} x ${formatCents(item.price)}",
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.SemiBold,
                         modifier = Modifier
                             .align(Alignment.End)
                     )
@@ -335,15 +334,6 @@ private fun BasketItemControlRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-        IconButton(
-            onClick = { setCount(0) },
-        ) {
-            Icon(
-                Icons.Outlined.Delete,
-                tint = MaterialTheme.colorScheme.secondary,
-                contentDescription = "Delete"
-            )
-        }
         Box(
             modifier = Modifier
                 .border(
@@ -427,10 +417,7 @@ private fun BasketPreview() {
     CryptimeleonTheme {
         BasketUi(
             SLE.Success(testBasket),
-            { _, _ -> },
-            {},
-            {},
-            {})
+        )
     }
 }
 
@@ -446,10 +433,7 @@ private fun BasketPreviewLoading() {
     CryptimeleonTheme {
         BasketUi(
             SLE.Loading(),
-            { _, _ -> },
-            {},
-            {},
-            {})
+        )
     }
 }
 
@@ -465,10 +449,7 @@ private fun BasketPreviewEmpty() {
     CryptimeleonTheme {
         BasketUi(
             SLE.Success(emptyTestBasket),
-            { _, _ -> },
-            {},
-            {},
-            {})
+        )
     }
 }
 

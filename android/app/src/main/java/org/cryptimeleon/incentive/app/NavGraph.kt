@@ -78,6 +78,7 @@ fun NavGraph(
         }
         composable(MainDestination.BASKET_ROUTE) {
             BasketUi(
+                actions.openScanner,
                 actions.openSettings,
                 actions.openBenchmark,
                 actions.openRewards
@@ -105,6 +106,10 @@ class MainActions(navController: NavHostController) {
 
     val onExitBenchmark: () -> Unit = {
         navController.popBackStack()
+    }
+
+    val openScanner: () -> Unit = {
+        navController.navigate(MainDestination.SCANNER_ROUTE)
     }
 
     val openSettings: () -> Unit = {
