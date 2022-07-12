@@ -9,11 +9,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.paddingFromBaseline
 import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Redeem
@@ -34,11 +36,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 import org.cryptimeleon.incentive.app.util.ConnectionState
@@ -122,6 +129,7 @@ fun TokenCard(
             .wrapContentHeight(),
         onClick = { toggleExpanded(promotionState.id) },
     ) {
+        PromotionImage(promotionState)
         Column(
             modifier = Modifier
                 .padding(horizontal = 16.dp)
@@ -283,6 +291,39 @@ fun TokenCard(
             }
         }
     }
+}
+
+@Composable
+private fun PromotionImage(promotionState: PromotionState) {
+    val imageUrl = with(promotionState.title) {
+        when {
+            contains(
+                "nutella",
+                ignoreCase = true
+            ) -> "https://cdn.pixabay.com/photo/2022/01/16/09/58/chocolate-spread-6941622_960_720.jpg"
+            contains(
+                "streak",
+                ignoreCase = true
+            ) -> "https://cdn.pixabay.com/photo/2015/05/31/14/23/organizer-791939_960_720.jpg"
+            contains(
+                "vip",
+                ignoreCase = true
+            ) -> "https://cdn.pixabay.com/photo/2017/10/11/07/18/eat-2840156_960_720.jpg"
+            else -> "https://cdn.pixabay.com/photo/2019/06/16/21/48/cups-4278774_960_720.jpg"
+        }
+    }
+    AsyncImage(
+        model = ImageRequest.Builder(LocalContext.current)
+            .data(imageUrl)
+            .crossfade(true)
+            .build(),
+        contentDescription = "Promotion Image",
+        contentScale = ContentScale.Crop,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(120.dp)
+            .clip(RoundedCornerShape(8.dp))
+    )
 }
 
 const val uiMode = Configuration.UI_MODE_NIGHT_NO
