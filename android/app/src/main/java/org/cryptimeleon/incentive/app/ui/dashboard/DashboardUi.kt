@@ -79,27 +79,28 @@ fun Dashboard(
         )
     }) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier
                 .padding(it)
                 .verticalScroll(rememberScrollState())
         ) {
-            AnimatedVisibility(
-                visible = networkState == ConnectionState.Unavailable,
-                enter = expandVertically(expandFrom = Alignment.Top),
-                exit = shrinkVertically(shrinkTowards = Alignment.Top)
-            ) {
-                Surface(
-                    color = MaterialTheme.colorScheme.errorContainer,
+            if (false) {
+                AnimatedVisibility(
+                    visible = networkState == ConnectionState.Unavailable,
+                    enter = expandVertically(expandFrom = Alignment.Top),
+                    exit = shrinkVertically(shrinkTowards = Alignment.Top)
                 ) {
-                    Text(
-                        "No Internet Connection!",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onErrorContainer,
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                            .fillMaxWidth()
-                    )
+                    Surface(
+                        color = MaterialTheme.colorScheme.errorContainer,
+                    ) {
+                        Text(
+                            "No Internet Connection!",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                                .fillMaxWidth()
+                        )
+                    }
                 }
             }
             for (promotionState in dashboardState.promotionStates) {
@@ -108,7 +109,8 @@ fun Dashboard(
                     expandedPromotion = expandedPromotion,
                     toggleExpanded = { id ->
                         expandedPromotion = if (expandedPromotion == id) "" else id
-                    }
+                    },
+                    modifier = Modifier.padding(bottom = 16.dp)
                 )
             }
         }
@@ -120,10 +122,11 @@ fun Dashboard(
 fun TokenCard(
     promotionState: PromotionState,
     expandedPromotion: String,
-    toggleExpanded: (String) -> Unit
+    toggleExpanded: (String) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .wrapContentHeight(),
@@ -426,7 +429,9 @@ fun PromotionItemPreview() {
     TokenCard(
         promotionState = firstPromotionState,
         expandedPromotion = "",
-        toggleExpanded = {})
+        toggleExpanded = {},
+        modifier = Modifier
+    )
 }
 
 @Composable
@@ -436,7 +441,10 @@ fun PromotionItemPreview() {
     uiMode = uiMode,
 )
 fun ExpandedPromotionItemPreview() {
-    TokenCard(promotionState = firstPromotionState,
+    TokenCard(
+        promotionState = firstPromotionState,
         expandedPromotion = firstPromotionState.id,
-        toggleExpanded = {})
+        toggleExpanded = {},
+        modifier = Modifier
+    )
 }
