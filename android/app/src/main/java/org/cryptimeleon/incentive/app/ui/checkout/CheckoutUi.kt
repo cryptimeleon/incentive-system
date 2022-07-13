@@ -200,20 +200,31 @@ private fun SummaryUi(
             item {
                 Spacer(Modifier.size(16.dp))
             }
-            item {
-                TitleRowWithIcon("Rewards", Icons.Default.Redeem)
-            }
-            promotionData.forEach { promotionState ->
-                promotionState.tokenUpdates.find { t -> t.feasibility == PromotionUpdateFeasibility.SELECTED && (t is ZKPUpdate || t is Earn) }
-                    ?.let { tokenUpdate ->
-                        item {
-                            PromotionUpdateSummaryCard(
-                                promotionState,
-                                tokenUpdate,
-                                Modifier.padding(vertical = 8.dp)
-                            )
-                        }
+            if (promotionData.isNotEmpty()) {
+                if (promotionData.none { p -> p.tokenUpdates.any { t -> t.feasibility == PromotionUpdateFeasibility.SELECTED && t !is None } }) {
+                    item {
+                        Text(
+                            "No Rewards this time 😥",
+                            style = MaterialTheme.typography.headlineSmall
+                        )
                     }
+                } else {
+                    item {
+                        TitleRowWithIcon("Rewards", Icons.Default.Redeem)
+                    }
+                    promotionData.forEach { promotionState ->
+                        promotionState.tokenUpdates.find { t -> t.feasibility == PromotionUpdateFeasibility.SELECTED && t !is None }
+                            ?.let { tokenUpdate ->
+                                item {
+                                    PromotionUpdateSummaryCard(
+                                        promotionState,
+                                        tokenUpdate,
+                                        Modifier.padding(vertical = 8.dp)
+                                    )
+                                }
+                            }
+                    }
+                }
             }
             item { Spacer(Modifier.height(16.dp)) }
         }
@@ -247,19 +258,20 @@ private fun PromotionUpdateSummaryCard(
                 text = tokenUpdate.description,
                 style = MaterialTheme.typography.bodyLarge,
             )
-            when (tokenUpdate) {
-                is ZKPUpdate ->
-                    Row {
+            when {
+                tokenUpdate is ZKPUpdate && tokenUpdate.sideEffect.isPresent -> {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             Icons.Default.CardGiftcard,
                             contentDescription = "Gift icon"
                         )
                         Text(
-                            text = tokenUpdate.sideEffect,
+                            text = tokenUpdate.sideEffect.get(),
                             style = MaterialTheme.typography.bodyLarge,
-                            modifier = Modifier.padding(start = 16.dp)
+                            modifier = Modifier.padding(start = 8.dp)
                         )
                     }
+                }
             }
         }
     }
@@ -274,7 +286,7 @@ private fun TitleRowWithIcon(text: String, icon: ImageVector) {
         Spacer(modifier = Modifier.size(8.dp))
         Text(
             text,
-            style = MaterialTheme.typography.headlineSmall,
+            style = MaterialTheme.typography.headlineMedium,
         )
     }
 }
@@ -433,10 +445,10 @@ fun CheckoutUiNotStartedPreview() {
                         Vector.of(BigInteger.valueOf(6L)),
                         listOf(
                             None(),
-                            Earn(PromotionUpdateFeasibility.CANDIDATE),
+                            Earn(PromotionUpdateFeasibility.CANDIDATE, "Earn 2 Points"),
                             HazelTokenUpdateState(
                                 "Get a free glass of Nutella",
-                                "Free Nutella",
+                                Optional.of("Free Nutella"),
                                 feasibility = PromotionUpdateFeasibility.SELECTED,
                                 6,
                                 4

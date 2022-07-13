@@ -9,6 +9,7 @@ import org.cryptimeleon.incentive.promotion.vip.VipPromotion
 import org.cryptimeleon.math.structures.cartesian.Vector
 import java.math.BigInteger
 import java.time.LocalDate
+import java.util.*
 
 interface PromotionData {
     val tokenUpdates: List<TokenUpdate>
@@ -139,19 +140,17 @@ data class None(
 }
 
 data class Earn(
-    override val feasibility: PromotionUpdateFeasibility
-) : TokenUpdate {
-    override val description: String
-        get() = ""
-}
+    override val feasibility: PromotionUpdateFeasibility,
+    override val description: String,
+) : TokenUpdate
 
 interface ZKPUpdate : TokenUpdate {
-    val sideEffect: String
+    val sideEffect: Optional<String>
 }
 
 data class HazelTokenUpdateState(
     override val description: String,
-    override val sideEffect: String,
+    override val sideEffect: Optional<String>,
     override val feasibility: PromotionUpdateFeasibility,
     val current: Int,
     val goal: Int
@@ -159,7 +158,7 @@ data class HazelTokenUpdateState(
 
 data class ProveVipTokenUpdateState(
     override val description: String,
-    override val sideEffect: String,
+    override val sideEffect: Optional<String>,
     override val feasibility: PromotionUpdateFeasibility,
     val currentStatus: VipStatus,
     val requiredStatus: VipStatus
@@ -167,7 +166,7 @@ data class ProveVipTokenUpdateState(
 
 data class UpgradeVipTokenUpdateState(
     override val description: String,
-    override val sideEffect: String,
+    override val sideEffect: Optional<String>,
     override val feasibility: PromotionUpdateFeasibility,
     val currentPoints: Int,
     val requiredPoints: Int,
@@ -176,13 +175,13 @@ data class UpgradeVipTokenUpdateState(
 
 data class StandardStreakTokenUpdateState(
     override val description: String,
-    override val sideEffect: String,
+    override val sideEffect: Optional<String>,
     override val feasibility: PromotionUpdateFeasibility,
 ) : ZKPUpdate
 
 data class RangeProofStreakTokenUpdateState(
     override val description: String,
-    override val sideEffect: String,
+    override val sideEffect: Optional<String>,
     override val feasibility: PromotionUpdateFeasibility,
     val requiredStreak: Int,
     val currentStreak: Int
@@ -190,7 +189,7 @@ data class RangeProofStreakTokenUpdateState(
 
 data class SpendStreakTokenUpdateState(
     override val description: String,
-    override val sideEffect: String,
+    override val sideEffect: Optional<String>,
     override val feasibility: PromotionUpdateFeasibility,
     val requiredStreak: Int,
     val currentStreak: Int

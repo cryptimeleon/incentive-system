@@ -15,6 +15,8 @@ import org.cryptimeleon.incentive.promotion.Promotion
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdate
 import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion
 import org.cryptimeleon.incentive.promotion.hazel.HazelTokenUpdate
+import org.cryptimeleon.incentive.promotion.sideeffect.NoSideEffect
+import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect
 import org.cryptimeleon.incentive.promotion.streak.RangeProofStreakTokenUpdate
 import org.cryptimeleon.incentive.promotion.streak.SpendStreakTokenUpdate
 import org.cryptimeleon.incentive.promotion.streak.StandardStreakTokenUpdate
@@ -23,6 +25,7 @@ import org.cryptimeleon.incentive.promotion.vip.ProveVipTokenUpdate
 import org.cryptimeleon.incentive.promotion.vip.UpgradeVipZkpTokenUpdate
 import org.cryptimeleon.incentive.promotion.vip.VipPromotion
 import java.math.BigInteger
+import java.util.*
 
 class PromotionInfoUseCase(
     private val promotionRepository: IPromotionRepository,
@@ -68,12 +71,28 @@ class PromotionInfoUseCaseWorker(
     private val feasibleTokenUpdates = computeFeasibleUpdates()
     private val zkpTokenUpdates: List<TokenUpdate> = computeZkpTokenUpdates()
     private val noUpdate: None =
-        None(feasibility = if (updateChoice != null && updateChoice.userUpdateChoice is SerializableUserChoice.None) PromotionUpdateFeasibility.SELECTED else PromotionUpdateFeasibility.CANDIDATE)
+        None(
+            feasibility = if (updateChoice != null && updateChoice.userUpdateChoice is SerializableUserChoice.None) PromotionUpdateFeasibility.SELECTED else PromotionUpdateFeasibility.CANDIDATE
+        )
     private val earnUpdate: Earn? =
         if (promotion.fastEarnSupported && basketPoints.stream()
                 .anyMatch { p: BigInteger -> p.signum() == 1 }
-        ) Earn(feasibility = if (updateChoice != null && updateChoice.userUpdateChoice is SerializableUserChoice.Earn) PromotionUpdateFeasibility.SELECTED else PromotionUpdateFeasibility.CANDIDATE)
+        ) buildEarnUpdate(updateChoice)
         else null
+
+    private fun buildEarnUpdate(updateChoice: PromotionUserUpdateChoice?): Earn {
+        val description = when (promotion) {
+            is HazelPromotion -> "Collect ${basketPoints.get(0)} points"
+            is VipPromotion -> "Collect ${basketPoints.get(0)} points"
+            else -> {
+                "Colect ${basketPoints} points"
+            }
+        }
+        return Earn(
+            feasibility = if (updateChoice != null && updateChoice.userUpdateChoice is SerializableUserChoice.Earn) PromotionUpdateFeasibility.SELECTED else PromotionUpdateFeasibility.CANDIDATE,
+            description = description,
+        )
+    }
 
     private val allTokenUpdates: List<TokenUpdate> = listOfNotNull(
         noUpdate,
@@ -94,7 +113,13 @@ class PromotionInfoUseCaseWorker(
     private fun computeZkpTokenUpdates(): List<TokenUpdate> =
         promotion.zkpTokenUpdates.map {
             val description = it.rewardDescription
-            val sideEffect = it.sideEffect!!.toString() // TODO reward!
+            val sideEffect = when (val e = it.sideEffect!!) {
+                is NoSideEffect -> Optional.empty<String>()
+                is RewardSideEffect -> Optional.ofNullable(rewardItems.find { r -> r.id == e.rewardId }?.title)
+                else -> {
+                    throw RuntimeException("Side Effect $e not implemented yet!")
+                }
+            }
             val feasibility = getFeasibility(it)
             when (it) {
                 is HazelTokenUpdate -> hazelTokenUpdateState(description, sideEffect, feasibility)
@@ -138,7 +163,7 @@ class PromotionInfoUseCaseWorker(
 
     private fun hazelTokenUpdateState(
         description: String,
-        sideEffect: String,
+        sideEffect: Optional<String>,
         feasibility: PromotionUpdateFeasibility
     ) = HazelTokenUpdateState(
         description,
