@@ -54,6 +54,7 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.WriterException
 import com.google.zxing.qrcode.QRCodeWriter
 import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemState
+import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import org.cryptimeleon.incentive.app.ui.basket.BasketSummaryRow
 import org.cryptimeleon.incentive.app.ui.basket.formatCents
@@ -75,10 +76,15 @@ fun CheckoutUi(navigateHome: () -> Unit) {
     )
     val paidBasketId: UUID? by checkoutViewModel.paidBasketId.collectAsState()
 
+    val promotionData: List<PromotionData> by checkoutViewModel.promotionData.collectAsState(
+        initial = emptyList()
+    )
+
     CheckoutUi(
         checkoutState,
         payAndRedeemState,
         paidBasketId,
+        promotionData,
         checkoutViewModel::startPayAndRedeem,
         navigateHome
     )
@@ -90,6 +96,7 @@ private fun CheckoutUi(
     checkoutState: CheckoutState,
     payAndRedeemState: PayAndRedeemState,
     paidBasketId: UUID? = null,
+    promotionData: List<PromotionData> = emptyList(),
     triggerCheckout: () -> Unit,
     navigateHome: () -> Unit,
 ) {
@@ -104,7 +111,7 @@ private fun CheckoutUi(
         Box(Modifier.padding(it)) {
             when (payAndRedeemState) {
                 PayAndRedeemState.NOT_STARTED -> {
-                    SummaryUi(checkoutState, triggerCheckout)
+                    SummaryUi(checkoutState, triggerCheckout, promotionData, Modifier.padding(it))
                 }
                 PayAndRedeemState.FINISHED -> {
                     FinishedUi(checkoutState, paidBasketId, navigateHome)
@@ -121,11 +128,13 @@ private fun CheckoutUi(
 @Composable
 private fun SummaryUi(
     checkoutState: CheckoutState,
-    triggerCheckout: () -> Unit
+    triggerCheckout: () -> Unit,
+    promotionData: List<PromotionData>,
+    modifier: Modifier = Modifier,
 ) {
     Column(
         verticalArrangement = Arrangement.SpaceBetween,
-        modifier = Modifier
+        modifier = modifier
             .padding(16.dp)
             .fillMaxSize()
     ) {
@@ -243,9 +252,9 @@ private fun TitleRowWithIcon(text: String, icon: ImageVector) {
 }
 
 @Composable
-private fun PayProgressUi(payAndRedeemState: PayAndRedeemState) {
+private fun PayProgressUi(payAndRedeemState: PayAndRedeemState, modifier: Modifier = Modifier) {
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -262,10 +271,11 @@ private fun PayProgressUi(payAndRedeemState: PayAndRedeemState) {
 private fun FinishedUi(
     checkoutState: CheckoutState,
     paidBasketId: UUID?,
-    navigateHome: () -> Unit
+    navigateHome: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = Modifier
+        modifier = modifier
             .padding(16.dp)
             .fillMaxSize(),
         verticalArrangement = Arrangement.SpaceBetween,
@@ -387,7 +397,9 @@ fun CheckoutUiNotStartedPreview() {
         Scaffold() {
             SummaryUi(
                 checkoutState = previewCheckoutState,
+                promotionData = emptyList(),
                 triggerCheckout = {},
+                modifier = Modifier.padding(it)
             )
         }
     }
@@ -401,6 +413,7 @@ fun CheckoutUiInProgressPreview() {
         Scaffold() {
             PayProgressUi(
                 payAndRedeemState = PayAndRedeemState.UPDATE_TOKENS,
+                modifier = Modifier.padding(it)
             )
         }
     }
@@ -415,7 +428,8 @@ fun CheckoutUiFinishedPreview() {
             FinishedUi(
                 checkoutState = previewCheckoutState,
                 navigateHome = {},
-                paidBasketId = UUID.randomUUID()
+                paidBasketId = UUID.randomUUID(),
+                modifier = Modifier.padding(it)
             )
         }
     }

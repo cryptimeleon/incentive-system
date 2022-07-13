@@ -8,7 +8,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.cryptimeleon.incentive.app.data.database.BigIntegerConverter
-import org.cryptimeleon.incentive.app.domain.model.UserUpdateChoice
+import org.cryptimeleon.incentive.app.domain.model.SerializableUserChoice
 import org.cryptimeleon.incentive.app.domain.model.module
 import java.math.BigInteger
 
@@ -19,19 +19,20 @@ private val json = Json { serializersModule = module }
 data class TokenUpdateUserChoiceEntity(
     @PrimaryKey
     val promotionId: BigInteger,
-    val userUpdateChoice: UserUpdateChoice
+    val userUpdateChoice: SerializableUserChoice.UserUpdateChoice
 ) {
     // Converter for storing the choices in the room database
     class UserUpdateChoiceConverter {
         companion object {
             @JvmStatic
             @TypeConverter
-            fun fromChoice(userUpdateChoice: UserUpdateChoice): String =
+            fun fromChoice(userUpdateChoice: SerializableUserChoice.UserUpdateChoice): String =
                 json.encodeToString(userUpdateChoice)
 
             @JvmStatic
             @TypeConverter
-            fun toChoice(s: String): UserUpdateChoice = json.decodeFromString(s)
+            fun toChoice(s: String): SerializableUserChoice.UserUpdateChoice =
+                json.decodeFromString(s)
         }
     }
 }

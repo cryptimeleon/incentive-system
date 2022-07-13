@@ -18,13 +18,15 @@ import org.cryptimeleon.incentive.app.data.PromotionRepository
 import org.cryptimeleon.incentive.app.domain.model.Basket
 import org.cryptimeleon.incentive.app.domain.model.PromotionUserUpdateChoice
 import org.cryptimeleon.incentive.app.domain.model.RewardItem
+import org.cryptimeleon.incentive.app.domain.model.SerializableUserChoice
 import org.cryptimeleon.incentive.app.domain.model.UpdateChoice
 import org.cryptimeleon.incentive.app.domain.model.UserPromotionState
-import org.cryptimeleon.incentive.app.domain.model.ZKP
 import org.cryptimeleon.incentive.app.domain.usecase.AnalyzeUserTokenUpdatesUseCase
 import org.cryptimeleon.incentive.app.domain.usecase.GetPromotionStatesUseCase
 import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemState
 import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemUseCase
+import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
+import org.cryptimeleon.incentive.app.domain.usecase.PromotionInfoUseCase
 import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect
 import java.util.*
 import javax.inject.Inject
@@ -63,6 +65,8 @@ class CheckoutViewModel @Inject constructor(
             checkoutPromotionStates
         )
     }
+    val promotionData: Flow<List<PromotionData>> =
+        PromotionInfoUseCase(promotionRepository, cryptoRepository, basketRepository).invoke()
 
     private fun combineTokenUpdatesWithPromotions(
         promotionStates: List<UserPromotionState>,
@@ -73,7 +77,7 @@ class CheckoutViewModel @Inject constructor(
             tokenUpdateChoices.find { choice -> choice.promotionId == it.promotionId }
                 ?: return@mapNotNull null
         val rewardDescription = when (choice.userUpdateChoice) {
-            is ZKP -> {
+            is SerializableUserChoice.ZKP -> {
                 val tokenUpdateId = choice.userUpdateChoice.tokenUpdateId
                 val updateChoice: UpdateChoice.ZKP =
                     it.qualifiedUpdates.find { updateChoice -> updateChoice is UpdateChoice.ZKP && updateChoice.updateId == tokenUpdateId } as UpdateChoice.ZKP

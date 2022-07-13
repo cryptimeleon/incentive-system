@@ -13,42 +13,46 @@ import kotlinx.serialization.modules.subclass
 import java.math.BigInteger
 import java.util.*
 
-/*
- * Serializable data classes (to store them in the room database) for the choices a user
- * made for its token update of a promotion.
- */
-sealed interface UserUpdateChoice
 
-@Serializable
-@SerialName("none")
-object None : UserUpdateChoice
+class SerializableUserChoice {    /*
+     * Serializable data classes (to store them in the room database) for the choices a user
+     * made for its token update of a promotion.
+     */
+    sealed interface UserUpdateChoice
 
-@Serializable
-@SerialName("earn")
-object Earn : UserUpdateChoice
+    @Serializable
+    @SerialName("none")
+    object None : UserUpdateChoice
 
-@Serializable
-@SerialName("zkp")
-data class ZKP(
-    @Serializable(with = UUIDSerializer::class) val tokenUpdateId: UUID
-) : UserUpdateChoice
+    @Serializable
+    @SerialName("earn")
+    object Earn : UserUpdateChoice
+
+    @Serializable
+    @SerialName("zkp")
+    data class ZKP(
+        @Serializable(with = UUIDSerializer::class) val tokenUpdateId: UUID
+    ) : UserUpdateChoice
+
+}
+
+// Serializer Module that is configured to recover subclasses from above structure of data classes.
+val module
+    get() = SerializersModule {
+        polymorphic(SerializableUserChoice.UserUpdateChoice::class) {
+            subclass(SerializableUserChoice.None::class)
+            subclass(SerializableUserChoice.Earn::class)
+            subclass(SerializableUserChoice.ZKP::class)
+        }
+    }
 
 /**
  * Data class which combines the promotionId with the corresponding update choice of a user.
  */
 data class PromotionUserUpdateChoice(
     val promotionId: BigInteger,
-    val userUpdateChoice: UserUpdateChoice
+    val userUpdateChoice: SerializableUserChoice.UserUpdateChoice
 )
-
-// Serializer module that is configured to recover subclasses from above structure of data classes.
-val module = SerializersModule {
-    polymorphic(UserUpdateChoice::class) {
-        subclass(None::class)
-        subclass(Earn::class)
-        subclass(ZKP::class)
-    }
-}
 
 /**
  * Simple kotlin serializer for UUIDs.

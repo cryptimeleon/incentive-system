@@ -30,9 +30,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import org.cryptimeleon.incentive.app.domain.model.Earn
-import org.cryptimeleon.incentive.app.domain.model.None
-import org.cryptimeleon.incentive.app.domain.model.UserUpdateChoice
+import org.cryptimeleon.incentive.app.domain.model.SerializableUserChoice
+import org.cryptimeleon.incentive.app.domain.model.SerializableUserChoice.Earn
+import org.cryptimeleon.incentive.app.domain.model.SerializableUserChoice.None
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 import java.math.BigInteger
@@ -54,7 +54,7 @@ fun RewardsUi(gotoCheckout: () -> Unit) {
 @Composable
 private fun RewardsUi(
     state: RewardsState,
-    setUserUpdateChoice: (promotionId: BigInteger, userUpdateChoice: UserUpdateChoice) -> Unit,
+    setUserUpdateChoice: (promotionId: BigInteger, userUpdateChoice: SerializableUserChoice.UserUpdateChoice) -> Unit,
     gotoCheckout: () -> Unit
 ) {
     Scaffold(
@@ -87,7 +87,7 @@ private fun RewardsUi(
 @Composable
 fun RewardPromotionList(
     promotionInfos: List<PromotionInfo>,
-    setUserUpdateChoice: (promotionId: BigInteger, userUpdateChoice: UserUpdateChoice) -> Unit,
+    setUserUpdateChoice: (promotionId: BigInteger, userUpdateChoice: SerializableUserChoice.UserUpdateChoice) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyVerticalGrid(
@@ -117,7 +117,7 @@ fun RewardPromotionList(
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun RewardChoiceCard(
-    setUserUpdateChoice: (promotionId: BigInteger, userUpdateChoice: UserUpdateChoice) -> Unit,
+    setUserUpdateChoice: (promotionId: BigInteger, userUpdateChoice: SerializableUserChoice.UserUpdateChoice) -> Unit,
     promotion: PromotionInfo,
     choice: Choice
 ) {

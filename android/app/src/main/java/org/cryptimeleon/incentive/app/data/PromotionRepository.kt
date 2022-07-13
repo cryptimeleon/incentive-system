@@ -10,7 +10,7 @@ import org.cryptimeleon.incentive.app.data.database.promotion.TokenUpdateUserCho
 import org.cryptimeleon.incentive.app.data.network.PromotionApiService
 import org.cryptimeleon.incentive.app.domain.IPromotionRepository
 import org.cryptimeleon.incentive.app.domain.model.PromotionUserUpdateChoice
-import org.cryptimeleon.incentive.app.domain.model.UserUpdateChoice
+import org.cryptimeleon.incentive.app.domain.model.SerializableUserChoice
 import org.cryptimeleon.incentive.promotion.Promotion
 import org.cryptimeleon.math.serialization.RepresentableRepresentation
 import org.cryptimeleon.math.serialization.converter.JSONConverter
@@ -62,7 +62,7 @@ class PromotionRepository(
         }
     }
 
-    override suspend fun putUserUpdateChoice(promotionId: BigInteger, choice: UserUpdateChoice) {
+    override suspend fun putUserUpdateChoice(promotionId: BigInteger, choice: SerializableUserChoice.UserUpdateChoice) {
         promotionDao.putUserTokenUpdateChoice(TokenUpdateUserChoiceEntity(promotionId, choice))
     }
 }

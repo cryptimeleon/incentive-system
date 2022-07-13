@@ -16,9 +16,9 @@ import org.cryptimeleon.incentive.app.data.PromotionRepository
 import org.cryptimeleon.incentive.app.domain.model.Basket
 import org.cryptimeleon.incentive.app.domain.model.PromotionUserUpdateChoice
 import org.cryptimeleon.incentive.app.domain.model.RewardItem
+import org.cryptimeleon.incentive.app.domain.model.SerializableUserChoice
 import org.cryptimeleon.incentive.app.domain.model.UpdateChoice
 import org.cryptimeleon.incentive.app.domain.model.UserPromotionState
-import org.cryptimeleon.incentive.app.domain.model.UserUpdateChoice
 import org.cryptimeleon.incentive.app.domain.usecase.AnalyzeUserTokenUpdatesUseCase
 import org.cryptimeleon.incentive.app.domain.usecase.GetPromotionStatesUseCase
 import org.cryptimeleon.incentive.promotion.sideeffect.NoSideEffect
@@ -105,7 +105,10 @@ class RewardsViewModel @Inject constructor(
         RewardsState(it)
     }
 
-    fun setUpdateChoice(promotionId: BigInteger, userUpdateChoice: UserUpdateChoice) {
+    fun setUpdateChoice(
+        promotionId: BigInteger,
+        userUpdateChoice: SerializableUserChoice.UserUpdateChoice
+    ) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 promotionRepository.putUserUpdateChoice(promotionId, userUpdateChoice)
@@ -128,7 +131,7 @@ data class Choice(
     val humanReadableDescription: String,
     val cryptographicDescription: String,
     val sideEffect: ChoiceSideEffect,
-    val userUpdateChoice: UserUpdateChoice,
+    val userUpdateChoice: SerializableUserChoice.UserUpdateChoice,
     val isSelected: Boolean
 )
 

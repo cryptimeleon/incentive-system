@@ -11,12 +11,14 @@ import java.util.*
  */
 sealed class UpdateChoice() {
     object None : UpdateChoice() {
-        override fun toUserUpdateChoice() = org.cryptimeleon.incentive.app.domain.model.None
+        override fun toUserUpdateChoice() =
+            SerializableUserChoice.None
+
         override fun toString() = "No Update"
     }
 
     data class Earn(val pointsToEarn: Vector<BigInteger>) : UpdateChoice() {
-        override fun toUserUpdateChoice() = Earn
+        override fun toUserUpdateChoice() = SerializableUserChoice.Earn
         override fun toString() = "Fast Earn of ${pointsToEarn.print()} points"
     }
 
@@ -29,12 +31,12 @@ sealed class UpdateChoice() {
         val sideEffect: SideEffect
     ) :
         UpdateChoice() {
-        override fun toUserUpdateChoice() = ZKP(updateId)
+        override fun toUserUpdateChoice() = SerializableUserChoice.ZKP(updateId)
         override fun toString() =
             "ZKP '${updateDescription}'\n${oldPoints.print()} -> ${newPoints.print()}"
     }
 
-    abstract fun toUserUpdateChoice(): UserUpdateChoice
+    abstract fun toUserUpdateChoice(): SerializableUserChoice.UserUpdateChoice
 }
 
 private fun Vector<BigInteger>.print(): String =
