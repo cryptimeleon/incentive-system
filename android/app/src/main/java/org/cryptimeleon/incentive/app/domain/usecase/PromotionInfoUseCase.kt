@@ -82,10 +82,14 @@ class PromotionInfoUseCaseWorker(
 
     private fun buildEarnUpdate(updateChoice: PromotionUserUpdateChoice?): Earn {
         val description = when (promotion) {
-            is HazelPromotion -> "Collect ${basketPoints.get(0)} points"
-            is VipPromotion -> "Collect ${basketPoints.get(0)} points"
+            is HazelPromotion -> "Collect ${basketPoints.get(0)} point" + if (basketPoints.get(0)
+                    .toInt() > 1
+            ) "s" else ""
+            is VipPromotion -> "Collect ${basketPoints.get(0)} point" + if (basketPoints.get(0)
+                    .toInt() > 1
+            ) "s" else ""
             else -> {
-                "Colect ${basketPoints} points"
+                "Collect ${basketPoints} point"
             }
         }
         return Earn(
