@@ -152,10 +152,12 @@ class PromotionInfoUseCaseWorker(
         promotion.computeTokenUpdatesForPoints(tokenPoints, basketPoints, metadata)
 
     private fun getFeasibility(zkpTokenUpdate: ZkpTokenUpdate): PromotionUpdateFeasibility {
-        return if (isSelectedUpdate(updateChoice, zkpTokenUpdate)) {
-            PromotionUpdateFeasibility.SELECTED
-        } else if (feasibleTokenUpdates.any { it.tokenUpdateId == zkpTokenUpdate.tokenUpdateId }) {
-            PromotionUpdateFeasibility.CANDIDATE
+        return if (feasibleTokenUpdates.any { it.tokenUpdateId == zkpTokenUpdate.tokenUpdateId }) {
+            if (isSelectedUpdate(updateChoice, zkpTokenUpdate)) {
+                PromotionUpdateFeasibility.SELECTED
+            } else {
+                PromotionUpdateFeasibility.CANDIDATE
+            }
         } else {
             PromotionUpdateFeasibility.NOT_APPLICABLE
         }

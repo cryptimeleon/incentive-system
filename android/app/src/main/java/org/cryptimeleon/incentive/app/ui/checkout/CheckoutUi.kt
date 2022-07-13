@@ -53,13 +53,22 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.WriterException
 import com.google.zxing.qrcode.QRCodeWriter
+import org.cryptimeleon.incentive.app.domain.usecase.Earn
+import org.cryptimeleon.incentive.app.domain.usecase.HazelPromotionData
+import org.cryptimeleon.incentive.app.domain.usecase.HazelTokenUpdateState
+import org.cryptimeleon.incentive.app.domain.usecase.None
 import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemState
 import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
+import org.cryptimeleon.incentive.app.domain.usecase.PromotionUpdateFeasibility
+import org.cryptimeleon.incentive.app.domain.usecase.TokenUpdate
+import org.cryptimeleon.incentive.app.domain.usecase.ZKPUpdate
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import org.cryptimeleon.incentive.app.ui.basket.BasketSummaryRow
 import org.cryptimeleon.incentive.app.ui.basket.formatCents
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
+import org.cryptimeleon.math.structures.cartesian.Vector
 import timber.log.Timber
+import java.math.BigInteger
 import java.util.*
 
 @Composable
@@ -111,7 +120,7 @@ private fun CheckoutUi(
         Box(Modifier.padding(it)) {
             when (payAndRedeemState) {
                 PayAndRedeemState.NOT_STARTED -> {
-                    SummaryUi(checkoutState, triggerCheckout, promotionData, Modifier.padding(it))
+                    SummaryUi(checkoutState, triggerCheckout, promotionData)
                 }
                 PayAndRedeemState.FINISHED -> {
                     FinishedUi(checkoutState, paidBasketId, navigateHome)
@@ -124,7 +133,6 @@ private fun CheckoutUi(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SummaryUi(
     checkoutState: CheckoutState,
@@ -138,7 +146,7 @@ private fun SummaryUi(
             .padding(16.dp)
             .fillMaxSize()
     ) {
-        LazyColumn {
+        LazyColumn(verticalArrangement = Arrangement.Top) {
             item {
                 TitleRowWithIcon("Basket", Icons.Default.ShoppingBasket)
             }
@@ -195,44 +203,64 @@ private fun SummaryUi(
             item {
                 TitleRowWithIcon("Rewards", Icons.Default.Redeem)
             }
-            checkoutState.promotionStates.forEach { promotionState ->
-                item {
-                    Card(
-                        modifier = Modifier
-                            .defaultMinSize(minHeight = 100.dp)
-                            .fillMaxWidth()
-                    ) {
-                        Column(modifier = Modifier.padding(8.dp), Arrangement.spacedBy(8.dp)) {
-                            Text(
-                                text = promotionState.promotionName,
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.SemiBold
+            promotionData.forEach { promotionState ->
+                promotionState.tokenUpdates.find { t -> t.feasibility == PromotionUpdateFeasibility.SELECTED && (t is ZKPUpdate || t is Earn) }
+                    ?.let { tokenUpdate ->
+                        item {
+                            PromotionUpdateSummaryCard(
+                                promotionState,
+                                tokenUpdate,
+                                Modifier.padding(vertical = 8.dp)
                             )
-                            Text(
-                                text = promotionState.choiceDescription,
-                                style = MaterialTheme.typography.bodyMedium,
-                            )
-                            promotionState.rewardDescription?.let { rewardName ->
-                                Row {
-                                    Icon(
-                                        Icons.Default.CardGiftcard,
-                                        contentDescription = "Gift icon"
-                                    )
-                                    Text(
-                                        text = rewardName,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        modifier = Modifier.padding(start = 16.dp)
-                                    )
-                                }
-                            }
                         }
                     }
-                }
             }
             item { Spacer(Modifier.height(16.dp)) }
         }
         Button(onClick = triggerCheckout, Modifier.fillMaxWidth()) {
             Text("Pay and Redeem")
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun PromotionUpdateSummaryCard(
+    promotionState: PromotionData,
+    tokenUpdate: TokenUpdate,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .defaultMinSize(minHeight = 100.dp)
+            .fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = promotionState.promotionName,
+                style = MaterialTheme.typography.headlineSmall,
+            )
+            Text(
+                text = tokenUpdate.description,
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            when (tokenUpdate) {
+                is ZKPUpdate ->
+                    Row {
+                        Icon(
+                            Icons.Default.CardGiftcard,
+                            contentDescription = "Gift icon"
+                        )
+                        Text(
+                            text = tokenUpdate.sideEffect,
+                            style = MaterialTheme.typography.bodyLarge,
+                            modifier = Modifier.padding(start = 16.dp)
+                        )
+                    }
+            }
         }
     }
 }
@@ -397,7 +425,25 @@ fun CheckoutUiNotStartedPreview() {
         Scaffold() {
             SummaryUi(
                 checkoutState = previewCheckoutState,
-                promotionData = emptyList(),
+                promotionData = listOf(
+                    HazelPromotionData(
+                        "Nutella Promotion",
+                        BigInteger.valueOf(5345L),
+                        "Earn points for buying Nutella!",
+                        Vector.of(BigInteger.valueOf(6L)),
+                        listOf(
+                            None(),
+                            Earn(PromotionUpdateFeasibility.CANDIDATE),
+                            HazelTokenUpdateState(
+                                "Get a free glass of Nutella",
+                                "Free Nutella",
+                                feasibility = PromotionUpdateFeasibility.SELECTED,
+                                6,
+                                4
+                            )
+                        )
+                    )
+                ),
                 triggerCheckout = {},
                 modifier = Modifier.padding(it)
             )

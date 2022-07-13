@@ -2,7 +2,6 @@ package org.cryptimeleon.incentive.app.domain.usecase
 
 import org.cryptimeleon.incentive.app.util.toBigIntVector
 import org.cryptimeleon.incentive.crypto.model.Token
-import org.cryptimeleon.incentive.promotion.Promotion
 import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion
 import org.cryptimeleon.incentive.promotion.streak.StreakPromotion
 import org.cryptimeleon.incentive.promotion.streak.StreakTokenUpdateTimestamp
@@ -12,18 +11,12 @@ import java.math.BigInteger
 import java.time.LocalDate
 
 interface PromotionData {
-    val promotion: Promotion
-    val token: Token
     val tokenUpdates: List<TokenUpdate>
     val promotionImageUrl: String
     val pid: BigInteger
-        get() = promotion.promotionParameters.promotionId
     val promotionName: String
-        get() = promotion.promotionName
     val promotionDescription: String
-        get() = promotion.promotionDescription
     val points: Vector<BigInteger>
-        get() = token.toBigIntVector()
 }
 
 enum class PromotionUpdateFeasibility {
@@ -31,13 +24,28 @@ enum class PromotionUpdateFeasibility {
 }
 
 data class HazelPromotionData(
-    override val promotion: HazelPromotion,
-    override val token: Token,
+    override val promotionName: String,
+    override val pid: BigInteger,
+    override val promotionDescription: String,
+    override val points: Vector<BigInteger>,
     override val tokenUpdates: List<TokenUpdate>,
 ) : PromotionData {
+
+    constructor(
+        promotion: HazelPromotion,
+        token: Token,
+        tokenUpdates: List<TokenUpdate>
+    ) : this(
+        promotionName = promotion.promotionName,
+        pid = promotion.promotionParameters.promotionId,
+        promotionDescription = promotion.promotionName,
+        points = token.toBigIntVector(),
+        tokenUpdates = tokenUpdates
+    )
+
     override val promotionImageUrl: String
         get() =
-            if (promotion.promotionName.contains("Nutella")) {
+            if (promotionName.contains("Nutella")) {
                 "url1"
             } else {
                 "url2"
@@ -46,14 +54,30 @@ data class HazelPromotionData(
 }
 
 data class StreakPromotionData(
-    override val promotion: StreakPromotion,
-    override val token: Token,
+    override val promotionName: String,
+    override val pid: BigInteger,
+    override val promotionDescription: String,
+    override val points: Vector<BigInteger>,
     override val tokenUpdates: List<TokenUpdate>,
+    val streakInterval: Int,
 ) : PromotionData {
+
+    constructor(
+        promotion: StreakPromotion,
+        token: Token,
+        tokenUpdates: List<TokenUpdate>
+    ) : this(
+        promotionName = promotion.promotionName,
+        pid = promotion.promotionParameters.promotionId,
+        promotionDescription = promotion.promotionName,
+        points = token.toBigIntVector(),
+        tokenUpdates = tokenUpdates,
+        streakInterval = promotion.interval
+    )
+
     override val promotionImageUrl: String
         get() = "url"
     val streakCount = points.get(0).toInt()
-    val streakInterval = promotion.interval!!
     val lastEpochDay = points.get(1).toLong()
     val lastDate = StreakDate.fromLong(lastEpochDay)
     val todayEpochDay = StreakTokenUpdateTimestamp.now()!!.timestamp!!
@@ -77,10 +101,25 @@ sealed class StreakDate {
 
 
 data class VipPromotionData(
-    override val promotion: VipPromotion,
-    override val token: Token,
+    override val promotionName: String,
+    override val pid: BigInteger,
+    override val promotionDescription: String,
+    override val points: Vector<BigInteger>,
     override val tokenUpdates: List<TokenUpdate>,
 ) : PromotionData {
+
+    constructor(
+        promotion: VipPromotion,
+        token: Token,
+        tokenUpdates: List<TokenUpdate>
+    ) : this(
+        promotionName = promotion.promotionName,
+        pid = promotion.promotionParameters.promotionId,
+        promotionDescription = promotion.promotionName,
+        points = token.toBigIntVector(),
+        tokenUpdates = tokenUpdates,
+    )
+
     override val promotionImageUrl: String
         get() = ""
     val score = points.get(0).toInt()
@@ -106,7 +145,7 @@ data class Earn(
         get() = ""
 }
 
-interface ZKPUpdate: TokenUpdate {
+interface ZKPUpdate : TokenUpdate {
     val sideEffect: String
 }
 
