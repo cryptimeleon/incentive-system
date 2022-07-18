@@ -49,6 +49,7 @@ import com.google.zxing.BarcodeFormat
 import com.google.zxing.WriterException
 import com.google.zxing.qrcode.QRCodeWriter
 import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemState
+import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import timber.log.Timber
 import java.util.*
@@ -66,6 +67,10 @@ fun CheckoutUi(navigateHome: () -> Unit) {
         initial = PayAndRedeemState.NOT_STARTED
     )
     val paidBasketId: UUID? by checkoutViewModel.paidBasketId.collectAsState()
+
+    val promotionData: List<PromotionData> by checkoutViewModel.promotionData.collectAsState(
+        initial = emptyList()
+    )
 
     CheckoutUi(
         checkoutState,

@@ -20,6 +20,8 @@ import org.cryptimeleon.incentive.app.domain.usecase.AnalyzeUserTokenUpdatesUseC
 import org.cryptimeleon.incentive.app.domain.usecase.GetPromotionStatesUseCase
 import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemState
 import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemUseCase
+import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
+import org.cryptimeleon.incentive.app.domain.usecase.PromotionInfoUseCase
 import org.cryptimeleon.incentive.app.util.formatCents
 import java.util.*
 import javax.inject.Inject
@@ -43,6 +45,9 @@ class CheckoutViewModel @Inject constructor(
     private val _paidBasketId: MutableStateFlow<UUID?> = MutableStateFlow(null)
     public val paidBasketId: StateFlow<UUID?>
         get() = _paidBasketId
+
+    val promotionData: Flow<List<PromotionData>> =
+        PromotionInfoUseCase(promotionRepository, cryptoRepository, basketRepository).invoke()
 
     val payAndRedeemState = MutableStateFlow(PayAndRedeemState.NOT_STARTED)
     val checkoutState: Flow<CheckoutState> =
