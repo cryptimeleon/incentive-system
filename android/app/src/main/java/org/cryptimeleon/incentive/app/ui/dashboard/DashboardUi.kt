@@ -1,10 +1,7 @@
 package org.cryptimeleon.incentive.app.ui.dashboard
 
 import android.content.res.Configuration
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -26,7 +23,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -48,16 +44,13 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
-import org.cryptimeleon.incentive.app.util.ConnectionState
 
 @Composable
 fun Dashboard(openSettings: () -> Unit, openBenchmark: () -> Unit) {
     val dashboardViewModel = hiltViewModel<DashboardViewModel>()
-    val networkState by dashboardViewModel.networkMonitor.connectionState.collectAsState(initial = ConnectionState.Available)
     val state by dashboardViewModel.state.collectAsState(DashboardState(emptyList()))
     Dashboard(
         dashboardState = state,
-        networkState = networkState,
         openSettings = openSettings,
         openBenchmark = openBenchmark
     )
@@ -67,7 +60,6 @@ fun Dashboard(openSettings: () -> Unit, openBenchmark: () -> Unit) {
 @Composable
 fun Dashboard(
     dashboardState: DashboardState,
-    networkState: ConnectionState = ConnectionState.Available,
     openSettings: () -> Unit = {},
     openBenchmark: () -> Unit = {}
 ) {
@@ -79,36 +71,18 @@ fun Dashboard(
         )
     }) {
         Column(
-            verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier
                 .padding(it)
                 .verticalScroll(rememberScrollState())
         ) {
-            AnimatedVisibility(
-                visible = networkState == ConnectionState.Unavailable,
-                enter = expandVertically(expandFrom = Alignment.Top),
-                exit = shrinkVertically(shrinkTowards = Alignment.Top)
-            ) {
-                Surface(
-                    color = MaterialTheme.colorScheme.errorContainer,
-                ) {
-                    Text(
-                        "No Internet Connection!",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onErrorContainer,
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                            .fillMaxWidth()
-                    )
-                }
-            }
             for (promotionState in dashboardState.promotionStates) {
                 TokenCard(
                     promotionState = promotionState,
                     expandedPromotion = expandedPromotion,
                     toggleExpanded = { id ->
                         expandedPromotion = if (expandedPromotion == id) "" else id
-                    }
+                    },
+                    modifier = Modifier.padding(bottom = 16.dp)
                 )
             }
         }
@@ -120,10 +94,11 @@ fun Dashboard(
 fun TokenCard(
     promotionState: PromotionState,
     expandedPromotion: String,
-    toggleExpanded: (String) -> Unit
+    toggleExpanded: (String) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .wrapContentHeight(),
@@ -398,27 +373,6 @@ fun DashboardPreview() {
 @Composable
 @Preview(
     showBackground = true,
-    name = "Dashboard Preview not internet with Scaffold",
-    uiMode = uiMode,
-)
-fun DashboardDisconnectedPreview() {
-    CryptimeleonTheme {
-        val dashboardState = remember {
-            DashboardState(
-                listOf(
-                    firstPromotionState,
-                    thirdPromotionState,
-                    secondPromotionState,
-                )
-            )
-        }
-        Dashboard(dashboardState, ConnectionState.Unavailable)
-    }
-}
-
-@Composable
-@Preview(
-    showBackground = true,
     name = "Normal Promotion Item Preview",
     uiMode = uiMode,
 )
@@ -426,7 +380,9 @@ fun PromotionItemPreview() {
     TokenCard(
         promotionState = firstPromotionState,
         expandedPromotion = "",
-        toggleExpanded = {})
+        toggleExpanded = {},
+        modifier = Modifier
+    )
 }
 
 @Composable
@@ -436,7 +392,10 @@ fun PromotionItemPreview() {
     uiMode = uiMode,
 )
 fun ExpandedPromotionItemPreview() {
-    TokenCard(promotionState = firstPromotionState,
+    TokenCard(
+        promotionState = firstPromotionState,
         expandedPromotion = firstPromotionState.id,
-        toggleExpanded = {})
+        toggleExpanded = {},
+        modifier = Modifier
+    )
 }
