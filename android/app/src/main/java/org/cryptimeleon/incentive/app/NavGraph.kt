@@ -106,8 +106,13 @@ fun NavGraph(
                 }
             )
         ) { entry ->
-            val promotionId = BigInteger(entry.arguments?.getString("promotionId")!!)
-            PromotionDetailUi(promotionId = promotionId)
+            val promotionIdString: String = entry.arguments?.getString("promotionId")
+                ?: throw RuntimeException("Could not find argument")
+            val promotionId = BigInteger(promotionIdString)
+            PromotionDetailUi(
+                promotionId = promotionId,
+                onUpClicked = actions.onExitPromotionDetails
+            )
         }
     }
 }
@@ -122,6 +127,10 @@ class MainActions(navController: NavHostController) {
     }
 
     val onExitBenchmark: () -> Unit = {
+        navController.popBackStack()
+    }
+
+    val onExitPromotionDetails: () -> Unit = {
         navController.popBackStack()
     }
 

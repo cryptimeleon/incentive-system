@@ -41,7 +41,7 @@ class CheckoutViewModel @Inject constructor(
 
     // store basketId since a new one is retrieved after payment
     private val _paidBasketId: MutableStateFlow<UUID?> = MutableStateFlow(null)
-    public val paidBasketId: StateFlow<UUID?>
+    val paidBasketId: StateFlow<UUID?>
         get() = _paidBasketId
 
     val payAndRedeemState = MutableStateFlow(PayAndRedeemState.NOT_STARTED)

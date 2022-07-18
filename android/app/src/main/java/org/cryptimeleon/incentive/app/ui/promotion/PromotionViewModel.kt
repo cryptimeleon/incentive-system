@@ -24,5 +24,5 @@ class PromotionViewModel @Inject constructor(
         PromotionInfoUseCase(promotionRepository, cryptoRepository, basketRepository)
 
     fun promotionDataFlowFor(promotionId: BigInteger): Flow<PromotionData?> =
-        promotionInfoUseCase().map { it.firstOrNull{ it.pid == promotionId } }
+        promotionInfoUseCase().map { it.firstOrNull { it.pid == promotionId } }
 }

@@ -1,6 +1,6 @@
 package org.cryptimeleon.incentive.app.ui.promotion
 
-import android.graphics.drawable.Icon
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
@@ -11,18 +11,24 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.MoveUp
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.IconButton
+import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
@@ -30,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import org.cryptimeleon.incentive.app.domain.usecase.EarnTokenUpdate
 import org.cryptimeleon.incentive.app.domain.usecase.HazelPromotionData
 import org.cryptimeleon.incentive.app.domain.usecase.HazelTokenUpdateState
@@ -50,29 +57,34 @@ import java.math.BigInteger
 import java.util.*
 
 @Composable
-fun PromotionDetailUi(promotionId: BigInteger) {
+fun PromotionDetailUi(promotionId: BigInteger, onUpClicked: () -> Unit) {
     val promotionViewModel = hiltViewModel<PromotionViewModel>()
     val promotionData: PromotionData? by promotionViewModel.promotionDataFlowFor(promotionId)
         .collectAsState(initial = null)
 
     // TODO up press
     promotionData?.let {
-        PromotionDetailUi(it)
+        PromotionDetailUi(it, onUpClicked)
+    }
+
+    val systemUiController = rememberSystemUiController()
+
+    SideEffect {
+        systemUiController.setStatusBarColor(
+            color = Color.Transparent
+        )
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun PromotionDetailUi(promotionData: PromotionData) {
+private fun PromotionDetailUi(promotionData: PromotionData, back: () -> Unit) {
     Box(
         modifier = Modifier
-            .windowInsetsPadding(WindowInsets.statusBars)
+            //.windowInsetsPadding(WindowInsets.statusBars)
             .fillMaxSize()
     ) {
         val scroll = rememberScrollState()
-        IconButton(onClick = { /*TODO*/ }) {
-            Icons.Outlined.MoveUp
-        }
         Column {
             Header(promotionData.promotionImageUrl)
             Column(
@@ -89,22 +101,45 @@ private fun PromotionDetailUi(promotionData: PromotionData) {
                 }
             }
         }
+        FilledTonalIconButton(
+            onClick = back,
+            modifier = Modifier
+                .windowInsetsPadding(WindowInsets.statusBars)
+                .padding(start = 16.dp)
+        ) {
+            Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+        }
     }
 }
 
 @Composable
 private fun Header(imageUrl: String) {
-    AsyncImage(
-        model = ImageRequest.Builder(LocalContext.current)
-            .data(imageUrl)
-            .crossfade(true)
-            .build(),
-        contentDescription = "Promotion Image",
-        contentScale = ContentScale.Crop,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(250.dp)
-    )
+    Box {
+        AsyncImage(
+            model = ImageRequest.Builder(LocalContext.current)
+                .data(imageUrl)
+                .crossfade(true)
+                .build(),
+            contentDescription = "Promotion Image",
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(250.dp)
+                .clip(RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp))
+        )
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Black.copy(alpha = 0.4f),
+                            Color.Transparent
+                        ),
+                    )
+                )
+        )
+    }
 }
 
 val promotionDataList = listOf<PromotionData>(
@@ -154,7 +189,7 @@ val promotionDataList = listOf<PromotionData>(
                 targetVipStatus = VipStatus.GOLD
             )
         ),
-        points = Vector.of(BigInteger.valueOf(2), BigInteger.valueOf(234)),
+        points = Vector.of(BigInteger.valueOf(234), BigInteger.valueOf(2)),
     ),
     StreakPromotionData(
         promotionName = "Streak Promotion",
@@ -191,10 +226,10 @@ val promotionDataList = listOf<PromotionData>(
 @Preview
 @Composable
 fun Preview() {
-    CryptimeleonTheme() {
-        Scaffold() {
+    CryptimeleonTheme {
+        Scaffold {
             Box(Modifier.padding(it)) {
-                PromotionDetailUi(promotionDataList.get(0))
+                PromotionDetailUi(promotionDataList.get(0), {})
             }
         }
     }
