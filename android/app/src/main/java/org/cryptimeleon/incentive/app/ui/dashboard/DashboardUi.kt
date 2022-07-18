@@ -40,13 +40,17 @@ import org.cryptimeleon.math.structures.cartesian.Vector
 import java.math.BigInteger
 
 @Composable
-fun Dashboard(openSettings: () -> Unit, openBenchmark: () -> Unit) {
+fun Dashboard(
+    openSettings: () -> Unit,
+    openBenchmark: () -> Unit,
+    navigateToPromotionDetails: (promotionId: BigInteger) -> Unit
+) {
     val dashboardViewModel = hiltViewModel<DashboardViewModel>()
     val promotionDataList by dashboardViewModel.promotionDataListFlow.collectAsState(initial = emptyList())
 
     Dashboard(
         promotionDataList = promotionDataList,
-        cardClicked = dashboardViewModel::onCardClicked,
+        cardClicked = navigateToPromotionDetails,
         openSettings = openSettings,
         openBenchmark = openBenchmark
     )
