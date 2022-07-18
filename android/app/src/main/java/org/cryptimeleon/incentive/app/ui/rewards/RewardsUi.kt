@@ -76,7 +76,12 @@ private fun RewardsUi(
                 setUserUpdateChoice = setUserUpdateChoice,
                 modifier = Modifier.weight(1f)
             )
-            Button(onClick = gotoCheckout, modifier = Modifier.fillMaxWidth()) {
+            Button(
+                onClick = gotoCheckout,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp)
+            ) {
                 Text("Continue")
             }
         }

@@ -189,13 +189,11 @@ private fun BasketNotEmptyView(
                 )
             }
         }
-        Column() {
-            Button(
-                modifier = Modifier.fillMaxWidth(),
-                onClick = pay
-            ) {
-                Text("Checkout")
-            }
+        Button(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = pay
+        ) {
+            Text("Checkout")
         }
     }
 }

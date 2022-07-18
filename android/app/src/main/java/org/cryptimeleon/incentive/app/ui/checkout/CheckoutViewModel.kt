@@ -79,8 +79,10 @@ class CheckoutViewModel @Inject constructor(
         val rewardDescription = when (choice.userUpdateChoice) {
             is SerializableUserChoice.ZKP -> {
                 val tokenUpdateId = choice.userUpdateChoice.tokenUpdateId
-                val updateChoice: UpdateChoice.ZKP =
-                    it.qualifiedUpdates.find { updateChoice -> updateChoice is UpdateChoice.ZKP && updateChoice.updateId == tokenUpdateId } as UpdateChoice.ZKP
+                val updateChoiceOrNull =
+                    it.qualifiedUpdates.find { updateChoice -> updateChoice is UpdateChoice.ZKP && updateChoice.updateId == tokenUpdateId }
+                        ?: return@mapNotNull null
+                val updateChoice: UpdateChoice.ZKP = updateChoiceOrNull as UpdateChoice.ZKP
                 when (updateChoice.sideEffect) {
                     is RewardSideEffect -> rewardItems.find { rewardItem: RewardItem -> rewardItem.id == updateChoice.sideEffect.rewardId }?.title
                     else -> null
