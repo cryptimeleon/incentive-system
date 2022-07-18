@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.dp
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.WriterException
 import com.google.zxing.qrcode.QRCodeWriter
-import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
+import org.cryptimeleon.incentive.app.ui.CryptimeleonPreviewContainer
 import timber.log.Timber
 import java.util.*
 
@@ -78,7 +78,6 @@ internal fun FinishedUi(
                         fg = MaterialTheme.colorScheme.onSecondaryContainer,
                         bg = MaterialTheme.colorScheme.secondaryContainer,
                     )
-                    Timber.i(image.toString())
                     image?.let {
                         Image(
                             bitmap = it,
@@ -105,6 +104,9 @@ internal fun FinishedUi(
     }
 }
 
+/**
+ * Create compose-compatible QR code that encodes url of basket
+ */
 @Composable
 private fun generateBasketQRCode(
     basketId: String,
@@ -119,22 +121,14 @@ private fun generateBasketQRCode(
         val height = 192
         val width = 192
         try {
-            Timber.i(System.currentTimeMillis().toString() + "endode url")
             val bitMatrix = qrCode.encode(url, BarcodeFormat.QR_CODE, width, height)
-
-            Timber.i(System.currentTimeMillis().toString() + "create bitmap")
             val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)
-
-
-            Timber.i(System.currentTimeMillis().toString() + "loops")
             for (x in 0 until width) {
                 for (y in 0 until height) {
                     bitmap.setPixel(x, y, if (bitMatrix[x, y]) fg.toArgb() else bg.toArgb())
                 }
             }
-            Timber.i(System.currentTimeMillis().toString() + "as image")
             value = bitmap.asImageBitmap()
-            Timber.i(System.currentTimeMillis().toString() + "done")
         } catch (e: WriterException) {
             Timber.e(e)
         }
@@ -144,9 +138,10 @@ private fun generateBasketQRCode(
 @Preview
 @Composable
 fun CheckoutUiFinishedPreview() {
-    CryptimeleonTheme() {
+    CryptimeleonPreviewContainer {
         FinishedUi(
-            paidBasketId = null
-        ) {}
+            paidBasketId = UUID.randomUUID(),
+            navigateHome = {}
+        )
     }
 }
