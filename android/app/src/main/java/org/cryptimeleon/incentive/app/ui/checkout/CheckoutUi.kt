@@ -1,6 +1,5 @@
 package org.cryptimeleon.incentive.app.ui.checkout
 
-import android.graphics.Bitmap
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,26 +16,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.google.zxing.BarcodeFormat
-import com.google.zxing.WriterException
-import com.google.zxing.qrcode.QRCodeWriter
 import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemState
 import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
-import timber.log.Timber
 import java.util.*
 
 @Composable
@@ -45,7 +34,7 @@ fun CheckoutUi(navigateHome: () -> Unit) {
     val checkoutState: CheckoutState by checkoutViewModel.checkoutState.collectAsState(
         initial = CheckoutState(
             emptyList(),
-            BasketState("", "", emptyList())
+            BasketState(0, "", emptyList())
         )
     )
     val payAndRedeemState: PayAndRedeemState by checkoutViewModel.payAndRedeemState.collectAsState(
@@ -53,11 +42,12 @@ fun CheckoutUi(navigateHome: () -> Unit) {
     )
     val paidBasketId: UUID? by checkoutViewModel.paidBasketId.collectAsState()
 
-    val promotionData: List<PromotionData> by checkoutViewModel.promotionData.collectAsState(
+    val promotionDataCollection: List<PromotionData> by checkoutViewModel.promotionData.collectAsState(
         initial = emptyList()
     )
 
     CheckoutUi(
+        promotionDataCollection,
         checkoutState,
         payAndRedeemState,
         paidBasketId,
@@ -69,6 +59,7 @@ fun CheckoutUi(navigateHome: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CheckoutUi(
+    promotionDataCollection: List<PromotionData>,
     checkoutState: CheckoutState,
     payAndRedeemState: PayAndRedeemState,
     paidBasketId: UUID? = null,
@@ -80,7 +71,7 @@ private fun CheckoutUi(
         Box(Modifier.padding(it)) {
             when (payAndRedeemState) {
                 PayAndRedeemState.NOT_STARTED -> {
-                    SummaryUi(checkoutState, triggerCheckout)
+                    SummaryUi(checkoutState, triggerCheckout, promotionDataCollection)
                 }
                 PayAndRedeemState.FINISHED -> {
                     FinishedUi(checkoutState, paidBasketId, navigateHome)
@@ -116,12 +107,12 @@ private val previewCheckoutState = CheckoutState(
         CheckoutPromotionState("Second Promotion", "Free Pan")
     ),
     BasketState(
-        "25,00€",
+        2500,
         UUID.randomUUID().toString(),
         listOf(
-            BasketItem("Nutella", 2, "1,99€", "3,98€"),
+            BasketItem("Nutella", 2, 199, 398),
             BasketItem(
-                "Apple", 5, "0,25€", "1,25€"
+                "Apple", 5, 25, 125
             )
         )
     )
@@ -132,6 +123,7 @@ private val previewCheckoutState = CheckoutState(
 fun CheckoutUiInProgressPreview() {
     CryptimeleonTheme() {
         CheckoutUi(
+            promotionDataCollection = emptyList(),
             checkoutState = previewCheckoutState,
             payAndRedeemState = PayAndRedeemState.UPDATE_TOKENS,
             triggerCheckout = {},

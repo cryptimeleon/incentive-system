@@ -147,7 +147,7 @@ private fun generateBasketQRCode(
 fun CheckoutUiFinishedPreview() {
     CryptimeleonTheme() {
         FinishedUi(
-            checkoutState = CheckoutState(emptyList(), BasketState("", "", emptyList())),
+            checkoutState = CheckoutState(emptyList(), BasketState(0, "", emptyList())),
             paidBasketId = null,
             navigateHome = {}
         )
