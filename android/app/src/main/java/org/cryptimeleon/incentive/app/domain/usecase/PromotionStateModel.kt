@@ -7,6 +7,7 @@ import org.cryptimeleon.incentive.promotion.streak.StreakPromotion
 import org.cryptimeleon.incentive.promotion.streak.StreakTokenUpdateTimestamp
 import org.cryptimeleon.incentive.promotion.vip.VipPromotion
 import org.cryptimeleon.math.structures.cartesian.Vector
+import timber.log.Timber
 import java.math.BigInteger
 import java.time.LocalDate
 import java.util.*
@@ -207,6 +208,12 @@ enum class VipStatus(val statusValue: Int) {
     GOLD(3);
 
     companion object {
-        fun fromInt(value: Int) = values().first { it.statusValue == value }
+        fun fromInt(value: Int) =
+            try {
+                values().first { it.statusValue == value }
+            } catch (e: Exception) {
+                Timber.e(e)
+                NONE
+            }
     }
 }
