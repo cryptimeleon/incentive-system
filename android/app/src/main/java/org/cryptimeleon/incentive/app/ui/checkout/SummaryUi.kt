@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import org.cryptimeleon.incentive.app.domain.model.Basket
 import org.cryptimeleon.incentive.app.domain.usecase.NoTokenUpdate
 import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
 import org.cryptimeleon.incentive.app.domain.usecase.PromotionUpdateFeasibility
@@ -37,12 +38,13 @@ import org.cryptimeleon.incentive.app.domain.usecase.TokenUpdate
 import org.cryptimeleon.incentive.app.domain.usecase.ZkpTokenUpdate
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import org.cryptimeleon.incentive.app.util.formatCents
+import java.util.*
 
 @Composable
 internal fun SummaryUi(
-    checkoutState: CheckoutState,
-    triggerCheckout: () -> Unit,
+    basket: Basket,
     promotionData: List<PromotionData>,
+    triggerCheckout: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -66,7 +68,7 @@ internal fun SummaryUi(
                     )
                 }
             }
-            items(checkoutState.basketState.basketItems) { item ->
+            items(basket.items) { item ->
                 Divider()
                 Column(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -83,7 +85,7 @@ internal fun SummaryUi(
                         )
                         Column(horizontalAlignment = Alignment.End) {
                             Text(
-                                text = formatCents(item.costSingle * item.count),
+                                text = formatCents(item.price * item.count),
                                 style = MaterialTheme.typography.bodyLarge,
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier
@@ -98,8 +100,8 @@ internal fun SummaryUi(
             }
             item {
                 BasketSummaryRow(
-                    checkoutState.basketState.basketItems.sumOf { it.count },
-                    checkoutState.basketState.basketValue
+                    basket.items.sumOf { it.count },
+                    basket.value
                 )
             }
             item {
@@ -226,12 +228,9 @@ private fun BasketSummaryRow(
 fun CheckoutUiNotStartedPreview() {
     CryptimeleonTheme() {
         SummaryUi(
-            checkoutState = CheckoutState(
-                emptyList(),
-                basketState = BasketState(134, "lkasdfj", emptyList())
-            ),
-            triggerCheckout = {},
+            basket = Basket(UUID.randomUUID(), emptyList(), false, redeemed = false, 679),
             promotionData = emptyList(),
+            triggerCheckout = {},
         )
     }
 }

@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import org.cryptimeleon.incentive.app.domain.model.Basket
 import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemState
 import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
@@ -42,11 +43,13 @@ fun CheckoutUi(navigateHome: () -> Unit) {
     )
     val paidBasketId: UUID? by checkoutViewModel.paidBasketId.collectAsState()
 
+    val basket by checkoutViewModel.basket.collectAsState(initial = null)
     val promotionDataCollection: List<PromotionData> by checkoutViewModel.promotionData.collectAsState(
         initial = emptyList()
     )
 
     CheckoutUi(
+        basket,
         promotionDataCollection,
         checkoutState,
         payAndRedeemState,
@@ -59,6 +62,7 @@ fun CheckoutUi(navigateHome: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CheckoutUi(
+    basket: Basket?,
     promotionDataCollection: List<PromotionData>,
     checkoutState: CheckoutState,
     payAndRedeemState: PayAndRedeemState,
@@ -71,7 +75,9 @@ private fun CheckoutUi(
         Box(Modifier.padding(it)) {
             when (payAndRedeemState) {
                 PayAndRedeemState.NOT_STARTED -> {
-                    SummaryUi(checkoutState, triggerCheckout, promotionDataCollection)
+                    basket?.let { // Should not be null in this case, but can be in finished case!
+                        SummaryUi(basket, promotionDataCollection, triggerCheckout)
+                    }
                 }
                 PayAndRedeemState.FINISHED -> {
                     FinishedUi(checkoutState, paidBasketId, navigateHome)
@@ -123,6 +129,13 @@ private val previewCheckoutState = CheckoutState(
 fun CheckoutUiInProgressPreview() {
     CryptimeleonTheme() {
         CheckoutUi(
+            basket = Basket(
+                basketId = UUID.randomUUID(),
+                items = emptyList(),
+                paid = false,
+                redeemed = false,
+                value = 295
+            ),
             promotionDataCollection = emptyList(),
             checkoutState = previewCheckoutState,
             payAndRedeemState = PayAndRedeemState.UPDATE_TOKENS,
