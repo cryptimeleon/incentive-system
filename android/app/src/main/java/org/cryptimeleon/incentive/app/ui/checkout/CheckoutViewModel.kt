@@ -14,10 +14,18 @@ import kotlinx.coroutines.withContext
 import org.cryptimeleon.incentive.app.data.BasketRepository
 import org.cryptimeleon.incentive.app.data.CryptoRepository
 import org.cryptimeleon.incentive.app.data.PromotionRepository
+import org.cryptimeleon.incentive.app.domain.model.Earn
+import org.cryptimeleon.incentive.app.domain.model.None
+import org.cryptimeleon.incentive.app.domain.model.ZKP
+import org.cryptimeleon.incentive.app.domain.usecase.EarnTokenUpdate
+import org.cryptimeleon.incentive.app.domain.usecase.NoTokenUpdate
 import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemState
 import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemUseCase
 import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
 import org.cryptimeleon.incentive.app.domain.usecase.PromotionInfoUseCase
+import org.cryptimeleon.incentive.app.domain.usecase.TokenUpdate
+import org.cryptimeleon.incentive.app.domain.usecase.ZkpTokenUpdate
+import java.math.BigInteger
 import java.util.*
 import javax.inject.Inject
 
@@ -25,11 +33,16 @@ import javax.inject.Inject
 class CheckoutViewModel @Inject constructor(
     cryptoRepository: CryptoRepository,
     basketRepository: BasketRepository,
-    promotionRepository: PromotionRepository,
+    private val promotionRepository: PromotionRepository,
     application: Application
 ) : AndroidViewModel(application) {
     private val payAndRedeemUseCase =
         PayAndRedeemUseCase(promotionRepository, cryptoRepository, basketRepository)
+
+    private val _checkoutStep = MutableStateFlow(CheckoutStep.REWARDS)
+    val checkoutStep: StateFlow<CheckoutStep>
+        get() = _checkoutStep
+
 
     // store basketId since a new one is retrieved after payment
     private val _paidBasketId: MutableStateFlow<UUID?> = MutableStateFlow(null)
@@ -42,13 +55,42 @@ class CheckoutViewModel @Inject constructor(
 
     val payAndRedeemState = MutableStateFlow(PayAndRedeemState.NOT_STARTED)
 
+    fun gotoSummary() {
+        _checkoutStep.value = CheckoutStep.SUMMARY
+    }
+
     fun startPayAndRedeem() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 // Store basket ID since use case will retrieve a new one
+                _checkoutStep.value = CheckoutStep.PROCESSING
                 _paidBasketId.value = basket.first()?.basketId
                 payAndRedeemUseCase.invoke().collect { payAndRedeemState.emit(it) }
+                _checkoutStep.value = CheckoutStep.FINISHED
             }
         }
     }
+
+    fun setUpdateChoice(promotionId: BigInteger, tokenUpdate: TokenUpdate) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                val userUpdateChoice = when (tokenUpdate) {
+                    is NoTokenUpdate -> None
+                    is EarnTokenUpdate -> Earn
+                    is ZkpTokenUpdate -> ZKP(tokenUpdate.zkpUpdateId)
+                    else -> {
+                        throw RuntimeException("Unknown token update $tokenUpdate")
+                    }
+                }
+                promotionRepository.putUserUpdateChoice(promotionId, userUpdateChoice)
+            }
+        }
+    }
+}
+
+enum class CheckoutStep {
+    REWARDS,
+    SUMMARY,
+    PROCESSING,
+    FINISHED
 }

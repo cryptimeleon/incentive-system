@@ -23,8 +23,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import org.cryptimeleon.incentive.app.domain.model.Basket
 import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemState
 import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
+import org.cryptimeleon.incentive.app.domain.usecase.TokenUpdate
 import org.cryptimeleon.incentive.app.ui.CryptimeleonPreviewContainer
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
+import java.math.BigInteger
 import java.util.*
 
 @Composable
@@ -40,12 +42,16 @@ fun CheckoutUi(navigateHome: () -> Unit) {
     val paidBasketId: UUID? by checkoutViewModel.paidBasketId.collectAsState()
 
     val payAndRedeemState: PayAndRedeemState by checkoutViewModel.payAndRedeemState.collectAsState()
+    val checkoutStep: CheckoutStep by checkoutViewModel.checkoutStep.collectAsState()
 
     CheckoutUi(
         basket,
         promotionDataCollection,
+        checkoutStep,
         payAndRedeemState,
         paidBasketId,
+        checkoutViewModel::gotoSummary,
+        checkoutViewModel::setUpdateChoice,
         checkoutViewModel::startPayAndRedeem,
         navigateHome
     )
@@ -56,30 +62,41 @@ fun CheckoutUi(navigateHome: () -> Unit) {
 private fun CheckoutUi(
     basket: Basket?,
     promotionDataCollection: List<PromotionData>,
+    checkoutStep: CheckoutStep,
     payAndRedeemState: PayAndRedeemState,
     paidBasketId: UUID? = null,
+    gotoSummary: () -> Unit,
+    setUserUpdateChoice: (BigInteger, TokenUpdate) -> Unit,
     triggerCheckout: () -> Unit,
     navigateHome: () -> Unit,
 ) {
-    val title = when (payAndRedeemState) {
-        PayAndRedeemState.NOT_STARTED -> "Summary"
-        PayAndRedeemState.FINISHED -> "Finished"
-        else -> "Processing"
+    val title = when (checkoutStep) {
+        CheckoutStep.REWARDS -> "Rewards"
+        CheckoutStep.SUMMARY -> "Summary"
+        CheckoutStep.PROCESSING -> "Processing"
+        CheckoutStep.FINISHED -> "Finished"
     }
     Scaffold(
         topBar = { DefaultTopAppBar(title = { Text("Checkout: $title") }, menuEnabled = false) },
     ) {
         Box(Modifier.padding(it)) {
-            when (payAndRedeemState) {
-                PayAndRedeemState.NOT_STARTED -> {
+            when (checkoutStep) {
+                CheckoutStep.REWARDS -> {
+                    RewardsUi(
+                        promotionDataCollection,
+                        setUserUpdateChoice,
+                        gotoSummary,
+                    )
+                }
+                CheckoutStep.SUMMARY -> {
                     basket?.let { // Should not be null in this case, but can be in finished case!
                         SummaryUi(basket, promotionDataCollection, triggerCheckout)
                     }
                 }
-                PayAndRedeemState.FINISHED -> {
+                CheckoutStep.FINISHED -> {
                     FinishedUi(paidBasketId, navigateHome)
                 }
-                else -> {
+                CheckoutStep.PROCESSING -> {
                     PayProgressUi(payAndRedeemState)
                 }
             }

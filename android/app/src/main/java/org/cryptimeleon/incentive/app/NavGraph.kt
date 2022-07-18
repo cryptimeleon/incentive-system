@@ -17,7 +17,6 @@ import org.cryptimeleon.incentive.app.ui.basket.BasketUi
 import org.cryptimeleon.incentive.app.ui.benchmark.BenchmarkUi
 import org.cryptimeleon.incentive.app.ui.checkout.CheckoutUi
 import org.cryptimeleon.incentive.app.ui.dashboard.Dashboard
-import org.cryptimeleon.incentive.app.ui.rewards.RewardsUi
 import org.cryptimeleon.incentive.app.ui.scan.ScanScreen
 import org.cryptimeleon.incentive.app.ui.settings.Settings
 import org.cryptimeleon.incentive.app.ui.setup.SetupUi
@@ -81,11 +80,8 @@ fun NavGraph(
                 actions.openScanner,
                 actions.openSettings,
                 actions.openBenchmark,
-                actions.openRewards
+                actions.openCheckout
             )
-        }
-        composable(MainDestination.REWARDS_ROUTE) {
-            RewardsUi(actions.openCheckout)
         }
         composable(MainDestination.CHECKOUT_ROUTE) {
             CheckoutUi(actions.navigateToDashboard)
@@ -120,16 +116,12 @@ class MainActions(navController: NavHostController) {
         navController.navigate(MainDestination.BENCHMARK_ROUTE)
     }
 
-    val openCheckout: () -> Unit = {
-        navController.navigate(MainDestination.CHECKOUT_ROUTE)
-    }
-
-    val openRewards: () -> Unit = {
-        navController.navigate(MainDestination.REWARDS_ROUTE)
-    }
-
     val navigateToDashboard: () -> Unit = {
         navController.navigate(MainDestination.DASHBOARD_ROUTE)
+    }
+
+    val openCheckout: () -> Unit = {
+        navController.navigate(MainDestination.CHECKOUT_ROUTE)
     }
 }
 
