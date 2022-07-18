@@ -154,6 +154,9 @@ data class VipPromotionData(
 interface TokenUpdate {
     val description: String
     val feasibility: PromotionUpdateFeasibility
+
+    fun isFeasible(): Boolean = feasibility != PromotionUpdateFeasibility.NOT_APPLICABLE
+    fun isSelected(): Boolean = feasibility == PromotionUpdateFeasibility.SELECTED
 }
 
 data class NoTokenUpdate(
@@ -168,10 +171,12 @@ data class EarnTokenUpdate(
 ) : TokenUpdate
 
 interface ZkpTokenUpdate : TokenUpdate {
+    val zkpUpdateId: UUID
     val sideEffect: Optional<String>
 }
 
 data class HazelTokenUpdateState(
+    override val zkpUpdateId: UUID,
     override val description: String,
     override val sideEffect: Optional<String>,
     override val feasibility: PromotionUpdateFeasibility,
@@ -180,6 +185,7 @@ data class HazelTokenUpdateState(
 ) : ZkpTokenUpdate
 
 data class ProveVipTokenUpdateState(
+    override val zkpUpdateId: UUID,
     override val description: String,
     override val sideEffect: Optional<String>,
     override val feasibility: PromotionUpdateFeasibility,
@@ -188,6 +194,7 @@ data class ProveVipTokenUpdateState(
 ) : ZkpTokenUpdate
 
 data class UpgradeVipTokenUpdateState(
+    override val zkpUpdateId: UUID,
     override val description: String,
     override val sideEffect: Optional<String>,
     override val feasibility: PromotionUpdateFeasibility,
@@ -197,12 +204,14 @@ data class UpgradeVipTokenUpdateState(
 ) : ZkpTokenUpdate
 
 data class StandardStreakTokenUpdateState(
+    override val zkpUpdateId: UUID,
     override val description: String,
     override val sideEffect: Optional<String>,
     override val feasibility: PromotionUpdateFeasibility,
 ) : ZkpTokenUpdate
 
 data class RangeProofStreakTokenUpdateState(
+    override val zkpUpdateId: UUID,
     override val description: String,
     override val sideEffect: Optional<String>,
     override val feasibility: PromotionUpdateFeasibility,
@@ -211,6 +220,7 @@ data class RangeProofStreakTokenUpdateState(
 ) : ZkpTokenUpdate
 
 data class SpendStreakTokenUpdateState(
+    override val zkpUpdateId: UUID,
     override val description: String,
     override val sideEffect: Optional<String>,
     override val feasibility: PromotionUpdateFeasibility,

@@ -55,6 +55,7 @@ class PreviewData {
                     NoTokenUpdate(),
                     EarnTokenUpdate(PromotionUpdateFeasibility.CANDIDATE, "Earn 2 Points"),
                     HazelTokenUpdateState(
+                        zkpUpdateId = UUID.randomUUID(),
                         description = "Get a free glass of Nutella",
                         sideEffect = Optional.of("Free Nutella"),
                         feasibility = PromotionUpdateFeasibility.SELECTED,
@@ -70,6 +71,7 @@ class PreviewData {
                 tokenUpdates = listOf(
                     NoTokenUpdate(feasibility = PromotionUpdateFeasibility.SELECTED),
                     ProveVipTokenUpdateState(
+                        zkpUpdateId = UUID.randomUUID(),
                         description = "Prove you are SILVER",
                         sideEffect = Optional.of("5% Discount"),
                         feasibility = PromotionUpdateFeasibility.CANDIDATE,
@@ -77,6 +79,7 @@ class PreviewData {
                         requiredStatus = VipStatus.SILVER
                     ),
                     ProveVipTokenUpdateState(
+                        zkpUpdateId = UUID.randomUUID(),
                         description = "Prove you are GOLD",
                         sideEffect = Optional.of("10% Discount"),
                         feasibility = PromotionUpdateFeasibility.NOT_APPLICABLE,
@@ -84,6 +87,7 @@ class PreviewData {
                         requiredStatus = VipStatus.GOLD
                     ),
                     UpgradeVipTokenUpdateState(
+                        zkpUpdateId = UUID.randomUUID(),
                         description = "Become GOLD",
                         sideEffect = Optional.of("10% Discount"),
                         feasibility = PromotionUpdateFeasibility.NOT_APPLICABLE,
@@ -102,11 +106,13 @@ class PreviewData {
                 tokenUpdates = listOf(
                     NoTokenUpdate(),
                     StandardStreakTokenUpdateState(
+                        zkpUpdateId = UUID.randomUUID(),
                         description = "Update your streak",
                         sideEffect = Optional.empty(),
                         feasibility = PromotionUpdateFeasibility.SELECTED
                     ),
                     RangeProofStreakTokenUpdateState(
+                        zkpUpdateId = UUID.randomUUID(),
                         description = "Prove that streak is at least 5",
                         sideEffect = Optional.of("Free Coffee"),
                         feasibility = PromotionUpdateFeasibility.NOT_APPLICABLE,
@@ -114,6 +120,7 @@ class PreviewData {
                         currentStreak = 3
                     ),
                     SpendStreakTokenUpdateState(
+                        zkpUpdateId = UUID.randomUUID(),
                         description = "Spend streak to get a reward",
                         sideEffect = Optional.of("Teddy Bear"),
                         feasibility = PromotionUpdateFeasibility.CANDIDATE,

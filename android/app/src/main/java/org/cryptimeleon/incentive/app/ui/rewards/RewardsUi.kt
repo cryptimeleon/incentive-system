@@ -4,62 +4,47 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CardGiftcard
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import org.cryptimeleon.incentive.app.domain.model.Earn
-import org.cryptimeleon.incentive.app.domain.model.None
-import org.cryptimeleon.incentive.app.domain.model.UserUpdateChoice
 import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
-import org.cryptimeleon.incentive.app.domain.usecase.PromotionUpdateFeasibility
+import org.cryptimeleon.incentive.app.domain.usecase.TokenUpdate
+import org.cryptimeleon.incentive.app.domain.usecase.ZkpTokenUpdate
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
+import org.cryptimeleon.incentive.app.ui.preview.PreviewData
 import java.math.BigInteger
 
 @Composable
 fun RewardsUi(gotoCheckout: () -> Unit) {
     val rewardsViewModel = hiltViewModel<RewardsViewModel>()
-    val state: RewardsState by rewardsViewModel.state.collectAsState(
-        initial = RewardsState(emptyList())
-    )
+    val promotionDataList by rewardsViewModel.promotionDataListFlow.collectAsState(initial = emptyList())
+
     RewardsUi(
-        state = state,
+        promotionDataList = promotionDataList,
         setUserUpdateChoice = rewardsViewModel::setUpdateChoice,
         gotoCheckout = gotoCheckout,
     )
@@ -68,8 +53,8 @@ fun RewardsUi(gotoCheckout: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RewardsUi(
-    state: RewardsState,
-    setUserUpdateChoice: (promotionId: BigInteger, userUpdateChoice: UserUpdateChoice) -> Unit,
+    promotionDataList: List<PromotionData>,
+    setUserUpdateChoice: (promotionId: BigInteger, tokenUpdate: TokenUpdate) -> Unit,
     gotoCheckout: () -> Unit
 ) {
     Scaffold(
@@ -87,7 +72,7 @@ private fun RewardsUi(
                 .padding(16.dp)
         ) {
             RewardPromotionList(
-                state.promotionInfos,
+                promotionDataList = promotionDataList,
                 setUserUpdateChoice = setUserUpdateChoice,
                 modifier = Modifier.weight(1f)
             )
@@ -103,11 +88,10 @@ private fun RewardsUi(
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun RewardPromotionList(
-    promotionInfos: List<PromotionInfo>,
-    setUserUpdateChoice: (promotionId: BigInteger, userUpdateChoice: UserUpdateChoice) -> Unit,
+    promotionDataList: List<PromotionData>,
+    setUserUpdateChoice: (promotionId: BigInteger, tokenUpdate: TokenUpdate) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyVerticalGrid(
@@ -116,39 +100,41 @@ fun RewardPromotionList(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        promotionInfos.forEach { promotion ->
+        promotionDataList.forEach { promotion ->
             item(span = { GridItemSpan(2) }) {
                 Text(
                     text = promotion.promotionName,
                     style = MaterialTheme.typography.headlineSmall
                 )
             }
-            promotion.choices.forEach { choice ->
-                item() {
-                    RewardChoiceCard(setUserUpdateChoice, promotion, choice)
+            promotion.tokenUpdates
+                .filter { it.isFeasible() }
+                .forEach { tokenUpdate ->
+                    item() {
+                        RewardChoiceCard(tokenUpdate, promotion.pid, setUserUpdateChoice)
+                    }
                 }
-            }
 
         }
     }
 
 }
 
-@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RewardChoiceCard(
-    setUserUpdateChoice: (promotionId: BigInteger, userUpdateChoice: UserUpdateChoice) -> Unit,
-    promotion: PromotionInfo,
-    choice: Choice
+    tokenUpdate: TokenUpdate,
+    promotionId: BigInteger,
+    setUserUpdateChoice: (promotionId: BigInteger, tokenUpdate: TokenUpdate) -> Unit
 ) {
     OutlinedCard(
         onClick = {
             setUserUpdateChoice(
-                promotion.promotionId,
-                choice.userUpdateChoice
+                promotionId,
+                tokenUpdate
             )
         },
-        colors = if (choice.isSelected) CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer) else CardDefaults.cardColors(
+        colors = if (tokenUpdate.isSelected()) CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer) else CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
         // colors = if (choice.isSelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
@@ -158,24 +144,24 @@ private fun RewardChoiceCard(
     ) {
         Column(modifier = Modifier.padding(8.dp), Arrangement.spacedBy(8.dp)) {
             Text(
-                text = choice.humanReadableDescription,
+                text = tokenUpdate.description,
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.SemiBold,
             )
-            when (val sideEffect = choice.sideEffect) {
-                is RewardChoiceSideEffect -> Row {
+            if (tokenUpdate is ZkpTokenUpdate && tokenUpdate.sideEffect.isPresent) {
+                Row {
                     Icon(Icons.Default.CardGiftcard, contentDescription = "Gift icon")
                     Text(
-                        text = sideEffect.title,
+                        text = tokenUpdate.sideEffect.get(),
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(start = 16.dp)
                     )
                 }
-                is NoChoiceSideEffect -> {}
             }
         }
     }
 }
+
 @ExperimentalMaterialApi
 @ExperimentalAnimationApi
 @Composable
@@ -186,38 +172,7 @@ private fun RewardChoiceCard(
 fun BasketItemPreviewExpanded() {
     CryptimeleonTheme {
         RewardsUi(
-            state = RewardsState(
-                listOf(
-                    PromotionInfo(
-                        BigInteger.valueOf(1),
-                        "Promotion for Preview",
-                        listOf(
-                            Choice(
-                                "Nothing",
-                                "No cryptographic protocols are executed. The token remains unchanged.",
-                                NoChoiceSideEffect,
-                                None,
-                                true
-                            ),
-                            Choice(
-                                "Collect 10 points",
-                                "Use the fast-earn protocol to add [10 0] to the points vector of the token and update the SPSEQ signature accordingly",
-                                NoChoiceSideEffect,
-                                Earn,
-                                false
-                            ),
-                            Choice(
-                                "Get Teddy and collect 3 points",
-                                "Run the ZKP with id 0237452398 to get change the points vector from [32] to [35].",
-                                RewardChoiceSideEffect("2897345987397", "Teddy Bear"),
-                                Earn,
-                                false
-                            )
-                        )
-
-                    )
-                )
-            ),
+            PreviewData.promotionDataList,
             setUserUpdateChoice = { _, _ -> },
             gotoCheckout = {}
         )
