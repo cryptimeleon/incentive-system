@@ -21,6 +21,8 @@ import org.cryptimeleon.incentive.app.domain.model.UserPromotionState
 import org.cryptimeleon.incentive.app.domain.model.UserUpdateChoice
 import org.cryptimeleon.incentive.app.domain.usecase.AnalyzeUserTokenUpdatesUseCase
 import org.cryptimeleon.incentive.app.domain.usecase.GetPromotionStatesUseCase
+import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
+import org.cryptimeleon.incentive.app.domain.usecase.PromotionInfoUseCase
 import org.cryptimeleon.incentive.promotion.sideeffect.NoSideEffect
 import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect
 import java.math.BigInteger
@@ -34,6 +36,8 @@ class RewardsViewModel @Inject constructor(
     application: Application
 ) : AndroidViewModel(application) {
 
+    val promotionDataListFlow: Flow<List<PromotionData>> =
+        PromotionInfoUseCase(promotionRepository, cryptoRepository, basketRepository).invoke()
     val state: Flow<RewardsState> = combine(
         basketRepository.basket,
         GetPromotionStatesUseCase(
