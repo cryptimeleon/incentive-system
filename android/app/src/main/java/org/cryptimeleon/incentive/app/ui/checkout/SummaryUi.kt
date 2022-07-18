@@ -36,9 +36,9 @@ import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
 import org.cryptimeleon.incentive.app.domain.usecase.PromotionUpdateFeasibility
 import org.cryptimeleon.incentive.app.domain.usecase.TokenUpdate
 import org.cryptimeleon.incentive.app.domain.usecase.ZkpTokenUpdate
-import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
+import org.cryptimeleon.incentive.app.ui.CryptimeleonPreviewContainer
+import org.cryptimeleon.incentive.app.ui.preview.PreviewData
 import org.cryptimeleon.incentive.app.util.formatCents
-import java.util.*
 
 @Composable
 internal fun SummaryUi(
@@ -226,10 +226,10 @@ private fun BasketSummaryRow(
 @Preview
 @Composable
 fun CheckoutUiNotStartedPreview() {
-    CryptimeleonTheme() {
+    CryptimeleonPreviewContainer {
         SummaryUi(
-            basket = Basket(UUID.randomUUID(), emptyList(), false, redeemed = false, 679),
-            promotionData = emptyList(),
+            basket = PreviewData.basket,
+            promotionData = PreviewData.promotionDataList,
             triggerCheckout = {},
         )
     }

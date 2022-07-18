@@ -26,7 +26,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import org.cryptimeleon.incentive.app.domain.model.Basket
 import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemState
 import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
-import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
+import org.cryptimeleon.incentive.app.ui.CryptimeleonPreviewContainer
 import java.util.*
 
 @Composable
@@ -103,19 +103,7 @@ private fun PayProgressUi(payAndRedeemState: PayAndRedeemState) {
 @Preview
 @Composable
 fun CheckoutUiInProgressPreview() {
-    CryptimeleonTheme() {
-        CheckoutUi(
-            basket = Basket(
-                basketId = UUID.randomUUID(),
-                items = emptyList(),
-                paid = false,
-                redeemed = false,
-                value = 295
-            ),
-            promotionDataCollection = emptyList(),
-            payAndRedeemState = PayAndRedeemState.UPDATE_TOKENS,
-            triggerCheckout = {},
-            navigateHome = {},
-        )
+    CryptimeleonPreviewContainer {
+        PayProgressUi(payAndRedeemState = PayAndRedeemState.UPDATE_TOKENS)
     }
 }
