@@ -40,7 +40,6 @@ import java.util.*
 
 @Composable
 internal fun FinishedUi(
-    checkoutState: CheckoutState,
     paidBasketId: UUID?,
     navigateHome: () -> Unit
 ) {
@@ -92,7 +91,7 @@ internal fun FinishedUi(
                         )
                     }
                     Text(
-                        checkoutState.basketState.basketId.uppercase(Locale.getDefault()),
+                        paidBasketId.toString().uppercase(Locale.getDefault()),
                         style = MaterialTheme.typography.bodySmall,
                         fontFamily = FontFamily.Monospace,
                     )
@@ -147,9 +146,7 @@ private fun generateBasketQRCode(
 fun CheckoutUiFinishedPreview() {
     CryptimeleonTheme() {
         FinishedUi(
-            checkoutState = CheckoutState(emptyList(), BasketState(0, "", emptyList())),
-            paidBasketId = null,
-            navigateHome = {}
-        )
+            paidBasketId = null
+        ) {}
     }
 }

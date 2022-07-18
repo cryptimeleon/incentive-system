@@ -80,7 +80,7 @@ private fun CheckoutUi(
                     }
                 }
                 PayAndRedeemState.FINISHED -> {
-                    FinishedUi(checkoutState, paidBasketId, navigateHome)
+                    FinishedUi(paidBasketId, navigateHome)
                 }
                 else -> {
                     PayProgressUi(payAndRedeemState)
