@@ -4,12 +4,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -27,6 +24,7 @@ import org.cryptimeleon.incentive.app.domain.model.Basket
 import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemState
 import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
 import org.cryptimeleon.incentive.app.ui.CryptimeleonPreviewContainer
+import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 import java.util.*
 
 @Composable
@@ -62,9 +60,15 @@ private fun CheckoutUi(
     paidBasketId: UUID? = null,
     triggerCheckout: () -> Unit,
     navigateHome: () -> Unit,
-    modifier: Modifier = Modifier
 ) {
-    Scaffold(modifier = modifier.windowInsetsPadding(WindowInsets.statusBars)) {
+    val title = when (payAndRedeemState) {
+        PayAndRedeemState.NOT_STARTED -> "Summary"
+        PayAndRedeemState.FINISHED -> "Finished"
+        else -> "Processing"
+    }
+    Scaffold(
+        topBar = { DefaultTopAppBar(title = { Text("Checkout: $title") }, menuEnabled = false) },
+    ) {
         Box(Modifier.padding(it)) {
             when (payAndRedeemState) {
                 PayAndRedeemState.NOT_STARTED -> {
