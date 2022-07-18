@@ -32,26 +32,20 @@ import java.util.*
 @Composable
 fun CheckoutUi(navigateHome: () -> Unit) {
     val checkoutViewModel = hiltViewModel<CheckoutViewModel>()
-    val checkoutState: CheckoutState by checkoutViewModel.checkoutState.collectAsState(
-        initial = CheckoutState(
-            emptyList(),
-            BasketState(0, "", emptyList())
-        )
-    )
-    val payAndRedeemState: PayAndRedeemState by checkoutViewModel.payAndRedeemState.collectAsState(
-        initial = PayAndRedeemState.NOT_STARTED
-    )
-    val paidBasketId: UUID? by checkoutViewModel.paidBasketId.collectAsState()
 
     val basket by checkoutViewModel.basket.collectAsState(initial = null)
     val promotionDataCollection: List<PromotionData> by checkoutViewModel.promotionData.collectAsState(
         initial = emptyList()
     )
+    // Once a basket is paid and new tokens are retrieved, it is removed from the database.
+    // Therefore, we need to store the old ID
+    val paidBasketId: UUID? by checkoutViewModel.paidBasketId.collectAsState()
+
+    val payAndRedeemState: PayAndRedeemState by checkoutViewModel.payAndRedeemState.collectAsState()
 
     CheckoutUi(
         basket,
         promotionDataCollection,
-        checkoutState,
         payAndRedeemState,
         paidBasketId,
         checkoutViewModel::startPayAndRedeem,
@@ -64,7 +58,6 @@ fun CheckoutUi(navigateHome: () -> Unit) {
 private fun CheckoutUi(
     basket: Basket?,
     promotionDataCollection: List<PromotionData>,
-    checkoutState: CheckoutState,
     payAndRedeemState: PayAndRedeemState,
     paidBasketId: UUID? = null,
     triggerCheckout: () -> Unit,
@@ -107,23 +100,6 @@ private fun PayProgressUi(payAndRedeemState: PayAndRedeemState) {
 }
 
 
-private val previewCheckoutState = CheckoutState(
-    listOf(
-        CheckoutPromotionState("First Promotion", "Become VIP Gold"),
-        CheckoutPromotionState("Second Promotion", "Free Pan")
-    ),
-    BasketState(
-        2500,
-        UUID.randomUUID().toString(),
-        listOf(
-            BasketItem("Nutella", 2, 199, 398),
-            BasketItem(
-                "Apple", 5, 25, 125
-            )
-        )
-    )
-)
-
 @Preview
 @Composable
 fun CheckoutUiInProgressPreview() {
@@ -137,7 +113,6 @@ fun CheckoutUiInProgressPreview() {
                 value = 295
             ),
             promotionDataCollection = emptyList(),
-            checkoutState = previewCheckoutState,
             payAndRedeemState = PayAndRedeemState.UPDATE_TOKENS,
             triggerCheckout = {},
             navigateHome = {},
