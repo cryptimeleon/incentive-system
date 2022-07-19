@@ -81,27 +81,27 @@ public class DemoBootstrapData {
                             List.of(
                                     new StandardStreakTokenUpdate(
                                             UUID.randomUUID(),
-                                            "Increase or reset your streak",
+                                            "Increase your streak",
                                             new NoSideEffect(), // This is just the default update operation
                                             7
                                     ),
                                     new RangeProofStreakTokenUpdate(
                                             UUID.randomUUID(),
-                                            "You get a free coffee if you're streak is at least 5.",
+                                            "You get a free coffee if your streak is at least 5.",
                                             new RewardSideEffect("568948928121"),
                                             7,
                                             5
                                     ),
                                     new SpendStreakTokenUpdate(
                                             UUID.randomUUID(),
-                                            "Get a free manicure set in exchange for a streak of 10.",
+                                            "Get a free manicure set for 10 streak points.",
                                             new RewardSideEffect("132183798426"),
                                             7,
                                             10
                                     ),
                                     new SpendStreakTokenUpdate(
                                             UUID.randomUUID(),
-                                            "Get a free knife set in exchange for a streak of 20.",
+                                            "Get a free knife set for 20 streak points.",
                                             new RewardSideEffect("430370376573"),
                                             7,
                                             20
