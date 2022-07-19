@@ -8,19 +8,24 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.cryptimeleon.incentive.app.data.BasketRepository
 import org.cryptimeleon.incentive.app.data.CryptoRepository
 import org.cryptimeleon.incentive.app.data.PromotionRepository
-import org.cryptimeleon.incentive.app.domain.model.PromotionUserUpdateChoice
-import org.cryptimeleon.incentive.app.domain.usecase.AnalyzeUserTokenUpdatesUseCase
-import org.cryptimeleon.incentive.app.domain.usecase.GetPromotionStatesUseCase
+import org.cryptimeleon.incentive.app.domain.model.Earn
+import org.cryptimeleon.incentive.app.domain.model.None
+import org.cryptimeleon.incentive.app.domain.model.ZKP
+import org.cryptimeleon.incentive.app.domain.usecase.EarnTokenUpdate
+import org.cryptimeleon.incentive.app.domain.usecase.NoTokenUpdate
 import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemState
 import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemUseCase
-import org.cryptimeleon.incentive.app.util.formatCents
+import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
+import org.cryptimeleon.incentive.app.domain.usecase.PromotionInfoUseCase
+import org.cryptimeleon.incentive.app.domain.usecase.TokenUpdate
+import org.cryptimeleon.incentive.app.domain.usecase.ZkpTokenUpdate
+import java.math.BigInteger
 import java.util.*
 import javax.inject.Inject
 
@@ -28,95 +33,64 @@ import javax.inject.Inject
 class CheckoutViewModel @Inject constructor(
     cryptoRepository: CryptoRepository,
     basketRepository: BasketRepository,
-    promotionRepository: PromotionRepository,
+    private val promotionRepository: PromotionRepository,
     application: Application
 ) : AndroidViewModel(application) {
     private val payAndRedeemUseCase =
         PayAndRedeemUseCase(promotionRepository, cryptoRepository, basketRepository)
-    private val promotionStatesFlow =
-        GetPromotionStatesUseCase(promotionRepository, cryptoRepository, basketRepository).invoke()
-    private val tokenUpdateChoicesFlow: Flow<List<PromotionUserUpdateChoice>> =
-        AnalyzeUserTokenUpdatesUseCase(promotionRepository, cryptoRepository, basketRepository)()
-    private val basket = basketRepository.basket
+
+    private val _checkoutStep = MutableStateFlow(CheckoutStep.REWARDS)
+    val checkoutStep: StateFlow<CheckoutStep>
+        get() = _checkoutStep
+
 
     // store basketId since a new one is retrieved after payment
     private val _paidBasketId: MutableStateFlow<UUID?> = MutableStateFlow(null)
     val paidBasketId: StateFlow<UUID?>
         get() = _paidBasketId
 
+    val promotionData: Flow<List<PromotionData>> =
+        PromotionInfoUseCase(promotionRepository, cryptoRepository, basketRepository).invoke()
+    val basket = basketRepository.basket
+
     val payAndRedeemState = MutableStateFlow(PayAndRedeemState.NOT_STARTED)
-    val checkoutState: Flow<CheckoutState> =
-        tokenUpdateChoicesFlow.combine(
-            promotionStatesFlow
-        ) { tokenUpdateChoices, promotionStates ->
-            promotionStates.map {
-                val choice =
-                    tokenUpdateChoices.find { choice -> choice.promotionId == it.promotionId }
-                return@map CheckoutPromotionState(
-                    it.promotionName,
-                    choice.toString()
-                )
-            }
-        }.combine(basket) { checkoutPromotionStates, basket ->
-            if (basket == null) {
-                CheckoutState(
-                    promotionStates = checkoutPromotionStates,
-                    basketState = BasketState(
-                        "",
-                        "",
-                        emptyList()
-                    )
-                )
-            } else {
-                CheckoutState(
-                    promotionStates = checkoutPromotionStates,
-                    basketState = BasketState(
-                        formatCents(basket.value),
-                        basket.basketId.toString(),
-                        basket.items.map { item ->
-                            BasketItem(
-                                item.title,
-                                item.count,
-                                formatCents(item.price),
-                                formatCents(item.price * item.count)
-                            )
-                        }
-                    )
-                )
-            }
-        }
+
+    fun gotoSummary() {
+        _checkoutStep.value = CheckoutStep.SUMMARY
+    }
 
     fun startPayAndRedeem() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
                 // Store basket ID since use case will retrieve a new one
+                _checkoutStep.value = CheckoutStep.PROCESSING
                 _paidBasketId.value = basket.first()?.basketId
                 payAndRedeemUseCase.invoke().collect { payAndRedeemState.emit(it) }
+                _checkoutStep.value = CheckoutStep.FINISHED
+            }
+        }
+    }
+
+    fun setUpdateChoice(promotionId: BigInteger, tokenUpdate: TokenUpdate) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                val userUpdateChoice = when (tokenUpdate) {
+                    is NoTokenUpdate -> None
+                    is EarnTokenUpdate -> Earn
+                    is ZkpTokenUpdate -> ZKP(tokenUpdate.zkpUpdateId)
+                    else -> {
+                        throw RuntimeException("Unknown token update $tokenUpdate")
+                    }
+                }
+                promotionRepository.putUserUpdateChoice(promotionId, userUpdateChoice)
             }
         }
     }
 }
 
-data class CheckoutState(
-    val promotionStates: List<CheckoutPromotionState>,
-    val basketState: BasketState
-)
-
-data class BasketState(
-    val basketValue: String,
-    val basketId: String,
-    val basketItems: List<BasketItem>
-)
-
-data class BasketItem(
-    val title: String,
-    val count: Int,
-    val costSingle: String,
-    val costTotal: String,
-)
-
-// Description to display what happens for every state
-data class CheckoutPromotionState(
-    val promotionName: String,
-    val choiceDescription: String
-)
+enum class CheckoutStep {
+    REWARDS,
+    SUMMARY,
+    PROCESSING,
+    FINISHED
+}

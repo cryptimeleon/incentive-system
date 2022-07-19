@@ -49,6 +49,15 @@ docker build \
   -t cryptimeleon/incentive-service-bootstrap:$VERSION \
   -f services/Dockerfile .
 
+# dsprotection service
+DEPENDENCY_PATH=services/dsprotectionservice/build/dependency
+mkdir -p $DEPENDENCY_PATH && (cd $DEPENDENCY_PATH; jar -xf ../libs/*.jar)
+docker build \
+  --build-arg DEPENDENCY=$DEPENDENCY_PATH \
+  --build-arg APPLICATION=org.cryptimeleon.incentivesystem.dsprotectionservice.DsprotectionApplication \
+  -t cryptimeleon/incentive-service-dsprotection:$VERSION \
+  -f services/Dockerfile .
+
 pushd web
 docker build -t cryptimeleon/incentive-system-web:$VERSION .
 popd

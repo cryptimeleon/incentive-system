@@ -83,7 +83,7 @@ private class PromotionInfoUseCaseWorker(
     private val earnUpdate: Optional<EarnTokenUpdate> = computeEarnUpdateOrEmptyIfDisabled()
 
     private val allTokenUpdates: List<TokenUpdate> =
-        zkpTokenUpdates + listOf(noUpdate) + if (earnUpdate.isPresent) listOf(earnUpdate.get()) else emptyList()
+        listOf(noUpdate) + (if (earnUpdate.isPresent) listOf(earnUpdate.get()) else emptyList()) + zkpTokenUpdates
 
     fun computePromotionData(): PromotionData {
         return when (promotion) {
@@ -99,7 +99,7 @@ private class PromotionInfoUseCaseWorker(
     private fun computeEarnUpdateOrEmptyIfDisabled(): Optional<EarnTokenUpdate> =
         if (!promotion.fastEarnSupported)
             Optional.empty()
-        else if (basketPoints.stream().anyMatch { p: BigInteger -> p.signum() == 1 })
+        else if (basketPoints.stream().noneMatch { p: BigInteger -> p.signum() == 1 })
             Optional.of(
                 EarnTokenUpdate(
                     feasibility = PromotionUpdateFeasibility.NOT_APPLICABLE,
@@ -140,6 +140,7 @@ private class PromotionInfoUseCaseWorker(
             val feasibility = computeZkpTokenUpdateFeasibility(it)
             when (it) {
                 is HazelTokenUpdate -> HazelTokenUpdateState(
+                    it.tokenUpdateId,
                     description,
                     rewardUpdateOrEmpty,
                     feasibility,
@@ -147,9 +148,11 @@ private class PromotionInfoUseCaseWorker(
                     goal = tokenPoints.get(0).toInt() + basketPoints.get(0).toInt()
                 )
                 is StandardStreakTokenUpdate -> StandardStreakTokenUpdateState(
+                    it.tokenUpdateId,
                     description, rewardUpdateOrEmpty, feasibility
                 )
                 is SpendStreakTokenUpdate -> SpendStreakTokenUpdateState(
+                    it.tokenUpdateId,
                     description,
                     rewardUpdateOrEmpty,
                     feasibility,
@@ -157,6 +160,7 @@ private class PromotionInfoUseCaseWorker(
                     requiredStreak = it.cost
                 )
                 is RangeProofStreakTokenUpdate -> RangeProofStreakTokenUpdateState(
+                    it.tokenUpdateId,
                     description,
                     rewardUpdateOrEmpty,
                     feasibility,
@@ -164,6 +168,7 @@ private class PromotionInfoUseCaseWorker(
                     requiredStreak = it.lowerLimit
                 )
                 is UpgradeVipZkpTokenUpdate -> UpgradeVipTokenUpdateState(
+                    it.tokenUpdateId,
                     description,
                     rewardUpdateOrEmpty,
                     feasibility,
@@ -172,6 +177,7 @@ private class PromotionInfoUseCaseWorker(
                     VipStatus.fromInt(it.toVipStatus)
                 )
                 is ProveVipTokenUpdate -> ProveVipTokenUpdateState(
+                    it.tokenUpdateId,
                     description,
                     rewardUpdateOrEmpty,
                     feasibility,
