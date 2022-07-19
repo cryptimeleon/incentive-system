@@ -2,23 +2,31 @@ package org.cryptimeleon.incentive.app.domain.usecase
 
 import org.cryptimeleon.incentive.app.domain.usecase.StreakDate.Companion.toLong
 import org.cryptimeleon.incentive.app.util.toBigIntVector
+import org.cryptimeleon.incentive.crypto.TokenDsidHashMaker
+import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters
 import org.cryptimeleon.incentive.crypto.model.Token
 import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion
 import org.cryptimeleon.incentive.promotion.streak.StreakPromotion
 import org.cryptimeleon.incentive.promotion.streak.StreakTokenUpdateTimestamp
 import org.cryptimeleon.incentive.promotion.vip.VipPromotion
+import org.cryptimeleon.math.serialization.converter.JSONConverter
 import org.cryptimeleon.math.structures.cartesian.Vector
+import org.json.JSONObject
 import timber.log.Timber
 import java.math.BigInteger
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.util.*
 
+private val jsonConverter = JSONConverter()
+
+private fun tokenToJsonString(token: Token) =
+    JSONObject(jsonConverter.serialize(token.representation)).toString(2);
+
 /*
  * Data classes for representing the apps state of promotions.
  * Represent which updates users have chosen, which are possible, etc.
  */
-
 interface PromotionData {
     val tokenUpdates: List<TokenUpdate>
     val promotionImageUrl: String
@@ -26,6 +34,10 @@ interface PromotionData {
     val promotionName: String
     val promotionDescription: String
     val points: Vector<BigInteger>
+    val tokenHash: String
+    val shortTokenHash: String
+        get() = TokenDsidHashMaker.shortHash(tokenHash)
+    val tokenJson: String
 }
 
 enum class PromotionUpdateFeasibility {
@@ -38,18 +50,23 @@ data class HazelPromotionData(
     override val promotionDescription: String,
     override val points: Vector<BigInteger>,
     override val tokenUpdates: List<TokenUpdate>,
+    override val tokenHash: String,
+    override val tokenJson: String
 ) : PromotionData {
 
     constructor(
         promotion: HazelPromotion,
         token: Token,
-        tokenUpdates: List<TokenUpdate>
+        tokenUpdates: List<TokenUpdate>, pp: IncentivePublicParameters
+
     ) : this(
         promotionName = promotion.promotionName,
         pid = promotion.promotionParameters.promotionId,
-        promotionDescription = promotion.promotionName,
+        promotionDescription = promotion.promotionDescription,
         points = token.toBigIntVector(),
-        tokenUpdates = tokenUpdates
+        tokenUpdates = tokenUpdates,
+        tokenHash = TokenDsidHashMaker.hashToken(token, pp),
+        tokenJson = tokenToJsonString(token)
     )
 
     override val promotionImageUrl: String
@@ -67,6 +84,8 @@ data class StreakPromotionData(
     override val pid: BigInteger,
     override val promotionDescription: String,
     override val tokenUpdates: List<TokenUpdate>,
+    override val tokenHash: String,
+    override val tokenJson: String,
     val streakInterval: Int,
     val streakCount: Int,
     val lastDate: StreakDate,
@@ -75,15 +94,18 @@ data class StreakPromotionData(
     constructor(
         promotion: StreakPromotion,
         token: Token,
-        tokenUpdates: List<TokenUpdate>
+        tokenUpdates: List<TokenUpdate>,
+        pp: IncentivePublicParameters
     ) : this(
         promotionName = promotion.promotionName,
         pid = promotion.promotionParameters.promotionId,
-        promotionDescription = promotion.promotionName,
+        promotionDescription = promotion.promotionDescription,
+        tokenHash = TokenDsidHashMaker.hashToken(token, pp),
         streakCount = token.toBigIntVector().get(0).toInt(),
         lastDate = StreakDate.fromLong(token.toBigIntVector().get(1).toLong()),
         tokenUpdates = tokenUpdates,
-        streakInterval = promotion.interval
+        streakInterval = promotion.interval,
+        tokenJson = tokenToJsonString(token)
     )
 
 
@@ -128,6 +150,8 @@ data class VipPromotionData(
     override val pid: BigInteger,
     override val promotionDescription: String,
     override val tokenUpdates: List<TokenUpdate>,
+    override val tokenHash: String,
+    override val tokenJson: String,
     val score: Int,
     val vipLevel: VipStatus
 ) : PromotionData {
@@ -135,14 +159,17 @@ data class VipPromotionData(
     constructor(
         promotion: VipPromotion,
         token: Token,
-        tokenUpdates: List<TokenUpdate>
+        tokenUpdates: List<TokenUpdate>,
+        pp: IncentivePublicParameters
     ) : this(
         promotionName = promotion.promotionName,
         pid = promotion.promotionParameters.promotionId,
-        promotionDescription = promotion.promotionName,
+        promotionDescription = promotion.promotionDescription,
         tokenUpdates = tokenUpdates,
+        tokenHash = TokenDsidHashMaker.hashToken(token, pp),
         score = token.toBigIntVector().get(0).toInt(),
-        vipLevel = VipStatus.fromInt(token.toBigIntVector().get(1).toInt())
+        vipLevel = VipStatus.fromInt(token.toBigIntVector().get(1).toInt()),
+        tokenJson = tokenToJsonString(token)
     )
 
     override val points: Vector<BigInteger> =
@@ -202,6 +229,7 @@ data class UpgradeVipTokenUpdateState(
     val currentPoints: Int,
     val requiredPoints: Int,
     val targetVipStatus: VipStatus,
+    val currentVipStatus: VipStatus,
 ) : ZkpTokenUpdate
 
 data class StandardStreakTokenUpdateState(

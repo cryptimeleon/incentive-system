@@ -35,8 +35,9 @@ import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
 import org.cryptimeleon.incentive.app.domain.usecase.StreakPromotionData
 import org.cryptimeleon.incentive.app.domain.usecase.VipPromotionData
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
+import org.cryptimeleon.incentive.app.ui.CryptimeleonPreviewContainer
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
-import org.cryptimeleon.math.structures.cartesian.Vector
+import org.cryptimeleon.incentive.app.ui.preview.PreviewData
 import java.math.BigInteger
 
 @Composable
@@ -189,20 +190,9 @@ fun DashboardPreview() {
     name = "Normal Promotion Item Preview",
 )
 fun PromotionItemPreview() {
-    CryptimeleonTheme {
-        Scaffold {
-            Box(Modifier.padding(it)) {
-                TokenCard(
-                    HazelPromotionData(
-                        "Promotion 1",
-                        BigInteger.valueOf(17L),
-                        "Promotion Description",
-                        Vector.of(BigInteger.valueOf(34L)),
-                        emptyList()
-                    ),
-                    {}
-                )
-            }
-        }
+    CryptimeleonPreviewContainer {
+        TokenCard(
+            PreviewData.hazelPromotionData, {}
+        )
     }
 }

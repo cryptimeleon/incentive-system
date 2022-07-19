@@ -1,5 +1,8 @@
 package org.cryptimeleon.incentive.app.theme
 
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 val md_theme_light_primary = Color(0xFF005AC1)
@@ -64,3 +67,45 @@ val md_theme_dark_surfaceTintColor = Color(0xFFADC6FF)
 
 
 val seed = Color(0xFF4285F4)
+
+private object VipColorsDark {
+    val Gold = Color(0xFFe9c348)
+    val OnGold = Color(0xFF3c2f00)
+    val Silver = Color(0xFFC0C0C0)
+    val OnSilver = Color(0xFF404040)
+    val Bronze = Color(0xFFfcbb4a)
+    val OnBronze = Color(0xFF432c00)
+}
+
+private object VipColorsLight {
+    val Gold = Color(0xFFffe088)
+    val OnGold = Color(0xFF241a00)
+    val Silver = Color(0xFFCDCDCD)
+    val OnSilver = Color(0xFF3F3F40)
+    val Bronze = Color(0xFFffdeae)
+    val OnBronze = Color(0xFF281800)
+}
+
+val ColorScheme.gold: Color
+    @Composable
+    get() = if (!isSystemInDarkTheme()) VipColorsLight.Gold else VipColorsDark.Gold
+
+val ColorScheme.onGold: Color
+    @Composable
+    get() = if (!isSystemInDarkTheme()) VipColorsLight.OnGold else VipColorsDark.OnGold
+
+val ColorScheme.silver: Color
+    @Composable
+    get() = if (!isSystemInDarkTheme()) VipColorsLight.Silver else VipColorsDark.Silver
+
+val ColorScheme.onSilver: Color
+    @Composable
+    get() = if (!isSystemInDarkTheme()) VipColorsLight.OnSilver else VipColorsDark.OnSilver
+
+val ColorScheme.bronze: Color
+    @Composable
+    get() = if (!isSystemInDarkTheme()) VipColorsLight.Bronze else VipColorsDark.Bronze
+
+val ColorScheme.onBronze: Color
+    @Composable
+    get() = if (!isSystemInDarkTheme()) VipColorsLight.OnBronze else VipColorsDark.OnBronze
