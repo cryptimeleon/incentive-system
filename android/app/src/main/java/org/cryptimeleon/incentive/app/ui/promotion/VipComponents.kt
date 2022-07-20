@@ -6,22 +6,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -32,8 +23,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import org.cryptimeleon.incentive.app.domain.usecase.VipPromotionData
 import org.cryptimeleon.incentive.app.domain.usecase.VipStatus
@@ -48,7 +37,6 @@ import kotlin.Boolean
 import kotlin.Int
 import kotlin.Pair
 import kotlin.String
-import kotlin.with
 
 @Composable
 fun VipProgressBox(promotionData: VipPromotionData) {
@@ -241,75 +229,37 @@ private fun VipLevelBox(
 }
 
 @Composable
-fun VipStateHeader(vipPromotionData: VipPromotionData, scrollProvider: () -> Int) {
-    val maxOffset = with(LocalDensity.current) { MAX_HEADER_OFFSET.toPx() }
-    val minOffset = with(LocalDensity.current) { MIN_HEADER_OFFSET.toPx() }
-
-    Column(Modifier.windowInsetsPadding(WindowInsets.statusBars)) {
-
-        Column(
-            verticalArrangement = Arrangement.Bottom,
+fun VipTitleBadge(vipPromotionData: VipPromotionData) {
+    Column(modifier = Modifier.padding(16.dp)) {
+        val (color, textcolor) = when (vipPromotionData.vipLevel) {
+            VipStatus.BRONZE -> Pair(
+                MaterialTheme.colorScheme.bronze,
+                MaterialTheme.colorScheme.onBronze
+            )
+            VipStatus.SILVER -> Pair(
+                MaterialTheme.colorScheme.silver,
+                MaterialTheme.colorScheme.onSilver
+            )
+            VipStatus.GOLD -> Pair(
+                MaterialTheme.colorScheme.gold,
+                MaterialTheme.colorScheme.onGold
+            )
+            else -> Pair(Color.Gray, Color.White)
+        }
+        Box(
+            contentAlignment = Alignment.Center,
             modifier = Modifier
-                .heightIn(min = MIN_HEADER_SIZE)
-                .offset {
-                    val scroll = scrollProvider()
-                    val offset = (maxOffset - scroll).coerceAtLeast(minOffset)
-                    IntOffset(x = 0, y = offset.toInt())
-                }
+                .height(CREDIT_CARD_HEIGHT)
+                .aspectRatio(1.5857f)
+                //.border(1.dp, MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(16.dp))
+                .clip(RoundedCornerShape(16.dp))
+                .background(color)
         ) {
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(color = MaterialTheme.colorScheme.background)
-            ) {
-                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-                    Spacer(modifier = Modifier.size(8.dp))
-                    Text(
-                        vipPromotionData.promotionName,
-                        style = MaterialTheme.typography.headlineLarge,
-                    )
-                    Text(
-                        "TokenId: ${vipPromotionData.shortTokenHash}",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
-                    Spacer(modifier = Modifier.size(16.dp))
-                }
-                Column(modifier = Modifier.padding(16.dp)) {
-                    val (color, textcolor) = when (vipPromotionData.vipLevel) {
-                        VipStatus.BRONZE -> Pair(
-                            MaterialTheme.colorScheme.bronze,
-                            MaterialTheme.colorScheme.onBronze
-                        )
-                        VipStatus.SILVER -> Pair(
-                            MaterialTheme.colorScheme.silver,
-                            MaterialTheme.colorScheme.onSilver
-                        )
-                        VipStatus.GOLD -> Pair(
-                            MaterialTheme.colorScheme.gold,
-                            MaterialTheme.colorScheme.onGold
-                        )
-                        else -> Pair(Color.Gray, Color.White)
-                    }
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .height(CREDIT_CARD_HEIGHT)
-                            .aspectRatio(1.5857f)
-                            //.border(1.dp, MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(16.dp))
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(color)
-                    ) {
-                        Text(
-                            vipPromotionData.vipLevel.toString(),
-                            Modifier.padding(8.dp),
-                            color = textcolor
-                        )
-                    }
-                }
-            }
-            Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f))
+            Text(
+                vipPromotionData.vipLevel.toString(),
+                Modifier.padding(8.dp),
+                color = textcolor
+            )
         }
     }
 }

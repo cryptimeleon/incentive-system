@@ -5,11 +5,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
@@ -20,6 +23,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Card
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
@@ -34,24 +38,33 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import org.cryptimeleon.incentive.app.domain.usecase.EarnTokenUpdate
+import org.cryptimeleon.incentive.app.domain.usecase.HazelPromotionData
 import org.cryptimeleon.incentive.app.domain.usecase.NoTokenUpdate
 import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
 import org.cryptimeleon.incentive.app.domain.usecase.ProveVipTokenUpdateState
+import org.cryptimeleon.incentive.app.domain.usecase.StreakDate
+import org.cryptimeleon.incentive.app.domain.usecase.StreakPromotionData
 import org.cryptimeleon.incentive.app.domain.usecase.UpgradeVipTokenUpdateState
 import org.cryptimeleon.incentive.app.domain.usecase.VipPromotionData
 import org.cryptimeleon.incentive.app.domain.usecase.VipStatus
 import org.cryptimeleon.incentive.app.ui.CryptimeleonPreviewContainer
 import org.cryptimeleon.incentive.app.ui.preview.PreviewData
 import java.math.BigInteger
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import java.util.*
 
 val IMAGE_HEIGHT = 280.dp
 val IMAGE_SCROLL = 140.dp
@@ -99,11 +112,7 @@ private fun PromotionDetailUi(promotionData: PromotionData, back: () -> Unit) {
         val scroll = rememberScrollState()
         TopImage(promotionData.promotionImageUrl)
         Body(promotionData, scroll)
-        when (promotionData) {
-            is VipPromotionData -> {
-                VipStateHeader(vipPromotionData = promotionData) { scroll.value }
-            }
-        }
+        Title(promotionData, scroll)
         FilledTonalIconButton(
             onClick = back,
             modifier = Modifier
@@ -111,6 +120,114 @@ private fun PromotionDetailUi(promotionData: PromotionData, back: () -> Unit) {
                 .padding(start = 16.dp)
         ) {
             Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+        }
+    }
+}
+
+@Composable
+private fun Title(
+    promotionData: PromotionData,
+    scroll: ScrollState
+) {
+    when (promotionData) {
+        is VipPromotionData -> VipPromotionTitle(
+            vipPromotionData = promotionData,
+            scroll = scroll
+        )
+        is StreakPromotionData -> StreakPromotionTitle(
+            streakPromotionData = promotionData,
+            scroll = scroll
+        )
+        is HazelPromotionData -> HazelPromotionTitle(
+            hazelPromotionData = promotionData,
+            scroll = scroll
+        )
+    }
+}
+
+@Composable
+fun VipPromotionTitle(vipPromotionData: VipPromotionData, scroll: ScrollState) =
+    PromotionTitle(promotionData = vipPromotionData, { scroll.value }) {
+        VipTitleBadge(vipPromotionData = vipPromotionData)
+    }
+
+@Composable
+fun StreakPromotionTitle(streakPromotionData: StreakPromotionData, scroll: ScrollState) =
+    PromotionTitle(promotionData = streakPromotionData, { scroll.value }) {
+        val formatter =
+            DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(Locale.GERMAN)
+        val deadlineString =
+            if (streakPromotionData.deadline is StreakDate.DATE) streakPromotionData.deadline.date.format(
+                formatter
+            ).toString() else "None"
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text("Streak: ${streakPromotionData.streakCount}")
+            if (streakPromotionData.deadline is StreakDate.DATE && streakPromotionData.deadline.date.isBefore(
+                    LocalDate.now()
+                )
+            ) {
+                Text(
+                    deadlineString,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.error
+                )
+            } else {
+                Text(deadlineString, style = MaterialTheme.typography.labelMedium)
+            }
+        }
+    }
+
+@Composable
+fun HazelPromotionTitle(hazelPromotionData: HazelPromotionData, scroll: ScrollState) =
+    PromotionTitle(promotionData = hazelPromotionData, { scroll.value }) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text("Points: ${hazelPromotionData.score}")
+        }
+    }
+
+@Composable
+fun PromotionTitle(
+    promotionData: PromotionData,
+    scrollProvider: () -> Int,
+    stateIndicator: @Composable () -> Unit = {}
+) {
+    val maxOffset = with(LocalDensity.current) { MAX_HEADER_OFFSET.toPx() }
+    val minOffset = with(LocalDensity.current) { MIN_HEADER_OFFSET.toPx() }
+
+    Column(Modifier.windowInsetsPadding(WindowInsets.statusBars)) {
+
+        Column(
+            verticalArrangement = Arrangement.Bottom,
+            modifier = Modifier
+                .heightIn(min = MIN_HEADER_SIZE)
+                .offset {
+                    val scroll = scrollProvider()
+                    val offset = (maxOffset - scroll).coerceAtLeast(minOffset)
+                    IntOffset(x = 0, y = offset.toInt())
+                }
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(color = MaterialTheme.colorScheme.background)
+            ) {
+                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                    Spacer(modifier = Modifier.size(8.dp))
+                    Text(
+                        promotionData.promotionName,
+                        style = MaterialTheme.typography.headlineLarge,
+                    )
+                    Text(
+                        "TokenId: ${promotionData.shortTokenHash}",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                    Spacer(modifier = Modifier.size(16.dp))
+                }
+                stateIndicator()
+            }
+            Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f))
         }
     }
 }

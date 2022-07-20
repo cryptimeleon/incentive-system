@@ -117,7 +117,8 @@ data class StreakPromotionData(
             BigInteger.valueOf(lastEpochDay)
         )
     val streakStillValid = (todayEpochDay - lastEpochDay <= 7)
-
+    val deadline: StreakDate =
+        StreakDate.fromLong(if (lastEpochDay == 0L) 0 else lastEpochDay.plus(streakInterval))
     override val promotionImageUrl: String
         get() = "https://cdn.pixabay.com/photo/2015/05/31/14/23/organizer-791939_960_720.jpg"
 }
