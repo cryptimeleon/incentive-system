@@ -23,7 +23,7 @@
                 */
                 transactions: [],
                 
-                // hard-coded message for heartbeat check of double-spending protection service
+                // message for heartbeat check of double-spending protection service (queried from backend where it is hard-coded)
                 helloMessage: ''
             }
         },

@@ -1,10 +1,9 @@
 import {createRouter, createWebHashHistory} from 'vue-router';
 
-import DsProtMain from '../components/dsprot/DsProtMain.vue'
-
 // Lazy-load routes
 const LandingPage = () => import("@/components/LandingPage.vue")
 const PrivacyPolicy = () => import("@/components/PrivacyPolicy.vue")
+const DsProtMain = () => import("@/components/dsprot/DsProtMain.vue")
 
 const routes = [
     {path: '/', component: LandingPage},
