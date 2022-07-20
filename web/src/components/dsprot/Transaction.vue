@@ -3,13 +3,13 @@
     Property 'transaction' is used to determine this. -->
     <div :class="[transaction.isValid ? 'valid' : 'invalid', 'transaction']">
         <h3>ID: {{transaction.tid}}</h3>
-        <p>Points spent: {{transaction.spendAmount}}</p>
+        <p>Points spent: {{transaction.userChoice}}</p>
     </div>
 </template>
 
 <script>
     export default {
-        name: 'Transaction',
+        name: 'TransactionUI',
         props: {
             transaction: Object
         }

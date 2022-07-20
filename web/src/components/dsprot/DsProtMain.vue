@@ -1,13 +1,14 @@
 <template>
+    <p>Double-spending Protection Service</p>
     {{helloMessage}}
     <TransactionList :transactions="transactions"/>
 </template>
 
 <script>
-    import TransactionList from "../components/TransactionList.vue"
+    import TransactionList from "./TransactionList.vue"
 
     export default {
-        name: 'Home',
+        name: 'DsProtMain',
         props: {
 
         },
@@ -22,7 +23,7 @@
                 */
                 transactions: [],
                 
-                // hard-coded message for heartbeat check of double-spending protection service
+                // message for heartbeat check of double-spending protection service (queried from backend where it is hard-coded)
                 helloMessage: ''
             }
         },
