@@ -153,7 +153,10 @@ data class VipPromotionData(
     override val tokenHash: String,
     override val tokenJson: String,
     val score: Int,
-    val vipLevel: VipStatus
+    val vipLevel: VipStatus,
+    val bronzeScore: Int,
+    val silverScore: Int,
+    val goldScore: Int
 ) : PromotionData {
 
     constructor(
@@ -169,8 +172,12 @@ data class VipPromotionData(
         tokenHash = TokenDsidHashMaker.hashToken(token, pp),
         score = token.toBigIntVector().get(0).toInt(),
         vipLevel = VipStatus.fromInt(token.toBigIntVector().get(1).toInt()),
-        tokenJson = tokenToJsonString(token)
+        tokenJson = tokenToJsonString(token),
+        bronzeScore = computeScoreForLevel(tokenUpdates, VipStatus.BRONZE),
+        silverScore = computeScoreForLevel(tokenUpdates, VipStatus.SILVER),
+        goldScore = computeScoreForLevel(tokenUpdates, VipStatus.GOLD)
     )
+
 
     override val points: Vector<BigInteger> =
         Vector.of(score.toBigInteger(), vipLevel.statusValue.toBigInteger())
@@ -272,4 +279,10 @@ enum class VipStatus(val statusValue: Int) {
                 NONE
             }
     }
+}
+
+private fun computeScoreForLevel(tokenUpdates: List<TokenUpdate>, level: VipStatus): Int {
+    val updateToLevel =
+        tokenUpdates.find { tokenUpdate -> tokenUpdate is UpgradeVipTokenUpdateState && tokenUpdate.targetVipStatus == level }!! as UpgradeVipTokenUpdateState
+    return updateToLevel.requiredPoints
 }

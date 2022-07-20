@@ -101,7 +101,10 @@ class PreviewData {
             score = 250,
             vipLevel = VipStatus.SILVER,
             tokenHash = "65b753d8aa7c6cd1461fc70041a45412",
-            tokenJson = "This is some json for a token"
+            tokenJson = "This is some json for a token",
+            bronzeScore = 100,
+            silverScore = 200,
+            goldScore = 300,
         )
 
         val streakPromotionData = StreakPromotionData(
