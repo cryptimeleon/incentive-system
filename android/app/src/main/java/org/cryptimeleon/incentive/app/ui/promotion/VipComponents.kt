@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -23,7 +25,12 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import org.cryptimeleon.incentive.app.domain.usecase.EarnTokenUpdate
+import org.cryptimeleon.incentive.app.domain.usecase.NoTokenUpdate
+import org.cryptimeleon.incentive.app.domain.usecase.ProveVipTokenUpdateState
+import org.cryptimeleon.incentive.app.domain.usecase.UpgradeVipTokenUpdateState
 import org.cryptimeleon.incentive.app.domain.usecase.VipPromotionData
 import org.cryptimeleon.incentive.app.domain.usecase.VipStatus
 import org.cryptimeleon.incentive.app.theme.bronze
@@ -32,11 +39,6 @@ import org.cryptimeleon.incentive.app.theme.onBronze
 import org.cryptimeleon.incentive.app.theme.onGold
 import org.cryptimeleon.incentive.app.theme.onSilver
 import org.cryptimeleon.incentive.app.theme.silver
-import java.lang.Float
-import kotlin.Boolean
-import kotlin.Int
-import kotlin.Pair
-import kotlin.String
 
 @Composable
 fun VipProgressBox(promotionData: VipPromotionData) {
@@ -102,7 +104,7 @@ fun VipProgressBox(promotionData: VipPromotionData) {
             drawCircle(color = colorEnabled, radiusEnabled, Offset(0f, 0f))
 
             fun drawLinesToLevel(level: Int, current: Int, last: Int, target: Int) {
-                val yTop = Float.max(0f, 2f * level - 3) * py
+                val yTop = maxOf(0f, 2f * level - 3) * py
                 val yBottom = (2f * level - 1) * py
                 val enabled = current >= target
                 val cutInHalf = !enabled && current > last
@@ -114,8 +116,8 @@ fun VipProgressBox(promotionData: VipPromotionData) {
                         strokeWidth = lineWidthEnabled,
                     )
                 } else if (cutInHalf) {
-                    val percentageOfLevel = 1f * (target - current) / (target - last)
-                    val yEnabled = yTop + percentageOfLevel * (yBottom - yTop)
+                    val percentageMissing = 1f * (target - current) / (target - last)
+                    val yEnabled = yTop + (1f - percentageMissing) * (yBottom - yTop)
                     drawLine(
                         color = colorEnabled,
                         start = Offset(0f, yTop),
@@ -260,6 +262,64 @@ fun VipTitleBadge(vipPromotionData: VipPromotionData) {
                 Modifier.padding(8.dp),
                 color = textcolor
             )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun VipBody(promotionData: VipPromotionData) {
+    Text(
+        "Points: ${promotionData.score}",
+        style = MaterialTheme.typography.bodyLarge,
+        fontWeight = FontWeight.SemiBold,
+        modifier = HzPadding
+    )
+    Text(
+        "Progress",
+        style = MaterialTheme.typography.headlineMedium,
+        modifier = HzPadding.padding(vertical = 8.dp),
+    )
+    VipProgressBox(promotionData)
+    Text(
+        "Rewards",
+        style = MaterialTheme.typography.headlineMedium,
+        modifier = HzPadding.padding(vertical = 8.dp),
+    )
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        promotionData.tokenUpdates.forEach { tokenUpdate ->
+            when (tokenUpdate) {
+                is NoTokenUpdate -> {}
+                is EarnTokenUpdate -> {}
+                is UpgradeVipTokenUpdateState -> {
+                    if (tokenUpdate.targetVipStatus.statusValue > tokenUpdate.currentVipStatus.statusValue) {
+                        Card(modifier = HzPadding.fillMaxWidth()) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text("Become ${tokenUpdate.targetVipStatus}")
+                                Text("Requires ${tokenUpdate.requiredPoints}. Your have ${tokenUpdate.currentPoints}")
+                                Text(tokenUpdate.description)
+                            }
+                        }
+                    }
+                }
+                is ProveVipTokenUpdateState -> {
+                    if (tokenUpdate.currentStatus == tokenUpdate.requiredStatus) {
+                        Card(modifier = HzPadding.fillMaxWidth()) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text("Your current Bonus")
+                                Text(tokenUpdate.description)
+                            }
+                        }
+                    } else if (tokenUpdate.currentStatus.statusValue < tokenUpdate.requiredStatus.statusValue) {
+                        Card(modifier = HzPadding.fillMaxWidth()) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text("Requires VipLevel ${tokenUpdate.requiredStatus}")
+                                Text(tokenUpdate.description)
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

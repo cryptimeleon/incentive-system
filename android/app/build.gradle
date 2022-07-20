@@ -59,6 +59,8 @@ android {
     }
 }
 
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all { kotlinOptions.freeCompilerArgs += ["-opt-in=kotlin.RequiresOptIn"] }
+
 dependencies {
     // Material design 13 dependenciew
     implementation("androidx.compose.material3:material3:1.0.0-alpha14")

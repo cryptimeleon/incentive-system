@@ -22,7 +22,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.Card
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
@@ -40,7 +39,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -48,14 +46,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import org.cryptimeleon.incentive.app.domain.usecase.EarnTokenUpdate
 import org.cryptimeleon.incentive.app.domain.usecase.HazelPromotionData
-import org.cryptimeleon.incentive.app.domain.usecase.NoTokenUpdate
 import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
-import org.cryptimeleon.incentive.app.domain.usecase.ProveVipTokenUpdateState
 import org.cryptimeleon.incentive.app.domain.usecase.StreakDate
 import org.cryptimeleon.incentive.app.domain.usecase.StreakPromotionData
-import org.cryptimeleon.incentive.app.domain.usecase.UpgradeVipTokenUpdateState
 import org.cryptimeleon.incentive.app.domain.usecase.VipPromotionData
 import org.cryptimeleon.incentive.app.domain.usecase.VipStatus
 import org.cryptimeleon.incentive.app.ui.CryptimeleonPreviewContainer
@@ -76,7 +70,7 @@ val MIN_HEADER_SIZE = 100.dp
 
 val CREDIT_CARD_HEIGHT = 60.dp
 
-private val HzPadding = Modifier.padding(horizontal = 16.dp)
+val HzPadding = Modifier.padding(horizontal = 16.dp)
 
 
 @Composable
@@ -232,7 +226,6 @@ fun PromotionTitle(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun Body(promotionData: PromotionData, scroll: ScrollState) {
     Column {
@@ -257,87 +250,30 @@ private fun Body(promotionData: PromotionData, scroll: ScrollState) {
                     .height(IMAGE_SCROLL)
             )
             Column(Modifier.background(MaterialTheme.colorScheme.background)) {
+                Spacer(modifier = Modifier.size(16.dp))
+                Text(
+                    promotionData.promotionDescription,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = HzPadding
+                )
                 when (promotionData) {
                     is VipPromotionData -> {
-                        Spacer(modifier = Modifier.size(16.dp))
-                        Text(
-                            promotionData.promotionDescription,
-                            style = MaterialTheme.typography.bodyLarge,
-                            modifier = HzPadding
-                        )
-                        Text(
-                            "Points: ${promotionData.score}",
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = HzPadding
-                        )
-                        Text(
-                            "Progress",
-                            style = MaterialTheme.typography.headlineMedium,
-                            modifier = HzPadding.padding(vertical = 8.dp),
-                        )
-                        VipProgressBox(promotionData)
-                        Text(
-                            "Rewards",
-                            style = MaterialTheme.typography.headlineMedium,
-                            modifier = HzPadding.padding(vertical = 8.dp),
-                        )
-                        Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                            promotionData.tokenUpdates.forEach { tokenUpdate ->
-                                when (tokenUpdate) {
-                                    is NoTokenUpdate -> {}
-                                    is EarnTokenUpdate -> {}
-                                    is UpgradeVipTokenUpdateState -> {
-                                        if (tokenUpdate.targetVipStatus.statusValue > tokenUpdate.currentVipStatus.statusValue) {
-                                            Card(modifier = HzPadding.fillMaxWidth()) {
-                                                Column(modifier = Modifier.padding(16.dp)) {
-                                                    Text("Become ${tokenUpdate.targetVipStatus}")
-                                                    Text("Requires ${tokenUpdate.requiredPoints}. Your have ${tokenUpdate.currentPoints}")
-                                                    Text(tokenUpdate.description)
-                                                }
-                                            }
-                                        }
-                                    }
-                                    is ProveVipTokenUpdateState -> {
-                                        if (tokenUpdate.currentStatus == tokenUpdate.requiredStatus) {
-                                            Card(modifier = HzPadding.fillMaxWidth()) {
-                                                Column(modifier = Modifier.padding(16.dp)) {
-                                                    Text("Your current Bonus")
-                                                    Text(tokenUpdate.description)
-                                                }
-                                            }
-                                        } else if (tokenUpdate.currentStatus.statusValue < tokenUpdate.requiredStatus.statusValue) {
-                                            Card(modifier = HzPadding.fillMaxWidth()) {
-                                                Column(modifier = Modifier.padding(16.dp)) {
-                                                    Text("Requires VipLevel ${tokenUpdate.requiredStatus}")
-                                                    Text(tokenUpdate.description)
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        Text(
-                            "Token",
-                            style = MaterialTheme.typography.headlineMedium,
-                            modifier = HzPadding
-                        )
-                        Spacer(modifier = Modifier.size(8.dp))
-                        Text(
-                            text = promotionData.tokenJson,
-                            style = MaterialTheme.typography.bodySmall,
-                            fontFamily = FontFamily.Monospace,
-                            modifier = HzPadding
-                        )
+                        VipBody(promotionData)
                     }
-                    else -> {
-                        Text(
-                            promotionData.promotionName,
-                            style = MaterialTheme.typography.headlineLarge
-                        )
-                    }
+                    else -> {}
                 }
+                Text(
+                    "Token",
+                    style = MaterialTheme.typography.headlineMedium,
+                    modifier = HzPadding
+                )
+                Spacer(modifier = Modifier.size(8.dp))
+                Text(
+                    text = promotionData.tokenJson,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontFamily = FontFamily.Monospace,
+                    modifier = HzPadding
+                )
             }
         }
     }
