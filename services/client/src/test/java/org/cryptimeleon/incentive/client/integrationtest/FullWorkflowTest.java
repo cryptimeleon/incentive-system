@@ -3,6 +3,7 @@ package org.cryptimeleon.incentive.client.integrationtest;
 import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentive.client.BasketClient;
+import org.cryptimeleon.incentive.client.DSProtectionClient;
 import org.cryptimeleon.incentive.client.IncentiveClient;
 import org.cryptimeleon.incentive.client.InfoClient;
 import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
@@ -49,6 +50,7 @@ public class FullWorkflowTest extends IncentiveSystemIntegrationTest {
         var infoClient = new InfoClient(infoUrl);
         var incentiveClient = new IncentiveClient(incentiveUrl);
         var basketClient = new BasketClient(basketUrl);
+        var dsProtectionClient = new DSProtectionClient(dsProtectionUrl);
 
         log.info("Retrieve data from info service");
         var serializedPublicParameters = infoClient.querySerializedPublicParameters().block(Duration.ofSeconds(1));
