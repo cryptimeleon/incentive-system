@@ -13,7 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -27,10 +27,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import org.cryptimeleon.incentive.app.domain.usecase.EarnTokenUpdate
-import org.cryptimeleon.incentive.app.domain.usecase.NoTokenUpdate
 import org.cryptimeleon.incentive.app.domain.usecase.ProveVipTokenUpdateState
-import org.cryptimeleon.incentive.app.domain.usecase.UpgradeVipTokenUpdateState
 import org.cryptimeleon.incentive.app.domain.usecase.VipPromotionData
 import org.cryptimeleon.incentive.app.domain.usecase.VipStatus
 import org.cryptimeleon.incentive.app.theme.bronze
@@ -39,6 +36,7 @@ import org.cryptimeleon.incentive.app.theme.onBronze
 import org.cryptimeleon.incentive.app.theme.onGold
 import org.cryptimeleon.incentive.app.theme.onSilver
 import org.cryptimeleon.incentive.app.theme.silver
+import java.util.*
 
 @Composable
 fun VipProgressBox(promotionData: VipPromotionData) {
@@ -60,25 +58,19 @@ fun VipProgressBox(promotionData: VipPromotionData) {
                 verticalArrangement = Arrangement.SpaceAround
             ) {
                 VipLevelBox(
-                    "Bronze",
-                    promotionData.bronzeScore,
-                    MaterialTheme.colorScheme.bronze,
-                    MaterialTheme.colorScheme.onBronze,
-                    promotionData.vipLevel >= VipStatus.BRONZE
+                    VipStatus.BRONZE,
+                    promotionData.vipLevel,
+                    promotionData.bronzeScore
                 )
                 VipLevelBox(
-                    "Silver",
-                    promotionData.silverScore,
-                    MaterialTheme.colorScheme.silver,
-                    MaterialTheme.colorScheme.onSilver,
-                    promotionData.vipLevel >= VipStatus.SILVER
+                    VipStatus.SILVER,
+                    promotionData.vipLevel,
+                    promotionData.silverScore
                 )
                 VipLevelBox(
-                    "Gold",
-                    promotionData.goldScore,
-                    MaterialTheme.colorScheme.gold,
-                    MaterialTheme.colorScheme.onGold,
-                    promotionData.vipLevel >= VipStatus.GOLD
+                    VipStatus.GOLD,
+                    promotionData.vipLevel,
+                    promotionData.goldScore
                 )
             }
 
@@ -201,6 +193,22 @@ fun VipProgressBox(promotionData: VipPromotionData) {
 
 @Composable
 private fun VipLevelBox(
+    boxVipLevel: VipStatus,
+    currentVipLevel: VipStatus,
+    requiredScore: Int,
+) {
+    val vipLevelStuff: VipLevelStuff = vipLevelStuffFrom(vipLevel = boxVipLevel)
+    VipLevelBox(
+        name = vipLevelStuff.levelName,
+        requiredScore = requiredScore,
+        color = vipLevelStuff.containerColor,
+        textColor = vipLevelStuff.contentColor,
+        active = currentVipLevel.statusValue >= boxVipLevel.statusValue
+    )
+}
+
+@Composable
+private fun VipLevelBox(
     name: String,
     requiredScore: Int,
     color: Color,
@@ -275,51 +283,59 @@ fun VipBody(promotionData: VipPromotionData) {
         fontWeight = FontWeight.SemiBold,
         modifier = HzPadding
     )
-    Text(
-        "Progress",
-        style = MaterialTheme.typography.headlineMedium,
-        modifier = HzPadding.padding(vertical = 8.dp),
-    )
+    PromotionInfoSectionHeader(text = "Progress")
     VipProgressBox(promotionData)
-    Text(
-        "Rewards",
-        style = MaterialTheme.typography.headlineMedium,
-        modifier = HzPadding.padding(vertical = 8.dp),
-    )
+    PromotionInfoSectionHeader(text = "Rewards")
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
         promotionData.tokenUpdates.forEach { tokenUpdate ->
             when (tokenUpdate) {
-                is NoTokenUpdate -> {}
-                is EarnTokenUpdate -> {}
-                is UpgradeVipTokenUpdateState -> {
-                    if (tokenUpdate.targetVipStatus.statusValue > tokenUpdate.currentVipStatus.statusValue) {
-                        Card(modifier = HzPadding.fillMaxWidth()) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Text("Become ${tokenUpdate.targetVipStatus}")
-                                Text("Requires ${tokenUpdate.requiredPoints}. Your have ${tokenUpdate.currentPoints}")
-                                Text(tokenUpdate.description)
-                            }
-                        }
-                    }
-                }
                 is ProveVipTokenUpdateState -> {
-                    if (tokenUpdate.currentStatus == tokenUpdate.requiredStatus) {
-                        Card(modifier = HzPadding.fillMaxWidth()) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Text("Your current Bonus")
-                                Text(tokenUpdate.description)
-                            }
-                        }
-                    } else if (tokenUpdate.currentStatus.statusValue < tokenUpdate.requiredStatus.statusValue) {
-                        Card(modifier = HzPadding.fillMaxWidth()) {
-                            Column(modifier = Modifier.padding(16.dp)) {
-                                Text("Requires VipLevel ${tokenUpdate.requiredStatus}")
-                                Text(tokenUpdate.description)
-                            }
-                        }
+                    // Only show if current level or higher
+                    if (tokenUpdate.currentStatus.statusValue <= tokenUpdate.requiredStatus.statusValue) {
+                        val vipLevelStuff: VipLevelStuff =
+                            vipLevelStuffFrom(vipLevel = tokenUpdate.requiredStatus)
+                        ZkpTokenUpdateCard(
+                            tokenUpdate = tokenUpdate,
+                            progressIfApplies = Optional.empty(),
+                            colors = CardDefaults.cardColors(
+                                contentColor = vipLevelStuff.contentColor,
+                                containerColor = vipLevelStuff.containerColor
+                            )
+                        )
                     }
                 }
             }
         }
     }
 }
+
+data class VipLevelStuff(
+    val vipLevel: VipStatus,
+    val levelName: String,
+    val contentColor: Color,
+    val containerColor: Color
+)
+
+@Composable
+fun vipLevelStuffFrom(vipLevel: VipStatus): VipLevelStuff =
+    when (vipLevel) {
+        VipStatus.NONE -> VipLevelStuff(vipLevel, "None", Color.White, Color.Black)
+        VipStatus.BRONZE -> VipLevelStuff(
+            vipLevel,
+            "Bronze",
+            MaterialTheme.colorScheme.onBronze,
+            MaterialTheme.colorScheme.bronze
+        )
+        VipStatus.SILVER -> VipLevelStuff(
+            vipLevel,
+            "Silver",
+            MaterialTheme.colorScheme.onSilver,
+            MaterialTheme.colorScheme.silver
+        )
+        VipStatus.GOLD -> VipLevelStuff(
+            vipLevel,
+            "Gold",
+            MaterialTheme.colorScheme.onGold,
+            MaterialTheme.colorScheme.gold
+        )
+    }

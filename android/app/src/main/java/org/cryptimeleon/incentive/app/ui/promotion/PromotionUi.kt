@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -48,17 +49,12 @@ import coil.request.ImageRequest
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import org.cryptimeleon.incentive.app.domain.usecase.HazelPromotionData
 import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
-import org.cryptimeleon.incentive.app.domain.usecase.StreakDate
 import org.cryptimeleon.incentive.app.domain.usecase.StreakPromotionData
 import org.cryptimeleon.incentive.app.domain.usecase.VipPromotionData
 import org.cryptimeleon.incentive.app.domain.usecase.VipStatus
 import org.cryptimeleon.incentive.app.ui.CryptimeleonPreviewContainer
 import org.cryptimeleon.incentive.app.ui.preview.PreviewData
 import java.math.BigInteger
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
-import java.util.*
 
 val IMAGE_HEIGHT = 280.dp
 val IMAGE_SCROLL = 140.dp
@@ -123,66 +119,26 @@ private fun Title(
     promotionData: PromotionData,
     scroll: ScrollState
 ) {
-    when (promotionData) {
-        is VipPromotionData -> VipPromotionTitle(
-            vipPromotionData = promotionData,
-            scroll = scroll
-        )
-        is StreakPromotionData -> StreakPromotionTitle(
-            streakPromotionData = promotionData,
-            scroll = scroll
-        )
-        is HazelPromotionData -> HazelPromotionTitle(
-            hazelPromotionData = promotionData,
-            scroll = scroll
-        )
+    PromotionTitle(
+        promotionData = promotionData,
+        scroll = scroll
+    ) {
+        when (promotionData) {
+            is VipPromotionData ->
+                VipTitleBadge(vipPromotionData = promotionData)
+            is StreakPromotionData ->
+                StreakPromotionTitle(streakPromotionData = promotionData)
+            is HazelPromotionData ->
+                HazelPromotionTitle(hazelPromotionData = promotionData)
+
+        }
     }
 }
 
 @Composable
-fun VipPromotionTitle(vipPromotionData: VipPromotionData, scroll: ScrollState) =
-    PromotionTitle(promotionData = vipPromotionData, { scroll.value }) {
-        VipTitleBadge(vipPromotionData = vipPromotionData)
-    }
-
-@Composable
-fun StreakPromotionTitle(streakPromotionData: StreakPromotionData, scroll: ScrollState) =
-    PromotionTitle(promotionData = streakPromotionData, { scroll.value }) {
-        val formatter =
-            DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(Locale.GERMAN)
-        val deadlineString =
-            if (streakPromotionData.deadline is StreakDate.DATE) streakPromotionData.deadline.date.format(
-                formatter
-            ).toString() else "None"
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text("Streak: ${streakPromotionData.streakCount}")
-            if (streakPromotionData.deadline is StreakDate.DATE && streakPromotionData.deadline.date.isBefore(
-                    LocalDate.now()
-                )
-            ) {
-                Text(
-                    deadlineString,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.error
-                )
-            } else {
-                Text(deadlineString, style = MaterialTheme.typography.labelMedium)
-            }
-        }
-    }
-
-@Composable
-fun HazelPromotionTitle(hazelPromotionData: HazelPromotionData, scroll: ScrollState) =
-    PromotionTitle(promotionData = hazelPromotionData, { scroll.value }) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text("Points: ${hazelPromotionData.score}")
-        }
-    }
-
-@Composable
 fun PromotionTitle(
     promotionData: PromotionData,
-    scrollProvider: () -> Int,
+    scroll: ScrollState,
     stateIndicator: @Composable () -> Unit = {}
 ) {
     val maxOffset = with(LocalDensity.current) { MAX_HEADER_OFFSET.toPx() }
@@ -195,8 +151,8 @@ fun PromotionTitle(
             modifier = Modifier
                 .heightIn(min = MIN_HEADER_SIZE)
                 .offset {
-                    val scroll = scrollProvider()
-                    val offset = (maxOffset - scroll).coerceAtLeast(minOffset)
+                    val scrollValue = scroll.value
+                    val offset = (maxOffset - scrollValue).coerceAtLeast(minOffset)
                     IntOffset(x = 0, y = offset.toInt())
                 }
         ) {
@@ -249,32 +205,44 @@ private fun Body(promotionData: PromotionData, scroll: ScrollState) {
                     .fillMaxWidth()
                     .height(IMAGE_SCROLL)
             )
-            Column(Modifier.background(MaterialTheme.colorScheme.background)) {
-                Spacer(modifier = Modifier.size(16.dp))
-                Text(
-                    promotionData.promotionDescription,
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = HzPadding
-                )
-                when (promotionData) {
-                    is VipPromotionData -> {
-                        VipBody(promotionData)
-                    }
-                    else -> {}
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(vertical = 16.dp)
+                    .windowInsetsPadding(WindowInsets.navigationBars)
+            ) {
+                PromotionRewardSection(promotionData)
+                Column() {
+                    PromotionInfoSectionHeader(text = "Token")
+                    Text(
+                        text = promotionData.tokenJson,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontFamily = FontFamily.Monospace,
+                        modifier = HzPadding
+                    )
                 }
-                Text(
-                    "Token",
-                    style = MaterialTheme.typography.headlineMedium,
-                    modifier = HzPadding
-                )
-                Spacer(modifier = Modifier.size(8.dp))
-                Text(
-                    text = promotionData.tokenJson,
-                    style = MaterialTheme.typography.bodySmall,
-                    fontFamily = FontFamily.Monospace,
-                    modifier = HzPadding
-                )
             }
+        }
+    }
+}
+
+@Composable
+private fun PromotionRewardSection(promotionData: PromotionData) {
+    Text(
+        promotionData.promotionDescription,
+        style = MaterialTheme.typography.bodyLarge,
+        modifier = HzPadding
+    )
+    when (promotionData) {
+        is VipPromotionData -> {
+            VipBody(promotionData)
+        }
+        is HazelPromotionData -> {
+            HazelBody(promotionData)
+        }
+        is StreakPromotionData -> {
+            StreakBody(promotionData)
         }
     }
 }

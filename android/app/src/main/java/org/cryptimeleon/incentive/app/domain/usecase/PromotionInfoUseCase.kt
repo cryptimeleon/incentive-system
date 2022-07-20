@@ -40,6 +40,7 @@ class PromotionInfoUseCase(
     private val cryptoRepository: ICryptoRepository,
     private val basketRepository: IBasketRepository
 ) {
+    @Suppress("UNCHECKED_CAST")
     operator fun invoke(): Flow<List<PromotionData>> =
         combine(
             promotionRepository.promotions,
@@ -144,7 +145,7 @@ private class PromotionInfoUseCaseWorker(
             val description = it.rewardDescription
             val rewardUpdateOrEmpty = when (val sideEffect = it.sideEffect!!) {
                 is NoSideEffect -> Optional.empty<String>()
-                is RewardSideEffect -> Optional.ofNullable(rewardItems.find { r -> r.id == sideEffect.rewardId }?.title)
+                is RewardSideEffect -> Optional.of(rewardItems.find { r -> r.id == sideEffect.rewardId }?.title!!)
                 else -> {
                     throw RuntimeException("Side Effect $sideEffect not implemented yet!")
                 }
@@ -157,7 +158,7 @@ private class PromotionInfoUseCaseWorker(
                     sideEffect = rewardUpdateOrEmpty,
                     feasibility = feasibility,
                     current = tokenPoints.get(0).toInt(),
-                    goal = tokenPoints.get(0).toInt() + basketPoints.get(0).toInt()
+                    goal = it.rewardCost
                 )
                 is StandardStreakTokenUpdate -> StandardStreakTokenUpdateState(
                     zkpUpdateId = it.tokenUpdateId,
