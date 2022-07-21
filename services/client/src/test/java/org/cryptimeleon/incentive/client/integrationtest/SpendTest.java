@@ -87,16 +87,24 @@ public class SpendTest extends IncentiveSystemIntegrationTest {
         assert basketId != null;
         log.info("BasketId" + basketId.toString());
 
-        runSpendWorkflow(token, basketId);
+        runSpendDeductWorkflow(token, basketId);
         var basketAfterSpend = basketClient.getBasket(basketId).block();
 
         assert basketAfterSpend != null;
         assertThat(basketAfterSpend.getRewardItems()).containsExactly(REWARD_ID);
     }
 
-    private void runSpendWorkflow(Token token, UUID basketId) {
+    private void runSpendDeductWorkflow(Token token, UUID basketId) {
+        // generate transaction ID from basket ID
         var tid = cryptoAssets.getPublicParameters().getBg().getZn().createZnElement(new BigInteger(basketId.toString().replace("-", ""), 16));
+
+        // put sample basket item into basket
         basketClient.putItemToBasket(basketId, basketItemDto.getId(), 1).block();
+
+        /*
+         * Create spend request and send it.
+         * For syntactic reasons, we need to send it as a bulk (consisting of only one request).
+         */
         var spendRequest = incentiveSystem.generateSpendRequest(
                 testPromotion.getPromotionParameters(),
                 token,
@@ -113,7 +121,11 @@ public class SpendTest extends IncentiveSystemIntegrationTest {
                 jsonConverter.serialize(new RepresentableRepresentation(new EmptyTokenUpdateMetadata())));
         var bulkRequestDto = new BulkRequestDto(List.of(), List.of(spendRequestDto));
         incentiveClient.sendBulkUpdates(basketId, bulkRequestDto).block();
+
+        // pay basket
         basketClient.payBasket(basketId, paySecret).block();
+
+        // retrieve spend response and handle it
         var bulkResponseDto = incentiveClient.retrieveBulkResults(basketId).block();
         assert bulkResponseDto != null;
         var spendResponseDto = bulkResponseDto.getZkpTokenUpdateResultDtoList().get(0);
