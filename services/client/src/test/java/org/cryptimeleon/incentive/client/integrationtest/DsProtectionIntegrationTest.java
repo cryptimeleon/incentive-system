@@ -22,4 +22,17 @@ public class DsProtectionIntegrationTest extends SpendTest{
         super.prepareBasketAndPromotions();
         this.dsProtectionClient = new DSProtectionClient(dsProtectionUrl);
     }
+
+    void spendDeductWorkflowTestWithDbSync() {
+        // spend deduct workflow, grab result
+
+        // sync transaction into database
+
+        // assert that you received success message
+
+        // query transaction from database TODO: this requires additional endpoint (protected by shared secret) at the double-spending protection service
+
+        // check whether original transaction was correctly recorded in database
+
+    }
 }

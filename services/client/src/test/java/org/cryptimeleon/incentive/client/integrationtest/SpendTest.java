@@ -10,6 +10,8 @@ import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.SpendRequestDto;
 import org.cryptimeleon.incentive.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
+import org.cryptimeleon.incentive.crypto.model.DeductOutput;
+import org.cryptimeleon.incentive.crypto.model.SpendDeductRequestAndOutput;
 import org.cryptimeleon.incentive.crypto.model.SpendResponse;
 import org.cryptimeleon.incentive.crypto.model.Token;
 import org.cryptimeleon.incentive.promotion.EmptyTokenUpdateMetadata;
@@ -94,7 +96,12 @@ public class SpendTest extends IncentiveSystemIntegrationTest {
         assertThat(basketAfterSpend.getRewardItems()).containsExactly(REWARD_ID);
     }
 
-    private void runSpendDeductWorkflow(Token token, UUID basketId) {
+    /**
+     * Performs a full integrated run of the spend-deduct protocol
+     * and returns the spend request together with the protocol output
+     * for further use in the double-spending protection test.
+     */
+    private SpendDeductRequestAndOutput runSpendDeductWorkflow(Token token, UUID basketId) {
         // generate transaction ID from basket ID
         var tid = cryptoAssets.getPublicParameters().getBg().getZn().createZnElement(new BigInteger(basketId.toString().replace("-", ""), 16));
 
@@ -118,7 +125,8 @@ public class SpendTest extends IncentiveSystemIntegrationTest {
                 testPromotion.getPromotionParameters().getPromotionId(),
                 testTokenUpdate.getTokenUpdateId(),
                 jsonConverter.serialize(spendRequest.getRepresentation()),
-                jsonConverter.serialize(new RepresentableRepresentation(new EmptyTokenUpdateMetadata())));
+                jsonConverter.serialize(new RepresentableRepresentation(new EmptyTokenUpdateMetadata()))
+        );
         var bulkRequestDto = new BulkRequestDto(List.of(), List.of(spendRequestDto));
         incentiveClient.sendBulkUpdates(basketId, bulkRequestDto).block();
 
@@ -137,6 +145,11 @@ public class SpendTest extends IncentiveSystemIntegrationTest {
                 token,
                 Vector.of(BigInteger.valueOf(1)),
                 cryptoAssets.getProviderKeyPair().getPk(),
-                cryptoAssets.getUserKeyPair());
+                cryptoAssets.getUserKeyPair()
+        );
+
+        // return request and protocol output for later use in double-spending protection integration test
+        // return new SpendDeductRequestAndOutput(spendRequest,)
+        return null;
     }
 }
