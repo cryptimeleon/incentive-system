@@ -4,6 +4,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
+import org.cryptimeleon.incentive.app.data.BasketRepository
 import org.cryptimeleon.incentive.app.domain.ICryptoRepository
 import org.cryptimeleon.incentive.app.domain.IPromotionRepository
 import org.cryptimeleon.incentive.app.domain.model.CryptoMaterial
@@ -11,7 +12,8 @@ import org.cryptimeleon.incentive.promotion.Promotion
 
 class RefreshCryptoDataUseCase(
     val cryptoRepository: ICryptoRepository,
-    val promotionRepository: IPromotionRepository
+    val promotionRepository: IPromotionRepository,
+    val basketRepository: BasketRepository
 ) {
     private lateinit var promotions: List<Promotion>
     private var currentCryptoMaterial: CryptoMaterial? = null
@@ -33,7 +35,13 @@ class RefreshCryptoDataUseCase(
                 cryptoRepository.refreshCryptoMaterial()
                 updatedCryptoMaterial = cryptoRepository.cryptoMaterial.first()
             }
-            awaitAll(loadCryptoMaterial, loadPromotions)
+            val loadShoppingItems = async {
+                basketRepository.refreshShoppingItems()
+            }
+            val loadRewardItems = async {
+                basketRepository.refreshRewardItems()
+            }
+            awaitAll(loadCryptoMaterial, loadPromotions, loadShoppingItems, loadRewardItems)
         }
     }
 

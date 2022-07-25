@@ -6,7 +6,6 @@ import org.cryptimeleon.incentive.app.domain.usecase.EarnTokenUpdate
 import org.cryptimeleon.incentive.app.domain.usecase.HazelPromotionData
 import org.cryptimeleon.incentive.app.domain.usecase.HazelTokenUpdateState
 import org.cryptimeleon.incentive.app.domain.usecase.NoTokenUpdate
-import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
 import org.cryptimeleon.incentive.app.domain.usecase.PromotionUpdateFeasibility
 import org.cryptimeleon.incentive.app.domain.usecase.ProveVipTokenUpdateState
 import org.cryptimeleon.incentive.app.domain.usecase.RangeProofStreakTokenUpdateState
@@ -45,93 +44,109 @@ class PreviewData {
             value = 0
         )
 
-        val promotionDataList = listOf<PromotionData>(
-            HazelPromotionData(
-                promotionName = "Nutella Promotion",
-                pid = BigInteger.valueOf(5345L),
-                promotionDescription = "Earn points for buying Nutella!",
-                points = Vector.of(BigInteger.valueOf(6L)),
-                tokenUpdates = listOf(
-                    NoTokenUpdate(),
-                    EarnTokenUpdate(PromotionUpdateFeasibility.CANDIDATE, "Earn 2 Points"),
-                    HazelTokenUpdateState(
-                        zkpUpdateId = UUID.randomUUID(),
-                        description = "Get a free glass of Nutella",
-                        sideEffect = Optional.of("Free Nutella"),
-                        feasibility = PromotionUpdateFeasibility.SELECTED,
-                        current = 6,
-                        goal = 4
-                    )
+        val hazelPromotionData = HazelPromotionData(
+            promotionName = "Nutella Promotion",
+            pid = BigInteger.valueOf(5345L),
+            promotionDescription = "Earn points for buying Nutella!",
+            points = Vector.of(BigInteger.valueOf(6L)),
+            tokenUpdates = listOf(
+                NoTokenUpdate(),
+                EarnTokenUpdate(PromotionUpdateFeasibility.CANDIDATE, "Earn 2 Points"),
+                HazelTokenUpdateState(
+                    zkpUpdateId = UUID.randomUUID(),
+                    description = "Get a free glass of Nutella",
+                    sideEffect = Optional.of("Free Nutella"),
+                    feasibility = PromotionUpdateFeasibility.SELECTED,
+                    current = 6,
+                    goal = 4
                 )
             ),
-            VipPromotionData(
-                promotionName = "VIP Promotion",
-                pid = BigInteger.valueOf(3453L),
-                promotionDescription = "Become BRONZE, SIlVER or GOLD by collecting points!",
-                tokenUpdates = listOf(
-                    NoTokenUpdate(feasibility = PromotionUpdateFeasibility.SELECTED),
-                    ProveVipTokenUpdateState(
-                        zkpUpdateId = UUID.randomUUID(),
-                        description = "Prove you are SILVER",
-                        sideEffect = Optional.of("5% Discount"),
-                        feasibility = PromotionUpdateFeasibility.CANDIDATE,
-                        currentStatus = VipStatus.SILVER,
-                        requiredStatus = VipStatus.SILVER
-                    ),
-                    ProveVipTokenUpdateState(
-                        zkpUpdateId = UUID.randomUUID(),
-                        description = "Prove you are GOLD",
-                        sideEffect = Optional.of("10% Discount"),
-                        feasibility = PromotionUpdateFeasibility.NOT_APPLICABLE,
-                        currentStatus = VipStatus.SILVER,
-                        requiredStatus = VipStatus.GOLD
-                    ),
-                    UpgradeVipTokenUpdateState(
-                        zkpUpdateId = UUID.randomUUID(),
-                        description = "Become GOLD",
-                        sideEffect = Optional.of("10% Discount"),
-                        feasibility = PromotionUpdateFeasibility.NOT_APPLICABLE,
-                        currentPoints = 250,
-                        requiredPoints = 300,
-                        targetVipStatus = VipStatus.GOLD
-                    )
+            tokenHash = "8458b17882973b01de083501c29579a6",
+            tokenJson = "This is some json for a token"
+        )
+
+        val vipPromotionData = VipPromotionData(
+            promotionName = "VIP Promotion",
+            pid = BigInteger.valueOf(3453L),
+            promotionDescription = "Become BRONZE, SIlVER or GOLD by collecting points!",
+            tokenUpdates = listOf(
+                NoTokenUpdate(feasibility = PromotionUpdateFeasibility.SELECTED),
+                ProveVipTokenUpdateState(
+                    zkpUpdateId = UUID.randomUUID(),
+                    description = "Prove you are SILVER",
+                    sideEffect = Optional.of("5% Discount"),
+                    feasibility = PromotionUpdateFeasibility.CANDIDATE,
+                    currentStatus = VipStatus.SILVER,
+                    requiredStatus = VipStatus.SILVER
                 ),
-                score = 250,
-                vipLevel = VipStatus.SILVER
+                ProveVipTokenUpdateState(
+                    zkpUpdateId = UUID.randomUUID(),
+                    description = "Prove you are GOLD",
+                    sideEffect = Optional.of("10% Discount"),
+                    feasibility = PromotionUpdateFeasibility.NOT_APPLICABLE,
+                    currentStatus = VipStatus.SILVER,
+                    requiredStatus = VipStatus.GOLD
+                ),
+                UpgradeVipTokenUpdateState(
+                    zkpUpdateId = UUID.randomUUID(),
+                    description = "Become GOLD",
+                    sideEffect = Optional.of("10% Discount"),
+                    feasibility = PromotionUpdateFeasibility.NOT_APPLICABLE,
+                    currentPoints = 250,
+                    requiredPoints = 300,
+                    targetVipStatus = VipStatus.GOLD,
+                    currentVipStatus = VipStatus.SILVER
+                )
             ),
-            StreakPromotionData(
-                promotionName = "Streak Promotion",
-                pid = BigInteger.valueOf(3467L),
-                promotionDescription = "Increase your streak by shopping within a week",
-                tokenUpdates = listOf(
-                    NoTokenUpdate(),
-                    StandardStreakTokenUpdateState(
-                        zkpUpdateId = UUID.randomUUID(),
-                        description = "Update your streak",
-                        sideEffect = Optional.empty(),
-                        feasibility = PromotionUpdateFeasibility.SELECTED
-                    ),
-                    RangeProofStreakTokenUpdateState(
-                        zkpUpdateId = UUID.randomUUID(),
-                        description = "Prove that streak is at least 5",
-                        sideEffect = Optional.of("Free Coffee"),
-                        feasibility = PromotionUpdateFeasibility.NOT_APPLICABLE,
-                        requiredStreak = 10,
-                        currentStreak = 3
-                    ),
-                    SpendStreakTokenUpdateState(
-                        zkpUpdateId = UUID.randomUUID(),
-                        description = "Spend streak to get a reward",
-                        sideEffect = Optional.of("Teddy Bear"),
-                        feasibility = PromotionUpdateFeasibility.CANDIDATE,
-                        requiredStreak = 3,
-                        currentStreak = 3
-                    )
+            score = 250,
+            vipLevel = VipStatus.SILVER,
+            tokenHash = "65b753d8aa7c6cd1461fc70041a45412",
+            tokenJson = "This is some json for a token",
+            bronzeScore = 100,
+            silverScore = 200,
+            goldScore = 300,
+        )
+
+        val streakPromotionData = StreakPromotionData(
+            promotionName = "Streak Promotion",
+            pid = BigInteger.valueOf(3467L),
+            promotionDescription = "Increase your streak by shopping within a week",
+            tokenUpdates = listOf(
+                NoTokenUpdate(),
+                StandardStreakTokenUpdateState(
+                    zkpUpdateId = UUID.randomUUID(),
+                    description = "Update your streak",
+                    sideEffect = Optional.empty(),
+                    feasibility = PromotionUpdateFeasibility.SELECTED
                 ),
-                streakInterval = 7,
-                streakCount = 3,
-                lastDate = StreakDate.DATE(LocalDate.now())
-            )
+                RangeProofStreakTokenUpdateState(
+                    zkpUpdateId = UUID.randomUUID(),
+                    description = "Prove that streak is at least 5",
+                    sideEffect = Optional.of("Free Coffee"),
+                    feasibility = PromotionUpdateFeasibility.NOT_APPLICABLE,
+                    requiredStreak = 10,
+                    currentStreak = 3
+                ),
+                SpendStreakTokenUpdateState(
+                    zkpUpdateId = UUID.randomUUID(),
+                    description = "Spend streak to get a reward",
+                    sideEffect = Optional.of("Teddy Bear"),
+                    feasibility = PromotionUpdateFeasibility.CANDIDATE,
+                    requiredStreak = 3,
+                    currentStreak = 3
+                )
+            ),
+            streakInterval = 7,
+            streakCount = 3,
+            lastDate = StreakDate.DATE(LocalDate.now()),
+            tokenHash = "6f032a98978f20268bc3b4ffe54b8d0e",
+            tokenJson = "This is some json for a token"
+        )
+
+        val promotionDataList = listOf(
+            hazelPromotionData,
+            vipPromotionData,
+            streakPromotionData,
         )
     }
 }

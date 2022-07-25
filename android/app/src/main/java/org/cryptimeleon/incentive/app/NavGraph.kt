@@ -11,15 +11,19 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.navArgument
 import org.cryptimeleon.incentive.app.ui.basket.BasketUi
 import org.cryptimeleon.incentive.app.ui.benchmark.BenchmarkUi
 import org.cryptimeleon.incentive.app.ui.checkout.CheckoutUi
 import org.cryptimeleon.incentive.app.ui.dashboard.Dashboard
+import org.cryptimeleon.incentive.app.ui.promotion.PromotionDetailUi
 import org.cryptimeleon.incentive.app.ui.scan.ScanScreen
 import org.cryptimeleon.incentive.app.ui.settings.Settings
 import org.cryptimeleon.incentive.app.ui.setup.SetupUi
+import java.math.BigInteger
 
 object MainDestination {
     const val LOADING_ROUTE = "loading"
@@ -30,6 +34,7 @@ object MainDestination {
     const val CHECKOUT_ROUTE = "checkout"
     const val SETTINGS_ROUTE = "settings"
     const val BENCHMARK_ROUTE = "benchmark"
+    const val PROMOTION_DETAIL_ROUTE = "promotionDetail"
 }
 
 @Composable
@@ -65,7 +70,8 @@ fun NavGraph(
             if (loadingComplete.value) {
                 Dashboard(
                     actions.openSettings,
-                    actions.openBenchmark
+                    actions.openBenchmark,
+                    actions.navigateToPromotionDetail
                 )
             }
         }
@@ -88,6 +94,22 @@ fun NavGraph(
         }
         composable(MainDestination.SETTINGS_ROUTE) { Settings(actions.onExitSettings) }
         composable(MainDestination.BENCHMARK_ROUTE) { BenchmarkUi(actions.onExitBenchmark) }
+        composable(
+            route = "${MainDestination.PROMOTION_DETAIL_ROUTE}/{promotionId}",
+            arguments = listOf(
+                navArgument("promotionId") {
+                    type = NavType.StringType
+                }
+            )
+        ) { entry ->
+            val promotionIdString: String = entry.arguments?.getString("promotionId")
+                ?: throw RuntimeException("Could not find argument")
+            val promotionId = BigInteger(promotionIdString)
+            PromotionDetailUi(
+                promotionId = promotionId,
+                onUpClicked = actions.onExitPromotionDetails
+            )
+        }
     }
 }
 
@@ -101,6 +123,10 @@ class MainActions(navController: NavHostController) {
     }
 
     val onExitBenchmark: () -> Unit = {
+        navController.popBackStack()
+    }
+
+    val onExitPromotionDetails: () -> Unit = {
         navController.popBackStack()
     }
 
@@ -122,6 +148,10 @@ class MainActions(navController: NavHostController) {
 
     val openCheckout: () -> Unit = {
         navController.navigate(MainDestination.CHECKOUT_ROUTE)
+    }
+
+    val navigateToPromotionDetail: (promotionId: BigInteger) -> Unit = {
+        navController.navigate("${MainDestination.PROMOTION_DETAIL_ROUTE}/$it")
     }
 }
 

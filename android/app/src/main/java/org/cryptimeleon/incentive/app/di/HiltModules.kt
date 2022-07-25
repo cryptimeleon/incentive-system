@@ -19,7 +19,6 @@ import org.cryptimeleon.incentive.app.data.network.BasketApiService
 import org.cryptimeleon.incentive.app.data.network.CryptoApiService
 import org.cryptimeleon.incentive.app.data.network.InfoApiService
 import org.cryptimeleon.incentive.app.data.network.PromotionApiService
-import org.cryptimeleon.incentive.app.util.NetworkMonitor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
@@ -38,10 +37,6 @@ class HiltApiModule {
     @Provides
     fun provideConnectivityManager(@ApplicationContext context: Context): ConnectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-
-    @Provides
-    fun provideNetworkMonitor(connectivityManager: ConnectivityManager): NetworkMonitor =
-        NetworkMonitor(connectivityManager)
 
     @Singleton
     @Provides

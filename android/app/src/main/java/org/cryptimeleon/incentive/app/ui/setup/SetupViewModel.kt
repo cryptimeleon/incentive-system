@@ -28,7 +28,7 @@ class SetupViewModel @Inject constructor(
     private val uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
 
     private val refreshCryptoDataUseCase =
-        RefreshCryptoDataUseCase(cryptoRepository, promotionRepository)
+        RefreshCryptoDataUseCase(cryptoRepository, promotionRepository, basketRepository)
 
     private val _navigateToInfo = MutableLiveData(false)
     val navigateToInfo: LiveData<Boolean>

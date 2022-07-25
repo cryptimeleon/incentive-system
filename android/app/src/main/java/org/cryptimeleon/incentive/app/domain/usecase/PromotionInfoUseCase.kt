@@ -6,12 +6,14 @@ import org.cryptimeleon.incentive.app.domain.IBasketRepository
 import org.cryptimeleon.incentive.app.domain.ICryptoRepository
 import org.cryptimeleon.incentive.app.domain.IPromotionRepository
 import org.cryptimeleon.incentive.app.domain.model.Basket
+import org.cryptimeleon.incentive.app.domain.model.CryptoMaterial
 import org.cryptimeleon.incentive.app.domain.model.Earn
 import org.cryptimeleon.incentive.app.domain.model.None
 import org.cryptimeleon.incentive.app.domain.model.PromotionUserUpdateChoice
 import org.cryptimeleon.incentive.app.domain.model.RewardItem
 import org.cryptimeleon.incentive.app.domain.model.ZKP
 import org.cryptimeleon.incentive.app.util.toBigIntVector
+import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters
 import org.cryptimeleon.incentive.crypto.model.Token
 import org.cryptimeleon.incentive.promotion.Promotion
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdate
@@ -26,6 +28,7 @@ import org.cryptimeleon.incentive.promotion.streak.StreakPromotion
 import org.cryptimeleon.incentive.promotion.vip.ProveVipTokenUpdate
 import org.cryptimeleon.incentive.promotion.vip.UpgradeVipZkpTokenUpdate
 import org.cryptimeleon.incentive.promotion.vip.VipPromotion
+import timber.log.Timber
 import java.math.BigInteger
 import java.util.*
 
@@ -37,29 +40,39 @@ class PromotionInfoUseCase(
     private val cryptoRepository: ICryptoRepository,
     private val basketRepository: IBasketRepository
 ) {
+    @Suppress("UNCHECKED_CAST")
     operator fun invoke(): Flow<List<PromotionData>> =
         combine(
             promotionRepository.promotions,
             promotionRepository.userUpdateChoices,
             cryptoRepository.tokens,
+            cryptoRepository.cryptoMaterial,
             basketRepository.rewardItems,
-            basketRepository.basket
-        ) { promotions: List<Promotion>,
-            userUpdateChoices: List<PromotionUserUpdateChoice>,
-            tokens: List<Token>,
-            rewardItems: List<RewardItem>,
-            basket: Basket?
-            ->
-            promotions.map { promotion ->
-                val promotionInfoUseCaseWorker = PromotionInfoUseCaseWorker(
-                    promotion, userUpdateChoices, tokens, rewardItems, basket
-                )
-                promotionInfoUseCaseWorker.computePromotionData()
+            basketRepository.basket,
+        ) { flowArgs ->
+            try {
+                val promotions = flowArgs[0] as List<Promotion>
+                val userUpdateChoices = flowArgs[1] as List<PromotionUserUpdateChoice>
+                val tokens = flowArgs[2] as List<Token>
+                val pp = (flowArgs[3] as CryptoMaterial).pp
+                val rewardItems = flowArgs[4] as List<RewardItem>
+                val basket = flowArgs[5] as Basket
+
+                promotions.map { promotion ->
+                    val promotionInfoUseCaseWorker = PromotionInfoUseCaseWorker(
+                        pp, promotion, userUpdateChoices, tokens, rewardItems, basket
+                    )
+                    promotionInfoUseCaseWorker.computePromotionData()
+                }
+            } catch (e: Exception) {
+                Timber.e(e)
+                emptyList()
             }
         }
 }
 
 private class PromotionInfoUseCaseWorker(
+    val pp: IncentivePublicParameters,
     val promotion: Promotion,
     userUpdateChoices: List<PromotionUserUpdateChoice>,
     tokens: List<Token>,
@@ -87,9 +100,9 @@ private class PromotionInfoUseCaseWorker(
 
     fun computePromotionData(): PromotionData {
         return when (promotion) {
-            is HazelPromotion -> HazelPromotionData(promotion, token, allTokenUpdates)
-            is VipPromotion -> VipPromotionData(promotion, token, allTokenUpdates)
-            is StreakPromotion -> StreakPromotionData(promotion, token, allTokenUpdates)
+            is HazelPromotion -> HazelPromotionData(promotion, token, allTokenUpdates, pp)
+            is VipPromotion -> VipPromotionData(promotion, token, allTokenUpdates, pp)
+            is StreakPromotion -> StreakPromotionData(promotion, token, allTokenUpdates, pp)
             else -> {
                 throw RuntimeException("Not implemented yet!")
             }
@@ -132,7 +145,7 @@ private class PromotionInfoUseCaseWorker(
             val description = it.rewardDescription
             val rewardUpdateOrEmpty = when (val sideEffect = it.sideEffect!!) {
                 is NoSideEffect -> Optional.empty<String>()
-                is RewardSideEffect -> Optional.ofNullable(rewardItems.find { r -> r.id == sideEffect.rewardId }?.title)
+                is RewardSideEffect -> Optional.of(rewardItems.find { r -> r.id == sideEffect.rewardId }?.title!!)
                 else -> {
                     throw RuntimeException("Side Effect $sideEffect not implemented yet!")
                 }
@@ -140,47 +153,50 @@ private class PromotionInfoUseCaseWorker(
             val feasibility = computeZkpTokenUpdateFeasibility(it)
             when (it) {
                 is HazelTokenUpdate -> HazelTokenUpdateState(
-                    it.tokenUpdateId,
-                    description,
-                    rewardUpdateOrEmpty,
-                    feasibility,
+                    zkpUpdateId = it.tokenUpdateId,
+                    description = description,
+                    sideEffect = rewardUpdateOrEmpty,
+                    feasibility = feasibility,
                     current = tokenPoints.get(0).toInt(),
-                    goal = tokenPoints.get(0).toInt() + basketPoints.get(0).toInt()
+                    goal = it.rewardCost
                 )
                 is StandardStreakTokenUpdate -> StandardStreakTokenUpdateState(
-                    it.tokenUpdateId,
-                    description, rewardUpdateOrEmpty, feasibility
+                    zkpUpdateId = it.tokenUpdateId,
+                    description = description,
+                    sideEffect = rewardUpdateOrEmpty,
+                    feasibility = feasibility
                 )
                 is SpendStreakTokenUpdate -> SpendStreakTokenUpdateState(
-                    it.tokenUpdateId,
-                    description,
-                    rewardUpdateOrEmpty,
-                    feasibility,
+                    zkpUpdateId = it.tokenUpdateId,
+                    description = description,
+                    sideEffect = rewardUpdateOrEmpty,
+                    feasibility = feasibility,
                     currentStreak = tokenPoints.get(0).toInt(),
                     requiredStreak = it.cost
                 )
                 is RangeProofStreakTokenUpdate -> RangeProofStreakTokenUpdateState(
-                    it.tokenUpdateId,
-                    description,
-                    rewardUpdateOrEmpty,
-                    feasibility,
+                    zkpUpdateId = it.tokenUpdateId,
+                    description = description,
+                    sideEffect = rewardUpdateOrEmpty,
+                    feasibility = feasibility,
                     currentStreak = tokenPoints.get(0).toInt(),
                     requiredStreak = it.lowerLimit
                 )
                 is UpgradeVipZkpTokenUpdate -> UpgradeVipTokenUpdateState(
-                    it.tokenUpdateId,
-                    description,
-                    rewardUpdateOrEmpty,
-                    feasibility,
-                    tokenPoints.get(0).toInt(),
-                    it.accumulatedCost,
-                    VipStatus.fromInt(it.toVipStatus)
+                    zkpUpdateId = it.tokenUpdateId,
+                    description = description,
+                    sideEffect = rewardUpdateOrEmpty,
+                    feasibility = feasibility,
+                    currentPoints = tokenPoints.get(0).toInt(),
+                    requiredPoints = it.accumulatedCost,
+                    targetVipStatus = VipStatus.fromInt(it.toVipStatus),
+                    currentVipStatus = VipStatus.fromInt(tokenPoints.get(1).toInt()),
                 )
                 is ProveVipTokenUpdate -> ProveVipTokenUpdateState(
-                    it.tokenUpdateId,
-                    description,
-                    rewardUpdateOrEmpty,
-                    feasibility,
+                    zkpUpdateId = it.tokenUpdateId,
+                    description = description,
+                    sideEffect = rewardUpdateOrEmpty,
+                    feasibility = feasibility,
                     currentStatus = VipStatus.fromInt(tokenPoints.get(1).toInt()),
                     requiredStatus = VipStatus.fromInt(it.requiredStatus)
                 )
