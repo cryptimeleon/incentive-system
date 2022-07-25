@@ -122,6 +122,9 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.9.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
 
+    // Preferences as simple storage solution
+    implementation "androidx.datastore:datastore-preferences:1.0.0"
+
 
     // ML barcode scanning
     implementation 'com.google.mlkit:barcode-scanning:17.0.2'
