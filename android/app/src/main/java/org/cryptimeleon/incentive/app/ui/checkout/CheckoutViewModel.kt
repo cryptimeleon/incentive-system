@@ -13,6 +13,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.cryptimeleon.incentive.app.domain.IBasketRepository
 import org.cryptimeleon.incentive.app.domain.ICryptoRepository
+import org.cryptimeleon.incentive.app.domain.IPreferencesRepository
 import org.cryptimeleon.incentive.app.domain.IPromotionRepository
 import org.cryptimeleon.incentive.app.domain.model.Earn
 import org.cryptimeleon.incentive.app.domain.model.None
@@ -34,10 +35,16 @@ class CheckoutViewModel @Inject constructor(
     cryptoRepository: ICryptoRepository,
     basketRepository: IBasketRepository,
     private val promotionRepository: IPromotionRepository,
+    preferencesRepository: IPreferencesRepository,
     application: Application
 ) : AndroidViewModel(application) {
     private val payAndRedeemUseCase =
-        PayAndRedeemUseCase(promotionRepository, cryptoRepository, basketRepository)
+        PayAndRedeemUseCase(
+            promotionRepository,
+            cryptoRepository,
+            basketRepository,
+            preferencesRepository
+        )
 
     private val _checkoutStep = MutableStateFlow(CheckoutStep.REWARDS)
     val checkoutStep: StateFlow<CheckoutStep>

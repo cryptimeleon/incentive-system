@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.flow
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature
 import org.cryptimeleon.incentive.app.domain.IBasketRepository
 import org.cryptimeleon.incentive.app.domain.ICryptoRepository
+import org.cryptimeleon.incentive.app.domain.IPreferencesRepository
 import org.cryptimeleon.incentive.app.domain.IPromotionRepository
 import org.cryptimeleon.incentive.app.domain.model.BulkRequestDto
 import org.cryptimeleon.incentive.app.domain.model.Earn
@@ -30,10 +31,12 @@ class PayAndRedeemUseCase(
     private val promotionRepository: IPromotionRepository,
     private val cryptoRepository: ICryptoRepository,
     private val basketRepository: IBasketRepository,
+    preferencesRepository: IPreferencesRepository
 ) {
     private val jsonConverter = JSONConverter()
     private val analyzeUserTokenUpdatesUseCase =
         AnalyzeUserTokenUpdatesUseCase(promotionRepository, cryptoRepository, basketRepository)
+    private val doubleSpendingPreferences = preferencesRepository.doubleSpendingPreferencesFlow
 
     /**
      * Send all earn and spend requests for a basket, pay and retrieve updated tokens
@@ -211,7 +214,9 @@ class PayAndRedeemUseCase(
                         cryptoMaterial.ukp
                     )
 
-                    cryptoRepository.putToken(promotion.promotionParameters, updatedToken)
+                    if (storeUpdatedToken()) {
+                        cryptoRepository.putToken(promotion.promotionParameters, updatedToken)
+                    }
                 }
             }
 
@@ -221,6 +226,9 @@ class PayAndRedeemUseCase(
             Timber.i("Finished Pay and Redeem")
             emit(PayAndRedeemState.FINISHED)
         }
+
+    // Don't store token if you want to double-spend it
+    private suspend fun storeUpdatedToken() = !doubleSpendingPreferences.first().discardUpdatedToken
 }
 
 
