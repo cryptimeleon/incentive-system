@@ -78,7 +78,7 @@ fun DefaultTopAppBar(
                         )
                         DropdownMenuItem(
                             onClick = onOpenAttacker,
-                            text = { Text("Attacker") }
+                            text = { Text("Double-Spending Attack") }
                         )
                     }
                 }
