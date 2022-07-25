@@ -53,7 +53,7 @@ internal fun SummaryUi(
             .padding(16.dp)
             .fillMaxSize()
     ) {
-        LazyColumn(verticalArrangement = Arrangement.Top) {
+        LazyColumn(verticalArrangement = Arrangement.Top, modifier = Modifier.weight(1f)) {
             item {
                 TitleRowWithIcon("Basket", Icons.Default.ShoppingBasket)
             }
