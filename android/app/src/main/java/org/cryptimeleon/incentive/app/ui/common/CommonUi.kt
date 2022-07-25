@@ -31,6 +31,7 @@ import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 fun DefaultTopAppBar(
     onOpenSettings: () -> Unit = {},
     onOpenBenchmark: () -> Unit = {},
+    onOpenAttacker: () -> Unit = {},
     title: @Composable () -> Unit = { Text("Cryptimeleon Rewards") },
     navigationIcon: @Composable (() -> Unit) = {},
     menuEnabled: Boolean = true
@@ -74,6 +75,10 @@ fun DefaultTopAppBar(
                         DropdownMenuItem(
                             onClick = onOpenBenchmark,
                             text = { Text("Benchmark") }
+                        )
+                        DropdownMenuItem(
+                            onClick = onOpenAttacker,
+                            text = { Text("Attacker") }
                         )
                     }
                 }

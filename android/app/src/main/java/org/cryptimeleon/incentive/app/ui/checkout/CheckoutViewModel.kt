@@ -11,9 +11,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.cryptimeleon.incentive.app.data.BasketRepository
-import org.cryptimeleon.incentive.app.data.CryptoRepository
-import org.cryptimeleon.incentive.app.data.PromotionRepository
+import org.cryptimeleon.incentive.app.domain.IBasketRepository
+import org.cryptimeleon.incentive.app.domain.ICryptoRepository
+import org.cryptimeleon.incentive.app.domain.IPromotionRepository
 import org.cryptimeleon.incentive.app.domain.model.Earn
 import org.cryptimeleon.incentive.app.domain.model.None
 import org.cryptimeleon.incentive.app.domain.model.ZKP
@@ -31,9 +31,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CheckoutViewModel @Inject constructor(
-    cryptoRepository: CryptoRepository,
-    basketRepository: BasketRepository,
-    private val promotionRepository: PromotionRepository,
+    cryptoRepository: ICryptoRepository,
+    basketRepository: IBasketRepository,
+    private val promotionRepository: IPromotionRepository,
     application: Application
 ) : AndroidViewModel(application) {
     private val payAndRedeemUseCase =

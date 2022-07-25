@@ -11,7 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.cryptimeleon.incentive.app.data.BasketRepository
+import org.cryptimeleon.incentive.app.domain.IBasketRepository
 import org.cryptimeleon.incentive.app.domain.model.ShoppingItem
 import timber.log.Timber
 import java.text.NumberFormat
@@ -26,7 +26,7 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class ScanViewModel @Inject constructor(
-    private val basketRepository: BasketRepository,
+    private val basketRepository: IBasketRepository,
     application: Application
 ) :
     AndroidViewModel(application) {

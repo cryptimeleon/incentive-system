@@ -24,6 +24,10 @@ import org.cryptimeleon.incentive.app.data.network.BasketApiService
 import org.cryptimeleon.incentive.app.data.network.CryptoApiService
 import org.cryptimeleon.incentive.app.data.network.InfoApiService
 import org.cryptimeleon.incentive.app.data.network.PromotionApiService
+import org.cryptimeleon.incentive.app.domain.IBasketRepository
+import org.cryptimeleon.incentive.app.domain.ICryptoRepository
+import org.cryptimeleon.incentive.app.domain.IPreferencesRepository
+import org.cryptimeleon.incentive.app.domain.IPromotionRepository
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
@@ -131,7 +135,7 @@ class HiltRepositoryModule {
         infoApiService: InfoApiService,
         cryptoApiService: CryptoApiService,
         cryptoDatabase: CryptoDatabase,
-    ): CryptoRepository =
+    ): ICryptoRepository =
         CryptoRepository(
             infoApiService,
             cryptoApiService,
@@ -143,7 +147,7 @@ class HiltRepositoryModule {
     fun provideBasketRepository(
         basketApiService: BasketApiService,
         basketDatabase: BasketDatabase,
-    ): BasketRepository =
+    ): IBasketRepository =
         BasketRepository(
             basketApiService,
             basketDatabase.basketDatabaseDao(),
@@ -154,7 +158,7 @@ class HiltRepositoryModule {
     fun providePromotionRepository(
         promotionApiService: PromotionApiService,
         promotionDatabase: PromotionDatabase
-    ): PromotionRepository =
+    ): IPromotionRepository =
         PromotionRepository(
             promotionApiService,
             promotionDatabase.promotionDatabaseDao()

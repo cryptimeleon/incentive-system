@@ -7,12 +7,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import org.cryptimeleon.incentive.app.data.CryptoRepository
+import org.cryptimeleon.incentive.app.domain.ICryptoRepository
 import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    cryptoRepository: CryptoRepository,
+    cryptoRepository: ICryptoRepository,
     application: Application,
 ) : AndroidViewModel(application) {
 
