@@ -15,6 +15,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import org.cryptimeleon.incentive.app.ui.attacker.AttackerUi
 import org.cryptimeleon.incentive.app.ui.basket.BasketUi
 import org.cryptimeleon.incentive.app.ui.benchmark.BenchmarkUi
 import org.cryptimeleon.incentive.app.ui.checkout.CheckoutUi
@@ -26,11 +27,11 @@ import org.cryptimeleon.incentive.app.ui.setup.SetupUi
 import java.math.BigInteger
 
 object MainDestination {
+    const val ATTACKER_ROUTE = "attacker"
     const val LOADING_ROUTE = "loading"
     const val DASHBOARD_ROUTE = "dashboard"
     const val SCANNER_ROUTE = "scanner"
     const val BASKET_ROUTE = "basket"
-    const val REWARDS_ROUTE = "rewards"
     const val CHECKOUT_ROUTE = "checkout"
     const val SETTINGS_ROUTE = "settings"
     const val BENCHMARK_ROUTE = "benchmark"
@@ -71,14 +72,16 @@ fun NavGraph(
                 Dashboard(
                     actions.openSettings,
                     actions.openBenchmark,
-                    actions.navigateToPromotionDetail
+                    actions.openAttacker,
+                    actions.navigateToPromotionDetail,
                 )
             }
         }
         composable(MainDestination.SCANNER_ROUTE) {
             ScanScreen(
                 actions.openSettings,
-                actions.openBenchmark
+                actions.openBenchmark,
+                actions.openAttacker
             )
         }
         composable(MainDestination.BASKET_ROUTE) {
@@ -86,6 +89,7 @@ fun NavGraph(
                 actions.openScanner,
                 actions.openSettings,
                 actions.openBenchmark,
+                actions.openAttacker,
                 actions.openCheckout
             )
         }
@@ -94,6 +98,7 @@ fun NavGraph(
         }
         composable(MainDestination.SETTINGS_ROUTE) { Settings(actions.onExitSettings) }
         composable(MainDestination.BENCHMARK_ROUTE) { BenchmarkUi(actions.onExitBenchmark) }
+        composable(MainDestination.ATTACKER_ROUTE) { AttackerUi(actions.onExitAttackerScreen) }
         composable(
             route = "${MainDestination.PROMOTION_DETAIL_ROUTE}/{promotionId}",
             arguments = listOf(
@@ -114,6 +119,9 @@ fun NavGraph(
 }
 
 class MainActions(navController: NavHostController) {
+    val onExitAttackerScreen: () -> Unit = {
+        navController.popBackStack()
+    }
     val onLoadingComplete: () -> Unit = {
         navController.popBackStack()
     }
@@ -136,6 +144,10 @@ class MainActions(navController: NavHostController) {
 
     val openSettings: () -> Unit = {
         navController.navigate(MainDestination.SETTINGS_ROUTE)
+    }
+
+    val openAttacker: () -> Unit = {
+        navController.navigate(MainDestination.ATTACKER_ROUTE)
     }
 
     val openBenchmark: () -> Unit = {
