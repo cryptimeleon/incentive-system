@@ -1,4 +1,7 @@
 const { defineConfig } = require('@vue/cli-service')
+
+const DS_ENDPOINT_DEV = "http://localhost:8004"
+
 module.exports = defineConfig({
   transpileDependencies: true,
   devServer: {
@@ -8,11 +11,11 @@ module.exports = defineConfig({
     * the URLs do not need to be rewritten all over the code base but only here.
     */
     proxy: {
-      '^/api': {
-        target: 'http://localhost:8004',
+      '^/dsprotection': {
+        target: DS_ENDPOINT_DEV,
         changeOrigin: true,
         logLevel: 'debug',
-        pathRewrite: {'^/api': '/'}
+        pathRewrite: { '^/dsprotection': '' }
       }
     }
   }
