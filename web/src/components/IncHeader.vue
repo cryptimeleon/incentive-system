@@ -1,6 +1,6 @@
 <template>
-  <div class="">
-    <nav class="bg-sky-700 text-slate-100 shadow-lg mb-8 text-sm md:flex md:items-center md:justify-between px-4">
+  <div class="bg-sky-700 md:flex md:justify-center shadow-lg mb-8 ">
+    <nav class="text-slate-100 text-sm md:flex md:items-center md:justify-between px-4 md:px-8 md:container">
       <div class="flex justify-between">
         <router-link to="/" class="hidden md:block">
           <p class="text-xl font-semibold py-4 text-white">Cryptimeleon Incentive System</p>
@@ -20,20 +20,18 @@
         </div>
       </div>
 
-      <ul :class="showMenu ? 'flex' : 'hidden'" class="
-      font-semibold flex-col py-1 space-y-1
-      lg:py-0 lg:flex lg:flex-row lg:space-x-16
-      ">
+      <ul :class="showMenu ? 'flex' : 'hidden'"
+        class="md:flex md:flex-row flex-col py-1 md:py-0 space-y-1 md:space-y-0 md:space-x-16 font-semibold text-lg text-white hover:text-amber-300">
         <li>
           <router-link to="/">
-            <span class="text-white">
+            <span class="text-white hover:text-amber-200">
               Home
             </span>
           </router-link>
         </li>
         <li>
           <router-link to="/ds-protection">
-            <span class="text-white">
+            <span class="text-white hover:text-amber-200">
               Double-Spending Protection
             </span>
           </router-link>
