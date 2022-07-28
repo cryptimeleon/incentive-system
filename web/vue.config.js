@@ -2,6 +2,14 @@ const { defineConfig } = require('@vue/cli-service')
 
 const DS_ENDPOINT_DEV = "http://localhost:8004"
 
+// Configure DS-Protection service endpoint
+// Production Server (nginx)
+// DS-Prot.: https://incentives.cs.uni-paderborn.de/dsprotection/
+// Frontend: https://incentives.cs.uni-paderborn.de
+// DevServer
+// DS-Prot.: localhost:8004
+// Frontend: localhost:XXXX
+
 module.exports = defineConfig({
   transpileDependencies: true,
   devServer: {
