@@ -10,18 +10,18 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.cryptimeleon.incentive.app.data.BasketRepository
-import org.cryptimeleon.incentive.app.data.CryptoRepository
-import org.cryptimeleon.incentive.app.data.PromotionRepository
+import org.cryptimeleon.incentive.app.domain.IBasketRepository
+import org.cryptimeleon.incentive.app.domain.ICryptoRepository
+import org.cryptimeleon.incentive.app.domain.IPromotionRepository
 import org.cryptimeleon.incentive.app.domain.usecase.RefreshCryptoDataUseCase
 import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class SetupViewModel @Inject constructor(
-    cryptoRepository: CryptoRepository,
-    private val basketRepository: BasketRepository,
-    promotionRepository: PromotionRepository,
+    cryptoRepository: ICryptoRepository,
+    private val basketRepository: IBasketRepository,
+    promotionRepository: IPromotionRepository,
     application: Application,
 ) : AndroidViewModel(application) {
     private val viewModelJob = Job()

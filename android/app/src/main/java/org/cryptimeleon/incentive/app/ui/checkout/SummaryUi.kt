@@ -36,7 +36,7 @@ import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
 import org.cryptimeleon.incentive.app.domain.usecase.PromotionUpdateFeasibility
 import org.cryptimeleon.incentive.app.domain.usecase.TokenUpdate
 import org.cryptimeleon.incentive.app.domain.usecase.ZkpTokenUpdate
-import org.cryptimeleon.incentive.app.ui.CryptimeleonPreviewContainer
+import org.cryptimeleon.incentive.app.ui.preview.CryptimeleonPreviewContainer
 import org.cryptimeleon.incentive.app.ui.preview.PreviewData
 import org.cryptimeleon.incentive.app.util.formatCents
 
@@ -53,7 +53,7 @@ internal fun SummaryUi(
             .padding(16.dp)
             .fillMaxSize()
     ) {
-        LazyColumn(verticalArrangement = Arrangement.Top) {
+        LazyColumn(verticalArrangement = Arrangement.Top, modifier = Modifier.weight(1f)) {
             item {
                 TitleRowWithIcon("Basket", Icons.Default.ShoppingBasket)
             }

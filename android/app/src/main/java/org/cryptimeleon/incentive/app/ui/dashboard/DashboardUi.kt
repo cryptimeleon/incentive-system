@@ -35,7 +35,7 @@ import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
 import org.cryptimeleon.incentive.app.domain.usecase.StreakPromotionData
 import org.cryptimeleon.incentive.app.domain.usecase.VipPromotionData
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
-import org.cryptimeleon.incentive.app.ui.CryptimeleonPreviewContainer
+import org.cryptimeleon.incentive.app.ui.preview.CryptimeleonPreviewContainer
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 import org.cryptimeleon.incentive.app.ui.preview.PreviewData
 import java.math.BigInteger
@@ -44,6 +44,7 @@ import java.math.BigInteger
 fun Dashboard(
     openSettings: () -> Unit,
     openBenchmark: () -> Unit,
+    openAttacker: () -> Unit,
     navigateToPromotionDetails: (promotionId: BigInteger) -> Unit
 ) {
     val dashboardViewModel = hiltViewModel<DashboardViewModel>()
@@ -53,7 +54,8 @@ fun Dashboard(
         promotionDataList = promotionDataList,
         cardClicked = navigateToPromotionDetails,
         openSettings = openSettings,
-        openBenchmark = openBenchmark
+        openBenchmark = openBenchmark,
+        openAttacker = openAttacker
     )
 }
 
@@ -61,14 +63,16 @@ fun Dashboard(
 @Composable
 fun Dashboard(
     promotionDataList: List<PromotionData>,
-    cardClicked: (BigInteger) -> Unit,
+    cardClicked: (BigInteger) -> Unit = {},
     openSettings: () -> Unit = {},
-    openBenchmark: () -> Unit = {}
+    openBenchmark: () -> Unit = {},
+    openAttacker: () -> Unit = {}
 ) {
     Scaffold(topBar = {
         DefaultTopAppBar(
             onOpenSettings = openSettings,
-            onOpenBenchmark = openBenchmark
+            onOpenBenchmark = openBenchmark,
+            onOpenAttacker = openAttacker
         )
     }) {
         Column(
@@ -174,9 +178,6 @@ fun DashboardPreview() {
             Box(Modifier.padding(it)) {
                 Dashboard(
                     emptyList(),
-                    {},
-                    {},
-                    {}
                 )
             }
         }

@@ -24,7 +24,7 @@ import org.cryptimeleon.incentive.app.domain.model.Basket
 import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemState
 import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
 import org.cryptimeleon.incentive.app.domain.usecase.TokenUpdate
-import org.cryptimeleon.incentive.app.ui.CryptimeleonPreviewContainer
+import org.cryptimeleon.incentive.app.ui.preview.CryptimeleonPreviewContainer
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 import java.math.BigInteger
 import java.util.*

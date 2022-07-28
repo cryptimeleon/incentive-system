@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.dp
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.WriterException
 import com.google.zxing.qrcode.QRCodeWriter
-import org.cryptimeleon.incentive.app.ui.CryptimeleonPreviewContainer
+import org.cryptimeleon.incentive.app.ui.preview.CryptimeleonPreviewContainer
 import timber.log.Timber
 import java.util.*
 

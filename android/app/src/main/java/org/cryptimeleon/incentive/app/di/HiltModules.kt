@@ -2,6 +2,10 @@ package org.cryptimeleon.incentive.app.di
 
 import android.content.Context
 import android.net.ConnectivityManager
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.room.Room
 import dagger.Module
 import dagger.Provides
@@ -11,6 +15,7 @@ import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import org.cryptimeleon.incentive.app.data.BasketRepository
 import org.cryptimeleon.incentive.app.data.CryptoRepository
+import org.cryptimeleon.incentive.app.data.PreferencesRepository
 import org.cryptimeleon.incentive.app.data.PromotionRepository
 import org.cryptimeleon.incentive.app.data.database.basket.BasketDatabase
 import org.cryptimeleon.incentive.app.data.database.crypto.CryptoDatabase
@@ -19,6 +24,10 @@ import org.cryptimeleon.incentive.app.data.network.BasketApiService
 import org.cryptimeleon.incentive.app.data.network.CryptoApiService
 import org.cryptimeleon.incentive.app.data.network.InfoApiService
 import org.cryptimeleon.incentive.app.data.network.PromotionApiService
+import org.cryptimeleon.incentive.app.domain.IBasketRepository
+import org.cryptimeleon.incentive.app.domain.ICryptoRepository
+import org.cryptimeleon.incentive.app.domain.IPreferencesRepository
+import org.cryptimeleon.incentive.app.domain.IPromotionRepository
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
@@ -29,6 +38,8 @@ import javax.inject.Singleton
 private const val BASKET_BASE_URL = "https://incentives.cs.upb.de/basket/"
 private const val INFO_BASE_URL = "https://incentives.cs.upb.de/info/"
 private const val PROMOTION_BASE_URL = "https://incentives.cs.upb.de/promotion/"
+
+private const val USER_PREFERENCES = "user_preferences"
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -124,7 +135,7 @@ class HiltRepositoryModule {
         infoApiService: InfoApiService,
         cryptoApiService: CryptoApiService,
         cryptoDatabase: CryptoDatabase,
-    ): CryptoRepository =
+    ): ICryptoRepository =
         CryptoRepository(
             infoApiService,
             cryptoApiService,
@@ -136,7 +147,7 @@ class HiltRepositoryModule {
     fun provideBasketRepository(
         basketApiService: BasketApiService,
         basketDatabase: BasketDatabase,
-    ): BasketRepository =
+    ): IBasketRepository =
         BasketRepository(
             basketApiService,
             basketDatabase.basketDatabaseDao(),
@@ -147,9 +158,21 @@ class HiltRepositoryModule {
     fun providePromotionRepository(
         promotionApiService: PromotionApiService,
         promotionDatabase: PromotionDatabase
-    ): PromotionRepository =
+    ): IPromotionRepository =
         PromotionRepository(
             promotionApiService,
             promotionDatabase.promotionDatabaseDao()
         )
+
+    @Singleton
+    @Provides
+    fun providePreferencesDataStore(@ApplicationContext appContext: Context) =
+        PreferenceDataStoreFactory.create {
+            appContext.preferencesDataStoreFile(USER_PREFERENCES)
+        }
+
+    @Singleton
+    @Provides
+    fun providePreferencesRepository(dataSTore: DataStore<Preferences>): IPreferencesRepository =
+        PreferencesRepository(dataSTore)
 }

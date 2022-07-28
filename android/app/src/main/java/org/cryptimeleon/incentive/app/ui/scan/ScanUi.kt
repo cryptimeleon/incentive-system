@@ -50,13 +50,14 @@ import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 import androidx.camera.core.Preview as CameraPreview
 
 @Composable
-fun ScanScreen(openSettings: () -> Unit, openBenchmark: () -> Unit) {
+fun ScanScreen(openSettings: () -> Unit, openBenchmark: () -> Unit, openAttacker: () -> Unit) {
     val viewModel = hiltViewModel<ScanViewModel>()
     val state by viewModel.state.observeAsState(ScanEmptyState)
 
     ScannerScreen(
         openBenchmark,
         openSettings,
+        openAttacker,
         viewModel::onAmountChange,
         viewModel::onAddToBasket,
         viewModel::onDiscardItem,
@@ -70,6 +71,7 @@ fun ScanScreen(openSettings: () -> Unit, openBenchmark: () -> Unit) {
 private fun ScannerScreen(
     openBenchmark: () -> Unit,
     openSettings: () -> Unit,
+    openAttacker: () -> Unit,
     onAmountChange: (Int) -> Unit,
     onAddToBasket: () -> Unit,
     onDiscard: () -> Unit,
@@ -79,7 +81,8 @@ private fun ScannerScreen(
     Scaffold(topBar = {
         DefaultTopAppBar(
             onOpenSettings = openSettings,
-            onOpenBenchmark = openBenchmark
+            onOpenBenchmark = openBenchmark,
+            onOpenAttacker = openAttacker
         )
     }) {
         Box(

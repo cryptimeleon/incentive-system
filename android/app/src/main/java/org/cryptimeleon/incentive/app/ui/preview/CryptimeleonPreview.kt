@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.app.ui
+package org.cryptimeleon.incentive.app.ui.preview
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding

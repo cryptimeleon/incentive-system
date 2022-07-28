@@ -69,7 +69,8 @@ fun BasketUi(
     openScanner: () -> Unit,
     openSettings: () -> Unit,
     openBenchmark: () -> Unit,
-    gotoRewards: () -> Unit
+    openAttacker: () -> Unit,
+    gotoRewards: () -> Unit,
 ) {
     val basketViewModel = hiltViewModel<BasketViewModel>()
     val basket: SLE<Basket> by basketViewModel.basket.collectAsState(initial = SLE.Loading())
@@ -80,7 +81,8 @@ fun BasketUi(
         pay = gotoRewards,
         openScanner = openScanner,
         openSettings = openSettings,
-        openBenchmark = openBenchmark
+        openBenchmark = openBenchmark,
+        openAttacker = openAttacker
     )
 }
 
@@ -95,13 +97,15 @@ private fun BasketUi(
     openScanner: () -> Unit = {},
     openSettings: () -> Unit = {},
     openBenchmark: () -> Unit = {},
+    openAttacker: () -> Unit = {}
 ) {
 
     Scaffold(topBar = {
         DefaultTopAppBar(
             title = { Text("My Basket") },
             onOpenSettings = openSettings,
-            onOpenBenchmark = openBenchmark
+            onOpenBenchmark = openBenchmark,
+            onOpenAttacker = openAttacker
         )
     }) {
         Box(modifier = Modifier.padding(it)) {
