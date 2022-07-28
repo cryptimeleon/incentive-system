@@ -6,6 +6,7 @@ plugins {
     id 'dagger.hilt.android.plugin'
     id 'kotlin-parcelize'
     id 'org.jetbrains.kotlin.plugin.serialization' version "$kotlin_version"
+    id "com.github.ben-manes.versions" version "0.42.0"
 }
 
 
@@ -39,7 +40,7 @@ android {
     }
     kotlinOptions {
         jvmTarget = '1.8'
-        useIR = true
+        // useIR = true
     }
     applicationVariants.all { variant ->
         variant.getRuntimeConfiguration().exclude group: 'com.google.code.findbugs', module: 'jsr305'
@@ -63,20 +64,19 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all { kotlinOpti
 
 dependencies {
     // Material design 13 dependenciew
-    implementation("androidx.compose.material3:material3:1.0.0-alpha14")
-    implementation("androidx.compose.material3:material3-window-size-class:1.0.0-alpha14")
+    implementation("androidx.compose.material3:material3:1.0.0-alpha15")
+    implementation("androidx.compose.material3:material3-window-size-class:1.0.0-alpha15")
 
     implementation 'androidx.test.ext:junit-ktx:1.1.3'
     implementation 'androidx.test:core-ktx:1.4.0'
 
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$rootProject.kotlin_version"
     implementation 'androidx.core:core-ktx:1.8.0'
     implementation 'androidx.appcompat:appcompat:1.4.2'
     implementation 'com.google.android.material:material:1.6.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
 
-    def nav_version = "2.5.0-rc02"
+    def nav_version = "2.5.1"
     implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
     implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
 
@@ -85,24 +85,24 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2"
 
     // Support for activityViewModel to allow shared view models
-    def activity_version = "1.4.0"
-    implementation "androidx.activity:activity-ktx:1.4.0"
+    def activity_version = "1.5.1"
+    implementation "androidx.activity:activity-ktx:1.5.1"
     implementation "androidx.activity:activity-compose:$activity_version"
 
     def fragment_version = "1.4.1"
     implementation "androidx.fragment:fragment-ktx:$fragment_version"
 
     // Room database
-    def room_version = "2.4.2"
+    def room_version = "2.4.3"
     implementation "androidx.room:room-runtime:$room_version"
     implementation "androidx.room:room-ktx:$room_version"
     annotationProcessor "androidx.room:room-compiler:$room_version"
     kapt "androidx.room:room-compiler:$room_version"
 
     // Run coroutines in view model scope/ lifecycle
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.1'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1'
     // Live data
-    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.4.1"
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.5.1"
 
     // Networking
     implementation "com.squareup.retrofit2:retrofit:2.9.0"
@@ -113,7 +113,7 @@ dependencies {
     implementation 'org.cryptimeleon.incentive:promotion:1.0.0'
 
     // Logging
-    implementation 'com.jakewharton.timber:timber:4.7.1'
+    implementation 'com.jakewharton.timber:timber:5.0.1'
 
     // Math / Statistics
     implementation 'org.apache.commons:commons-math3:3.6.1'
@@ -127,9 +127,9 @@ dependencies {
     implementation 'com.google.mlkit:barcode-scanning:17.0.2'
 
     // CameraX dependencies for scanner
-    implementation "androidx.camera:camera-camera2:1.2.0-alpha02"
-    implementation "androidx.camera:camera-lifecycle:1.2.0-alpha02"
-    implementation "androidx.camera:camera-view:1.2.0-alpha02"
+    implementation "androidx.camera:camera-camera2:1.2.0-alpha04"
+    implementation "androidx.camera:camera-lifecycle:1.2.0-alpha04"
+    implementation "androidx.camera:camera-view:1.2.0-alpha04"
 
     // https://stackoverflow.com/questions/56639529/duplicate-class-com-google-common-util-concurrent-listenablefuture-found-in-modu
     //implementation 'com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava'
@@ -162,16 +162,16 @@ dependencies {
     implementation("com.google.zxing:core:3.5.0")
 
     // Permissions
-    implementation "com.google.accompanist:accompanist-permissions:0.16.1"
+    implementation "com.google.accompanist:accompanist-permissions:0.25.0"
 
     // accompanist
-    implementation "com.google.accompanist:accompanist-systemuicontroller:0.20.3"
+    implementation "com.google.accompanist:accompanist-systemuicontroller:0.25.0"
 
     // Testing
     testImplementation 'junit:junit:4.13.2'
     // Mocking
-    testImplementation("org.mockito:mockito-core:3.6.28")
-    androidTestImplementation("org.mockito:mockito-core:3.6.28")
+    testImplementation("org.mockito:mockito-core:4.6.1")
+    androidTestImplementation("org.mockito:mockito-core:4.6.1")
     // Nicer assertions, requires Guava!
     testImplementation "com.google.truth:truth:1.1.3"
     androidTestImplementation "com.google.truth:truth:1.1.3"
