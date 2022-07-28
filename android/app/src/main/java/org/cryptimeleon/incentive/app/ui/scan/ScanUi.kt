@@ -42,7 +42,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.PermissionRequired
+import com.google.accompanist.permissions.isGranted
 import com.google.accompanist.permissions.rememberPermissionState
 import org.cryptimeleon.incentive.app.domain.model.ShoppingItem
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
@@ -118,7 +118,6 @@ private fun ScannerScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ScannedItemCard(
     state: ScanResultState,
@@ -193,18 +192,16 @@ private fun ScannedItemCard(
 @Composable
 private fun CameraPermission(content: @Composable (() -> Unit)) {
 
-    // Permission
+    // Permission (see https://github.com/google/accompanist/blob/main/sample/src/main/java/com/google/accompanist/sample/permissions/RequestPermissionSample.kt)
     val cameraPermissionState = rememberPermissionState(android.Manifest.permission.CAMERA)
-    PermissionRequired(
-        permissionState = cameraPermissionState,
-        permissionNotGrantedContent = {
-            LaunchedEffect(false) {
-                cameraPermissionState.launchPermissionRequest()
-            }
-        },
-        permissionNotAvailableContent = {},
-        content = content
-    )
+
+    if (cameraPermissionState.status.isGranted) {
+        content()
+    } else {
+        LaunchedEffect(false) {
+            cameraPermissionState.launchPermissionRequest()
+        }
+    }
 }
 
 @Composable

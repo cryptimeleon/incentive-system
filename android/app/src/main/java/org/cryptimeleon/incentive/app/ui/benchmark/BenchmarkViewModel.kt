@@ -88,6 +88,7 @@ class BenchmarkViewModel @Inject constructor(application: Application) :
                 val benchmarkResult =
                     Benchmark.runBenchmark(benchmarkConfig) { benchmarkState, iteration ->
                         when (benchmarkState) {
+                            null -> Timber.e("Benchmark State is null")
                             org.cryptimeleon.incentive.crypto.benchmark.BenchmarkState.ISSUE_JOIN ->
                                 state.postValue(
                                     state.value!!.copy(

@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.SmallTopAppBar
@@ -27,6 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DefaultTopAppBar(
     onOpenSettings: () -> Unit = {},
@@ -50,7 +52,7 @@ fun DefaultTopAppBar(
     Box(
         modifier = Modifier.background(
             TopAppBarDefaults.smallTopAppBarColors().containerColor(
-                scrollFraction = 0f
+                colorTransitionFraction = 0f
             ).value
         )
     ) {
