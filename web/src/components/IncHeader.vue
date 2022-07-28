@@ -21,17 +21,17 @@
       </div>
 
       <ul :class="showMenu ? 'flex' : 'hidden'"
-        class="md:flex md:flex-row flex-col py-1 md:py-0 space-y-1 md:space-y-0 md:space-x-16 font-semibold text-lg text-white hover:text-amber-300">
+        class="md:flex md:flex-row flex-col py-1 md:py-0 space-y-1 md:space-y-0 md:space-x-16 pl-4 md:pl-0 font-semibold text-lg">
         <li>
           <router-link to="/">
-            <span class="text-white hover:text-amber-200">
+            <span class="text-white hover:text-gray-200">
               Home
             </span>
           </router-link>
         </li>
         <li>
           <router-link to="/ds-protection">
-            <span class="text-white hover:text-amber-200">
+            <span class="text-white hover:text-gray-200">
               Double-Spending Protection
             </span>
           </router-link>
