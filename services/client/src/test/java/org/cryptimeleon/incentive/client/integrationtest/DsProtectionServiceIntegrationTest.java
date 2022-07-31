@@ -49,6 +49,7 @@ public class DsProtectionServiceIntegrationTest extends SpendTest {
         runSpendDeductWorkflow(token, basketId);
 
         // query recorded transaction object from database
+        // TODO: need runSpendDeductWorkflow to return the ta identifier of the occured ta to use it for this query
     }
 
     /**
@@ -56,6 +57,6 @@ public class DsProtectionServiceIntegrationTest extends SpendTest {
      * then checks whether second transaction was recorded as invalid in database.
      */
     public void doubleSpendingTest() {
-        
+
     }
 }

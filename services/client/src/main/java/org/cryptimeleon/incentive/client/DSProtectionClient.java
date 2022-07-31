@@ -2,6 +2,8 @@ package org.cryptimeleon.incentive.client;
 
 import org.cryptimeleon.incentive.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.model.DoubleSpendingTag;
+import org.cryptimeleon.incentive.crypto.model.Transaction;
+import org.cryptimeleon.incentive.crypto.model.TransactionIdentifier;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
@@ -27,6 +29,7 @@ public class DSProtectionClient {
 
     private static final String DBSYNC_PATH = "/dbsync";
     private static final String CLEAR_DB_PATH = "/cleardb";
+    private static final String GET_TRANSACTION_PATH = "/getta";
 
     public DSProtectionClient(String dsProtectionServiceURL) {
         logger.info("Creating a client that sends queries to " + dsProtectionServiceURL);
@@ -44,7 +47,6 @@ public class DSProtectionClient {
      */
     public String dbSync(Zn.ZnElement tid, GroupElement dsid, DoubleSpendingTag dstag, BigInteger promotionId, String userChoice) {
         // marshall transaction data
-        JSONConverter jsonConverter = new JSONConverter();
         String serializedTid = Helper.computeSerializedRepresentation(tid);
         String serializedDsidRepr = Helper.computeSerializedRepresentation(dsid);
         String serializedDsTagRepr = Helper.computeSerializedRepresentation(dstag);
@@ -76,5 +78,25 @@ public class DSProtectionClient {
                 .bodyToMono(String.class);
 
         return response.block();
+    }
+
+    /**
+     * Returns the transaction with the specified transaction identifier from the database if contained.
+     * @param taIdentifier transaction identifier, consisting of a numerical ID and the challenge generator gamma
+     * @return Transaction object (crypto)
+     */
+    public Transaction getTransaction(TransactionIdentifier taIdentifier) {
+        // marshall transaction identifier data
+        String serializedTransactionIdentifier = Helper.computeSerializedRepresentation(taIdentifier);
+
+        // make request
+        Mono<Transaction> getTransactionResponse = this.dsProtectionClient.get()
+                .uri(uriBuilder -> uriBuilder.path(GET_TRANSACTION_PATH).build())
+                .header("taidentifier", serializedTransactionIdentifier)
+                .retrieve()
+                .bodyToMono(Transaction.class);
+
+        // return result
+        return getTransactionResponse.block();
     }
 }

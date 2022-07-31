@@ -3,6 +3,8 @@ package org.cryptimeleon.incentivesystem.dsprotectionservice;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.model.DoubleSpendingTag;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
+import org.cryptimeleon.incentive.crypto.model.Transaction;
+import org.cryptimeleon.incentive.crypto.model.TransactionIdentifier;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.storage.DsTagEntryRepository;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.storage.DsidRepository;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.storage.TransactionEntryRepository;
@@ -87,5 +89,20 @@ public class DsprotectionService {
      */
     public void clearDatabase() {
         localDbHandler.clearDatabase();
+    }
+
+    /**
+     * Returns the transaction with the specified transaction identifier from the database if contained.
+     * @param serializedTaIdentifier serialized representation of a transaction identifier, consisting of a numerical ID and the challenge generator gamma
+     * @return Transaction object (crypto)
+     */
+    public Transaction getTransaction(String serializedTaIdentifier) {
+        JSONConverter jsonConverter = new JSONConverter();
+        TransactionIdentifier taIdentifier = new TransactionIdentifier(
+                jsonConverter.deserialize(serializedTaIdentifier),
+                cryptoRepository.getPp()
+        );
+
+        return localDbHandler.getTransactionNode(taIdentifier);
     }
 }
