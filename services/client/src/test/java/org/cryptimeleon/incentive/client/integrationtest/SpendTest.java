@@ -10,8 +10,7 @@ import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.SpendRequestDto;
 import org.cryptimeleon.incentive.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
-import org.cryptimeleon.incentive.crypto.model.DeductOutput;
-import org.cryptimeleon.incentive.crypto.model.SpendDeductRequestAndOutput;
+import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.crypto.model.SpendResponse;
 import org.cryptimeleon.incentive.crypto.model.Token;
 import org.cryptimeleon.incentive.promotion.EmptyTokenUpdateMetadata;
@@ -47,7 +46,7 @@ public class SpendTest extends IncentiveSystemIntegrationTest {
             new RewardSideEffect(REWARD_ID),
             20
     );
-    private final Promotion testPromotion = new HazelPromotion(
+    protected final Promotion testPromotion = new HazelPromotion(
             HazelPromotion.generatePromotionParameters(),
             "Test Promotion",
             "Some Test Promotion",
@@ -79,15 +78,13 @@ public class SpendTest extends IncentiveSystemIntegrationTest {
 
     @Test
     void rewardsAddedToBasketTest() {
-        Token token = Helper.generateToken(cryptoAssets.getPublicParameters(),
-                cryptoAssets.getUserKeyPair(),
-                cryptoAssets.getProviderKeyPair(),
+        Token token = generateToken(
                 testPromotion.getPromotionParameters(),
                 Vector.of(BigInteger.valueOf(20))
         );
-        var basketId = basketClient.createBasket().block();
+        var basketId = createBasket();
         assert basketId != null;
-        log.info("BasketId" + basketId.toString());
+        log.info("BasketId: " + basketId.toString());
 
         runSpendDeductWorkflow(token, basketId);
         var basketAfterSpend = basketClient.getBasket(basketId).block();
@@ -101,7 +98,7 @@ public class SpendTest extends IncentiveSystemIntegrationTest {
      * and returns the spend request together with the protocol output
      * for further use in the double-spending protection test.
      */
-    private SpendDeductRequestAndOutput runSpendDeductWorkflow(Token token, UUID basketId) {
+    protected void runSpendDeductWorkflow(Token token, UUID basketId) {
         // generate transaction ID from basket ID
         var tid = cryptoAssets.getPublicParameters().getBg().getZn().createZnElement(new BigInteger(basketId.toString().replace("-", ""), 16));
 
@@ -147,9 +144,33 @@ public class SpendTest extends IncentiveSystemIntegrationTest {
                 cryptoAssets.getProviderKeyPair().getPk(),
                 cryptoAssets.getUserKeyPair()
         );
+    }
 
-        // return request and protocol output for later use in double-spending protection integration test
-        // return new SpendDeductRequestAndOutput(spendRequest,)
-        return null;
+
+    /*
+    * helper methods
+    */
+
+    /**
+     * wrapper around crypto. ... .Helper.generateToken that fixes parameters that are the same for all calls anyway.
+     * @param promotionParameters promotion parameters for the promotion the token should be used for
+     * @param pointVector point counts in the token
+     * @return Token
+     */
+    protected Token generateToken(PromotionParameters promotionParameters, Vector<BigInteger> pointVector) {
+        return Helper.generateToken(cryptoAssets.getPublicParameters(),
+                cryptoAssets.getUserKeyPair(),
+                cryptoAssets.getProviderKeyPair(),
+                promotionParameters,
+                pointVector
+        );
+    }
+
+    /**
+     * Creates a basket and returns its basket ID.
+     * @return basket ID
+     */
+    protected UUID createBasket() {
+        return basketClient.createBasket().block();
     }
 }
