@@ -33,18 +33,18 @@
         * Endpoint for that already coded, see GitHub issue #105.
         */
         async created() {
+            // display heartbeat message to show server status
+            const heartbeatRes = await fetch('dsprotection')
+            this.helloMessage = await heartbeatRes.text()
+
             /*
             * Fetch transaction list (as array of JSON objects) from backend.
             *
             * Transaction is a triplet 
             * transaction ID, validity and reward that the user claimed with the respective spend transaction.
             */
-            const transactionsRes = await fetch('api/transactions')
+            const transactionsRes = await fetch('dsprotection/transactions')
             this.transactions = await transactionsRes.json()
-
-            // display heartbeat message to show server status
-            const heartbeatRes = await fetch('api')
-            this.helloMessage = await heartbeatRes.text()
         }
     }
 </script>
