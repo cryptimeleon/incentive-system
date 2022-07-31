@@ -80,6 +80,7 @@ public class DsprotectionService {
         return this.localDbHandler.getAllTransactions().stream().map(TransactionDto::new).collect(Collectors.toList());
     }
 
+    // TODO: this endpoint needs to be protected by a shared secret
     /**
      * Clears all tables of the double-spending database.
      * Needed for test runs where different test scenarios are created without restarting the double-spending protection service after each test.

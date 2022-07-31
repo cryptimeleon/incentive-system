@@ -1,5 +1,7 @@
 package org.cryptimeleon.incentive.client.integrationtest;
 
+import org.cryptimeleon.incentive.client.DSProtectionClient;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 
 import java.math.BigInteger;
@@ -13,12 +15,24 @@ import org.cryptimeleon.math.structures.cartesian.Vector;
  * Setup is done using a BeforeEach-annotated method in the SpendTest class.
  */
 public class DsProtectionServiceIntegrationTest extends SpendTest {
+    private DSProtectionClient dsProtectionClient;
+
+    @BeforeAll
+    void testSetup() {
+        // setup clients, crypto assets, basket and promotions (identical to spend test)
+        prepareBasketAndPromotions();
+
+        // create dsprotection client (only needed in dsprotection test)
+        dsProtectionClient = new DSProtectionClient(dsProtectionUrl);
+    }
+
     /**
      * Clears all transactions from possible previous test runs from the database.
      */
     @BeforeEach
     public void clearDatabase() {
         // REST call
+        dsProtectionClient.clearDatabase();
     }
 
     /**
@@ -42,6 +56,6 @@ public class DsProtectionServiceIntegrationTest extends SpendTest {
      * then checks whether second transaction was recorded as invalid in database.
      */
     public void doubleSpendingTest() {
-
+        
     }
 }

@@ -78,4 +78,13 @@ public class DsprotectionController {
     public ResponseEntity<List<TransactionDto>> getAllTransactions() {
         return new ResponseEntity<>(dsprotectionService.getAllTransactions(), HttpStatus.OK);
     }
+
+    @PostMapping("/cleardb")
+    public ResponseEntity<String> clearDatabase() {
+        // trigger in service
+        dsprotectionService.clearDatabase();
+
+        // send response
+        return new ResponseEntity<>("Cleared all tables, double-spending protection service still running.", HttpStatus.OK);
+    }
 }

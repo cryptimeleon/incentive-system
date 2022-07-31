@@ -26,6 +26,7 @@ public class DSProtectionClient {
     private WebClient dsProtectionClient; // the underlying web client making the requests
 
     private static final String DBSYNC_PATH = "/dbsync";
+    private static final String CLEAR_DB_PATH = "/cleardb";
 
     public DSProtectionClient(String dsProtectionServiceURL) {
         logger.info("Creating a client that sends queries to " + dsProtectionServiceURL);
@@ -62,5 +63,18 @@ public class DSProtectionClient {
 
         // return response
         return dbSyncResponse.block();
+    }
+
+    /**
+     * Causes the double-spending protection service to clear all databases
+     * @return response text
+     */
+    public String clearDatabase() {
+        Mono<String> response = this.dsProtectionClient.post()
+                .uri(uriBuilder -> uriBuilder.path(CLEAR_DB_PATH).build())
+                .retrieve()
+                .bodyToMono(String.class);
+
+        return response.block();
     }
 }

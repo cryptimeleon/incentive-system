@@ -63,7 +63,7 @@ public class SpendTest extends IncentiveSystemIntegrationTest {
     private IncentiveSystem incentiveSystem;
 
     @BeforeAll
-    void prepareBasketAndPromotions() {
+    protected void prepareBasketAndPromotions() {
         infoClient = new InfoClient(infoUrl);
         basketClient = new BasketClient(basketUrl);
         incentiveClient = new IncentiveClient(incentiveUrl);
