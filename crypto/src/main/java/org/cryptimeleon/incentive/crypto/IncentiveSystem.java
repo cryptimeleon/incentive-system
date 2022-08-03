@@ -98,12 +98,12 @@ public class IncentiveSystem {
      * Sign a verified (userPublicKey, w) tuple for the genesis process:
      * We can force users to such a signed public key in all their tokens.
      */
-   public GenesisSignature signVerifiedUserPublicKey(ProviderKeyPair providerKeyPair, UserPublicKey userPublicKey) {
-       return new GenesisSignature((SPSEQSignature) pp.getGenesisSpsEq().sign(
+   public SPSEQSignature signVerifiedUserPublicKey(ProviderKeyPair providerKeyPair, UserPublicKey userPublicKey) {
+       return (SPSEQSignature) pp.getSpsEq().sign(
                providerKeyPair.getSk().getGenesisSpsEqSk(),
                userPublicKey.getUpk(),
                pp.getW()
-       ));
+       );
     }
 
 
@@ -123,8 +123,20 @@ public class IncentiveSystem {
         UserPublicKey upk = ukp.getPk();
         UserSecretKey usk = ukp.getSk();
 
+
+
         // generate random values needed for generation of fresh user token using PRF hashThenPRFtoZn, user secret key is hash input
         IssueJoinRandomness R = computeIssueJoinRandomness(ukp.getSk(), promotionParameters);
+
+        // blind genesis signature
+        GroupElement blindedUpk = upk.getUpk().pow(R.blindGenesisR);
+        GroupElement blindedW = pp.getW().pow(R.blindGenesisR);
+        SPSEQSignature blindedGenesisSignature = (SPSEQSignature) pp.getSpsEq().chgRep(
+                        ukp.getSk().getGenesisSignature(),
+                        R.blindGenesisR,
+                        pk.getGenesisSpsEqPk()
+                );
+
 
         GroupElementVector H = pk.getTokenMetadataH(this.pp);
 
@@ -141,7 +153,7 @@ public class IncentiveSystem {
         FiatShamirProof cwfProof = cwfProofSystem.createProof(cwfCommon, cwfWitness);
 
         // assemble and return join request object (commitment, proof of well-formedness)
-        return new JoinRequest(c0Pre, c1Pre, cwfProof);
+        return new JoinRequest(c0Pre, c1Pre, cwfProof, blindedUpk, blindedW, blindedGenesisSignature);
     }
 
     /**
@@ -863,10 +875,10 @@ public class IncentiveSystem {
         var prv = pp.getPrfToZn().hashThenPrfToZnVector(
                 userSecretKey.getPrfKey(),
                 userSecretKey,
-                6,
+                7,
                 "IssueJoin" + promotionParameters.getPromotionId().toString() // Ensure randomness is unique for every promotion
         ).stream().map(ringElement -> (ZnElement) ringElement).collect(Collectors.toList());
-        return new IssueJoinRandomness(prv.get(0), prv.get(1), prv.get(2), prv.get(3), prv.get(4), prv.get(5));
+        return new IssueJoinRandomness(prv.get(0), prv.get(1), prv.get(2), prv.get(3), prv.get(4), prv.get(5), prv.get(6));
     }
 
     /**
@@ -898,6 +910,7 @@ class IssueJoinRandomness {
     final ZnElement z;
     final ZnElement t;
     final ZnElement u;
+    final ZnElement blindGenesisR;
 }
 
 /**
