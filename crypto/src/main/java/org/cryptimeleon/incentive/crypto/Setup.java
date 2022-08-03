@@ -94,7 +94,8 @@ public class Setup {
         HashThenPrfToZn prfToZn = new HashThenPrfToZn(HASH_THEN_PRF_AES_KEY_LENGTH, bg.getZn(), new SHA256HashFunction(), HASH_THEN_PRF_OVERSUBSCRIPTION);
 
         // instantiate SPS-EQ scheme used in this instance of the incentive system
-        SPSEQSignatureScheme spsEq = new SPSEQSignatureScheme(new SPSEQPublicParameters(bg));
+        SPSEQSignatureScheme tokenSpsEq = new SPSEQSignatureScheme(new SPSEQPublicParameters(bg));
+        SPSEQSignatureScheme genesisSpsEq = new SPSEQSignatureScheme(new SPSEQPublicParameters(bg));
 
         // draw generators for groups in used bilinear group at random
         GroupElement g1 = bg.getG1().getGenerator().compute();
@@ -105,7 +106,7 @@ public class Setup {
         var eskBaseSetMembershipPublicParameters = SetMembershipPublicParameters.generate(bg, eskBaseSet);
 
         // wrap up all values
-        return new IncentivePublicParameters(bg, w, h7, g1, g2, prfToZn, spsEq, bg.getZn().valueOf(ESK_DEC_BASE), MAX_POINTS_BASE_POWER, eskBaseSetMembershipPublicParameters);
+        return new IncentivePublicParameters(bg, w, h7, g1, g2, prfToZn, tokenSpsEq, genesisSpsEq, bg.getZn().valueOf(ESK_DEC_BASE), MAX_POINTS_BASE_POWER, eskBaseSetMembershipPublicParameters);
     }
 
     /**
@@ -147,14 +148,13 @@ public class Setup {
         // generate PRF key for provider
         PrfKey betaProv = pp.getPrfToZn().generateKey();
 
-        // generate SPS-EQ key pair
-        SignatureKeyPair<SPSEQVerificationKey, SPSEQSigningKey> spsEqKeyPair = pp.getSpsEq().generateKeyPair(3);
-        SPSEQVerificationKey spseqVerificationKey = spsEqKeyPair.getVerificationKey();
-        SPSEQSigningKey spseqSigningKey = spsEqKeyPair.getSigningKey();
+        // generate SPS-EQ key pairs
+        SignatureKeyPair<SPSEQVerificationKey, SPSEQSigningKey> tokenSpsEqKeyPair = pp.getSpsEq().generateKeyPair(3);
+        SignatureKeyPair<SPSEQVerificationKey, SPSEQSigningKey> genesisSpsEqKeyPair = pp.getSpsEq().generateKeyPair(2);
 
         // wrap up values
-        ProviderPublicKey pk = new ProviderPublicKey(spseqVerificationKey, h);
-        ProviderSecretKey sk = new ProviderSecretKey(spseqSigningKey, q, betaProv);
+        ProviderPublicKey pk = new ProviderPublicKey(tokenSpsEqKeyPair.getVerificationKey(), genesisSpsEqKeyPair.getVerificationKey(), h);
+        ProviderSecretKey sk = new ProviderSecretKey(tokenSpsEqKeyPair.getSigningKey(), genesisSpsEqKeyPair.getSigningKey(), q, betaProv);
         return new ProviderKeyPair(sk, pk);
     }
 

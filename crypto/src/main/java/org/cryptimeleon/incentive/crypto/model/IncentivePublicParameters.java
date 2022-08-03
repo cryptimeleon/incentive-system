@@ -48,6 +48,11 @@ public class IncentivePublicParameters implements PublicParameters {
     @NonFinal
     @Represented
     SPSEQSignatureScheme spsEq; // same here for SPS-EQ scheme
+    // TODO rename all 'old' occurrences of spsEq to tokenSpsEq
+
+    @NonFinal
+    @Represented
+    SPSEQSignatureScheme genesisSpsEq; // same here for SPS-EQ scheme
 
     @NonFinal
     @Represented(restorer = "bg::getZn")
@@ -70,7 +75,17 @@ public class IncentivePublicParameters implements PublicParameters {
         init();
     }
 
-    public IncentivePublicParameters(BilinearGroup bg, GroupElement w, GroupElement h7, GroupElement g1, GroupElement g2, HashThenPrfToZn prfToZn, SPSEQSignatureScheme spsEq, Zn.ZnElement eskDecBase, int maxPointBasePower, SetMembershipPublicParameters eskBaseSetMembershipPublicParameters) {
+    public IncentivePublicParameters(BilinearGroup bg,
+                                     GroupElement w,
+                                     GroupElement h7,
+                                     GroupElement g1,
+                                     GroupElement g2,
+                                     HashThenPrfToZn prfToZn,
+                                     SPSEQSignatureScheme spsEq,
+                                     SPSEQSignatureScheme genesisSpsEq,
+                                     Zn.ZnElement eskDecBase,
+                                     int maxPointBasePower,
+                                     SetMembershipPublicParameters eskBaseSetMembershipPublicParameters) {
         this.bg = bg;
         this.w = w;
         this.h7 = h7;
@@ -78,6 +93,7 @@ public class IncentivePublicParameters implements PublicParameters {
         this.g2Generator = g2;
         this.prfToZn = prfToZn;
         this.spsEq = spsEq;
+        this.genesisSpsEq = genesisSpsEq;
         this.eskDecBase = eskDecBase;
         this.maxPointBasePower = maxPointBasePower;
         this.eskBaseSetMembershipPublicParameters = eskBaseSetMembershipPublicParameters;
