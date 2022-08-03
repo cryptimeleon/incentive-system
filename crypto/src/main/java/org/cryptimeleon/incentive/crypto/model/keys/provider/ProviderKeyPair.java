@@ -5,9 +5,6 @@ import org.cryptimeleon.math.serialization.annotations.Represented;
 
 @Value
 public class ProviderKeyPair {
-    @Represented
     ProviderSecretKey sk;
-
-    @Represented
     ProviderPublicKey pk;
 }
