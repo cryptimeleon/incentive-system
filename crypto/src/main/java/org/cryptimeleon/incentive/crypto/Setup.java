@@ -76,10 +76,6 @@ public class Setup {
         }
 
 
-        // generate generators for the groups that make up the domain
-        GroupElement g1Generator = bg.getG1().getGenerator();
-        GroupElement g2Generator = bg.getG2().getGenerator();
-
         /*
          * note: in trusted setup (as in this implementation), it does not matter how w and h7 are generated
          */
@@ -94,8 +90,7 @@ public class Setup {
         HashThenPrfToZn prfToZn = new HashThenPrfToZn(HASH_THEN_PRF_AES_KEY_LENGTH, bg.getZn(), new SHA256HashFunction(), HASH_THEN_PRF_OVERSUBSCRIPTION);
 
         // instantiate SPS-EQ scheme used in this instance of the incentive system
-        SPSEQSignatureScheme tokenSpsEq = new SPSEQSignatureScheme(new SPSEQPublicParameters(bg));
-        SPSEQSignatureScheme genesisSpsEq = new SPSEQSignatureScheme(new SPSEQPublicParameters(bg));
+        SPSEQSignatureScheme spsEq = new SPSEQSignatureScheme(new SPSEQPublicParameters(bg));
 
         // draw generators for groups in used bilinear group at random
         GroupElement g1 = bg.getG1().getGenerator().compute();
@@ -106,7 +101,7 @@ public class Setup {
         var eskBaseSetMembershipPublicParameters = SetMembershipPublicParameters.generate(bg, eskBaseSet);
 
         // wrap up all values
-        return new IncentivePublicParameters(bg, w, h7, g1, g2, prfToZn, tokenSpsEq, genesisSpsEq, bg.getZn().valueOf(ESK_DEC_BASE), MAX_POINTS_BASE_POWER, eskBaseSetMembershipPublicParameters);
+        return new IncentivePublicParameters(bg, w, h7, g1, g2, prfToZn, spsEq, bg.getZn().valueOf(ESK_DEC_BASE), MAX_POINTS_BASE_POWER, eskBaseSetMembershipPublicParameters);
     }
 
     /**

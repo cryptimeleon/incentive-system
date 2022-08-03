@@ -27,12 +27,12 @@ public class KeyTest {
 
         logger.info("Provider Secret Key representation");
         var providerSecretKey = providerKeyPair.getSk();
-        var deserializedProviderSecretKey = new ProviderSecretKey(providerSecretKey.getRepresentation(), pp.getSpsEq(), pp.getBg().getZn(), pp.getPrfToZn());
+        var deserializedProviderSecretKey = new ProviderSecretKey(providerSecretKey.getRepresentation(), pp);
         assertEquals(deserializedProviderSecretKey, providerSecretKey);
 
         logger.info("Provider Public Key representation");
         var providerPublicKey = providerKeyPair.getPk();
-        var deserializedProviderPublicKey = new ProviderPublicKey(providerPublicKey.getRepresentation(), pp.getSpsEq(), pp.getBg().getG1());
+        var deserializedProviderPublicKey = new ProviderPublicKey(providerPublicKey.getRepresentation(), pp);
         assertEquals(deserializedProviderPublicKey, providerPublicKey);
     }
 
@@ -44,12 +44,12 @@ public class KeyTest {
 
         logger.info("User Secret Key representation");
         var userSecretKey = userKeyPair.getSk();
-        var deserializedUserSecretKey = new UserSecretKey(userSecretKey.getRepresentation(), pp.getBg().getZn(), pp.getPrfToZn());
+        var deserializedUserSecretKey = new UserSecretKey(userSecretKey.getRepresentation(), pp);
         assertEquals(deserializedUserSecretKey, userSecretKey);
 
         logger.info("User Public Key representation");
         var userPublicKey = userKeyPair.getPk();
-        var deserializedUserPublicKey = new UserPublicKey(userPublicKey.getRepresentation(), pp.getBg().getG1());
+        var deserializedUserPublicKey = new UserPublicKey(userPublicKey.getRepresentation(), pp);
         assertEquals(deserializedUserPublicKey, userPublicKey);
     }
 }
