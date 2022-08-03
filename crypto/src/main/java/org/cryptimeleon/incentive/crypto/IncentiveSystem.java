@@ -93,6 +93,20 @@ public class IncentiveSystem {
         return new PromotionParameters(BigInteger.ONE, 1);
     }
 
+
+    /**
+     * Sign a verified (userPublicKey, w) tuple for the genesis process:
+     * We can force users to such a signed public key in all their tokens.
+     */
+   public SPSEQSignature signVerifiedUserPublicKey(ProviderKeyPair providerKeyPair, UserPublicKey userPublicKey) {
+       return (SPSEQSignature) pp.getGenesisSpsEq().sign(
+               providerKeyPair.getSk().getGenesisSpsEqSk(),
+               userPublicKey.getUpk(),
+               pp.getW()
+       );
+    }
+
+
     /*
      * implementation of the Issue {@literal <}-{@literal >}Join protocol
      */
