@@ -1,5 +1,6 @@
 package org.cryptimeleon.incentive.crypto.model.keys.provider;
 
+import lombok.AllArgsConstructor;
 import lombok.Value;
 import lombok.experimental.NonFinal;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignatureScheme;
@@ -15,19 +16,19 @@ import org.cryptimeleon.math.structures.groups.Group;
 import org.cryptimeleon.math.structures.groups.cartesian.GroupElementVector;
 
 @Value
+@AllArgsConstructor
 public class ProviderPublicKey implements Representable {
     @NonFinal
     @Represented(restorer = "SPSEQScheme")
     SPSEQVerificationKey pkSpsEq;
 
     @NonFinal
+    @Represented(restorer = "SPSEQScheme")
+    SPSEQVerificationKey genesisSpsEqPk;
+
+    @NonFinal
     @Represented(restorer = "G1")
     GroupElementVector h; // first six bases for the Pedersen commitment in the tokens
-
-    public ProviderPublicKey(SPSEQVerificationKey pkSpsEq, GroupElementVector h) throws IllegalArgumentException {
-        this.pkSpsEq = pkSpsEq;
-        this.h = h;
-    }
 
     @Deprecated
     public ProviderPublicKey(Representation repr, SPSEQSignatureScheme spseqSignatureScheme, Group group1) {
