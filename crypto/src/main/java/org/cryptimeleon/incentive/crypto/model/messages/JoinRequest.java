@@ -5,6 +5,7 @@ import lombok.Value;
 import lombok.experimental.NonFinal;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProof;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
+import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellformednessCommonInput;
@@ -27,6 +28,17 @@ public class JoinRequest implements Representable {
 
     @NonFinal
     FiatShamirProof cwfProof; // proof for well-formedness of token and knowledge of usk corresp. to upk
+
+    // (upb^r, w^r) + genesisSignature^r (valid signature on this tuple)
+    @NonFinal
+    GroupElement blindedUpk;
+
+    @NonFinal
+    GroupElement blindedW;
+
+    @NonFinal
+    SPSEQSignature blindedGenesisSignature;
+
 
     public JoinRequest(Representation repr, IncentivePublicParameters pp, UserPublicKey upk, FiatShamirProofSystem fsps) {
         // force passed representation into a list representation (does not throw class cast exception in intended use cases)
