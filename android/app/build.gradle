@@ -111,8 +111,6 @@ dependencies {
     // Cryptimeleon
     implementation 'org.cryptimeleon.incentive:crypto:1.0.0'
     implementation 'org.cryptimeleon.incentive:promotion:1.0.0'
-    // Test Fixtures
-    testImplementation testFixtures('org.cryptimeleon.incentive:crypto:1.0.0')
 
     // Logging
     implementation 'com.jakewharton.timber:timber:5.0.1'
