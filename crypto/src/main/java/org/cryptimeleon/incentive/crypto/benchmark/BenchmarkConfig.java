@@ -3,9 +3,11 @@ package org.cryptimeleon.incentive.crypto.benchmark;
 import lombok.AllArgsConstructor;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.Setup;
+import org.cryptimeleon.incentive.crypto.Util;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderSecretKey;
+import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserSecretKey;
 
@@ -58,7 +60,8 @@ public class BenchmarkConfig {
     private void manualSetup(int securityParameter, Setup.BilinearGroupChoice bilinearGroupChoice) {
         this.pp = Setup.trustedSetup(securityParameter, bilinearGroupChoice);
         var providerKeys = Setup.providerKeyGen(pp);
-        var userKeys = Setup.userKeyGen(pp);
+        var userPreKeys = Setup.userKeyGen(pp);
+        var userKeys = Util.addGenesisSignatureToUserKeys(userPreKeys, providerKeys, pp);
         this.upk = userKeys.getPk();
         this.usk = userKeys.getSk();
         this.ppk = providerKeys.getPk();

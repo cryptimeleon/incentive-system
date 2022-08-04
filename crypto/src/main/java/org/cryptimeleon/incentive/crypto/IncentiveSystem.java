@@ -13,6 +13,7 @@ import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderSecretKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
+import org.cryptimeleon.incentive.crypto.model.keys.user.UserPreKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserSecretKey;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinRequest;
@@ -84,7 +85,7 @@ public class IncentiveSystem {
      *
      * @return fresh user key pair
      */
-    public UserKeyPair generateUserKeys() {
+    public UserPreKeyPair generateUserKeys() {
         return Setup.userKeyGen(this.pp);
     }
 
@@ -136,6 +137,7 @@ public class IncentiveSystem {
                         R.blindGenesisR,
                         pk.getGenesisSpsEqPk()
                 );
+        assert pp.getSpsEq().verify(pk.getGenesisSpsEqPk(), blindedGenesisSignature, blindedUpk, blindedW);
 
 
         GroupElementVector H = pk.getTokenMetadataH(this.pp);
@@ -148,7 +150,7 @@ public class IncentiveSystem {
 
         // compute NIZKP to prove well-formedness of token
         FiatShamirProofSystem cwfProofSystem = new FiatShamirProofSystem(new CommitmentWellformednessProtocol(pp, pk));
-        CommitmentWellformednessCommonInput cwfCommon = new CommitmentWellformednessCommonInput(upk.getUpk(), c0Pre, c1Pre);
+        CommitmentWellformednessCommonInput cwfCommon = new CommitmentWellformednessCommonInput(c0Pre, c1Pre, blindedUpk, blindedW);
         CommitmentWellformednessWitness cwfWitness = new CommitmentWellformednessWitness(usk.getUsk(), R.eskUsr, R.dsrnd0, R.dsrnd1, R.z, R.t, R.u.inv());
         FiatShamirProof cwfProof = cwfProofSystem.createProof(cwfCommon, cwfWitness);
 
@@ -173,10 +175,18 @@ public class IncentiveSystem {
         // read out parts of the pre-commitment and the commitment well-formedness proof from the join request object
         GroupElement c0Pre = jr.getPreCommitment0();
         GroupElement c1Pre = jr.getPreCommitment1();
+        GroupElement blindedW = jr.getBlindedW();
+        GroupElement blindedUpk = jr.getBlindedUpk();
         FiatShamirProof cwfProof = jr.getCwfProof();
 
+        // Verify genesis signature
+        SPSEQSignature blindedGenesisSignature = jr.getBlindedGenesisSignature();
+        if (!pp.getSpsEq().verify(pk.getGenesisSpsEqPk(), blindedGenesisSignature, blindedUpk, blindedW)) {
+            throw new IllegalArgumentException("The blinded genesis signature is invalid!");
+        }
+
         // reassemble common input for the commitment well-formedness proof
-        CommitmentWellformednessCommonInput cwfProofCommonInput = new CommitmentWellformednessCommonInput(upk, c0Pre, c1Pre);
+        CommitmentWellformednessCommonInput cwfProofCommonInput = new CommitmentWellformednessCommonInput(c0Pre, c1Pre, blindedUpk, blindedW);
 
         // check commitment well-formedness proof for validity
         FiatShamirProofSystem cwfProofSystem = new FiatShamirProofSystem(new CommitmentWellformednessProtocol(pp, pk));

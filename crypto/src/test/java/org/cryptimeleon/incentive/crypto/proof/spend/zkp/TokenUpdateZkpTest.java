@@ -1,10 +1,7 @@
 package org.cryptimeleon.incentive.crypto.proof.spend.zkp;
 
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
-import org.cryptimeleon.incentive.crypto.Helper;
-import org.cryptimeleon.incentive.crypto.IncentiveSystem;
-import org.cryptimeleon.incentive.crypto.Setup;
-import org.cryptimeleon.incentive.crypto.Util;
+import org.cryptimeleon.incentive.crypto.*;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.crypto.model.Token;
@@ -73,13 +70,13 @@ class TokenUpdateZkpTest {
 
     @BeforeEach
     void setup() {
-        pp = Setup.trustedSetup(128, Setup.BilinearGroupChoice.Debug);
+        pp = TestSuite.pp;
         zn = pp.getBg().getZn();
-        providerKey = Setup.providerKeyGen(pp);
-        userKey = Setup.userKeyGen(pp);
-        incentiveSystem = new IncentiveSystem(pp);
-        promotion = incentiveSystem.generatePromotionParameters(TEST_VECTOR_SIZE);
-        token = Helper.generateToken(pp, userKey, providerKey, promotion, points);
+        providerKey = TestSuite.providerKeyPair;
+        userKey = TestSuite.userKeyPair;
+        incentiveSystem = TestSuite.incentiveSystem;
+        promotion = IncentiveSystem.generatePromotionParameters(TEST_VECTOR_SIZE);
+        token = TestSuite.generateToken(promotion, points);
 
         var testSuite = SpendHelper.generateTestSuite(
                 newPoints,

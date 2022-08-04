@@ -11,9 +11,7 @@ import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderSecretKey;
-import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
-import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
-import org.cryptimeleon.incentive.crypto.model.keys.user.UserSecretKey;
+import org.cryptimeleon.incentive.crypto.model.keys.user.*;
 import org.cryptimeleon.math.hash.impl.SHA256HashFunction;
 import org.cryptimeleon.math.prf.PrfKey;
 import org.cryptimeleon.math.prf.zn.HashThenPrfToZn;
@@ -110,7 +108,7 @@ public class Setup {
      * @param pp object representation of public parameters
      * @return UserKeyPair
      */
-    public static UserKeyPair userKeyGen(IncentivePublicParameters pp) {
+    public static UserPreKeyPair userKeyGen(IncentivePublicParameters pp) {
         // draw random exponent for the user secret key
         Zn usedZn = pp.getBg().getZn(); // the remainder class ring used in this instance of the incentive system
         ZnElement usk = usedZn.getUniformlyRandomElement(); // secret exponent
@@ -122,9 +120,9 @@ public class Setup {
         GroupElement upkElem = pp.getW().pow(usk).compute();
 
         // wrap up values
-        UserSecretKey uSk = new UserSecretKey(usk, betaUsr);
+        UserPreSecretKey uSk = new UserPreSecretKey(usk, betaUsr);
         UserPublicKey uPk = new UserPublicKey(upkElem);
-        return new UserKeyPair(uPk, uSk);
+        return new UserPreKeyPair(uPk, uSk);
     }
 
     /**

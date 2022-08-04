@@ -10,11 +10,14 @@ import org.cryptimeleon.math.structures.groups.GroupElement;
 @AllArgsConstructor
 public class CommitmentWellformednessCommonInput implements CommonInput {
     @NonFinal
-    GroupElement upk; // user public key
-
-    @NonFinal
     GroupElement c0Pre; // left part of preliminary token's commitment
 
     @NonFinal
     GroupElement c1Pre; // right part of the preliminary token's commitment
+
+    @NonFinal
+    GroupElement blindedUpk;
+
+    @NonFinal
+    GroupElement blindedW;
 }
