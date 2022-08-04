@@ -3,6 +3,7 @@ package org.cryptimeleon.incentivesystem.dsprotectionservice;
 import org.cryptimeleon.incentive.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.Setup;
+import org.cryptimeleon.incentive.crypto.cryptimeleon.incentive.crypto.TestSuite;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.crypto.model.Token;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
@@ -38,7 +39,7 @@ public class DbSyncIntegrationTest {
         var incSys = new IncentiveSystem(pp);
         var promotionId = BigInteger.ONE;
         var dbHandler = new LocalDatabaseHandler(
-                incSys.getPp(),
+                pp,
                 new MockDsidEntryRepository(),
                 new MockTransactionEntryRepository(),
                 new MockDsTagEntryRepository(),
@@ -120,16 +121,15 @@ public class DbSyncIntegrationTest {
         logger.info("Starting cascading invalidations test.");
 
         logger.info("Setup incentive system, provider and user key pair and database handler for the test.");
-        var pp = IncentiveSystem.setup(256, Setup.BilinearGroupChoice.Debug);
-        var incSys = new IncentiveSystem(pp);
+        var pp = TestSuite.pp;
+        // var pp = IncentiveSystem.setup(256, Setup.BilinearGroupChoice.Debug);
+        var incSys = TestSuite.incentiveSystem;
+        var pkp = TestSuite.providerKeyPair;
+        var ukp = TestSuite.userKeyPair;
+
         var promotionId = BigInteger.ONE;
-
-        var pkp = Setup.providerKeyGen(incSys.getPp());
-
-        var ukp = Setup.userKeyGen(incSys.getPp());
-
         var dbHandler = new LocalDatabaseHandler(
-                incSys.getPp(),
+                pp,
                 new MockDsidEntryRepository(),
                 new MockTransactionEntryRepository(),
                 new MockDsTagEntryRepository(),
@@ -149,7 +149,7 @@ public class DbSyncIntegrationTest {
                 new Vector<>(new BigInteger("1")) // subtract 1 point from token per spend, generate a token with 10 points
         );
         Token initialToken = Helper.generateToken( // the initial token that the user starts off with
-                incSys.getPp(),
+                pp,
                 ukp,
                 pkp,
                 legacyPromotionParameters,
@@ -163,7 +163,7 @@ public class DbSyncIntegrationTest {
                 pkp,
                 ukp,
                 new Vector<>(new BigInteger("9")), // initial token holds 10 points, we spend one in every transaction
-                incSys.getPp().getBg().getZn().getUniformlyRandomElement(), // random transaction ID
+                pp.getBg().getZn().getUniformlyRandomElement(), // random transaction ID
                 legacyZkpTree
         );
 
@@ -174,7 +174,7 @@ public class DbSyncIntegrationTest {
                 pkp,
                 ukp,
                 new Vector<>(new BigInteger("9")), // initial token holds 10 points, we spend one in every transaction
-                incSys.getPp().getBg().getZn().getUniformlyRandomElement(), // random transaction ID
+                pp.getBg().getZn().getUniformlyRandomElement(), // random transaction ID
                 legacyZkpTree
         );
 
@@ -185,7 +185,7 @@ public class DbSyncIntegrationTest {
                 pkp,
                 ukp,
                 new Vector<>(new BigInteger("8")), // initial token holds 10 points, we spend one in every transaction
-                incSys.getPp().getBg().getZn().getUniformlyRandomElement(), // random transaction ID
+                pp.getBg().getZn().getUniformlyRandomElement(), // random transaction ID
                 legacyZkpTree
         );
 
@@ -196,7 +196,7 @@ public class DbSyncIntegrationTest {
                 pkp,
                 ukp,
                 new Vector<>(new BigInteger("8")), // initial token holds 10 points, we spend one in every transaction
-                incSys.getPp().getBg().getZn().getUniformlyRandomElement(), // random transaction ID
+                pp.getBg().getZn().getUniformlyRandomElement(), // random transaction ID
                 legacyZkpTree
         );
 
@@ -207,7 +207,7 @@ public class DbSyncIntegrationTest {
                 pkp,
                 ukp,
                 new Vector<>(new BigInteger("7")), // initial token holds 10 points, we spend one in every transaction
-                incSys.getPp().getBg().getZn().getUniformlyRandomElement(), // random transaction ID
+                pp.getBg().getZn().getUniformlyRandomElement(), // random transaction ID
                 legacyZkpTree
         );
 
@@ -216,9 +216,9 @@ public class DbSyncIntegrationTest {
         var t2 = spendDeductOutputT2.getOccuredTransaction();
         var t2Prime = spendDeductOutputT2Prime.getOccuredTransaction();
         var t3 = spendDeductOutputT3.getOccuredTransaction();
-        var dsid1 = initialToken.computeDsid(incSys.getPp());
-        var dsid2 = spendDeductOutputT1Prime.getResultToken().computeDsid(incSys.getPp()); // we want dsid2 to be the successor of t1Prime, as in the graph from the paper
-        var dsid3 = spendDeductOutputT2.getResultToken().computeDsid(incSys.getPp()); // we want dsid3 to be the successor of t2, as in the graph from the paper
+        var dsid1 = initialToken.computeDsid(pp);
+        var dsid2 = spendDeductOutputT1Prime.getResultToken().computeDsid(pp); // we want dsid2 to be the successor of t1Prime, as in the graph from the paper
+        var dsid3 = spendDeductOutputT2.getResultToken().computeDsid(pp); // we want dsid3 to be the successor of t2, as in the graph from the paper
 
         logger.info("Syncing transactions and dsids to database.");
         logger.info("Syncing some honest spend transactions.");

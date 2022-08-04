@@ -2,10 +2,14 @@ package org.cryptimeleon.incentive.services.promotion;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
+import org.cryptimeleon.craco.sig.Signature;
+import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
+import org.cryptimeleon.craco.sig.sps.eq.SPSEQSigningKey;
 import org.cryptimeleon.incentive.client.DSProtectionClient;
 import org.cryptimeleon.incentive.client.dto.inc.*;
 import org.cryptimeleon.incentive.crypto.model.DeductOutput;
 import org.cryptimeleon.incentive.crypto.model.EarnRequest;
+import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.SpendRequest;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
@@ -16,7 +20,6 @@ import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellform
 import org.cryptimeleon.incentive.promotion.Promotion;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdate;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
-import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion;
 import org.cryptimeleon.incentive.promotion.model.Basket;
 import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect;
 import org.cryptimeleon.incentive.promotion.sideeffect.SideEffect;
@@ -27,8 +30,8 @@ import org.cryptimeleon.incentive.services.promotion.repository.TokenUpdateResul
 import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.cartesian.Vector;
+import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
@@ -243,6 +246,25 @@ public class PromotionService {
         return new TokenUpdateResultsDto(
                 results.stream().filter(tokenUpdateResult -> tokenUpdateResult instanceof ZkpTokenUpdateResultDto).map(i -> (ZkpTokenUpdateResultDto) i).collect(Collectors.toList()),
                 results.stream().filter(tokenUpdateResult -> tokenUpdateResult instanceof EarnTokenUpdateResultDto).map(i -> (EarnTokenUpdateResultDto) i).collect(Collectors.toList())
+        );
+    }
+
+    public String generateGenesisSignature(String serializedUserPublicKey) {
+        var pp = cryptoRepository.getPublicParameters();
+        var sk = cryptoRepository.getProviderSecretKey().getGenesisSpsEqSk();
+
+        var upk = pp.getBg().getG1().restoreElement(jsonConverter.deserialize(serializedUserPublicKey));
+
+        SPSEQSignature signature = generateGenesisSignature(pp, sk, upk);
+
+        return jsonConverter.serialize(signature.getRepresentation());
+    }
+
+    private SPSEQSignature generateGenesisSignature(IncentivePublicParameters pp, SPSEQSigningKey sk, GroupElement upk) {
+        return (SPSEQSignature) pp.getSpsEq().sign(
+                sk,
+                upk,
+                pp.getW()
         );
     }
 }

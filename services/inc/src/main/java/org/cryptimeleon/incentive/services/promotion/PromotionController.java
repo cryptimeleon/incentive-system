@@ -73,6 +73,13 @@ public class PromotionController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @PostMapping("/genesis")
+    public ResponseEntity<String> joinPromotion(
+            @RequestHeader(name = "user-public-key") String serializedUserPublicKey
+    ) {
+        return new ResponseEntity<>(promotionService.generateGenesisSignature(serializedUserPublicKey), HttpStatus.OK);
+    }
+
     @PostMapping("/join-promotion")
     public ResponseEntity<String> joinPromotion(
             @RequestHeader(name = "promotion-id") BigInteger promotionId,

@@ -2,9 +2,11 @@ package org.cryptimeleon.incentive.client;
 
 import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.TokenUpdateResultsDto;
+import org.cryptimeleon.incentive.crypto.model.keys.user.UserPreKeyPair;
 import org.cryptimeleon.incentive.promotion.Promotion;
 import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -108,5 +110,13 @@ public class IncentiveClient implements AliveEndpoint {
                 .header("provider-secret", providerSecret)
                 .retrieve()
                 .toBodilessEntity();
+    }
+
+    public Mono<ResponseEntity<String>> genesis(UserPreKeyPair userPreKeyPair) {
+        return incentiveClient.post()
+                .uri("/genesis")
+                .header("user-public-key", jsonConverter.serialize(userPreKeyPair.getPk().getRepresentation()))
+                .retrieve()
+                .bodyToMono((new ParameterizedTypeReference<ResponseEntity<String>>() {}));
     }
 }
