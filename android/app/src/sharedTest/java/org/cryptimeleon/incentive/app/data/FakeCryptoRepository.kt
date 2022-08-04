@@ -56,7 +56,6 @@ class FakeCryptoRepository(
         val joinResponse = incentiveSystem.generateJoinRequestResponse(
             promotionParameters,
             providerKeyPair,
-            userKeyPair.pk.upk,
             joinRequest
         )
         return incentiveSystem.handleJoinRequestResponse(

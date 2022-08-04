@@ -82,7 +82,7 @@ public class Benchmark {
         ProviderSecretKey psk = benchmarkConfig.psk;
         UserPublicKey upk = benchmarkConfig.upk;
         UserSecretKey usk = benchmarkConfig.usk;
-        PromotionParameters promotionParameters = incentiveSystem.generatePromotionParameters(EARN_SPEND_AMOUNT.length());
+        PromotionParameters promotionParameters = IncentiveSystem.generatePromotionParameters(EARN_SPEND_AMOUNT.length());
         SpendDeductTree spendDeductTree = BenchmarkSpendDeductZkp.getBenchmarkSpendDeductTree(
                 promotionParameters,
                 EARN_SPEND_AMOUNT);
@@ -106,7 +106,6 @@ public class Benchmark {
                     incentiveSystem.generateJoinRequestResponse(
                             promotionParameters,
                             providerKeyPair,
-                            upk.getUpk(),
                             joinRequest
                     );
             finish = Instant.now();

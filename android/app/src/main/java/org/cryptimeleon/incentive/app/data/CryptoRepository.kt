@@ -69,8 +69,7 @@ class CryptoRepository(
             incentiveSystem.generateJoinRequest(providerPublicKey, userKeyPair, promotionParameters)
         val joinResponse = cryptoApiService.runIssueJoin(
             jsonConverter.serialize(joinRequest.representation),
-            promotionParameters.promotionId.toString(),
-            jsonConverter.serialize(userKeyPair.pk.representation)
+            promotionParameters.promotionId.toString()
         )
 
         if (!joinResponse.isSuccessful) {
@@ -139,7 +138,7 @@ class CryptoRepository(
         }
     }
 
-    private suspend fun generateAndStoreNewCryptoAssets(
+    private fun generateAndStoreNewCryptoAssets(
         remotePP: String,
         remotePPK: String
     ) {
@@ -166,7 +165,7 @@ class CryptoRepository(
             oldSerializedCryptoAsset.serializedPublicParameters != remotePP ||
             oldSerializedCryptoAsset.serializedProviderPublicKey != remotePPK
 
-    private suspend fun queryRemoteCryptoMaterial(): Pair<String, String> {
+    private fun queryRemoteCryptoMaterial(): Pair<String, String> {
         try {
             val ppResponse = infoApiService.getPublicParameters()
             val ppkResponse = infoApiService.getProviderPublicKey()

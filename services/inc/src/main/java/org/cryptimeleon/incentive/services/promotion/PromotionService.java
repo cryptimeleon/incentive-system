@@ -2,7 +2,6 @@ package org.cryptimeleon.incentive.services.promotion;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
-import org.cryptimeleon.craco.sig.Signature;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSigningKey;
 import org.cryptimeleon.incentive.client.DSProtectionClient;
@@ -12,7 +11,6 @@ import org.cryptimeleon.incentive.crypto.model.EarnRequest;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.SpendRequest;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
-import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinRequest;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
@@ -84,10 +82,9 @@ public class PromotionService {
      *
      * @param promotionId             the id that identifies the promotion
      * @param serializedJoinRequest   the serialized join request
-     * @param serializedUserPublicKey the serialized user public key
      * @return a serialized join response
      */
-    public String joinPromotion(BigInteger promotionId, String serializedJoinRequest, String serializedUserPublicKey) {
+    public String joinPromotion(BigInteger promotionId, String serializedJoinRequest) {
         // Find promotion
         Promotion promotion = promotionRepository.getPromotion(promotionId).orElseThrow(() -> new IncentiveServiceException("Promotion to Join not found!"));
 
@@ -96,11 +93,10 @@ public class PromotionService {
         var providerSecretKey = cryptoRepository.getProviderSecretKey();
         var incentiveSystem = cryptoRepository.getIncentiveSystem();
 
-        UserPublicKey userPublicKey = new UserPublicKey(jsonConverter.deserialize(serializedUserPublicKey), pp);
         FiatShamirProofSystem cwfProofSystem = new FiatShamirProofSystem(new CommitmentWellformednessProtocol(pp, providerPublicKey));
         JoinRequest joinRequest = new JoinRequest(jsonConverter.deserialize(serializedJoinRequest), pp, cwfProofSystem);
         ProviderKeyPair providerKeyPair = new ProviderKeyPair(providerSecretKey, providerPublicKey);
-        JoinResponse joinResponse = incentiveSystem.generateJoinRequestResponse(promotion.getPromotionParameters(), providerKeyPair, userPublicKey.getUpk(), joinRequest);
+        JoinResponse joinResponse = incentiveSystem.generateJoinRequestResponse(promotion.getPromotionParameters(), providerKeyPair, joinRequest);
         return jsonConverter.serialize(joinResponse.getRepresentation());
     }
 

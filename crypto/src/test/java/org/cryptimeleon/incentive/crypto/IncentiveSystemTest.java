@@ -78,7 +78,7 @@ public class IncentiveSystemTest {
         var deserializedJoinRequest = new JoinRequest(serializedJoinRequest, incSys.getPp(), cwfProofSystem);
 
         // provider handles join request and generates join response
-        var joinResponse = incSys.generateJoinRequestResponse(promotionParameters, pkp, ukp.getPk().getUpk(), deserializedJoinRequest);
+        var joinResponse = incSys.generateJoinRequestResponse(promotionParameters, pkp, deserializedJoinRequest);
 
         // serialize and deserialize join response
         var serializedJoinResponse = joinResponse.getRepresentation();

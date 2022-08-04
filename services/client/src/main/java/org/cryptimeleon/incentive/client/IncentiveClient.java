@@ -47,15 +47,13 @@ public class IncentiveClient implements AliveEndpoint {
     /**
      * Creates a join request.
      *
-     * @param serializedUserPublicKey the serialized public key of the user
      * @param serializedJoinRequest   the serialized join request
      * @return mono of the server's answer
      */
-    public Mono<String> sendJoinRequest(String serializedJoinRequest, String serializedUserPublicKey, BigInteger promotionId) {
+    public Mono<String> sendJoinRequest(BigInteger promotionId, String serializedJoinRequest) {
         return incentiveClient.post()
                 .uri("/join-promotion")
                 .header("promotion-id", String.valueOf(promotionId))
-                .header("user-public-key", serializedUserPublicKey)
                 .header("join-request", serializedJoinRequest)
                 .retrieve()
                 .bodyToMono(String.class);
@@ -78,19 +76,6 @@ public class IncentiveClient implements AliveEndpoint {
                 .bodyToMono(TokenUpdateResultsDto.class);
     }
 
-
-    public Mono<List<Promotion>> queryPromotions() {
-        return incentiveClient.get()
-                .uri("/promotions")
-                .retrieve()
-                .toEntityList(String.class)
-                .map(s ->
-                        s.getBody().stream().map(it ->
-                                (Promotion) ((RepresentableRepresentation) jsonConverter.deserialize(it)).recreateRepresentable()
-                        ).collect(Collectors.toList())
-                );
-    }
-
     public Mono<ResponseEntity<Void>> addPromotions(List<Promotion> promotions, String providerSecret) {
         return incentiveClient.post()
                 .uri("/promotions")
@@ -102,14 +87,6 @@ public class IncentiveClient implements AliveEndpoint {
 
     private List<String> serializedPromotionsRepresentable(List<Promotion> promotions) {
         return promotions.stream().map(p -> jsonConverter.serialize(new RepresentableRepresentation(p))).collect(Collectors.toList());
-    }
-
-    public Mono<ResponseEntity<Void>> deleteAllPromotions(String providerSecret) {
-        return incentiveClient.delete()
-                .uri("/promotions")
-                .header("provider-secret", providerSecret)
-                .retrieve()
-                .toBodilessEntity();
     }
 
     public Mono<ResponseEntity<String>> genesis(UserPreKeyPair userPreKeyPair) {

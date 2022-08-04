@@ -163,12 +163,11 @@ public class IncentiveSystem {
      * included preliminary commitment after adding the provider's share for the tracking key esk.
      *
      * @param pkp key pair of the provider
-     * @param upk public key of user (needed to restore upk needed to check validity of the commitment well-formedness proof)
      * @param jr  join request to be handled
      * @return join response, i.e. object representing the third message in the Issue-Join protocol
      * @throws IllegalArgumentException indicating that the proof for commitment well-formedness was rejected
      */
-    public JoinResponse generateJoinRequestResponse(PromotionParameters promotionParameters, ProviderKeyPair pkp, GroupElement upk, JoinRequest jr) throws IllegalArgumentException {
+    public JoinResponse generateJoinRequestResponse(PromotionParameters promotionParameters, ProviderKeyPair pkp, JoinRequest jr) throws IllegalArgumentException {
         ProviderPublicKey pk = pkp.getPk();
         ProviderSecretKey sk = pkp.getSk();
 

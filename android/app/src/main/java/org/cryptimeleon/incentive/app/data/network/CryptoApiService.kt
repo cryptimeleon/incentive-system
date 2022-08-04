@@ -10,13 +10,12 @@ import java.util.*
 
 interface CryptoApiService {
     @POST("genesis")
-    suspend fun retrieveGenesisSignatureFor(@Header("user-public-key") publicKey: String): Response<String>
+    suspend fun retrieveGenesisSignatureFor(@Header("user-public-key") serializedPublicKey: String): Response<String>
 
     @POST("join-promotion")
     suspend fun runIssueJoin(
         @Header("join-request") joinRequest: String,
-        @Header("promotion-id") promotionId: String,
-        @Header("user-public-key") publicKey: String // TODO remove user public key from issue-join api
+        @Header("promotion-id") promotionId: String
     ): Response<String>
 
     @POST("bulk-token-updates")
