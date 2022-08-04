@@ -31,7 +31,7 @@ public class UserInfo implements Representable {
 
     public UserInfo(Representation repr, IncentivePublicParameters pp) {
         new ReprUtil(this).register(pp.getBg().getZn(), "Zn").deserialize(repr.list().get(0));
-        this.upk = new UserPublicKey(repr.list().get(1), pp.getBg().getG1());
+        this.upk = new UserPublicKey(repr.list().get(1), pp);
     }
 
     @Override

@@ -36,17 +36,12 @@ public class ProviderSecretKey implements Representable {
     @Represented(restorer = "longAes")
     PrfKey betaProv; // Prf Key for PrfToZn
 
-    @Deprecated
-    public ProviderSecretKey(Representation repr, SPSEQSignatureScheme spseqSignatureScheme, Zn zn, HashThenPrfToZn prfToZn) {
-        new ReprUtil(this)
-                .register(spseqSignatureScheme, "SPSEQ")
-                .register(zn, "Zn")
-                .register(prfToZn.getLongAesPseudoRandomFunction()::restoreKey, "longAes")
-                .deserialize(repr);
-    }
-
     public ProviderSecretKey(Representation repr, IncentivePublicParameters pp) {
-        this(repr, pp.getSpsEq(), pp.getBg().getZn(), pp.getPrfToZn());
+        new ReprUtil(this)
+                .register(pp.getSpsEq(), "SPSEQ")
+                .register(pp.getBg().getZn(), "Zn")
+                .register(pp.getPrfToZn().getLongAesPseudoRandomFunction()::restoreKey, "longAes")
+                .deserialize(repr);
     }
 
     /**

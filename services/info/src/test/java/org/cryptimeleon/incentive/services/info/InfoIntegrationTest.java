@@ -62,9 +62,7 @@ public class InfoIntegrationTest {
                 .isOk()
                 .expectBody(String.class)
                 .consumeWith(response -> {
-                    ProviderPublicKey providerPublicKey = new ProviderPublicKey(jsonConverter.deserialize(response.getResponseBody()),
-                            publicParameters.getSpsEq(),
-                            publicParameters.getBg().getG1());
+                    new ProviderPublicKey(jsonConverter.deserialize(response.getResponseBody()), publicParameters);
                 });
     }
 
@@ -95,10 +93,7 @@ public class InfoIntegrationTest {
                 .isOk()
                 .expectBody(String.class)
                 .consumeWith(response -> {
-                    ProviderSecretKey providerSecretKey = new ProviderSecretKey(jsonConverter.deserialize(response.getResponseBody()),
-                            publicParameters.getSpsEq(),
-                            publicParameters.getBg().getZn(),
-                            publicParameters.getPrfToZn());
+                    new ProviderSecretKey(jsonConverter.deserialize(response.getResponseBody()), publicParameters);
                 });
     }
 }
