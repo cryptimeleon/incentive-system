@@ -70,7 +70,8 @@ class BenchmarkViewModel @Inject constructor(application: Application) :
 
                 Timber.i("Generating Pre User keys")
                 val userPreKeyPair = incentiveSystem.generateUserPreKeyPair()
-                val userKeyPair = Util.addGenesisSignatureToUserKeys(userPreKeyPair, providerKeyPair, pp)
+                val userKeyPair =
+                    Util.addGenesisSignatureToUserKeys(userPreKeyPair, providerKeyPair, pp)
 
                 Timber.i("Generation finished")
 

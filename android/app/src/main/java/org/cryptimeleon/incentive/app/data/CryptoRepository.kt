@@ -151,7 +151,8 @@ class CryptoRepository(
         if (!signatureResponse.isSuccessful) {
             throw RuntimeException("Signature Request failed!")
         }
-        val signature = pp.spsEq.restoreSignature(jsonConverter.deserialize(signatureResponse.body()))
+        val signature =
+            pp.spsEq.restoreSignature(jsonConverter.deserialize(signatureResponse.body()))
         val userKeyPair = UserKeyPair(userPreKeyPair, signature)
         val newCryptoAsset = CryptoMaterial(pp, providerPublicKey, userKeyPair)
 
