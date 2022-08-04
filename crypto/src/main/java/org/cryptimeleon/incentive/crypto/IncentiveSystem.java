@@ -76,7 +76,7 @@ public class IncentiveSystem {
      *
      * @return fresh provider key pair
      */
-    public ProviderKeyPair generateProviderKeys() {
+    public ProviderKeyPair generateProviderKeyPair() {
         return Setup.providerKeyGen(this.pp);
     }
 
@@ -85,8 +85,8 @@ public class IncentiveSystem {
      *
      * @return fresh user key pair
      */
-    public UserPreKeyPair generateUserKeys() {
-        return Setup.userKeyGen(this.pp);
+    public UserPreKeyPair generateUserPreKeyPair() {
+        return Setup.userPreKeyGen(this.pp);
     }
 
     @Deprecated

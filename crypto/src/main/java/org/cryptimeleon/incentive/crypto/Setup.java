@@ -108,7 +108,7 @@ public class Setup {
      * @param pp object representation of public parameters
      * @return UserKeyPair
      */
-    public static UserPreKeyPair userKeyGen(IncentivePublicParameters pp) {
+    public static UserPreKeyPair userPreKeyGen(IncentivePublicParameters pp) {
         // draw random exponent for the user secret key
         Zn usedZn = pp.getBg().getZn(); // the remainder class ring used in this instance of the incentive system
         ZnElement usk = usedZn.getUniformlyRandomElement(); // secret exponent

@@ -22,8 +22,8 @@ import java.math.BigInteger;
 public class TestSuite {
     static public final IncentivePublicParameters pp = IncentiveSystem.setup(128, Setup.BilinearGroupChoice.Debug);
     static public final IncentiveSystem incentiveSystem = new IncentiveSystem(pp);
-    static public final ProviderKeyPair providerKeyPair = incentiveSystem.generateProviderKeys();
-    static public final UserPreKeyPair userPreKeyPair = incentiveSystem.generateUserKeys();
+    static public final ProviderKeyPair providerKeyPair = incentiveSystem.generateProviderKeyPair();
+    static public final UserPreKeyPair userPreKeyPair = incentiveSystem.generateUserPreKeyPair();
     static public final UserKeyPair userKeyPair = Util.addGenesisSignatureToUserKeys(userPreKeyPair, providerKeyPair, pp);
     static public final ProviderSecretKey providerSecretKey = providerKeyPair.getSk();
     static public final ProviderPublicKey providerPublicKey = providerKeyPair.getPk();

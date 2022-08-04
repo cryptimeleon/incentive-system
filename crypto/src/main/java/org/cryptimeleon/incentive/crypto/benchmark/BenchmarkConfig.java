@@ -7,7 +7,6 @@ import org.cryptimeleon.incentive.crypto.Util;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderSecretKey;
-import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserSecretKey;
 
@@ -60,7 +59,7 @@ public class BenchmarkConfig {
     private void manualSetup(int securityParameter, Setup.BilinearGroupChoice bilinearGroupChoice) {
         this.pp = Setup.trustedSetup(securityParameter, bilinearGroupChoice);
         var providerKeys = Setup.providerKeyGen(pp);
-        var userPreKeys = Setup.userKeyGen(pp);
+        var userPreKeys = Setup.userPreKeyGen(pp);
         var userKeys = Util.addGenesisSignatureToUserKeys(userPreKeys, providerKeys, pp);
         this.upk = userKeys.getPk();
         this.usk = userKeys.getSk();

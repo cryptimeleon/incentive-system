@@ -9,11 +9,14 @@ import retrofit2.http.POST
 import java.util.*
 
 interface CryptoApiService {
+    @POST("genesis")
+    suspend fun retrieveGenesisSignatureFor(@Header("user-public-key") publicKey: String): Response<String>
+
     @POST("join-promotion")
     suspend fun runIssueJoin(
         @Header("join-request") joinRequest: String,
         @Header("promotion-id") promotionId: String,
-        @Header("user-public-key") publicKey: String
+        @Header("user-public-key") publicKey: String // TODO remove user public key from issue-join api
     ): Response<String>
 
     @POST("bulk-token-updates")

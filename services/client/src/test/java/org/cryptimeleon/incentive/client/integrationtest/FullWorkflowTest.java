@@ -65,7 +65,7 @@ public class FullWorkflowTest extends IncentiveSystemIntegrationTest {
                 .getStatusCode()
                 .is2xxSuccessful());
 
-        var userPreKeyPair = incentiveSystem.generateUserKeys();
+        var userPreKeyPair = incentiveSystem.generateUserPreKeyPair();
         var serializedGenesisSignature = incentiveClient.genesis(userPreKeyPair).block().getBody();
         var genesisSignature = publicParameters.getSpsEq().restoreSignature(jsonConverter.deserialize(serializedGenesisSignature));
         var userKeyPair = new UserKeyPair(userPreKeyPair, genesisSignature);

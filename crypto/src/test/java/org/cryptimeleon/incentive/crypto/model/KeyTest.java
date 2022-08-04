@@ -24,7 +24,7 @@ public class KeyTest {
 
     @Test
     void testProviderKeyPair() {
-        var providerKeyPair = incentiveSystem.generateProviderKeys();
+        var providerKeyPair = incentiveSystem.generateProviderKeyPair();
 
         logger.info("Provider Secret Key representation");
         var providerSecretKey = providerKeyPair.getSk();

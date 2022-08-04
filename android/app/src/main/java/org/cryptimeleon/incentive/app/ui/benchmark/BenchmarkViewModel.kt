@@ -11,6 +11,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
 import org.cryptimeleon.incentive.crypto.IncentiveSystem
 import org.cryptimeleon.incentive.crypto.Setup
+import org.cryptimeleon.incentive.crypto.Util
 import org.cryptimeleon.incentive.crypto.benchmark.Benchmark
 import org.cryptimeleon.incentive.crypto.benchmark.BenchmarkConfig
 import org.cryptimeleon.incentive.crypto.benchmark.BenchmarkResult
@@ -64,10 +65,11 @@ class BenchmarkViewModel @Inject constructor(application: Application) :
                 val incentiveSystem = IncentiveSystem(pp)
 
                 Timber.i("Provider Provider keys")
-                val providerKeyPair = incentiveSystem.generateProviderKeys()
+                val providerKeyPair = incentiveSystem.generateProviderKeyPair()
 
-                Timber.i("Generating User keys")
-                val userKeyPair = incentiveSystem.generateUserKeys()
+                Timber.i("Generating Pre User keys")
+                val userPreKeyPair = incentiveSystem.generateUserPreKeyPair()
+                val userKeyPair = Util.addGenesisSignatureToUserKeys(userPreKeyPair, providerKeyPair, pp)
 
                 Timber.i("Generation finished")
 
