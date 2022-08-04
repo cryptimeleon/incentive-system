@@ -1,15 +1,12 @@
 package org.cryptimeleon.incentive.client;
 
-import org.cryptimeleon.incentive.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.model.DoubleSpendingTag;
+import org.cryptimeleon.math.serialization.Representable;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -43,10 +40,9 @@ public class DSProtectionClient {
      */
     public String dbSync(Zn.ZnElement tid, GroupElement dsid, DoubleSpendingTag dstag, BigInteger promotionId, String userChoice) {
         // marshall transaction data
-        JSONConverter jsonConverter = new JSONConverter();
-        String serializedTid = Helper.computeSerializedRepresentation(tid);
-        String serializedDsidRepr = Helper.computeSerializedRepresentation(dsid);
-        String serializedDsTagRepr = Helper.computeSerializedRepresentation(dstag);
+        String serializedTid = computeSerializedRepresentation(tid);
+        String serializedDsidRepr = computeSerializedRepresentation(dsid);
+        String serializedDsTagRepr = computeSerializedRepresentation(dstag);
         String serializedPromotionId = promotionId.toString();
 
         // make POST request
@@ -62,5 +58,12 @@ public class DSProtectionClient {
 
         // return response
         return dbSyncResponse.block();
+    }
+
+    private static String computeSerializedRepresentation(Representable r) {
+        JSONConverter jsonConverter = new JSONConverter();
+        return jsonConverter.serialize(
+                r.getRepresentation()
+        );
     }
 }

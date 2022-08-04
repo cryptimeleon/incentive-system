@@ -1,6 +1,6 @@
 package org.cryptimeleon.incentive.crypto.benchmark;
 
-import org.cryptimeleon.incentive.crypto.Setup;
+import org.cryptimeleon.incentive.crypto.BilinearGroupChoice;
 import org.junit.jupiter.api.Test;
 
 import java.util.logging.Logger;
@@ -14,7 +14,7 @@ public class BenchmarkTest {
 
     @Test
     void runBenchmark() {
-        BenchmarkConfig benchmarkConfig = new BenchmarkConfig(10, 128, Setup.BilinearGroupChoice.Debug);
+        BenchmarkConfig benchmarkConfig = new BenchmarkConfig(10, 128, BilinearGroupChoice.Debug);
         BenchmarkResult benchmarkResult = Benchmark.runBenchmark(benchmarkConfig, (benchmarkState, integer) -> {
             if (integer % 10 == 0) {
                 logger.info(String.format("%s, round %d", benchmarkState.name(), integer));

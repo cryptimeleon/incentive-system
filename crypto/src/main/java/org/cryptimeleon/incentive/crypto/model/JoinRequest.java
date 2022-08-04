@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.crypto.model.messages;
+package org.cryptimeleon.incentive.crypto.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Value;
@@ -6,7 +6,6 @@ import lombok.experimental.NonFinal;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProof;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
-import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellformednessCommonInput;
 import org.cryptimeleon.math.serialization.ListRepresentation;
 import org.cryptimeleon.math.serialization.Representable;

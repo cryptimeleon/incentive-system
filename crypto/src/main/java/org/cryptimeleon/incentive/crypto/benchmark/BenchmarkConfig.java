@@ -1,6 +1,7 @@
 package org.cryptimeleon.incentive.crypto.benchmark;
 
 import lombok.AllArgsConstructor;
+import org.cryptimeleon.incentive.crypto.BilinearGroupChoice;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.Setup;
 import org.cryptimeleon.incentive.crypto.Util;
@@ -15,7 +16,7 @@ import org.cryptimeleon.incentive.crypto.model.keys.user.UserSecretKey;
  */
 @AllArgsConstructor
 public class BenchmarkConfig {
-    private static final Setup.BilinearGroupChoice DEFAULT_GROUP = Setup.BilinearGroupChoice.Herumi_MCL;
+    private static final BilinearGroupChoice DEFAULT_GROUP = BilinearGroupChoice.Herumi_MCL;
     private static final int DEFAULT_SECURITY_PARAMETER = 128;
 
     int iterations;
@@ -45,7 +46,7 @@ public class BenchmarkConfig {
      * @param securityParameter   security parameter to use
      * @param bilinearGroupChoice the bilinear group that should be used
      */
-    public BenchmarkConfig(int iterations, int securityParameter, Setup.BilinearGroupChoice bilinearGroupChoice) {
+    public BenchmarkConfig(int iterations, int securityParameter, BilinearGroupChoice bilinearGroupChoice) {
         this.iterations = iterations;
         this.manualSetup(securityParameter, bilinearGroupChoice);
     }
@@ -56,7 +57,7 @@ public class BenchmarkConfig {
      * @param securityParameter   security parameter to use
      * @param bilinearGroupChoice bilinear group to use
      */
-    private void manualSetup(int securityParameter, Setup.BilinearGroupChoice bilinearGroupChoice) {
+    private void manualSetup(int securityParameter, BilinearGroupChoice bilinearGroupChoice) {
         this.pp = Setup.trustedSetup(securityParameter, bilinearGroupChoice);
         var providerKeys = Setup.providerKeyGen(pp);
         var userPreKeys = Setup.userPreKeyGen(pp);

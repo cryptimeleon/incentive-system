@@ -10,8 +10,8 @@ import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderSecretKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserSecretKey;
-import org.cryptimeleon.incentive.crypto.model.messages.JoinRequest;
-import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse;
+import org.cryptimeleon.incentive.crypto.model.JoinRequest;
+import org.cryptimeleon.incentive.crypto.model.JoinResponse;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 
@@ -77,7 +77,6 @@ public class Benchmark {
         Token token = null;
 
         IncentiveSystem incentiveSystem = benchmarkConfig.incentiveSystem;
-        IncentivePublicParameters pp = benchmarkConfig.pp;
         ProviderPublicKey ppk = benchmarkConfig.ppk;
         ProviderSecretKey psk = benchmarkConfig.psk;
         UserPublicKey upk = benchmarkConfig.upk;

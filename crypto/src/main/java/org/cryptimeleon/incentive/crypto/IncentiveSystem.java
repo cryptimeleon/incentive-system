@@ -1,6 +1,5 @@
 package org.cryptimeleon.incentive.crypto;
 
-import lombok.AllArgsConstructor;
 import lombok.Value;
 import org.cryptimeleon.craco.common.ByteArrayImplementation;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProof;
@@ -16,8 +15,8 @@ import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPreKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserSecretKey;
-import org.cryptimeleon.incentive.crypto.model.messages.JoinRequest;
-import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse;
+import org.cryptimeleon.incentive.crypto.model.JoinRequest;
+import org.cryptimeleon.incentive.crypto.model.JoinResponse;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkpCommonInput;
@@ -63,7 +62,7 @@ public class IncentiveSystem {
      * @param bilinearGroupChoice the bilinear group to use. Especially useful for testing
      * @return public parameters for the incentive system
      */
-    public static IncentivePublicParameters setup(int securityParameter, Setup.BilinearGroupChoice bilinearGroupChoice) {
+    public static IncentivePublicParameters setup(int securityParameter, BilinearGroupChoice bilinearGroupChoice) {
         return Setup.trustedSetup(securityParameter, bilinearGroupChoice);
     }
 
@@ -908,29 +907,3 @@ public class IncentiveSystem {
     }
 }
 
-/**
- * Data class for user randomness used in issue-join protocol.
- */
-@AllArgsConstructor
-class IssueJoinRandomness {
-    final ZnElement eskUsr;
-    final ZnElement dsrnd0;
-    final ZnElement dsrnd1;
-    final ZnElement z;
-    final ZnElement t;
-    final ZnElement u;
-    final ZnElement blindGenesisR;
-}
-
-/**
- * Data class for user randomness used in spend-deduct protocol.
- */
-@AllArgsConstructor
-class SpendDeductRandomness {
-    Zn.ZnElement eskUsrS;
-    Zn.ZnElement dsrnd0S;
-    Zn.ZnElement dsrnd1S;
-    Zn.ZnElement zS;
-    Zn.ZnElement tS;
-    Zn.ZnElement uS;
-}

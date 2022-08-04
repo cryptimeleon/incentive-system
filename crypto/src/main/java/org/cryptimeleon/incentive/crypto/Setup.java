@@ -150,12 +150,4 @@ public class Setup {
         ProviderSecretKey sk = new ProviderSecretKey(tokenSpsEqKeyPair.getSigningKey(), genesisSpsEqKeyPair.getSigningKey(), q, betaProv);
         return new ProviderKeyPair(sk, pk);
     }
-
-
-    // Enum for choosing the bilinear group
-    public enum BilinearGroupChoice {
-        Debug,
-        BarretoNaehrig,
-        Herumi_MCL
-    }
 }

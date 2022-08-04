@@ -1,6 +1,8 @@
-package org.cryptimeleon.incentive.crypto;
+package org.cryptimeleon.incentive.crypto.crypto;
 
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
+import org.cryptimeleon.incentive.crypto.IncentiveSystem;
+import org.cryptimeleon.incentive.crypto.Util;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
@@ -19,7 +21,7 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
 import java.math.BigInteger;
 
 /**
- * Class that creates some random mathematic objects. Used to shorten tests and sometimes system code.
+ * Class that creates some random mathematical objects. Used to shorten tests and sometimes system code.
  */
 public class Helper {
     /**

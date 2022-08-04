@@ -1,8 +1,7 @@
-package org.cryptimeleon.incentive.crypto.cryptimeleon.incentive.crypto;
+package org.cryptimeleon.incentive.crypto.crypto;
 
-import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
+import org.cryptimeleon.incentive.crypto.BilinearGroupChoice;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
-import org.cryptimeleon.incentive.crypto.Setup;
 import org.cryptimeleon.incentive.crypto.Util;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
@@ -15,12 +14,11 @@ import org.cryptimeleon.incentive.crypto.model.keys.user.UserPreKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserSecretKey;
 import org.cryptimeleon.math.structures.cartesian.Vector;
-import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
 
 import java.math.BigInteger;
 
 public class TestSuite {
-    static public final IncentivePublicParameters pp = IncentiveSystem.setup(128, Setup.BilinearGroupChoice.Debug);
+    static public final IncentivePublicParameters pp = IncentiveSystem.setup(128, BilinearGroupChoice.Debug);
     static public final IncentiveSystem incentiveSystem = new IncentiveSystem(pp);
     static public final ProviderKeyPair providerKeyPair = incentiveSystem.generateProviderKeyPair();
     static public final UserPreKeyPair userPreKeyPair = incentiveSystem.generateUserPreKeyPair();
@@ -45,38 +43,6 @@ public class TestSuite {
      */
     public static Token generateToken(PromotionParameters promotionParameters,
                                       Vector<BigInteger> points) {
-        var vectorH = providerKeyPair.getPk().getH(pp, promotionParameters);
-        var zp = pp.getBg().getZn();
-        // Manually create a token since issue-join is not yet implemented
-        var encryptionSecretKey = zp.getUniformlyRandomNonzeroElement();
-        var dsrd1 = zp.getUniformlyRandomElement();
-        var dsrd2 = zp.getUniformlyRandomElement();
-        var z = zp.getUniformlyRandomElement();
-        var t = zp.getUniformlyRandomElement();
-        var pointsVector = RingElementVector.fromStream(points.stream().map(e -> pp.getBg().getZn().createZnElement(e)));
-        var exponents = RingElementVector.of(
-                t, userKeyPair.getSk().getUsk(), encryptionSecretKey, dsrd1, dsrd2, z
-        );
-        exponents = exponents.concatenate(pointsVector);
-        var c1 = vectorH.innerProduct(exponents).compute();
-        var c2 = pp.getG1Generator();
-
-        return new Token(
-                c1,
-                c2,
-                encryptionSecretKey,
-                dsrd1,
-                dsrd2,
-                z,
-                t,
-                promotionParameters.getPromotionId(),
-                pointsVector,
-                (SPSEQSignature) pp.getSpsEq().sign(
-                        providerKeyPair.getSk().getSkSpsEq(),
-                        c1,
-                        c2,
-                        c2.pow(promotionParameters.getPromotionId())
-                )
-        );
+        return Helper.generateToken(pp, userKeyPair, providerKeyPair, promotionParameters, points);
     }
 }

@@ -1,7 +1,7 @@
 package org.cryptimeleon.incentive.crypto.model;
 
+import org.cryptimeleon.incentive.crypto.BilinearGroupChoice;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
-import org.cryptimeleon.incentive.crypto.Setup;
 import org.junit.jupiter.api.Test;
 
 import java.util.logging.Logger;
@@ -19,7 +19,7 @@ public class PublicParameterTest {
     @Test
     void testSetup() {
         logger.info("Testing representation of Public Parameters");
-        var pp = IncentiveSystem.setup(128, Setup.BilinearGroupChoice.Debug);
+        var pp = IncentiveSystem.setup(128, BilinearGroupChoice.Debug);
         var deserializedPP = new IncentivePublicParameters(pp.getRepresentation());
 
         System.out.println(pp);

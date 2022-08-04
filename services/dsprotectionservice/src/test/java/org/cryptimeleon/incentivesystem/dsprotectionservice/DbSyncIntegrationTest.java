@@ -1,9 +1,9 @@
 package org.cryptimeleon.incentivesystem.dsprotectionservice;
 
-import org.cryptimeleon.incentive.crypto.Helper;
+import org.cryptimeleon.incentive.crypto.BilinearGroupChoice;
+import org.cryptimeleon.incentive.crypto.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
-import org.cryptimeleon.incentive.crypto.Setup;
-import org.cryptimeleon.incentive.crypto.cryptimeleon.incentive.crypto.TestSuite;
+import org.cryptimeleon.incentive.crypto.crypto.TestSuite;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.crypto.model.Token;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
@@ -35,7 +35,7 @@ public class DbSyncIntegrationTest {
         logger.info("Starting honest transactions test.");
 
         logger.info("Setup incentive system and database handler for the test.");
-        var pp = IncentiveSystem.setup(256, Setup.BilinearGroupChoice.Debug);
+        var pp = IncentiveSystem.setup(256, BilinearGroupChoice.Debug);
         var incSys = new IncentiveSystem(pp);
         var promotionId = BigInteger.ONE;
         var dbHandler = new LocalDatabaseHandler(

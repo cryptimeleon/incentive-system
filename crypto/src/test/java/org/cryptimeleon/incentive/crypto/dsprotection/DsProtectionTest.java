@@ -2,9 +2,9 @@ package org.cryptimeleon.incentive.crypto.dsprotection;
 
 import lombok.AllArgsConstructor;
 import lombok.Value;
-import org.cryptimeleon.incentive.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
-import org.cryptimeleon.incentive.crypto.cryptimeleon.incentive.crypto.TestSuite;
+import org.cryptimeleon.incentive.crypto.crypto.Helper;
+import org.cryptimeleon.incentive.crypto.crypto.TestSuite;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.proof.spend.SpendHelper;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 
 public class DsProtectionTest {
-    private static PromotionParameters promotionParameters = IncentiveSystem.generatePromotionParameters(1);
+    private static final PromotionParameters promotionParameters = IncentiveSystem.generatePromotionParameters(1);
     private TestDatabaseHandler dbHandler;
 
     @BeforeEach

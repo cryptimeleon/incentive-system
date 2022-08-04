@@ -1,14 +1,9 @@
 package org.cryptimeleon.incentive.crypto;
 
-import org.cryptimeleon.incentive.crypto.cryptimeleon.incentive.crypto.TestSuite;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
-import org.cryptimeleon.incentive.crypto.model.EarnRequest;
-import org.cryptimeleon.incentive.crypto.model.SpendRequest;
-import org.cryptimeleon.incentive.crypto.model.SpendResponse;
-import org.cryptimeleon.incentive.crypto.model.Token;
-import org.cryptimeleon.incentive.crypto.model.messages.JoinRequest;
-import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse;
+import org.cryptimeleon.incentive.crypto.crypto.TestSuite;
+import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.proof.spend.SpendHelper;
 import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenUpdateLeaf;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;

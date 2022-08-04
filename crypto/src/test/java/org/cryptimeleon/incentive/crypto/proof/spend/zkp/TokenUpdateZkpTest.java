@@ -1,8 +1,9 @@
 package org.cryptimeleon.incentive.crypto.proof.spend.zkp;
 
-import org.cryptimeleon.incentive.crypto.cryptimeleon.incentive.crypto.TestSuite;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
-import org.cryptimeleon.incentive.crypto.*;
+import org.cryptimeleon.incentive.crypto.IncentiveSystem;
+import org.cryptimeleon.incentive.crypto.Util;
+import org.cryptimeleon.incentive.crypto.crypto.TestSuite;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.crypto.model.Token;
