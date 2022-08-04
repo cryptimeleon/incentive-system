@@ -1,5 +1,6 @@
 package org.cryptimeleon.incentive.crypto;
 
+import org.cryptimeleon.incentive.crypto.cryptimeleon.incentive.crypto.TestSuite;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentive.crypto.model.EarnRequest;

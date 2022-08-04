@@ -1,5 +1,6 @@
 package org.cryptimeleon.incentive.crypto;
 
+import org.cryptimeleon.incentive.crypto.cryptimeleon.incentive.crypto.TestSuite;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.crypto.model.Token;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;

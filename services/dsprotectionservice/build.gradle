@@ -21,6 +21,8 @@ dependencies {
 
 	// cryptimeleon dependencies
 	implementation 'org.cryptimeleon.incentive:crypto'
+	testImplementation(testFixtures('org.cryptimeleon.incentive:crypto'))
+
 	implementation project(":client") // needed to query public parameters from info service
 }
 

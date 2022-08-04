@@ -38,6 +38,13 @@ public class UserSecretKey implements Representable, UniqueByteRepresentable {
         this.genesisSignature = genesisSignature;
     }
 
+    public UserSecretKey(UserPreSecretKey userPreSecretKey, SPSEQSignature genesisSignature) {
+        this.usk = userPreSecretKey.getUsk();
+        this.prfKey = userPreSecretKey.getPrfKey();
+        this.genesisSignature = genesisSignature;
+    }
+
+
     public UserSecretKey(Representation repr, IncentivePublicParameters pp) {
         new ReprUtil(this)
                 .register(pp.getBg().getZn(), "Zn")

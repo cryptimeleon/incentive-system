@@ -10,6 +10,7 @@ import org.cryptimeleon.incentive.client.dto.inc.EarnRequestDto;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
+import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse;
 import org.cryptimeleon.incentive.promotion.Promotion;
 import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion;
@@ -64,7 +65,11 @@ public class FullWorkflowTest extends IncentiveSystemIntegrationTest {
                 .getStatusCode()
                 .is2xxSuccessful());
 
-        var userKeyPair = incentiveSystem.generateUserKeys();
+        var userPreKeyPair = incentiveSystem.generateUserKeys();
+        var serializedGenesisSignature = incentiveClient.genesis(userPreKeyPair).block().getBody();
+        var genesisSignature = publicParameters.getSpsEq().restoreSignature(jsonConverter.deserialize(serializedGenesisSignature));
+        var userKeyPair = new UserKeyPair(userPreKeyPair, genesisSignature);
+
 
         log.info("Send join request to server and retrieve token");
         var joinRequest = incentiveSystem.generateJoinRequest(providerPublicKey, userKeyPair, testPromotion.getPromotionParameters());
