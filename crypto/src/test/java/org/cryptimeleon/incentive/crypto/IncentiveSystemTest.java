@@ -42,17 +42,18 @@ public class IncentiveSystemTest {
         logger.info("Setting up the incentive system and generating keys.");
 
         // generate incentive system pp and extracts used Zn for shorter references
-        var incSys = new IncentiveSystem(IncentiveSystem.setup(128, Setup.BilinearGroupChoice.Debug));
+        var incSys = TestSuite.incentiveSystem;
+
         var usedZn = incSys.getPp().getBg().getZn();
 
         // generate provider keys
-        var pkp = incSys.generateProviderKeys();
+        var pkp = TestSuite.providerKeyPair;
 
         // generate user key pair for user
-        var ukp = incSys.generateUserKeys();
+        var ukp = TestSuite.userKeyPair;
 
         // generate promotion parameters
-        var promotionParameters = incSys.generatePromotionParameters(2);
+        var promotionParameters = IncentiveSystem.generatePromotionParameters(2);
         Vector<BigInteger> ignore = Util.getNullBigIntegerVector(2);
         Vector<BigInteger> ones = Util.getOneBigIntegerVector(2);
         Vector<BigInteger> zeros = Util.getZeroBigIntegerVector(2);
@@ -73,7 +74,7 @@ public class IncentiveSystemTest {
         // serialize and deserialize join request to ensure serialization does not break anything
         var serializedJoinRequest = joinRequest.getRepresentation();
         FiatShamirProofSystem cwfProofSystem = new FiatShamirProofSystem(new CommitmentWellformednessProtocol(incSys.getPp(), pkp.getPk()));
-        var deserializedJoinRequest = new JoinRequest(serializedJoinRequest, incSys.getPp(), ukp.getPk(), cwfProofSystem);
+        var deserializedJoinRequest = new JoinRequest(serializedJoinRequest, incSys.getPp(), cwfProofSystem);
 
         // provider handles join request and generates join response
         var joinResponse = incSys.generateJoinRequestResponse(promotionParameters, pkp, ukp.getPk().getUpk(), deserializedJoinRequest);
