@@ -57,9 +57,7 @@ public class FullWorkflowTest extends IncentiveSystemIntegrationTest {
         log.info("Deserialize data and setup incentive system");
         var jsonConverter = new JSONConverter();
         var publicParameters = new IncentivePublicParameters(jsonConverter.deserialize(serializedPublicParameters));
-        var providerPublicKey = new ProviderPublicKey(jsonConverter.deserialize(serializedProviderPublicKey),
-                publicParameters.getSpsEq(),
-                publicParameters.getBg().getG1());
+        var providerPublicKey = new ProviderPublicKey(jsonConverter.deserialize(serializedProviderPublicKey), publicParameters);
         var incentiveSystem = new IncentiveSystem(publicParameters);
         assertTrue(incentiveClient.addPromotions(List.of(testPromotion), incentiveProviderSecret)
                 .block(Duration.ofSeconds(1))

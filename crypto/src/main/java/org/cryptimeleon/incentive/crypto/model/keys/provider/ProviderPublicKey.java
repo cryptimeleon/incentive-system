@@ -30,16 +30,11 @@ public class ProviderPublicKey implements Representable {
     @Represented(restorer = "G1")
     GroupElementVector h; // first six bases for the Pedersen commitment in the tokens
 
-    @Deprecated
-    public ProviderPublicKey(Representation repr, SPSEQSignatureScheme spseqSignatureScheme, Group group1) {
-        new ReprUtil(this)
-                .register(spseqSignatureScheme, "SPSEQScheme")
-                .register(group1, "G1")
-                .deserialize(repr);
-    }
-
     public ProviderPublicKey(Representation repr, IncentivePublicParameters pp) {
-        this(repr, pp.getSpsEq(), pp.getBg().getG1());
+        new ReprUtil(this)
+                .register(pp.getSpsEq(), "SPSEQScheme")
+                .register(pp.getBg().getG1(), "G1")
+                .deserialize(repr);
     }
 
     /**

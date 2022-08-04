@@ -24,13 +24,6 @@ public class UserPublicKey implements Representable {
         this.upk = upk;
     }
 
-    @Deprecated
-    public UserPublicKey(Representation repr, Group g1) {
-        new ReprUtil(this)
-                .register(g1, "G1")
-                .deserialize(repr);
-    }
-
     public UserPublicKey(Representation repr, IncentivePublicParameters pp) {
         new ReprUtil(this)
                 .register(pp.getBg().getG1(), "G1")

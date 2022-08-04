@@ -80,8 +80,8 @@ public class CryptoRepository {
                 String serializedProviderPublicKey = infoClient.querySerializedProviderPublicKey().block(Duration.ofSeconds(1));
                 String serializedProviderSecretKey = infoClient.querySerializedProviderSecretKey(sharedSecret).block(Duration.ofSeconds(1));
                 this.publicParameters = new IncentivePublicParameters(jsonConverter.deserialize(serializedPublicParameters));
-                this.providerPublicKey = new ProviderPublicKey(jsonConverter.deserialize(serializedProviderPublicKey), publicParameters.getSpsEq(), publicParameters.getBg().getG1());
-                this.providerSecretKey = new ProviderSecretKey(jsonConverter.deserialize(serializedProviderSecretKey), publicParameters.getSpsEq(), publicParameters.getBg().getZn(), publicParameters.getPrfToZn());
+                this.providerPublicKey = new ProviderPublicKey(jsonConverter.deserialize(serializedProviderPublicKey), publicParameters);
+                this.providerSecretKey = new ProviderSecretKey(jsonConverter.deserialize(serializedProviderSecretKey), publicParameters);
                 this.incentiveSystem = new IncentiveSystem(publicParameters);
                 break;
             } catch (RuntimeException e) {

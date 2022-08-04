@@ -356,7 +356,7 @@ public class LocalDatabaseHandler implements DatabaseHandler {
         // restore fields from representations
         UserPublicKey upk = new UserPublicKey(
                 jsonConverter.deserialize(uiEntry.getSerializedUpkRepr()),
-                this.pp.getBg().getG1()
+                this.pp
         );
         Zn.ZnElement dsBlame = usedZn.restoreElement(
                 jsonConverter.deserialize(uiEntry.getSerializedDsBlameRepr())
