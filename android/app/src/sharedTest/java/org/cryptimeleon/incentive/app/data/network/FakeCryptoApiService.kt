@@ -5,9 +5,9 @@ import org.cryptimeleon.incentive.app.domain.model.BulkRequestDto
 import org.cryptimeleon.incentive.app.domain.model.BulkResponseDto
 import org.cryptimeleon.incentive.crypto.IncentiveSystem
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters
+import org.cryptimeleon.incentive.crypto.model.JoinRequest
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair
-import org.cryptimeleon.incentive.crypto.model.messages.JoinRequest
 import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellformednessProtocol
 import org.cryptimeleon.math.serialization.converter.JSONConverter
 import org.cryptimeleon.math.structures.groups.GroupElement

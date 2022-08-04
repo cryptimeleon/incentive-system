@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
+import org.cryptimeleon.incentive.crypto.BilinearGroupChoice
 import org.cryptimeleon.incentive.crypto.IncentiveSystem
 import org.cryptimeleon.incentive.crypto.Setup
 import org.cryptimeleon.incentive.crypto.Util
@@ -19,7 +20,7 @@ import timber.log.Timber
 import javax.inject.Inject
 
 private const val BENCHMARK_ITERATIONS = 10
-private val BENCHMARK_GROUP = Setup.BilinearGroupChoice.Herumi_MCL
+private val BENCHMARK_GROUP = BilinearGroupChoice.Herumi_MCL
 const val SECURITY_PARAMETER = 128
 
 enum class BenchmarkViewState {

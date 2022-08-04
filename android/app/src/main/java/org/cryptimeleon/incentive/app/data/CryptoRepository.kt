@@ -17,13 +17,13 @@ import org.cryptimeleon.incentive.app.domain.model.BulkResponseDto
 import org.cryptimeleon.incentive.app.domain.model.CryptoMaterial
 import org.cryptimeleon.incentive.crypto.IncentiveSystem
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters
+import org.cryptimeleon.incentive.crypto.model.JoinResponse
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters
 import org.cryptimeleon.incentive.crypto.model.Token
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserSecretKey
-import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse
 import org.cryptimeleon.math.serialization.converter.JSONConverter
 import timber.log.Timber
 import java.util.*
@@ -138,7 +138,7 @@ class CryptoRepository(
         }
     }
 
-    private fun generateAndStoreNewCryptoAssets(
+    private suspend fun generateAndStoreNewCryptoAssets(
         remotePP: String,
         remotePPK: String
     ) {
@@ -146,7 +146,8 @@ class CryptoRepository(
         val incentiveSystem = IncentiveSystem(pp)
         val providerPublicKey = ProviderPublicKey(jsonConverter.deserialize(remotePPK), pp)
         val userPreKeyPair = incentiveSystem.generateUserPreKeyPair()
-        val signatureResponse = cryptoApiService.retrieveGenesisSignatureFor(jsonConverter.serialize(userPreKeyPair.pk.upk.representation))
+        val signatureResponse =
+            cryptoApiService.retrieveGenesisSignatureFor(jsonConverter.serialize(userPreKeyPair.pk.upk.representation))
         if (!signatureResponse.isSuccessful) {
             throw RuntimeException("Signature Request failed!")
         }
@@ -165,7 +166,7 @@ class CryptoRepository(
             oldSerializedCryptoAsset.serializedPublicParameters != remotePP ||
             oldSerializedCryptoAsset.serializedProviderPublicKey != remotePPK
 
-    private fun queryRemoteCryptoMaterial(): Pair<String, String> {
+    private suspend fun queryRemoteCryptoMaterial(): Pair<String, String> {
         try {
             val ppResponse = infoApiService.getPublicParameters()
             val ppkResponse = infoApiService.getProviderPublicKey()
