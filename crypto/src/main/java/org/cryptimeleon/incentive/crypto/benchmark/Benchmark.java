@@ -68,7 +68,7 @@ public class Benchmark {
         long[] tSpendResponse = new long[benchmarkConfig.iterations];
         long[] tSpendHandleResponse = new long[benchmarkConfig.iterations];
 
-        JoinRequest joinRequest;
+        GenerateIssueJoinOutput generateIssueJoinOutput;
         JoinResponse joinResponse;
         EarnRequest earnRequest;
         SPSEQSignature earnResponse;
@@ -93,7 +93,7 @@ public class Benchmark {
         for (int i = 0; i < benchmarkConfig.iterations; i++) {
             feedbackFunction.accept(BenchmarkState.ISSUE_JOIN, i);
             start = Instant.now();
-            joinRequest = incentiveSystem.generateJoinRequest(
+            generateIssueJoinOutput = incentiveSystem.generateJoinRequest(
                     ppk,
                     userKeyPair,
                     promotionParameters
@@ -105,7 +105,7 @@ public class Benchmark {
                     incentiveSystem.generateJoinRequestResponse(
                             promotionParameters,
                             providerKeyPair,
-                            joinRequest
+                            generateIssueJoinOutput.getJoinRequest()
                     );
             finish = Instant.now();
             tJoinResponse[i] = Duration.between(start, finish).toNanos();
@@ -114,7 +114,7 @@ public class Benchmark {
                     promotionParameters,
                     ppk,
                     userKeyPair,
-                    joinRequest,
+                    generateIssueJoinOutput,
                     joinResponse
             );
             finish = Instant.now();

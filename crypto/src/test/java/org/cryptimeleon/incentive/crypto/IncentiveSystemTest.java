@@ -61,14 +61,14 @@ public class IncentiveSystemTest {
         logger.info("A new user joins the system.");
 
         // user generates join request
-        var joinRequest = incSys.generateJoinRequest(
+        var generateIssueJoinOutput = incSys.generateJoinRequest(
                 pkp.getPk(),
                 ukp,
                 promotionParameters
         );
 
         // serialize and deserialize join request to ensure serialization does not break anything
-        var serializedJoinRequest = joinRequest.getRepresentation();
+        var serializedJoinRequest = generateIssueJoinOutput.getJoinRequest().getRepresentation();
         FiatShamirProofSystem cwfProofSystem = new FiatShamirProofSystem(new CommitmentWellformednessProtocol(incSys.getPp(), pkp.getPk()));
         var deserializedJoinRequest = new JoinRequest(serializedJoinRequest, incSys.getPp(), cwfProofSystem);
 
@@ -80,7 +80,7 @@ public class IncentiveSystemTest {
         var deserializedJoinResponse = new JoinResponse(serializedJoinResponse, incSys.getPp());
 
         // user handles join response
-        var initialToken = incSys.handleJoinRequestResponse(promotionParameters, pkp.getPk(), ukp, joinRequest, deserializedJoinResponse);
+        var initialToken = incSys.handleJoinRequestResponse(promotionParameters, pkp.getPk(), ukp, generateIssueJoinOutput, deserializedJoinResponse);
 
         /*
          * transaction 1: user tries to spend points with an empty token

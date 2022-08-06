@@ -119,11 +119,9 @@ public class IncentiveSystem {
      * @param ukp user key pair
      * @return join request, i.e. object representing the first two messages in the Issue-Join protocol of the Cryptimeleon incentive system
      */
-    public JoinRequest generateJoinRequest(ProviderPublicKey pk, UserKeyPair ukp, PromotionParameters promotionParameters) {
+    public GenerateIssueJoinOutput generateJoinRequest(ProviderPublicKey pk, UserKeyPair ukp, PromotionParameters promotionParameters) {
         UserPublicKey upk = ukp.getPk();
         UserSecretKey usk = ukp.getSk();
-
-
 
         // generate random values needed for generation of fresh user token using PRF hashThenPRFtoZn, user secret key is hash input
         IssueJoinRandomness R = computeIssueJoinRandomness(ukp.getSk(), promotionParameters);
@@ -154,7 +152,10 @@ public class IncentiveSystem {
         FiatShamirProof cwfProof = cwfProofSystem.createProof(cwfCommon, cwfWitness);
 
         // assemble and return join request object (commitment, proof of well-formedness)
-        return new JoinRequest(c0Pre, c1Pre, cwfProof, blindedUpk, blindedW, blindedGenesisSignature);
+        return GenerateIssueJoinOutput.of(
+                R,
+                new JoinRequest(c0Pre, c1Pre, cwfProof, blindedUpk, blindedW, blindedGenesisSignature)
+        );
     }
 
     /**
@@ -214,13 +215,14 @@ public class IncentiveSystem {
      *
      * @param pk   public key of the provider the user interacted with
      * @param ukp  key pair of the user handling the response
-     * @param jReq the initial join request of the user handling the response to it
+     * @param generateIssueJoinOutput the initial join output containing the internal randomness and the request sent to the provider
      * @param jRes join response to be handled
      * @return token containing 0 points
      */
-    public Token handleJoinRequestResponse(PromotionParameters promotionParameters, ProviderPublicKey pk, UserKeyPair ukp, JoinRequest jReq, JoinResponse jRes) {
+    public Token handleJoinRequestResponse(PromotionParameters promotionParameters, ProviderPublicKey pk, UserKeyPair ukp, GenerateIssueJoinOutput generateIssueJoinOutput, JoinResponse jRes) {
         // re-generate random values from join request generation of fresh user token using PRF hashThenPRFtoZn, user secret key is hash input
-        IssueJoinRandomness R = computeIssueJoinRandomness(ukp.getSk(), promotionParameters);
+        IssueJoinRandomness R = generateIssueJoinOutput.getIssueJoinRandomness();
+        JoinRequest jReq = generateIssueJoinOutput.getJoinRequest();
 
         // extract relevant variables from join request, join response and public parameters
         GroupElement c0Pre = jReq.getPreCommitment0();
