@@ -10,9 +10,11 @@ import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.SpendRequestDto;
 import org.cryptimeleon.incentive.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
+import org.cryptimeleon.incentive.crypto.Util;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.crypto.model.SpendResponse;
 import org.cryptimeleon.incentive.crypto.model.Token;
+import org.cryptimeleon.incentive.crypto.model.TransactionIdentifier;
 import org.cryptimeleon.incentive.promotion.EmptyTokenUpdateMetadata;
 import org.cryptimeleon.incentive.promotion.Promotion;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdate;
@@ -95,10 +97,15 @@ public class SpendTest extends IncentiveSystemIntegrationTest {
 
     /**
      * Performs a full integrated run of the spend-deduct protocol
-     * and returns the spend request together with the protocol output
-     * for further use in the double-spending protection test.
+     * and returns identifying information for the occurred transaction
+     * for later use in test cases (e.g. dsprotection integration test).
+     *
+     * @param token token spent in the transaction
+     * @param basketId ID of the basket used for the basket used in the transaction
+     *
+     * @return TransactionIdentifier
      */
-    protected void runSpendDeductWorkflow(Token token, UUID basketId) {
+    protected TransactionIdentifier runSpendDeductWorkflow(Token token, UUID basketId) {
         // generate transaction ID from basket ID
         var tid = cryptoAssets.getPublicParameters().getBg().getZn().createZnElement(new BigInteger(basketId.toString().replace("-", ""), 16));
 
@@ -144,6 +151,17 @@ public class SpendTest extends IncentiveSystemIntegrationTest {
                 cryptoAssets.getProviderKeyPair().getPk(),
                 cryptoAssets.getUserKeyPair()
         );
+
+        // assemble and return transaction identifier
+        var gamma = Util.hashGamma(
+                cryptoAssets.getPublicParameters().getBg().getZn(),
+                spendRequest.getDsid(),
+                tid,
+                spendRequest.getCPre0(),
+                spendRequest.getCPre1(),
+                tid
+        );
+        return new TransactionIdentifier(tid, gamma);
     }
 
 

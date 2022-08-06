@@ -1,11 +1,16 @@
 package org.cryptimeleon.incentive.client.integrationtest;
 
 import org.cryptimeleon.incentive.client.DSProtectionClient;
+import org.cryptimeleon.incentive.crypto.model.Transaction;
+import org.cryptimeleon.incentive.crypto.model.TransactionIdentifier;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 
 import java.math.BigInteger;
 import org.cryptimeleon.math.structures.cartesian.Vector;
+import org.junit.jupiter.api.Test;
+import org.springframework.test.context.TestPropertySource;
 
 /**
  * Tests the double-spending protection service by performing both honest and malicious transactions
@@ -19,9 +24,6 @@ public class DsProtectionServiceIntegrationTest extends SpendTest {
 
     @BeforeAll
     void testSetup() {
-        // setup clients, crypto assets, basket and promotions (identical to spend test)
-        prepareBasketAndPromotions();
-
         // create dsprotection client (only needed in dsprotection test)
         dsProtectionClient = new DSProtectionClient(dsProtectionUrl);
     }
@@ -39,6 +41,7 @@ public class DsProtectionServiceIntegrationTest extends SpendTest {
      * Does an honest Spend-Deduct interaction with the incentive service
      * and checks afterwards whether it was correctly recorded as a transaction in the database.
      */
+    @Test
     public void honestTransactionTest() {
         // generate token and basket
         var token = generateToken(testPromotion.getPromotionParameters(), Vector.of(BigInteger.valueOf(42)));
@@ -46,17 +49,38 @@ public class DsProtectionServiceIntegrationTest extends SpendTest {
         assert basketId != null;
 
         // run Spend-Deduct protocol
-        runSpendDeductWorkflow(token, basketId);
+        TransactionIdentifier occuredTaId = runSpendDeductWorkflow(token, basketId);
 
         // query recorded transaction object from database
-        // TODO: need runSpendDeductWorkflow to return the ta identifier of the occured ta to use it for this query
+        Transaction occuredTa = dsProtectionClient.getTransaction(occuredTaId);
+
+        // assert that transaction is valid
+        Assertions.assertTrue(occuredTa.getIsValid());
     }
 
     /**
      * Creates a token and spends it twice,
      * then checks whether second transaction was recorded as invalid in database.
      */
+    @Test
     public void doubleSpendingTest() {
+        // generate token and baskets
+        var token = generateToken(testPromotion.getPromotionParameters(), Vector.of(BigInteger.valueOf(42)));
+        var basketId1 = createBasket();
+        assert basketId1 != null;
+        var basketId2 = createBasket();
+        assert basketId2 != null;
 
+        // run Spend-Deduct protocol twice with same token
+        TransactionIdentifier occuredTaId1 = runSpendDeductWorkflow(token, basketId1);
+        TransactionIdentifier occuredTaId2 = runSpendDeductWorkflow(token, basketId2);
+
+        // query recorded transaction object from database
+        Transaction occuredTa1 = dsProtectionClient.getTransaction(occuredTaId1);
+        Transaction occuredTa2 = dsProtectionClient.getTransaction(occuredTaId2);
+
+        // assert that transaction is valid
+        Assertions.assertTrue(occuredTa1.getIsValid());
+        Assertions.assertFalse(occuredTa2.getIsValid());
     }
 }
