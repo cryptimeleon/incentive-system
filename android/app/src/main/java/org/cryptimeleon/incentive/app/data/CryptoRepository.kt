@@ -66,7 +66,7 @@ class CryptoRepository(
         val incentiveSystem = IncentiveSystem(pp)
 
         val generateIssueJoinOutput =
-            incentiveSystem.generateJoinRequest(providerPublicKey, userKeyPair, promotionParameters)
+            incentiveSystem.generateJoinRequest(providerPublicKey, userKeyPair)
         val joinResponse = cryptoApiService.runIssueJoin(
             jsonConverter.serialize(generateIssueJoinOutput.getJoinRequest().representation),
             promotionParameters.promotionId.toString()
@@ -82,7 +82,6 @@ class CryptoRepository(
         val token = incentiveSystem.handleJoinRequestResponse(
             promotionParameters,
             providerPublicKey,
-            userKeyPair,
             generateIssueJoinOutput,
             JoinResponse(jsonConverter.deserialize(joinResponse.body()), pp)
         )

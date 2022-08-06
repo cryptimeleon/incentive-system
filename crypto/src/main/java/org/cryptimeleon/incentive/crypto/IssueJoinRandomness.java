@@ -2,7 +2,6 @@ package org.cryptimeleon.incentive.crypto;
 
 import lombok.AllArgsConstructor;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
-import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 import java.util.stream.Stream;

@@ -79,7 +79,7 @@ public class ClientHelper {
                                UserKeyPair ukp,
                                Promotion promotion,
                                HttpStatus expectedStatus) {
-        var generateIssueJoinOutput = incentiveSystem.generateJoinRequest(pkp.getPk(), ukp, promotion.getPromotionParameters());
+        var generateIssueJoinOutput = incentiveSystem.generateJoinRequest(pkp.getPk(), ukp);
 
         // Send request and process response to assert correct behavior
         var serializedJoinResponse = webTestClient.post()
@@ -95,7 +95,7 @@ public class ClientHelper {
                 .getResponseBody();
 
         var joinResponse = new JoinResponse(jsonConverter.deserialize(serializedJoinResponse), incentiveSystem.pp);
-        return incentiveSystem.handleJoinRequestResponse(promotion.getPromotionParameters(), pkp.getPk(), ukp, generateIssueJoinOutput, joinResponse);
+        return incentiveSystem.handleJoinRequestResponse(promotion.getPromotionParameters(), pkp.getPk(), generateIssueJoinOutput, joinResponse);
     }
 
     static EarnRequest generateAndSendEarnRequest(WebTestClient webTestClient,

@@ -119,7 +119,7 @@ public class IncentiveSystem {
      * @param ukp user key pair
      * @return join request, i.e. object representing the first two messages in the Issue-Join protocol of the Cryptimeleon incentive system
      */
-    public GenerateIssueJoinOutput generateJoinRequest(ProviderPublicKey pk, UserKeyPair ukp, PromotionParameters promotionParameters) {
+    public GenerateIssueJoinOutput generateJoinRequest(ProviderPublicKey pk, UserKeyPair ukp) {
         UserPublicKey upk = ukp.getPk();
         UserSecretKey usk = ukp.getSk();
 
@@ -214,12 +214,11 @@ public class IncentiveSystem {
      * (token and corresponding certificate) from the signed preliminary token from the passed join request and response.
      *
      * @param pk   public key of the provider the user interacted with
-     * @param ukp  key pair of the user handling the response
      * @param generateIssueJoinOutput the initial join output containing the internal randomness and the request sent to the provider
      * @param jRes join response to be handled
      * @return token containing 0 points
      */
-    public Token handleJoinRequestResponse(PromotionParameters promotionParameters, ProviderPublicKey pk, UserKeyPair ukp, GenerateIssueJoinOutput generateIssueJoinOutput, JoinResponse jRes) {
+    public Token handleJoinRequestResponse(PromotionParameters promotionParameters, ProviderPublicKey pk, GenerateIssueJoinOutput generateIssueJoinOutput, JoinResponse jRes) {
         // re-generate random values from join request generation of fresh user token using PRF hashThenPRFtoZn, user secret key is hash input
         IssueJoinRandomness R = generateIssueJoinOutput.getIssueJoinRandomness();
         JoinRequest jReq = generateIssueJoinOutput.getJoinRequest();

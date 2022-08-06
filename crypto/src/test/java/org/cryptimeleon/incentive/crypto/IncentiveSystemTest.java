@@ -63,8 +63,7 @@ public class IncentiveSystemTest {
         // user generates join request
         var generateIssueJoinOutput = incSys.generateJoinRequest(
                 pkp.getPk(),
-                ukp,
-                promotionParameters
+                ukp
         );
 
         // serialize and deserialize join request to ensure serialization does not break anything
@@ -80,7 +79,7 @@ public class IncentiveSystemTest {
         var deserializedJoinResponse = new JoinResponse(serializedJoinResponse, incSys.getPp());
 
         // user handles join response
-        var initialToken = incSys.handleJoinRequestResponse(promotionParameters, pkp.getPk(), ukp, generateIssueJoinOutput, deserializedJoinResponse);
+        var initialToken = incSys.handleJoinRequestResponse(promotionParameters, pkp.getPk(), generateIssueJoinOutput, deserializedJoinResponse);
 
         /*
          * transaction 1: user tries to spend points with an empty token
