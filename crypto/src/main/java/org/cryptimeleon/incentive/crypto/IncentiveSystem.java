@@ -124,7 +124,7 @@ public class IncentiveSystem {
         UserSecretKey usk = ukp.getSk();
 
         // generate random values needed for generation of fresh user token using PRF hashThenPRFtoZn, user secret key is hash input
-        IssueJoinRandomness R = computeIssueJoinRandomness(ukp.getSk(), promotionParameters);
+        IssueJoinRandomness R = IssueJoinRandomness.generate(pp);
 
         // blind genesis signature
         GroupElement blindedUpk = upk.getUpk().pow(R.blindGenesisR);
@@ -873,23 +873,6 @@ public class IncentiveSystem {
     /*
      * end of double-spending database interface to be used by provider
      */
-
-    /**
-     * Helper function for pseudorandom values on user side to generate a request, and handle the response.
-     *
-     * @param userSecretKey       the user secret key is hashed for this, and contains the prf key
-     * @param promotionParameters the promotion id is hashed to ensure values are unique for promotionIds
-     * @return a data object with the pseudorandom values
-     */
-    private IssueJoinRandomness computeIssueJoinRandomness(UserSecretKey userSecretKey, PromotionParameters promotionParameters) {
-        var prv = pp.getPrfToZn().hashThenPrfToZnVector(
-                userSecretKey.getPrfKey(),
-                userSecretKey,
-                7,
-                "IssueJoin" + promotionParameters.getPromotionId().toString() // Ensure randomness is unique for every promotion
-        ).stream().map(ringElement -> (ZnElement) ringElement).collect(Collectors.toList());
-        return new IssueJoinRandomness(prv.get(0), prv.get(1), prv.get(2), prv.get(3), prv.get(4), prv.get(5), prv.get(6));
-    }
 
     /**
      * Helper function for pseudorandom values on user side to generate a request, and handle the response.
