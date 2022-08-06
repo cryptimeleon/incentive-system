@@ -65,10 +65,10 @@ class CryptoRepository(
         val userKeyPair = cryptoMaterial.ukp
         val incentiveSystem = IncentiveSystem(pp)
 
-        val joinRequest =
+        val generateIssueJoinOutput =
             incentiveSystem.generateJoinRequest(providerPublicKey, userKeyPair, promotionParameters)
         val joinResponse = cryptoApiService.runIssueJoin(
-            jsonConverter.serialize(joinRequest.representation),
+            jsonConverter.serialize(generateIssueJoinOutput.getJoinRequest().representation),
             promotionParameters.promotionId.toString()
         )
 
@@ -83,7 +83,7 @@ class CryptoRepository(
             promotionParameters,
             providerPublicKey,
             userKeyPair,
-            joinRequest,
+            generateIssueJoinOutput,
             JoinResponse(jsonConverter.deserialize(joinResponse.body()), pp)
         )
         if (replaceIfPresent) {

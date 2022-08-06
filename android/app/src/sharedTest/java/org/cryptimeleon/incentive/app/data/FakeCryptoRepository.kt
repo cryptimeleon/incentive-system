@@ -48,7 +48,7 @@ class FakeCryptoRepository(
     }
 
     private fun joinPromotion(promotionParameters: PromotionParameters): Token? {
-        val joinRequest = incentiveSystem.generateJoinRequest(
+        val generateIssueJoinOutput = incentiveSystem.generateJoinRequest(
             providerKeyPair.pk,
             userKeyPair,
             promotionParameters
@@ -56,13 +56,13 @@ class FakeCryptoRepository(
         val joinResponse = incentiveSystem.generateJoinRequestResponse(
             promotionParameters,
             providerKeyPair,
-            joinRequest
+            generateIssueJoinOutput.joinRequest
         )
         return incentiveSystem.handleJoinRequestResponse(
             promotionParameters,
             providerKeyPair.pk,
             userKeyPair,
-            joinRequest,
+            generateIssueJoinOutput,
             joinResponse
         )
     }
