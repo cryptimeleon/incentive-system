@@ -3,6 +3,8 @@ package org.cryptimeleon.incentive.client.integrationtest;
 import org.cryptimeleon.incentive.client.DSProtectionClient;
 import org.cryptimeleon.incentive.crypto.model.Transaction;
 import org.cryptimeleon.incentive.crypto.model.TransactionIdentifier;
+import org.cryptimeleon.math.serialization.Representation;
+import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.junit.jupiter.api.*;
 
 import java.math.BigInteger;
@@ -52,7 +54,12 @@ public class DsProtectionServiceIntegrationTest extends TransactionTestPreparati
         TransactionIdentifier occuredTaId = runSpendDeductWorkflow(token, basketId);
 
         // query recorded transaction object from database
-        Transaction occuredTa = dsProtectionClient.getTransaction(occuredTaId);
+        String serializedOccuredTaRepr = dsProtectionClient.getTransaction(occuredTaId);
+
+        // deserialize and restore it
+        JSONConverter jsonConverter = new JSONConverter();
+        Representation occuredTaRepr = jsonConverter.deserialize(serializedOccuredTaRepr);
+        Transaction occuredTa = new Transaction(occuredTaRepr, cryptoAssets.getPublicParameters());
 
         // assert that transaction is valid
         Assertions.assertTrue(occuredTa.getIsValid());
@@ -75,9 +82,16 @@ public class DsProtectionServiceIntegrationTest extends TransactionTestPreparati
         TransactionIdentifier occuredTaId1 = runSpendDeductWorkflow(token, basketId1);
         TransactionIdentifier occuredTaId2 = runSpendDeductWorkflow(token, basketId2);
 
-        // query recorded transaction object from database
-        Transaction occuredTa1 = dsProtectionClient.getTransaction(occuredTaId1);
-        Transaction occuredTa2 = dsProtectionClient.getTransaction(occuredTaId2);
+        // query recorded transaction objects from database
+        String serializedOccuredTaRepr1 = dsProtectionClient.getTransaction(occuredTaId1);
+        String serializedOccuredTaRepr2 = dsProtectionClient.getTransaction(occuredTaId2);
+
+        // deserialize and restore them
+        JSONConverter jsonConverter = new JSONConverter();
+        Representation occuredTaRepr1 = jsonConverter.deserialize(serializedOccuredTaRepr1);
+        Representation occuredTaRepr2 = jsonConverter.deserialize(serializedOccuredTaRepr2);
+        Transaction occuredTa1 = new Transaction(occuredTaRepr1, cryptoAssets.getPublicParameters());
+        Transaction occuredTa2 = new Transaction(occuredTaRepr2, cryptoAssets.getPublicParameters());
 
         // assert that transaction is valid
         Assertions.assertTrue(occuredTa1.getIsValid());

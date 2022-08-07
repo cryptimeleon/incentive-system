@@ -105,11 +105,11 @@ public class DsprotectionController {
      * @return response entity, containing a crypto transaction object
      */
     @GetMapping("/getta")
-    public ResponseEntity<Transaction> getTransaction(@RequestHeader(value="taidentifier") String serializedTaIdentifier) {
+    public ResponseEntity<String> getTransaction(@RequestHeader(value="taidentifier") String serializedTaIdentifier) {
         // get data from service
-        Transaction resultTa = dsprotectionService.getTransaction(serializedTaIdentifier);
+        String serializedResultTaRepr = dsprotectionService.getTransaction(serializedTaIdentifier);
 
         // send response
-        return new ResponseEntity<>(resultTa, HttpStatus.OK);
+        return new ResponseEntity<>(serializedResultTaRepr, HttpStatus.OK);
     }
 }

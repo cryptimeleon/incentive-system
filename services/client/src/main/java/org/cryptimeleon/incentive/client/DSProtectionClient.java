@@ -4,6 +4,7 @@ import org.cryptimeleon.incentive.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.model.DoubleSpendingTag;
 import org.cryptimeleon.incentive.crypto.model.Transaction;
 import org.cryptimeleon.incentive.crypto.model.TransactionIdentifier;
+import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
@@ -85,18 +86,16 @@ public class DSProtectionClient {
      * @param taIdentifier transaction identifier, consisting of a numerical ID and the challenge generator gamma
      * @return Transaction object (crypto)
      */
-    public Transaction getTransaction(TransactionIdentifier taIdentifier) {
+    public String getTransaction(TransactionIdentifier taIdentifier) {
         // marshall transaction identifier data
         String serializedTransactionIdentifier = Helper.computeSerializedRepresentation(taIdentifier);
 
-        // make request
-        Mono<Transaction> getTransactionResponse = this.dsProtectionClient.get()
+        // make request and return result
+        return this.dsProtectionClient.get()
                 .uri(uriBuilder -> uriBuilder.path(GET_TRANSACTION_PATH).build())
                 .header("taidentifier", serializedTransactionIdentifier)
                 .retrieve()
-                .bodyToMono(Transaction.class);
-
-        // return result
-        return getTransactionResponse.block();
+                .bodyToMono(String.class)
+                .block();
     }
 }

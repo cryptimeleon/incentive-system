@@ -96,13 +96,18 @@ public class DsprotectionService {
      * @param serializedTaIdentifier serialized representation of a transaction identifier, consisting of a numerical ID and the challenge generator gamma
      * @return Transaction object (crypto)
      */
-    public Transaction getTransaction(String serializedTaIdentifier) {
+    public String getTransaction(String serializedTaIdentifier) {
+        // deserialze and restore ID
         JSONConverter jsonConverter = new JSONConverter();
         TransactionIdentifier taIdentifier = new TransactionIdentifier(
                 jsonConverter.deserialize(serializedTaIdentifier),
                 cryptoRepository.getPp()
         );
 
-        return localDbHandler.getTransactionNode(taIdentifier);
+        // query result from database
+        Transaction ta = localDbHandler.getTransactionNode(taIdentifier);
+
+        // represent and serialize transaction
+        return Util.computeSerializedRepresentation(ta);
     }
 }
