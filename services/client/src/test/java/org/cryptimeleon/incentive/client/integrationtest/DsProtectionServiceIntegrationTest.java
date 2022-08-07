@@ -3,14 +3,10 @@ package org.cryptimeleon.incentive.client.integrationtest;
 import org.cryptimeleon.incentive.client.DSProtectionClient;
 import org.cryptimeleon.incentive.crypto.model.Transaction;
 import org.cryptimeleon.incentive.crypto.model.TransactionIdentifier;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.*;
 
 import java.math.BigInteger;
 import org.cryptimeleon.math.structures.cartesian.Vector;
-import org.junit.jupiter.api.Test;
-import org.springframework.test.context.TestPropertySource;
 
 /**
  * Tests the double-spending protection service by performing both honest and malicious transactions
@@ -19,11 +15,15 @@ import org.springframework.test.context.TestPropertySource;
  * Extends the SpendTest so that we do not have to rewrite all the setup stuff (which would be identical).
  * Setup is done using a BeforeEach-annotated method in the SpendTest class.
  */
-public class DsProtectionServiceIntegrationTest extends SpendTest {
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+public class DsProtectionServiceIntegrationTest extends TransactionTestPreparation {
     private DSProtectionClient dsProtectionClient;
 
     @BeforeAll
     void testSetup() {
+        // setup test basket items and promotions
+        super.prepareBasketAndPromotions();
+
         // create dsprotection client (only needed in dsprotection test)
         dsProtectionClient = new DSProtectionClient(dsProtectionUrl);
     }
@@ -44,7 +44,7 @@ public class DsProtectionServiceIntegrationTest extends SpendTest {
     @Test
     public void honestTransactionTest() {
         // generate token and basket
-        var token = generateToken(testPromotion.getPromotionParameters(), Vector.of(BigInteger.valueOf(42)));
+        var token = generateToken(testPromotion.getPromotionParameters(), Vector.of(BigInteger.valueOf(20)));
         var basketId = createBasket();
         assert basketId != null;
 
