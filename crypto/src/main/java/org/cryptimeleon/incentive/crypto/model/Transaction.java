@@ -39,8 +39,6 @@ public class Transaction implements Representable {
     @NonFinal
     DoubleSpendingTag dsTag; // data associated to a spend transaction that is required to trace double-spending, this contains challenge generation helper value gamma
 
-    public Transaction() { }
-
     public Transaction(Representation repr, IncentivePublicParameters pp) {
         new ReprUtil(this).register(pp.getBg().getZn(), "Zn").deserialize(repr.list().get(0));
         this.dsTag = new DoubleSpendingTag(repr.list().get(1), pp);
