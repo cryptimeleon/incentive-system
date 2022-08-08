@@ -1,7 +1,7 @@
 package org.cryptimeleon.incentive.crypto.model;
 
+import org.cryptimeleon.incentive.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
-import org.cryptimeleon.incentive.crypto.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.crypto.TestSuite;
 import org.junit.jupiter.api.Test;
 

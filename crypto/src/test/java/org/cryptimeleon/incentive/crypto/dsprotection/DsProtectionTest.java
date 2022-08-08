@@ -2,8 +2,8 @@ package org.cryptimeleon.incentive.crypto.dsprotection;
 
 import lombok.AllArgsConstructor;
 import lombok.Value;
+import org.cryptimeleon.incentive.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
-import org.cryptimeleon.incentive.crypto.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.crypto.TestSuite;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.proof.spend.SpendHelper;
