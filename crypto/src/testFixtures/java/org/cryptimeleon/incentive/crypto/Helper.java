@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.crypto.crypto;
+package org.cryptimeleon.incentive.crypto;
 
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;

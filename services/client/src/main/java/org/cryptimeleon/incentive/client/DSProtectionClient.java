@@ -1,8 +1,7 @@
 package org.cryptimeleon.incentive.client;
 
 import org.cryptimeleon.incentive.crypto.model.DoubleSpendingTag;
-import org.cryptimeleon.math.serialization.Representable;
-import org.cryptimeleon.math.serialization.converter.JSONConverter;
+import org.cryptimeleon.incentive.crypto.model.TransactionIdentifier;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.slf4j.Logger;
@@ -32,17 +31,17 @@ public class DSProtectionClient {
     /**
      * Sends a request to the double-spending protection service to add the passed (represented and serialized) transaction data to the database.
      *
-     * @param tid         transaction ID
-     * @param dsid        double-spending ID
-     * @param dstag       double-spending tag
-     * @param userChoice  represents the reward that the user claimed with this transaction
+     * @param tid        transaction ID
+     * @param dsid       double-spending ID
+     * @param dstag      double-spending tag
+     * @param userChoice represents the reward that the user claimed with this transaction
      * @return server response (success or failure report)
      */
     public String dbSync(Zn.ZnElement tid, GroupElement dsid, DoubleSpendingTag dstag, BigInteger promotionId, String userChoice) {
         // marshall transaction data
-        String serializedTid = computeSerializedRepresentation(tid);
-        String serializedDsidRepr = computeSerializedRepresentation(dsid);
-        String serializedDsTagRepr = computeSerializedRepresentation(dstag);
+        String serializedTid = Helper.computeSerializedRepresentation(tid);
+        String serializedDsidRepr = Helper.computeSerializedRepresentation(dsid);
+        String serializedDsTagRepr = Helper.computeSerializedRepresentation(dstag);
         String serializedPromotionId = promotionId.toString();
 
         // make POST request
@@ -60,10 +59,36 @@ public class DSProtectionClient {
         return dbSyncResponse.block();
     }
 
-    private static String computeSerializedRepresentation(Representable r) {
-        JSONConverter jsonConverter = new JSONConverter();
-        return jsonConverter.serialize(
-                r.getRepresentation()
-        );
+    /**
+     * Causes the double-spending protection service to clear all databases
+     *
+     * @return response text
+     */
+    public String clearDatabase() {
+        Mono<String> response = this.dsProtectionClient.post()
+                .uri(uriBuilder -> uriBuilder.path(CLEAR_DB_PATH).build())
+                .retrieve()
+                .bodyToMono(String.class);
+
+        return response.block();
+    }
+
+    /**
+     * Returns the transaction with the specified transaction identifier from the database if contained.
+     *
+     * @param taIdentifier transaction identifier, consisting of a numerical ID and the challenge generator gamma
+     * @return Transaction object (crypto)
+     */
+    public String getTransaction(TransactionIdentifier taIdentifier) {
+        // marshall transaction identifier data
+        String serializedTransactionIdentifier = Helper.computeSerializedRepresentation(taIdentifier);
+
+        // make request and return result
+        return this.dsProtectionClient.get()
+                .uri(uriBuilder -> uriBuilder.path(GET_TRANSACTION_PATH).build())
+                .header("taidentifier", serializedTransactionIdentifier)
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
     }
 }
