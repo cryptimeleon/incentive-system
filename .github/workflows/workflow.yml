@@ -36,7 +36,11 @@ jobs:
           ./gradlew build
           popd
       - name: Run integration tests
-        run: ./.github/integration-test.sh
+        run: |
+          ./.github/integration-test/start-services.sh
+          sleep 15
+          pushd services
+          ./gradlew :client:integrationTest
 
   build-android-app:
     runs-on: ubuntu-latest

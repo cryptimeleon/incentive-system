@@ -2,17 +2,11 @@ package org.cryptimeleon.incentive.client;
 
 import org.cryptimeleon.incentive.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.model.DoubleSpendingTag;
-import org.cryptimeleon.incentive.crypto.model.Transaction;
 import org.cryptimeleon.incentive.crypto.model.TransactionIdentifier;
-import org.cryptimeleon.math.serialization.Representation;
-import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -24,13 +18,11 @@ import java.math.BigInteger;
  * Transaction data is sent via POST requests, data objects are transferred as JSON-marshalled representations (see Representation in math package).
  */
 public class DSProtectionClient {
-    private Logger logger = LoggerFactory.getLogger(DSProtectionClient.class);
-
-    private WebClient dsProtectionClient; // the underlying web client making the requests
-
     private static final String DBSYNC_PATH = "/dbsync";
     private static final String CLEAR_DB_PATH = "/cleardb";
     private static final String GET_TRANSACTION_PATH = "/getta";
+    private Logger logger = LoggerFactory.getLogger(DSProtectionClient.class);
+    private WebClient dsProtectionClient; // the underlying web client making the requests
 
     public DSProtectionClient(String dsProtectionServiceURL) {
         logger.info("Creating a client that sends queries to " + dsProtectionServiceURL);
@@ -40,10 +32,10 @@ public class DSProtectionClient {
     /**
      * Sends a request to the double-spending protection service to add the passed (represented and serialized) transaction data to the database.
      *
-     * @param tid         transaction ID
-     * @param dsid        double-spending ID
-     * @param dstag       double-spending tag
-     * @param userChoice  represents the reward that the user claimed with this transaction
+     * @param tid        transaction ID
+     * @param dsid       double-spending ID
+     * @param dstag      double-spending tag
+     * @param userChoice represents the reward that the user claimed with this transaction
      * @return server response (success or failure report)
      */
     public String dbSync(Zn.ZnElement tid, GroupElement dsid, DoubleSpendingTag dstag, BigInteger promotionId, String userChoice) {
@@ -70,6 +62,7 @@ public class DSProtectionClient {
 
     /**
      * Causes the double-spending protection service to clear all databases
+     *
      * @return response text
      */
     public String clearDatabase() {
@@ -83,6 +76,7 @@ public class DSProtectionClient {
 
     /**
      * Returns the transaction with the specified transaction identifier from the database if contained.
+     *
      * @param taIdentifier transaction identifier, consisting of a numerical ID and the challenge generator gamma
      * @return Transaction object (crypto)
      */

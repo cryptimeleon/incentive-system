@@ -6,10 +6,10 @@ import org.cryptimeleon.incentive.crypto.model.Transaction;
 import org.cryptimeleon.incentive.crypto.model.TransactionIdentifier;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
+import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.junit.jupiter.api.*;
 
 import java.math.BigInteger;
-import org.cryptimeleon.math.structures.cartesian.Vector;
 
 /**
  * Tests the double-spending protection service by performing both honest and malicious transactions
@@ -23,7 +23,7 @@ public class DsProtectionServiceIntegrationTest extends TransactionTestPreparati
     @BeforeAll
     void testSetup() {
         // setup test basket items and promotions
-        super.prepareBasketAndPromotions();
+        super.prepareBasketServiceAndPromotions();
 
         // create dsprotection client (only needed in dsprotection test)
         dsProtectionClient = new DSProtectionClient(dsProtectionUrl);
