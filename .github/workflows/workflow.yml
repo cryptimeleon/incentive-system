@@ -41,8 +41,6 @@ jobs:
           ./.github/integration-test.sh start_services
           sleep 15
           ./gradlew :client:integrationTest
-          ./.github/integration-test.sh kill_services
-          wait
 
   build-android-app:
     runs-on: ubuntu-latest
