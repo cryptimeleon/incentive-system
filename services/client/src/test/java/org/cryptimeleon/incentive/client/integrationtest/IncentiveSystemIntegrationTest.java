@@ -20,6 +20,9 @@ public abstract class IncentiveSystemIntegrationTest {
     @Value("${basket.url}")
     String basketUrl;
 
+    @Value("${dsprotection.url}")
+    String dsProtectionUrl;
+
     @Value("${basket-service.redeem-secret}")
     String redeemSecret;
 

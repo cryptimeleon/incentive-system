@@ -3,6 +3,8 @@ package org.cryptimeleon.incentivesystem.dsprotectionservice;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.model.DoubleSpendingTag;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
+import org.cryptimeleon.incentive.crypto.model.Transaction;
+import org.cryptimeleon.incentive.crypto.model.TransactionIdentifier;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.storage.DsTagEntryRepository;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.storage.DsidRepository;
 import org.cryptimeleon.incentivesystem.dsprotectionservice.storage.TransactionEntryRepository;
@@ -80,11 +82,32 @@ public class DsprotectionService {
         return this.localDbHandler.getAllTransactions().stream().map(TransactionDto::new).collect(Collectors.toList());
     }
 
+    // TODO: this endpoint needs to be protected by a shared secret
     /**
      * Clears all tables of the double-spending database.
      * Needed for test runs where different test scenarios are created without restarting the double-spending protection service after each test.
      */
     public void clearDatabase() {
         localDbHandler.clearDatabase();
+    }
+
+    /**
+     * Returns the transaction with the specified transaction identifier from the database if contained.
+     * @param serializedTaIdentifier serialized representation of a transaction identifier, consisting of a numerical ID and the challenge generator gamma
+     * @return Transaction object (crypto)
+     */
+    public String getTransaction(String serializedTaIdentifier) {
+        // deserialze and restore ID
+        JSONConverter jsonConverter = new JSONConverter();
+        TransactionIdentifier taIdentifier = new TransactionIdentifier(
+                jsonConverter.deserialize(serializedTaIdentifier),
+                cryptoRepository.getPp()
+        );
+
+        // query result from database
+        Transaction ta = localDbHandler.getTransactionNode(taIdentifier);
+
+        // represent and serialize transaction
+        return Util.computeSerializedRepresentation(ta);
     }
 }
