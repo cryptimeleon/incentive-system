@@ -7,9 +7,9 @@ import org.cryptimeleon.incentive.client.dto.BasketItemDto;
 import org.cryptimeleon.incentive.client.dto.RewardItemDto;
 import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.SpendRequestDto;
-import org.cryptimeleon.incentive.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.Util;
+import org.cryptimeleon.incentive.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.crypto.model.SpendResponse;
 import org.cryptimeleon.incentive.crypto.model.Token;
@@ -59,7 +59,6 @@ public class TransactionTestPreparation extends IncentiveSystemIntegrationTest {
     protected IncentiveSystem incentiveSystem;
 
 
-
     protected void prepareBasketAndPromotions() {
         infoClient = new InfoClient(infoUrl);
         basketClient = new BasketClient(basketUrl);
@@ -74,15 +73,13 @@ public class TransactionTestPreparation extends IncentiveSystemIntegrationTest {
     }
 
 
-
     /**
      * Performs a full integrated run of the spend-deduct protocol
      * and returns identifying information for the occurred transaction
      * for later use in test cases (e.g. dsprotection integration test).
      *
-     * @param token token spent in the transaction
+     * @param token    token spent in the transaction
      * @param basketId ID of the basket used for the basket used in the transaction
-     *
      * @return TransactionIdentifier
      */
     protected TransactionIdentifier runSpendDeductWorkflow(Token token, UUID basketId) {
@@ -152,8 +149,9 @@ public class TransactionTestPreparation extends IncentiveSystemIntegrationTest {
 
     /**
      * wrapper around crypto. ... .Helper.generateToken that fixes parameters that are the same for all calls anyway.
+     *
      * @param promotionParameters promotion parameters for the promotion the token should be used for
-     * @param pointVector point counts in the token
+     * @param pointVector         point counts in the token
      * @return Token
      */
     protected Token generateToken(PromotionParameters promotionParameters, Vector<BigInteger> pointVector) {
@@ -167,6 +165,7 @@ public class TransactionTestPreparation extends IncentiveSystemIntegrationTest {
 
     /**
      * Creates a basket and returns its basket ID.
+     *
      * @return basket ID
      */
     protected UUID createBasket() {

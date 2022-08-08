@@ -1,8 +1,8 @@
 package org.cryptimeleon.incentivesystem.dsprotectionservice;
 
 import org.cryptimeleon.incentive.crypto.BilinearGroupChoice;
+import org.cryptimeleon.incentive.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
-import org.cryptimeleon.incentive.crypto.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.Transaction;
 import org.cryptimeleon.incentive.crypto.model.UserInfo;
