@@ -3,6 +3,7 @@ package org.cryptimeleon.incentive.services.info;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cryptimeleon.incentive.crypto.BilinearGroupChoice;
 import org.cryptimeleon.incentive.crypto.Setup;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
@@ -44,10 +45,10 @@ public class InfoService {
         log.info("Setting up a new incentive-system");
         if (useMcl) {
             log.info("Generate pp using mcl");
-            this.pp = Setup.trustedSetup(128, Setup.BilinearGroupChoice.Herumi_MCL);
+            this.pp = Setup.trustedSetup(128, BilinearGroupChoice.Herumi_MCL);
         } else {
             log.info("Generate pp using debug group");
-            this.pp = Setup.trustedSetup(128, Setup.BilinearGroupChoice.Debug);
+            this.pp = Setup.trustedSetup(128, BilinearGroupChoice.Debug);
         }
         log.info("Generate provider keypair");
         this.providerKeyPair = Setup.providerKeyGen(pp);

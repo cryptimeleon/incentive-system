@@ -1,12 +1,11 @@
-package org.cryptimeleon.incentive.crypto.model.messages;
+package org.cryptimeleon.incentive.crypto.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Value;
 import lombok.experimental.NonFinal;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProof;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
-import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
-import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
+import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellformednessCommonInput;
 import org.cryptimeleon.math.serialization.ListRepresentation;
 import org.cryptimeleon.math.serialization.Representable;
@@ -28,7 +27,18 @@ public class JoinRequest implements Representable {
     @NonFinal
     FiatShamirProof cwfProof; // proof for well-formedness of token and knowledge of usk corresp. to upk
 
-    public JoinRequest(Representation repr, IncentivePublicParameters pp, UserPublicKey upk, FiatShamirProofSystem fsps) {
+    // (upb^r, w^r) + genesisSignature^r (valid signature on this tuple)
+    @NonFinal
+    GroupElement blindedUpk;
+
+    @NonFinal
+    GroupElement blindedW;
+
+    @NonFinal
+    SPSEQSignature blindedGenesisSignature;
+
+
+    public JoinRequest(Representation repr, IncentivePublicParameters pp, FiatShamirProofSystem fsps) {
         // force passed representation into a list representation (does not throw class cast exception in intended use cases)
         var list = (ListRepresentation) repr;
 
@@ -38,14 +48,20 @@ public class JoinRequest implements Representable {
         // restore fields
         this.preCommitment0 = usedG1.restoreElement(list.get(0));
         this.preCommitment1 = usedG1.restoreElement(list.get(1));
-        var cwfProofCommonInput = new CommitmentWellformednessCommonInput(upk.getUpk(), preCommitment0, preCommitment1); // recompute cwf proof common input
-        this.cwfProof = fsps.restoreProof(cwfProofCommonInput, list.get(2));
+        this.blindedUpk = usedG1.restoreElement(list.get(2));
+        this.blindedW = usedG1.restoreElement(list.get(3));
+        this.blindedGenesisSignature = pp.getSpsEq().restoreSignature(list.get(4));
+        var cwfProofCommonInput = new CommitmentWellformednessCommonInput(preCommitment0, preCommitment1, blindedUpk, blindedW); // recompute cwf proof common input
+        this.cwfProof = fsps.restoreProof(cwfProofCommonInput, list.get(5));
     }
 
     public Representation getRepresentation() {
         return new ListRepresentation(
                 this.preCommitment0.getRepresentation(),
                 this.preCommitment1.getRepresentation(),
+                this.blindedUpk.getRepresentation(),
+                this.blindedW.getRepresentation(),
+                this.blindedGenesisSignature.getRepresentation(),
                 this.cwfProof.getRepresentation()
         );
     }

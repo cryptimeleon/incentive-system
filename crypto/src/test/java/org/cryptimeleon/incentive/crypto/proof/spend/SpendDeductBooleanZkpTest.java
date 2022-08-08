@@ -2,9 +2,8 @@ package org.cryptimeleon.incentive.crypto.proof.spend;
 
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProof;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
-import org.cryptimeleon.incentive.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
-import org.cryptimeleon.incentive.crypto.Setup;
+import org.cryptimeleon.incentive.crypto.crypto.TestSuite;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.crypto.model.Token;
@@ -63,7 +62,6 @@ class SpendDeductBooleanZkpTest {
     IncentivePublicParameters pp;
     ProviderKeyPair providerKey;
     UserKeyPair userKey;
-    IncentiveSystem incentiveSystem;
     PromotionParameters promotion;
     Token token;
     Zn zn;
@@ -73,12 +71,11 @@ class SpendDeductBooleanZkpTest {
 
     @BeforeEach
     void setup() {
-        pp = Setup.trustedSetup(128, Setup.BilinearGroupChoice.Debug);
-        providerKey = Setup.providerKeyGen(pp);
-        userKey = Setup.userKeyGen(pp);
-        incentiveSystem = new IncentiveSystem(pp);
-        promotion = incentiveSystem.generatePromotionParameters(4);
-        token = Helper.generateToken(pp, userKey, providerKey, promotion, points);
+        pp = TestSuite.pp;
+        providerKey = TestSuite.providerKeyPair;
+        userKey = TestSuite.userKeyPair;
+        promotion = IncentiveSystem.generatePromotionParameters(4);
+        token = TestSuite.generateToken(promotion, points);
         zn = pp.getBg().getZn();
         testSuite = SpendHelper.generateTestSuite(newPoints, pp, promotion, providerKey, token, userKey, zn);
         pointsREV = new RingElementVector(Vector.fromStreamPlain(points.stream().map(this.zn::getElement)));

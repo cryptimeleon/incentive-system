@@ -9,8 +9,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
+import org.cryptimeleon.incentive.crypto.BilinearGroupChoice
 import org.cryptimeleon.incentive.crypto.IncentiveSystem
 import org.cryptimeleon.incentive.crypto.Setup
+import org.cryptimeleon.incentive.crypto.Util
 import org.cryptimeleon.incentive.crypto.benchmark.Benchmark
 import org.cryptimeleon.incentive.crypto.benchmark.BenchmarkConfig
 import org.cryptimeleon.incentive.crypto.benchmark.BenchmarkResult
@@ -18,7 +20,7 @@ import timber.log.Timber
 import javax.inject.Inject
 
 private const val BENCHMARK_ITERATIONS = 10
-private val BENCHMARK_GROUP = Setup.BilinearGroupChoice.Herumi_MCL
+private val BENCHMARK_GROUP = BilinearGroupChoice.Herumi_MCL
 const val SECURITY_PARAMETER = 128
 
 enum class BenchmarkViewState {
@@ -64,10 +66,12 @@ class BenchmarkViewModel @Inject constructor(application: Application) :
                 val incentiveSystem = IncentiveSystem(pp)
 
                 Timber.i("Provider Provider keys")
-                val providerKeyPair = incentiveSystem.generateProviderKeys()
+                val providerKeyPair = incentiveSystem.generateProviderKeyPair()
 
-                Timber.i("Generating User keys")
-                val userKeyPair = incentiveSystem.generateUserKeys()
+                Timber.i("Generating Pre User keys")
+                val userPreKeyPair = incentiveSystem.generateUserPreKeyPair()
+                val userKeyPair =
+                    Util.addGenesisSignatureToUserKeys(userPreKeyPair, providerKeyPair, pp)
 
                 Timber.i("Generation finished")
 

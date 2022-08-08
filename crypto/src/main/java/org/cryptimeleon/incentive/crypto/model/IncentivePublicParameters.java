@@ -70,7 +70,16 @@ public class IncentivePublicParameters implements PublicParameters {
         init();
     }
 
-    public IncentivePublicParameters(BilinearGroup bg, GroupElement w, GroupElement h7, GroupElement g1, GroupElement g2, HashThenPrfToZn prfToZn, SPSEQSignatureScheme spsEq, Zn.ZnElement eskDecBase, int maxPointBasePower, SetMembershipPublicParameters eskBaseSetMembershipPublicParameters) {
+    public IncentivePublicParameters(BilinearGroup bg,
+                                     GroupElement w,
+                                     GroupElement h7,
+                                     GroupElement g1,
+                                     GroupElement g2,
+                                     HashThenPrfToZn prfToZn,
+                                     SPSEQSignatureScheme spsEq,
+                                     Zn.ZnElement eskDecBase,
+                                     int maxPointBasePower,
+                                     SetMembershipPublicParameters eskBaseSetMembershipPublicParameters) {
         this.bg = bg;
         this.w = w;
         this.h7 = h7;

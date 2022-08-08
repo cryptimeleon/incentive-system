@@ -11,9 +11,7 @@ import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderSecretKey;
-import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
-import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
-import org.cryptimeleon.incentive.crypto.model.keys.user.UserSecretKey;
+import org.cryptimeleon.incentive.crypto.model.keys.user.*;
 import org.cryptimeleon.math.hash.impl.SHA256HashFunction;
 import org.cryptimeleon.math.prf.PrfKey;
 import org.cryptimeleon.math.prf.zn.HashThenPrfToZn;
@@ -76,10 +74,6 @@ public class Setup {
         }
 
 
-        // generate generators for the groups that make up the domain
-        GroupElement g1Generator = bg.getG1().getGenerator();
-        GroupElement g2Generator = bg.getG2().getGenerator();
-
         /*
          * note: in trusted setup (as in this implementation), it does not matter how w and h7 are generated
          */
@@ -114,7 +108,7 @@ public class Setup {
      * @param pp object representation of public parameters
      * @return UserKeyPair
      */
-    public static UserKeyPair userKeyGen(IncentivePublicParameters pp) {
+    public static UserPreKeyPair userPreKeyGen(IncentivePublicParameters pp) {
         // draw random exponent for the user secret key
         Zn usedZn = pp.getBg().getZn(); // the remainder class ring used in this instance of the incentive system
         ZnElement usk = usedZn.getUniformlyRandomElement(); // secret exponent
@@ -126,9 +120,9 @@ public class Setup {
         GroupElement upkElem = pp.getW().pow(usk).compute();
 
         // wrap up values
-        UserSecretKey uSk = new UserSecretKey(usk, betaUsr);
+        UserPreSecretKey uSk = new UserPreSecretKey(usk, betaUsr);
         UserPublicKey uPk = new UserPublicKey(upkElem);
-        return new UserKeyPair(uPk, uSk);
+        return new UserPreKeyPair(uPk, uSk);
     }
 
     /**
@@ -147,22 +141,13 @@ public class Setup {
         // generate PRF key for provider
         PrfKey betaProv = pp.getPrfToZn().generateKey();
 
-        // generate SPS-EQ key pair
-        SignatureKeyPair<SPSEQVerificationKey, SPSEQSigningKey> spsEqKeyPair = pp.getSpsEq().generateKeyPair(3);
-        SPSEQVerificationKey spseqVerificationKey = spsEqKeyPair.getVerificationKey();
-        SPSEQSigningKey spseqSigningKey = spsEqKeyPair.getSigningKey();
+        // generate SPS-EQ key pairs
+        SignatureKeyPair<SPSEQVerificationKey, SPSEQSigningKey> tokenSpsEqKeyPair = pp.getSpsEq().generateKeyPair(3);
+        SignatureKeyPair<SPSEQVerificationKey, SPSEQSigningKey> genesisSpsEqKeyPair = pp.getSpsEq().generateKeyPair(2);
 
         // wrap up values
-        ProviderPublicKey pk = new ProviderPublicKey(spseqVerificationKey, h);
-        ProviderSecretKey sk = new ProviderSecretKey(spseqSigningKey, q, betaProv);
+        ProviderPublicKey pk = new ProviderPublicKey(tokenSpsEqKeyPair.getVerificationKey(), genesisSpsEqKeyPair.getVerificationKey(), h);
+        ProviderSecretKey sk = new ProviderSecretKey(tokenSpsEqKeyPair.getSigningKey(), genesisSpsEqKeyPair.getSigningKey(), q, betaProv);
         return new ProviderKeyPair(sk, pk);
-    }
-
-
-    // Enum for choosing the bilinear group
-    public enum BilinearGroupChoice {
-        Debug,
-        BarretoNaehrig,
-        Herumi_MCL
     }
 }

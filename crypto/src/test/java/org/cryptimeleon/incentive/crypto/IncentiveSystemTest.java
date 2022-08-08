@@ -2,12 +2,8 @@ package org.cryptimeleon.incentive.crypto;
 
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
-import org.cryptimeleon.incentive.crypto.model.EarnRequest;
-import org.cryptimeleon.incentive.crypto.model.SpendRequest;
-import org.cryptimeleon.incentive.crypto.model.SpendResponse;
-import org.cryptimeleon.incentive.crypto.model.Token;
-import org.cryptimeleon.incentive.crypto.model.messages.JoinRequest;
-import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse;
+import org.cryptimeleon.incentive.crypto.crypto.TestSuite;
+import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.proof.spend.SpendHelper;
 import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenUpdateLeaf;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
@@ -42,17 +38,18 @@ public class IncentiveSystemTest {
         logger.info("Setting up the incentive system and generating keys.");
 
         // generate incentive system pp and extracts used Zn for shorter references
-        var incSys = new IncentiveSystem(IncentiveSystem.setup(128, Setup.BilinearGroupChoice.Debug));
+        var incSys = TestSuite.incentiveSystem;
+
         var usedZn = incSys.getPp().getBg().getZn();
 
         // generate provider keys
-        var pkp = incSys.generateProviderKeys();
+        var pkp = TestSuite.providerKeyPair;
 
         // generate user key pair for user
-        var ukp = incSys.generateUserKeys();
+        var ukp = TestSuite.userKeyPair;
 
         // generate promotion parameters
-        var promotionParameters = incSys.generatePromotionParameters(2);
+        var promotionParameters = IncentiveSystem.generatePromotionParameters(2);
         Vector<BigInteger> ignore = Util.getNullBigIntegerVector(2);
         Vector<BigInteger> ones = Util.getOneBigIntegerVector(2);
         Vector<BigInteger> zeros = Util.getZeroBigIntegerVector(2);
@@ -64,26 +61,25 @@ public class IncentiveSystemTest {
         logger.info("A new user joins the system.");
 
         // user generates join request
-        var joinRequest = incSys.generateJoinRequest(
+        var generateIssueJoinOutput = incSys.generateJoinRequest(
                 pkp.getPk(),
-                ukp,
-                promotionParameters
+                ukp
         );
 
         // serialize and deserialize join request to ensure serialization does not break anything
-        var serializedJoinRequest = joinRequest.getRepresentation();
+        var serializedJoinRequest = generateIssueJoinOutput.getJoinRequest().getRepresentation();
         FiatShamirProofSystem cwfProofSystem = new FiatShamirProofSystem(new CommitmentWellformednessProtocol(incSys.getPp(), pkp.getPk()));
-        var deserializedJoinRequest = new JoinRequest(serializedJoinRequest, incSys.getPp(), ukp.getPk(), cwfProofSystem);
+        var deserializedJoinRequest = new JoinRequest(serializedJoinRequest, incSys.getPp(), cwfProofSystem);
 
         // provider handles join request and generates join response
-        var joinResponse = incSys.generateJoinRequestResponse(promotionParameters, pkp, ukp.getPk().getUpk(), deserializedJoinRequest);
+        var joinResponse = incSys.generateJoinRequestResponse(promotionParameters, pkp, deserializedJoinRequest);
 
         // serialize and deserialize join response
         var serializedJoinResponse = joinResponse.getRepresentation();
         var deserializedJoinResponse = new JoinResponse(serializedJoinResponse, incSys.getPp());
 
         // user handles join response
-        var initialToken = incSys.handleJoinRequestResponse(promotionParameters, pkp.getPk(), ukp, joinRequest, deserializedJoinResponse);
+        var initialToken = incSys.handleJoinRequestResponse(promotionParameters, pkp.getPk(), generateIssueJoinOutput, deserializedJoinResponse);
 
         /*
          * transaction 1: user tries to spend points with an empty token

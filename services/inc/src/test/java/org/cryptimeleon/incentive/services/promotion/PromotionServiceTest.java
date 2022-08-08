@@ -1,11 +1,12 @@
 package org.cryptimeleon.incentive.services.promotion;
 
+import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.SpendRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.TokenUpdateResultsDto;
 import org.cryptimeleon.incentive.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
-import org.cryptimeleon.incentive.crypto.Setup;
+import org.cryptimeleon.incentive.crypto.crypto.TestSuite;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.SpendRequest;
 import org.cryptimeleon.incentive.crypto.model.SpendResponse;
@@ -35,11 +36,9 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
 
 import java.math.BigInteger;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -51,10 +50,10 @@ import static org.mockito.Mockito.when;
 public class PromotionServiceTest {
 
 
-    private static final IncentivePublicParameters pp = Setup.trustedSetup(128, Setup.BilinearGroupChoice.Debug);
-    private static final IncentiveSystem incentiveSystem = new IncentiveSystem(pp);
-    private static final ProviderKeyPair pkp = Setup.providerKeyGen(pp);
-    private static final UserKeyPair ukp = Setup.userKeyGen(pp);
+    private static final IncentivePublicParameters pp = TestSuite.pp;
+    private static final IncentiveSystem incentiveSystem = TestSuite.incentiveSystem;
+    private static final ProviderKeyPair pkp = TestSuite.providerKeyPair;
+    private static final UserKeyPair ukp = TestSuite.userKeyPair;
     private static final JSONConverter jsonConverter = new JSONConverter();
     private final Basket testBasket = new Basket(
             UUID.randomUUID(),
@@ -102,20 +101,16 @@ public class PromotionServiceTest {
         deleteAllPromotions(webTestClient, providerSecret, HttpStatus.OK);
     }
 
-    private List<Promotion> getPromotions(@Autowired WebTestClient webClient) {
-        String[] newSerializedPromotions = webClient
-                .get()
-                .uri(uriBuilder -> uriBuilder.path("/promotions").build())
-                .exchange()
-                .expectStatus().isOk()
-                .expectBody(String[].class)
-                .returnResult().getResponseBody();
+    @Test
+    public void genesisTest(@Autowired WebTestClient webClient) {
+        var userPreKeyPair = TestSuite.userPreKeyPair;
 
-        assert newSerializedPromotions != null;
-        return Arrays.stream(newSerializedPromotions)
-                .map(s -> (Promotion) ((RepresentableRepresentation) jsonConverter.deserialize(s)).recreateRepresentable())
-                .collect(Collectors.toList());
+        SPSEQSignature signature = retrieveGenesisSignature(webClient, userPreKeyPair);
+
+        assertThat(pp.getSpsEq().verify(pkp.getPk().getGenesisSpsEqPk(), signature, userPreKeyPair.getPk().getUpk(), pp.getW()))
+                .isTrue();
     }
+
 
     @Test
     public void joinTest(@Autowired WebTestClient webClient) {
@@ -128,9 +123,7 @@ public class PromotionServiceTest {
 
     @Test
     public void joinNonExistingPromotionTest(@Autowired WebTestClient webClient) {
-        assertThatThrownBy(() -> {
-            joinPromotion(webClient, incentiveSystem, pkp, ukp, testPromotion, HttpStatus.BAD_REQUEST);
-        }).hasStackTraceContaining("Promotion");
+        assertThatThrownBy(() -> joinPromotion(webClient, incentiveSystem, pkp, ukp, testPromotion, HttpStatus.BAD_REQUEST)).hasStackTraceContaining("Promotion");
     }
 
     @Test
@@ -237,6 +230,17 @@ public class PromotionServiceTest {
     @Test
     void emptyBulkRequestTest(@Autowired WebTestClient webTestClient) {
         sendBulkRequests(webTestClient, new BulkRequestDto(List.of(), List.of()), emptyTestBasket, HttpStatus.OK);
+    }
+
+    private SPSEQSignature retrieveGenesisSignature(WebTestClient webClient, org.cryptimeleon.incentive.crypto.model.keys.user.UserPreKeyPair userPreKeyPair) {
+        var serializedSignature = webClient.post()
+                .uri("/genesis")
+                .header("user-public-key", jsonConverter.serialize(userPreKeyPair.getPk().getUpk().getRepresentation()))
+                .exchange()
+                .expectBody(String.class)
+                .returnResult()
+                .getResponseBody();
+        return pp.getSpsEq().restoreSignature(jsonConverter.deserialize(serializedSignature));
     }
 
     private SpendRequest sendSingleSpendRequest(WebTestClient webTestClient, Vector<BigInteger> basketPoints, Vector<BigInteger> pointsAfterSpend, Token token, HttpStatus expectedStatus) {

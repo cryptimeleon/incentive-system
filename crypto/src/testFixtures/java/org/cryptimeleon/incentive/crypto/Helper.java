@@ -19,7 +19,7 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
 import java.math.BigInteger;
 
 /**
- * Class that creates some random mathematic objects. Used to shorten tests and sometimes system code.
+ * Class that creates some random mathematical objects. Used to shorten tests and sometimes system code.
  */
 public class Helper {
     /**

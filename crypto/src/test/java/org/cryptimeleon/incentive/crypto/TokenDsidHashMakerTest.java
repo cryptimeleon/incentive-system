@@ -1,10 +1,8 @@
 package org.cryptimeleon.incentive.crypto;
 
-import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
+import org.cryptimeleon.incentive.crypto.crypto.TestSuite;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.crypto.model.Token;
-import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
-import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.junit.jupiter.api.Test;
 
@@ -16,16 +14,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class TokenDsidHashMakerTest {
     JSONConverter jsonConverter = new JSONConverter();
-    IncentivePublicParameters pp = Setup.trustedSetup(128, Setup.BilinearGroupChoice.Debug);
     PromotionParameters promotionParameters = IncentiveSystem.generatePromotionParameters(1);
-    IncentiveSystem incentiveSystem = new IncentiveSystem(pp);
-    UserKeyPair userKeyPair = incentiveSystem.generateUserKeys();
-    ProviderKeyPair providerKeyPair = incentiveSystem.generateProviderKeys();
-    Token token = Helper.generateToken(pp, userKeyPair, providerKeyPair, promotionParameters);
+    Token token = TestSuite.generateToken(promotionParameters);
 
     @Test
     void smokeTest() {
-        String hash = TokenDsidHashMaker.hashToken(token, pp);
+        String hash = TokenDsidHashMaker.hashToken(token, TestSuite.pp);
         String shortHash = TokenDsidHashMaker.shortHash(hash);
         System.out.println(hash);
         System.out.println(shortHash);
@@ -33,8 +27,8 @@ class TokenDsidHashMakerTest {
 
     @Test
     void compareWithManualHash() throws NoSuchAlgorithmException {
-        String hash = TokenDsidHashMaker.hashToken(token, pp);
-        String serializedDsid = jsonConverter.serialize(token.computeDsid(pp).getRepresentation());
+        String hash = TokenDsidHashMaker.hashToken(token, TestSuite.pp);
+        String serializedDsid = jsonConverter.serialize(token.computeDsid(TestSuite.pp).getRepresentation());
         String manualHashString = hashAndEncodeHexString(serializedDsid);
 
         assertThat(hash).isEqualToIgnoringCase(manualHashString);

@@ -2,9 +2,11 @@ package org.cryptimeleon.incentive.client;
 
 import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.TokenUpdateResultsDto;
+import org.cryptimeleon.incentive.crypto.model.keys.user.UserPreKeyPair;
 import org.cryptimeleon.incentive.promotion.Promotion;
 import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -45,15 +47,13 @@ public class IncentiveClient implements AliveEndpoint {
     /**
      * Creates a join request.
      *
-     * @param serializedUserPublicKey the serialized public key of the user
      * @param serializedJoinRequest   the serialized join request
      * @return mono of the server's answer
      */
-    public Mono<String> sendJoinRequest(String serializedJoinRequest, String serializedUserPublicKey, BigInteger promotionId) {
+    public Mono<String> sendJoinRequest(BigInteger promotionId, String serializedJoinRequest) {
         return incentiveClient.post()
                 .uri("/join-promotion")
                 .header("promotion-id", String.valueOf(promotionId))
-                .header("user-public-key", serializedUserPublicKey)
                 .header("join-request", serializedJoinRequest)
                 .retrieve()
                 .bodyToMono(String.class);
@@ -76,19 +76,6 @@ public class IncentiveClient implements AliveEndpoint {
                 .bodyToMono(TokenUpdateResultsDto.class);
     }
 
-
-    public Mono<List<Promotion>> queryPromotions() {
-        return incentiveClient.get()
-                .uri("/promotions")
-                .retrieve()
-                .toEntityList(String.class)
-                .map(s ->
-                        s.getBody().stream().map(it ->
-                                (Promotion) ((RepresentableRepresentation) jsonConverter.deserialize(it)).recreateRepresentable()
-                        ).collect(Collectors.toList())
-                );
-    }
-
     public Mono<ResponseEntity<Void>> addPromotions(List<Promotion> promotions, String providerSecret) {
         return incentiveClient.post()
                 .uri("/promotions")
@@ -102,11 +89,11 @@ public class IncentiveClient implements AliveEndpoint {
         return promotions.stream().map(p -> jsonConverter.serialize(new RepresentableRepresentation(p))).collect(Collectors.toList());
     }
 
-    public Mono<ResponseEntity<Void>> deleteAllPromotions(String providerSecret) {
-        return incentiveClient.delete()
-                .uri("/promotions")
-                .header("provider-secret", providerSecret)
+    public Mono<ResponseEntity<String>> genesis(UserPreKeyPair userPreKeyPair) {
+        return incentiveClient.post()
+                .uri("/genesis")
+                .header("user-public-key", jsonConverter.serialize(userPreKeyPair.getPk().getRepresentation()))
                 .retrieve()
-                .toBodilessEntity();
+                .bodyToMono((new ParameterizedTypeReference<ResponseEntity<String>>() {}));
     }
 }

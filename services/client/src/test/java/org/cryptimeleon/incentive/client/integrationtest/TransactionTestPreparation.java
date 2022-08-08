@@ -157,6 +157,7 @@ public class TransactionTestPreparation extends IncentiveSystemIntegrationTest {
      *
      * @param promotionParameters promotion parameters for the promotion the token should be used for
      * @param pointVector         point counts in the token
+     * @param pointVector         point counts in the token
      * @return Token
      */
     protected Token generateToken(PromotionParameters promotionParameters, Vector<BigInteger> pointVector) {

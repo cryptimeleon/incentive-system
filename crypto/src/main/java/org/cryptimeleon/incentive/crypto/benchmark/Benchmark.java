@@ -10,8 +10,7 @@ import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderSecretKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserSecretKey;
-import org.cryptimeleon.incentive.crypto.model.messages.JoinRequest;
-import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse;
+import org.cryptimeleon.incentive.crypto.model.JoinResponse;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 
@@ -68,7 +67,7 @@ public class Benchmark {
         long[] tSpendResponse = new long[benchmarkConfig.iterations];
         long[] tSpendHandleResponse = new long[benchmarkConfig.iterations];
 
-        JoinRequest joinRequest;
+        GenerateIssueJoinOutput generateIssueJoinOutput;
         JoinResponse joinResponse;
         EarnRequest earnRequest;
         SPSEQSignature earnResponse;
@@ -77,12 +76,11 @@ public class Benchmark {
         Token token = null;
 
         IncentiveSystem incentiveSystem = benchmarkConfig.incentiveSystem;
-        IncentivePublicParameters pp = benchmarkConfig.pp;
         ProviderPublicKey ppk = benchmarkConfig.ppk;
         ProviderSecretKey psk = benchmarkConfig.psk;
         UserPublicKey upk = benchmarkConfig.upk;
         UserSecretKey usk = benchmarkConfig.usk;
-        PromotionParameters promotionParameters = incentiveSystem.generatePromotionParameters(EARN_SPEND_AMOUNT.length());
+        PromotionParameters promotionParameters = IncentiveSystem.generatePromotionParameters(EARN_SPEND_AMOUNT.length());
         SpendDeductTree spendDeductTree = BenchmarkSpendDeductZkp.getBenchmarkSpendDeductTree(
                 promotionParameters,
                 EARN_SPEND_AMOUNT);
@@ -94,10 +92,9 @@ public class Benchmark {
         for (int i = 0; i < benchmarkConfig.iterations; i++) {
             feedbackFunction.accept(BenchmarkState.ISSUE_JOIN, i);
             start = Instant.now();
-            joinRequest = incentiveSystem.generateJoinRequest(
+            generateIssueJoinOutput = incentiveSystem.generateJoinRequest(
                     ppk,
-                    userKeyPair,
-                    promotionParameters
+                    userKeyPair
             );
             finish = Instant.now();
             tJoinRequest[i] = Duration.between(start, finish).toNanos();
@@ -106,8 +103,7 @@ public class Benchmark {
                     incentiveSystem.generateJoinRequestResponse(
                             promotionParameters,
                             providerKeyPair,
-                            upk.getUpk(),
-                            joinRequest
+                            generateIssueJoinOutput.getJoinRequest()
                     );
             finish = Instant.now();
             tJoinResponse[i] = Duration.between(start, finish).toNanos();
@@ -115,8 +111,7 @@ public class Benchmark {
             token = incentiveSystem.handleJoinRequestResponse(
                     promotionParameters,
                     ppk,
-                    userKeyPair,
-                    joinRequest,
+                    generateIssueJoinOutput,
                     joinResponse
             );
             finish = Instant.now();

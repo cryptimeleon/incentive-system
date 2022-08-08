@@ -4,8 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.EarnRequestDto;
+import org.cryptimeleon.incentive.crypto.model.JoinResponse;
 import org.cryptimeleon.incentive.crypto.model.Token;
-import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse;
 import org.cryptimeleon.incentive.promotion.model.Basket;
 import org.cryptimeleon.incentive.promotion.model.BasketItem;
 import org.cryptimeleon.math.structures.cartesian.Vector;
@@ -61,7 +61,7 @@ public class FullWorkflowTest extends TransactionTestPreparation {
     }
 
     @Test
-    void rewardsAddedToBasketTest() {
+    void spendRewardsAddedToBasketTest() {
         Token token = generateToken(testPromotion.getPromotionParameters(), Vector.of(BigInteger.valueOf(20)));
         var basketId = createBasket();
         assert basketId != null;
@@ -93,14 +93,13 @@ public class FullWorkflowTest extends TransactionTestPreparation {
     }
 
     private Token joinPromotion() {
-        var joinRequest = incentiveSystem.generateJoinRequest(cryptoAssets.getProviderKeyPair().getPk(), cryptoAssets.getUserKeyPair(), testPromotion.getPromotionParameters());
+        var joinTuple = incentiveSystem.generateJoinRequest(cryptoAssets.getProviderKeyPair().getPk(), cryptoAssets.getUserKeyPair());
         var serializedJoinResponse = incentiveClient.sendJoinRequest(
-                jsonConverter.serialize(joinRequest.getRepresentation()),
-                jsonConverter.serialize(cryptoAssets.getUserKeyPair().getPk().getRepresentation()),
-                testPromotion.getPromotionParameters().getPromotionId()
+                testPromotion.getPromotionParameters().getPromotionId(),
+                jsonConverter.serialize(joinTuple.getJoinRequest().getRepresentation())
         ).block(Duration.ofSeconds(1));
         var joinResponse = new JoinResponse(jsonConverter.deserialize(serializedJoinResponse), cryptoAssets.getPublicParameters());
-        return incentiveSystem.handleJoinRequestResponse(testPromotion.getPromotionParameters(), cryptoAssets.getProviderKeyPair().getPk(), cryptoAssets.getUserKeyPair(), joinRequest, joinResponse);
+        return incentiveSystem.handleJoinRequestResponse(testPromotion.getPromotionParameters(), cryptoAssets.getProviderKeyPair().getPk(), joinTuple, joinResponse);
     }
 
     private Token runEarnProtocol(Token token, org.cryptimeleon.incentive.promotion.model.Basket basket, org.cryptimeleon.math.structures.cartesian.Vector<java.math.BigInteger> basketValueForPromotion) {

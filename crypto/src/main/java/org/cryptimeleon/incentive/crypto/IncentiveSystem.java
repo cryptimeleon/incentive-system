@@ -1,6 +1,5 @@
 package org.cryptimeleon.incentive.crypto;
 
-import lombok.AllArgsConstructor;
 import lombok.Value;
 import org.cryptimeleon.craco.common.ByteArrayImplementation;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProof;
@@ -13,10 +12,11 @@ import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderSecretKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
+import org.cryptimeleon.incentive.crypto.model.keys.user.UserPreKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserSecretKey;
-import org.cryptimeleon.incentive.crypto.model.messages.JoinRequest;
-import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse;
+import org.cryptimeleon.incentive.crypto.model.JoinRequest;
+import org.cryptimeleon.incentive.crypto.model.JoinResponse;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkpCommonInput;
@@ -62,7 +62,7 @@ public class IncentiveSystem {
      * @param bilinearGroupChoice the bilinear group to use. Especially useful for testing
      * @return public parameters for the incentive system
      */
-    public static IncentivePublicParameters setup(int securityParameter, Setup.BilinearGroupChoice bilinearGroupChoice) {
+    public static IncentivePublicParameters setup(int securityParameter, BilinearGroupChoice bilinearGroupChoice) {
         return Setup.trustedSetup(securityParameter, bilinearGroupChoice);
     }
 
@@ -75,7 +75,7 @@ public class IncentiveSystem {
      *
      * @return fresh provider key pair
      */
-    public ProviderKeyPair generateProviderKeys() {
+    public ProviderKeyPair generateProviderKeyPair() {
         return Setup.providerKeyGen(this.pp);
     }
 
@@ -84,14 +84,28 @@ public class IncentiveSystem {
      *
      * @return fresh user key pair
      */
-    public UserKeyPair generateUserKeys() {
-        return Setup.userKeyGen(this.pp);
+    public UserPreKeyPair generateUserPreKeyPair() {
+        return Setup.userPreKeyGen(this.pp);
     }
 
     @Deprecated
     public PromotionParameters legacyPromotionParameters() {
         return new PromotionParameters(BigInteger.ONE, 1);
     }
+
+
+    /**
+     * Sign a verified (userPublicKey, w) tuple for the genesis process:
+     * We can force users to such a signed public key in all their tokens.
+     */
+   public SPSEQSignature signVerifiedUserPublicKey(ProviderKeyPair providerKeyPair, UserPublicKey userPublicKey) {
+       return (SPSEQSignature) pp.getSpsEq().sign(
+               providerKeyPair.getSk().getGenesisSpsEqSk(),
+               userPublicKey.getUpk(),
+               pp.getW()
+       );
+    }
+
 
     /*
      * implementation of the Issue {@literal <}-{@literal >}Join protocol
@@ -105,12 +119,23 @@ public class IncentiveSystem {
      * @param ukp user key pair
      * @return join request, i.e. object representing the first two messages in the Issue-Join protocol of the Cryptimeleon incentive system
      */
-    public JoinRequest generateJoinRequest(ProviderPublicKey pk, UserKeyPair ukp, PromotionParameters promotionParameters) {
+    public GenerateIssueJoinOutput generateJoinRequest(ProviderPublicKey pk, UserKeyPair ukp) {
         UserPublicKey upk = ukp.getPk();
         UserSecretKey usk = ukp.getSk();
 
         // generate random values needed for generation of fresh user token using PRF hashThenPRFtoZn, user secret key is hash input
-        IssueJoinRandomness R = computeIssueJoinRandomness(ukp.getSk(), promotionParameters);
+        IssueJoinRandomness R = IssueJoinRandomness.generate(pp);
+
+        // blind genesis signature
+        GroupElement blindedUpk = upk.getUpk().pow(R.blindGenesisR);
+        GroupElement blindedW = pp.getW().pow(R.blindGenesisR);
+        SPSEQSignature blindedGenesisSignature = (SPSEQSignature) pp.getSpsEq().chgRep(
+                        ukp.getSk().getGenesisSignature(),
+                        R.blindGenesisR,
+                        pk.getGenesisSpsEqPk()
+                );
+        assert pp.getSpsEq().verify(pk.getGenesisSpsEqPk(), blindedGenesisSignature, blindedUpk, blindedW);
+
 
         GroupElementVector H = pk.getTokenMetadataH(this.pp);
 
@@ -122,12 +147,15 @@ public class IncentiveSystem {
 
         // compute NIZKP to prove well-formedness of token
         FiatShamirProofSystem cwfProofSystem = new FiatShamirProofSystem(new CommitmentWellformednessProtocol(pp, pk));
-        CommitmentWellformednessCommonInput cwfCommon = new CommitmentWellformednessCommonInput(upk.getUpk(), c0Pre, c1Pre);
+        CommitmentWellformednessCommonInput cwfCommon = new CommitmentWellformednessCommonInput(c0Pre, c1Pre, blindedUpk, blindedW);
         CommitmentWellformednessWitness cwfWitness = new CommitmentWellformednessWitness(usk.getUsk(), R.eskUsr, R.dsrnd0, R.dsrnd1, R.z, R.t, R.u.inv());
         FiatShamirProof cwfProof = cwfProofSystem.createProof(cwfCommon, cwfWitness);
 
         // assemble and return join request object (commitment, proof of well-formedness)
-        return new JoinRequest(c0Pre, c1Pre, cwfProof);
+        return GenerateIssueJoinOutput.of(
+                R,
+                new JoinRequest(c0Pre, c1Pre, cwfProof, blindedUpk, blindedW, blindedGenesisSignature)
+        );
     }
 
     /**
@@ -135,22 +163,29 @@ public class IncentiveSystem {
      * included preliminary commitment after adding the provider's share for the tracking key esk.
      *
      * @param pkp key pair of the provider
-     * @param upk public key of user (needed to restore upk needed to check validity of the commitment well-formedness proof)
      * @param jr  join request to be handled
      * @return join response, i.e. object representing the third message in the Issue-Join protocol
      * @throws IllegalArgumentException indicating that the proof for commitment well-formedness was rejected
      */
-    public JoinResponse generateJoinRequestResponse(PromotionParameters promotionParameters, ProviderKeyPair pkp, GroupElement upk, JoinRequest jr) throws IllegalArgumentException {
+    public JoinResponse generateJoinRequestResponse(PromotionParameters promotionParameters, ProviderKeyPair pkp, JoinRequest jr) throws IllegalArgumentException {
         ProviderPublicKey pk = pkp.getPk();
         ProviderSecretKey sk = pkp.getSk();
 
         // read out parts of the pre-commitment and the commitment well-formedness proof from the join request object
         GroupElement c0Pre = jr.getPreCommitment0();
         GroupElement c1Pre = jr.getPreCommitment1();
+        GroupElement blindedW = jr.getBlindedW();
+        GroupElement blindedUpk = jr.getBlindedUpk();
         FiatShamirProof cwfProof = jr.getCwfProof();
 
+        // Verify genesis signature
+        SPSEQSignature blindedGenesisSignature = jr.getBlindedGenesisSignature();
+        if (!pp.getSpsEq().verify(pk.getGenesisSpsEqPk(), blindedGenesisSignature, blindedUpk, blindedW)) {
+            throw new IllegalArgumentException("The blinded genesis signature is invalid!");
+        }
+
         // reassemble common input for the commitment well-formedness proof
-        CommitmentWellformednessCommonInput cwfProofCommonInput = new CommitmentWellformednessCommonInput(upk, c0Pre, c1Pre);
+        CommitmentWellformednessCommonInput cwfProofCommonInput = new CommitmentWellformednessCommonInput(c0Pre, c1Pre, blindedUpk, blindedW);
 
         // check commitment well-formedness proof for validity
         FiatShamirProofSystem cwfProofSystem = new FiatShamirProofSystem(new CommitmentWellformednessProtocol(pp, pk));
@@ -179,14 +214,14 @@ public class IncentiveSystem {
      * (token and corresponding certificate) from the signed preliminary token from the passed join request and response.
      *
      * @param pk   public key of the provider the user interacted with
-     * @param ukp  key pair of the user handling the response
-     * @param jReq the initial join request of the user handling the response to it
+     * @param generateIssueJoinOutput the initial join output containing the internal randomness and the request sent to the provider
      * @param jRes join response to be handled
      * @return token containing 0 points
      */
-    public Token handleJoinRequestResponse(PromotionParameters promotionParameters, ProviderPublicKey pk, UserKeyPair ukp, JoinRequest jReq, JoinResponse jRes) {
+    public Token handleJoinRequestResponse(PromotionParameters promotionParameters, ProviderPublicKey pk, GenerateIssueJoinOutput generateIssueJoinOutput, JoinResponse jRes) {
         // re-generate random values from join request generation of fresh user token using PRF hashThenPRFtoZn, user secret key is hash input
-        IssueJoinRandomness R = computeIssueJoinRandomness(ukp.getSk(), promotionParameters);
+        IssueJoinRandomness R = generateIssueJoinOutput.getIssueJoinRandomness();
+        JoinRequest jReq = generateIssueJoinOutput.getJoinRequest();
 
         // extract relevant variables from join request, join response and public parameters
         GroupElement c0Pre = jReq.getPreCommitment0();
@@ -841,23 +876,6 @@ public class IncentiveSystem {
     /**
      * Helper function for pseudorandom values on user side to generate a request, and handle the response.
      *
-     * @param userSecretKey       the user secret key is hashed for this, and contains the prf key
-     * @param promotionParameters the promotion id is hashed to ensure values are unique for promotionIds
-     * @return a data object with the pseudorandom values
-     */
-    private IssueJoinRandomness computeIssueJoinRandomness(UserSecretKey userSecretKey, PromotionParameters promotionParameters) {
-        var prv = pp.getPrfToZn().hashThenPrfToZnVector(
-                userSecretKey.getPrfKey(),
-                userSecretKey,
-                6,
-                "IssueJoin" + promotionParameters.getPromotionId().toString() // Ensure randomness is unique for every promotion
-        ).stream().map(ringElement -> (ZnElement) ringElement).collect(Collectors.toList());
-        return new IssueJoinRandomness(prv.get(0), prv.get(1), prv.get(2), prv.get(3), prv.get(4), prv.get(5));
-    }
-
-    /**
-     * Helper function for pseudorandom values on user side to generate a request, and handle the response.
-     *
      * @param userSecretKey the user secret key is hashed for this, and contains the prf key
      * @param token         the token is hashed to server as input for the prf
      * @return a data object with the pseudorandom values
@@ -873,28 +891,3 @@ public class IncentiveSystem {
     }
 }
 
-/**
- * Data class for user randomness used in issue-join protocol.
- */
-@AllArgsConstructor
-class IssueJoinRandomness {
-    final ZnElement eskUsr;
-    final ZnElement dsrnd0;
-    final ZnElement dsrnd1;
-    final ZnElement z;
-    final ZnElement t;
-    final ZnElement u;
-}
-
-/**
- * Data class for user randomness used in spend-deduct protocol.
- */
-@AllArgsConstructor
-class SpendDeductRandomness {
-    Zn.ZnElement eskUsrS;
-    Zn.ZnElement dsrnd0S;
-    Zn.ZnElement dsrnd1S;
-    Zn.ZnElement zS;
-    Zn.ZnElement tS;
-    Zn.ZnElement uS;
-}

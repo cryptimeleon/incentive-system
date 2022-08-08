@@ -17,13 +17,13 @@ import org.cryptimeleon.incentive.app.domain.model.BulkResponseDto
 import org.cryptimeleon.incentive.app.domain.model.CryptoMaterial
 import org.cryptimeleon.incentive.crypto.IncentiveSystem
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters
+import org.cryptimeleon.incentive.crypto.model.JoinResponse
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters
 import org.cryptimeleon.incentive.crypto.model.Token
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserSecretKey
-import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse
 import org.cryptimeleon.math.serialization.converter.JSONConverter
 import timber.log.Timber
 import java.util.*
@@ -65,12 +65,11 @@ class CryptoRepository(
         val userKeyPair = cryptoMaterial.ukp
         val incentiveSystem = IncentiveSystem(pp)
 
-        val joinRequest =
-            incentiveSystem.generateJoinRequest(providerPublicKey, userKeyPair, promotionParameters)
+        val generateIssueJoinOutput =
+            incentiveSystem.generateJoinRequest(providerPublicKey, userKeyPair)
         val joinResponse = cryptoApiService.runIssueJoin(
-            jsonConverter.serialize(joinRequest.representation),
-            promotionParameters.promotionId.toString(),
-            jsonConverter.serialize(userKeyPair.pk.representation)
+            jsonConverter.serialize(generateIssueJoinOutput.getJoinRequest().representation),
+            promotionParameters.promotionId.toString()
         )
 
         if (!joinResponse.isSuccessful) {
@@ -83,8 +82,7 @@ class CryptoRepository(
         val token = incentiveSystem.handleJoinRequestResponse(
             promotionParameters,
             providerPublicKey,
-            userKeyPair,
-            joinRequest,
+            generateIssueJoinOutput,
             JoinResponse(jsonConverter.deserialize(joinResponse.body()), pp)
         )
         if (replaceIfPresent) {
@@ -146,7 +144,15 @@ class CryptoRepository(
         val pp = IncentivePublicParameters(jsonConverter.deserialize(remotePP))
         val incentiveSystem = IncentiveSystem(pp)
         val providerPublicKey = ProviderPublicKey(jsonConverter.deserialize(remotePPK), pp)
-        val userKeyPair = incentiveSystem.generateUserKeys()
+        val userPreKeyPair = incentiveSystem.generateUserPreKeyPair()
+        val signatureResponse =
+            cryptoApiService.retrieveGenesisSignatureFor(jsonConverter.serialize(userPreKeyPair.pk.upk.representation))
+        if (!signatureResponse.isSuccessful) {
+            throw RuntimeException("Signature Request failed!")
+        }
+        val signature =
+            pp.spsEq.restoreSignature(jsonConverter.deserialize(signatureResponse.body()))
+        val userKeyPair = UserKeyPair(userPreKeyPair, signature)
         val newCryptoAsset = CryptoMaterial(pp, providerPublicKey, userKeyPair)
 
         cryptoDao.insertCryptoMaterial(toSerializedCryptoAsset(newCryptoAsset))

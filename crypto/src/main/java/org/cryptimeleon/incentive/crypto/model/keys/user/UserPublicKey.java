@@ -1,16 +1,14 @@
 package org.cryptimeleon.incentive.crypto.model.keys.user;
 
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.experimental.NonFinal;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.math.serialization.Representable;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.annotations.ReprUtil;
 import org.cryptimeleon.math.serialization.annotations.Represented;
-import org.cryptimeleon.math.structures.groups.Group;
 import org.cryptimeleon.math.structures.groups.GroupElement;
-
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.experimental.NonFinal;
 
 @Getter
 @EqualsAndHashCode
@@ -22,13 +20,6 @@ public class UserPublicKey implements Representable {
 
     public UserPublicKey(GroupElement upk) {
         this.upk = upk;
-    }
-
-    @Deprecated
-    public UserPublicKey(Representation repr, Group g1) {
-        new ReprUtil(this)
-                .register(g1, "G1")
-                .deserialize(repr);
     }
 
     public UserPublicKey(Representation repr, IncentivePublicParameters pp) {

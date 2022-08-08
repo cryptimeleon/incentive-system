@@ -68,9 +68,10 @@ public class CommitmentWellformednessProtocol extends DelegateProtocol {
 
         CommitmentWellformednessCommonInput castedCommonInput = (CommitmentWellformednessCommonInput) commonInput;
 
-        // upk
-        var upk = castedCommonInput.getUpk();
-        var keyDLogStatement = w.pow(uskVar).isEqualTo(upk);
+        // user-keys
+        var blindedW = castedCommonInput.getBlindedW();
+        var blindedUpk = castedCommonInput.getBlindedUpk();
+        var keyDLogStatement = blindedW.pow(uskVar).isEqualTo(blindedUpk);
 
         // first group element in the commitment
         var c0Pre = castedCommonInput.getC0Pre();

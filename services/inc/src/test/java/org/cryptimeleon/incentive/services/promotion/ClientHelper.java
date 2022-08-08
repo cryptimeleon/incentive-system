@@ -9,7 +9,7 @@ import org.cryptimeleon.incentive.crypto.model.EarnRequest;
 import org.cryptimeleon.incentive.crypto.model.Token;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
-import org.cryptimeleon.incentive.crypto.model.messages.JoinResponse;
+import org.cryptimeleon.incentive.crypto.model.JoinResponse;
 import org.cryptimeleon.incentive.promotion.Promotion;
 import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
@@ -79,13 +79,13 @@ public class ClientHelper {
                                UserKeyPair ukp,
                                Promotion promotion,
                                HttpStatus expectedStatus) {
-        var joinRequest = incentiveSystem.generateJoinRequest(pkp.getPk(), ukp, promotion.getPromotionParameters());
+        var generateIssueJoinOutput = incentiveSystem.generateJoinRequest(pkp.getPk(), ukp);
 
         // Send request and process response to assert correct behavior
         var serializedJoinResponse = webTestClient.post()
                 .uri("/join-promotion")
                 .header("user-public-key", jsonConverter.serialize(ukp.getPk().getRepresentation()))
-                .header("join-request", jsonConverter.serialize(joinRequest.getRepresentation()))
+                .header("join-request", jsonConverter.serialize(generateIssueJoinOutput.getJoinRequest().getRepresentation()))
                 .header("promotion-id", String.valueOf(promotion.getPromotionParameters().getPromotionId()))
                 .exchange()
                 .expectStatus()
@@ -95,7 +95,7 @@ public class ClientHelper {
                 .getResponseBody();
 
         var joinResponse = new JoinResponse(jsonConverter.deserialize(serializedJoinResponse), incentiveSystem.pp);
-        return incentiveSystem.handleJoinRequestResponse(promotion.getPromotionParameters(), pkp.getPk(), ukp, joinRequest, joinResponse);
+        return incentiveSystem.handleJoinRequestResponse(promotion.getPromotionParameters(), pkp.getPk(), generateIssueJoinOutput, joinResponse);
     }
 
     static EarnRequest generateAndSendEarnRequest(WebTestClient webTestClient,

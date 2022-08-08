@@ -122,7 +122,7 @@ public class TestDatabaseHandler implements DatabaseHandler {
      * Retrieves the double-spending ID of the token that was consumed in the transaction with the passed identifier.
      *
      * @param taId
-     * @return // TODO refactor not needed pp!
+     * @return
      */
     @Override
     public GroupElement getConsumedTokenDsid(TransactionIdentifier taId) {

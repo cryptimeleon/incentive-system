@@ -1,8 +1,8 @@
 package org.cryptimeleon.incentivesystem.dsprotectionservice;
 
+import org.cryptimeleon.incentive.crypto.BilinearGroupChoice;
 import org.cryptimeleon.incentive.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
-import org.cryptimeleon.incentive.crypto.Setup;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.Transaction;
 import org.cryptimeleon.incentive.crypto.model.UserInfo;
@@ -32,7 +32,7 @@ public class LocalDatabaseHandlerUnitTests {
         logger.info("Started transaction adding test.");
 
         logger.info("Setting up database handler and (implicit) incentive system for the test.");
-        IncentivePublicParameters pp = IncentiveSystem.setup(128, Setup.BilinearGroupChoice.Debug);
+        IncentivePublicParameters pp = IncentiveSystem.setup(128, BilinearGroupChoice.Debug);
         LocalDatabaseHandler dbHandler = new LocalDatabaseHandler(
                 pp,
                 new MockDsidEntryRepository(),
@@ -79,7 +79,7 @@ public class LocalDatabaseHandlerUnitTests {
         logger.info("Started token adding test.");
 
         logger.info("Setting up database handler and (implicit) incentive system for the test.");
-        IncentivePublicParameters pp = IncentiveSystem.setup(128, Setup.BilinearGroupChoice.Debug);
+        IncentivePublicParameters pp = IncentiveSystem.setup(128, BilinearGroupChoice.Debug);
         LocalDatabaseHandler dbHandler = new LocalDatabaseHandler(
                 pp,
                 new MockDsidEntryRepository(),
@@ -143,7 +143,7 @@ public class LocalDatabaseHandlerUnitTests {
         logger.info("Starting edge test.");
 
         logger.info("Setting up database handler and (implicit) incentive system for the test.");
-        IncentivePublicParameters pp = IncentiveSystem.setup(128, Setup.BilinearGroupChoice.Debug);
+        IncentivePublicParameters pp = IncentiveSystem.setup(128, BilinearGroupChoice.Debug);
         LocalDatabaseHandler dbHandler = new LocalDatabaseHandler(
                 pp,
                 new MockDsidEntryRepository(),
@@ -253,7 +253,7 @@ public class LocalDatabaseHandlerUnitTests {
         logger.info("Starting transaction invalidation test.");
 
         logger.info("Setting up database handler and (implicit) incentive system for the test.");
-        IncentivePublicParameters pp = IncentiveSystem.setup(128, Setup.BilinearGroupChoice.Debug);
+        IncentivePublicParameters pp = IncentiveSystem.setup(128, BilinearGroupChoice.Debug);
         LocalDatabaseHandler dbHandler = new LocalDatabaseHandler(
                 pp,
                 new MockDsidEntryRepository(),

@@ -73,13 +73,19 @@ public class PromotionController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @PostMapping("/genesis")
+    public ResponseEntity<String> joinPromotion(
+            @RequestHeader(name = "user-public-key") String serializedUserPublicKey
+    ) {
+        return new ResponseEntity<>(promotionService.generateGenesisSignature(serializedUserPublicKey), HttpStatus.OK);
+    }
+
     @PostMapping("/join-promotion")
     public ResponseEntity<String> joinPromotion(
             @RequestHeader(name = "promotion-id") BigInteger promotionId,
-            @RequestHeader(name = "join-request") String serializedJoinRequest,
-            @RequestHeader(name = "user-public-key") String serializedUserPublicKey
+            @RequestHeader(name = "join-request") String serializedJoinRequest
     ) {
-        return new ResponseEntity<>(promotionService.joinPromotion(promotionId, serializedJoinRequest, serializedUserPublicKey), HttpStatus.OK);
+        return new ResponseEntity<>(promotionService.joinPromotion(promotionId, serializedJoinRequest), HttpStatus.OK);
     }
 
     @PostMapping("/bulk-token-updates")
