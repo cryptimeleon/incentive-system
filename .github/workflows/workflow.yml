@@ -37,9 +37,9 @@ jobs:
           popd
       - name: Run integration tests
         run: |
-          ./.github/integration-test.sh kill_services
-          ./.github/integration-test.sh start_services
+          ./.github/integration-test/start-services.sh
           sleep 15
+          pushd services
           ./gradlew :client:integrationTest
 
   build-android-app:
