@@ -1,6 +1,9 @@
 package org.cryptimeleon.incentivesystem.dsprotectionservice;
 
 
+import org.cryptimeleon.incentive.crypto.model.Transaction;
+import org.cryptimeleon.incentive.crypto.model.TransactionIdentifier;
+import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -72,10 +75,41 @@ public class DsprotectionController {
      * Endpoint for obtaining all transactions as a single JSON string that are currently contained in the database.
      * Transaction DTOs are stored as JSON objects in a JSON array automatically.
      *
-     * @return response entity containing JSON object string
+     * Transaction DTOs are reduced versions of the crypto transaction object, containing only the data that needs to be displayed in the front end.
+     *
+     * @return response entity containing JSON object string of transaction DTOs
      */
     @GetMapping("/transactions")
     public ResponseEntity<List<TransactionDto>> getAllTransactions() {
+        List<TransactionDto> resultList = dsprotectionService.getAllTransactions();
+
         return new ResponseEntity<>(dsprotectionService.getAllTransactions(), HttpStatus.OK);
+    }
+
+    /**
+     * Clears all tables of the database.
+     * @return
+     */
+    @PostMapping("/cleardb")
+    public ResponseEntity<String> clearDatabase() {
+        // trigger in service
+        dsprotectionService.clearDatabase();
+
+        // send response
+        return new ResponseEntity<>("Cleared all tables, double-spending protection service still running.", HttpStatus.OK);
+    }
+
+    /**
+     * Returns the transaction with the specified transaction identifier from the database if contained.
+     * @param serializedTaIdentifier serialized representation of a transaction identifier, consisting of a numerical ID and the challenge generator gamma
+     * @return response entity, containing a crypto transaction object
+     */
+    @GetMapping("/getta")
+    public ResponseEntity<String> getTransaction(@RequestHeader(value="taidentifier") String serializedTaIdentifier) {
+        // get data from service
+        String serializedResultTaRepr = dsprotectionService.getTransaction(serializedTaIdentifier);
+
+        // send response
+        return new ResponseEntity<>(serializedResultTaRepr, HttpStatus.OK);
     }
 }
