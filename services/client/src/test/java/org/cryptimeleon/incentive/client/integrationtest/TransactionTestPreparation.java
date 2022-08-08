@@ -48,6 +48,10 @@ public class TransactionTestPreparation extends IncentiveSystemIntegrationTest {
             "Some Test Promotion",
             List.of(testTokenUpdate),
             "Apple");
+    protected final BasketItemDto firstTestItem = new BasketItemDto("1", "First Test Item", 100);
+    protected final BasketItemDto secondTestItem = new BasketItemDto("1", "First Test Item", 100);
+    protected final List<BasketItemDto> testBasketItems = List.of(firstTestItem, secondTestItem);
+
     protected final BasketItemDto basketItemDto = new BasketItemDto("Some ID", "Apple", 1);
     protected final RewardItemDto rewardItemDto = new RewardItemDto(REWARD_ID, "Test Reward Item");
 
@@ -59,8 +63,7 @@ public class TransactionTestPreparation extends IncentiveSystemIntegrationTest {
     protected IncentiveSystem incentiveSystem;
 
 
-
-    protected void prepareBasketAndPromotions() {
+    protected void prepareBasketServiceAndPromotions() {
         infoClient = new InfoClient(infoUrl);
         basketClient = new BasketClient(basketUrl);
         incentiveClient = new IncentiveClient(incentiveUrl);
@@ -70,9 +73,9 @@ public class TransactionTestPreparation extends IncentiveSystemIntegrationTest {
 
         basketClient.newBasketItem(basketItemDto, basketProviderSecret).block();
         basketClient.newRewardItem(rewardItemDto, basketProviderSecret).block();
+        basketClient.addShoppingItems(testBasketItems, basketProviderSecret);
         incentiveClient.addPromotions(List.of(testPromotion), incentiveProviderSecret).block();
     }
-
 
 
     /**
@@ -80,9 +83,8 @@ public class TransactionTestPreparation extends IncentiveSystemIntegrationTest {
      * and returns identifying information for the occurred transaction
      * for later use in test cases (e.g. dsprotection integration test).
      *
-     * @param token token spent in the transaction
+     * @param token    token spent in the transaction
      * @param basketId ID of the basket used for the basket used in the transaction
-     *
      * @return TransactionIdentifier
      */
     protected TransactionIdentifier runSpendDeductWorkflow(Token token, UUID basketId) {
@@ -152,8 +154,9 @@ public class TransactionTestPreparation extends IncentiveSystemIntegrationTest {
 
     /**
      * wrapper around crypto. ... .Helper.generateToken that fixes parameters that are the same for all calls anyway.
+     *
      * @param promotionParameters promotion parameters for the promotion the token should be used for
-     * @param pointVector point counts in the token
+     * @param pointVector         point counts in the token
      * @return Token
      */
     protected Token generateToken(PromotionParameters promotionParameters, Vector<BigInteger> pointVector) {
@@ -166,7 +169,21 @@ public class TransactionTestPreparation extends IncentiveSystemIntegrationTest {
     }
 
     /**
+     * Generate empty token
+     *
+     * @return Token
+     */
+    protected Token generateToken() {
+        return Helper.generateToken(cryptoAssets.getPublicParameters(),
+                cryptoAssets.getUserKeyPair(),
+                cryptoAssets.getProviderKeyPair(),
+                testPromotion.getPromotionParameters()
+        );
+    }
+
+    /**
      * Creates a basket and returns its basket ID.
+     *
      * @return basket ID
      */
     protected UUID createBasket() {
