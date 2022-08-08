@@ -6,13 +6,14 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
  * Client calls for info service.
  * Can be used for testing and prototyping.
  */
-public class BasketClient implements AliveEndpoint{
+public class BasketClient implements AliveEndpoint {
 
     /**
      * Webclient configured with the url of the basket service
@@ -132,5 +133,17 @@ public class BasketClient implements AliveEndpoint{
                 .body(BodyInserters.fromValue(rewardIds))
                 .retrieve()
                 .bodyToMono(Void.class);
+    }
+
+    public void addShoppingItems(List<BasketItemDto> testBasketItems, String providerSecret) {
+        testBasketItems.forEach(item ->
+                basketClient.post()
+                        .uri("/items")
+                        .header("provider-secret", providerSecret)
+                        .body(BodyInserters.fromValue(item))
+                        .retrieve()
+                        .bodyToMono(Void.class)
+                        .block()
+        );
     }
 }

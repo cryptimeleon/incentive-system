@@ -3,7 +3,9 @@ package org.cryptimeleon.incentive.client.integrationtest;
 import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.incentive.client.BasketClient;
 import org.cryptimeleon.incentive.client.dto.PostRedeemBasketDto;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.util.UUID;
@@ -12,13 +14,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 @Slf4j
-public class BasketTest extends IncentiveSystemIntegrationTest {
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+public class BasketTest extends TransactionTestPreparation {
 
     @Value("${basket-service.pay-secret}")
     private String paymentSecret;
 
     @Value("${basket-service.redeem-secret}")
     private String redeemSecret;
+
+    @BeforeAll
+    void setup() {
+        prepareBasketServiceAndPromotions();
+    }
+
 
     @Test
     void testGetBasket() {
@@ -32,7 +41,8 @@ public class BasketTest extends IncentiveSystemIntegrationTest {
         var basketId = basketClient.createBasket().block();
 
         var basket = basketClient.getBasket(basketId).block();
-        assertThat(basket).isNotNull().satisfies(b -> b.getBasketID().equals(basketId));
+        assertThat(basket).isNotNull();
+        assertThat(basket.getBasketID()).isEqualTo(basketId);
     }
 
     @Test
@@ -41,9 +51,6 @@ public class BasketTest extends IncentiveSystemIntegrationTest {
 
         log.info("Create new basket and adding items");
         UUID basketId = basketClient.createBasket().block();
-        var items = basketClient.getItems().block();
-        var firstTestItem = items[0];
-        var secondTestItem = items[1];
 
         basketClient.putItemToBasket(basketId, firstTestItem.getId(), 3).block();
         basketClient.putItemToBasket(basketId, secondTestItem.getId(), 1).block();
@@ -61,6 +68,7 @@ public class BasketTest extends IncentiveSystemIntegrationTest {
         log.info("Paid basket can be redeemed");
         basketClient.redeemBasket(redeemRequest, redeemSecret).block();
         basket = basketClient.getBasket(basketId).block();
+        assertThat(basket).isNotNull();
         assertThat(basket.isRedeemed()).isTrue();
     }
 }

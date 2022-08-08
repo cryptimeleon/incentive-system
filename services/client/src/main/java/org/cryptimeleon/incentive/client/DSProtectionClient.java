@@ -19,13 +19,11 @@ import java.math.BigInteger;
  * Transaction data is sent via POST requests, data objects are transferred as JSON-marshalled representations (see Representation in math package).
  */
 public class DSProtectionClient {
-    private Logger logger = LoggerFactory.getLogger(DSProtectionClient.class);
-
-    private WebClient dsProtectionClient; // the underlying web client making the requests
-
     private static final String DBSYNC_PATH = "/dbsync";
     private static final String CLEAR_DB_PATH = "/cleardb";
     private static final String GET_TRANSACTION_PATH = "/getta";
+    private Logger logger = LoggerFactory.getLogger(DSProtectionClient.class);
+    private WebClient dsProtectionClient; // the underlying web client making the requests
 
     public DSProtectionClient(String dsProtectionServiceURL) {
         logger.info("Creating a client that sends queries to " + dsProtectionServiceURL);

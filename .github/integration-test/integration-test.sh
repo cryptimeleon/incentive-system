@@ -1,6 +1,6 @@
 #!/bin/bash
 
-JARS=(info basket inc)
+JARS=(info basket inc dsprotectionservice)
 
 function start_services() {
   # shellcheck disable=SC2164

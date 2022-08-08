@@ -2,109 +2,108 @@ package org.cryptimeleon.incentive.client.integrationtest;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
-import org.cryptimeleon.incentive.client.BasketClient;
-import org.cryptimeleon.incentive.client.DSProtectionClient;
-import org.cryptimeleon.incentive.client.IncentiveClient;
-import org.cryptimeleon.incentive.client.InfoClient;
 import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.EarnRequestDto;
-import org.cryptimeleon.incentive.crypto.IncentiveSystem;
-import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
-import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
-import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentive.crypto.model.JoinResponse;
-import org.cryptimeleon.incentive.promotion.Promotion;
-import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion;
-import org.cryptimeleon.incentive.promotion.hazel.HazelTokenUpdate;
+import org.cryptimeleon.incentive.crypto.model.Token;
 import org.cryptimeleon.incentive.promotion.model.Basket;
 import org.cryptimeleon.incentive.promotion.model.BasketItem;
-import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect;
-import org.cryptimeleon.math.serialization.converter.JSONConverter;
+import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.rings.RingElement;
+import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 
+import java.math.BigInteger;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 /**
  * Test a full (correct) protocol flow.
  */
 @Slf4j
-public class FullWorkflowTest extends IncentiveSystemIntegrationTest {
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+public class FullWorkflowTest extends TransactionTestPreparation {
 
-    Promotion testPromotion = new HazelPromotion(
-            HazelPromotion.generatePromotionParameters(),
-            "Test Promotion",
-            "Some Test Promotion",
-            List.of(new HazelTokenUpdate(UUID.randomUUID(), "This is a test reward", new RewardSideEffect("Test Reward Sideffect"), 2)),
-            "Apple");
+    @BeforeAll()
+    void setup() {
+        prepareBasketServiceAndPromotions();
+    }
 
     @Test
-    void runFullWorkflow() {
-        var infoClient = new InfoClient(infoUrl);
-        var incentiveClient = new IncentiveClient(incentiveUrl);
-        var basketClient = new BasketClient(basketUrl);
-        var dsProtectionClient = new DSProtectionClient(dsProtectionUrl);
+    void joinTest() {
+        Token token = joinPromotion();
 
-        log.info("Retrieve data from info service");
-        var serializedPublicParameters = infoClient.querySerializedPublicParameters().block(Duration.ofSeconds(1));
-        var serializedProviderPublicKey = infoClient.querySerializedProviderPublicKey().block(Duration.ofSeconds(1));
+        var zeroPointsVector = RingElementVector.generate(
+                cryptoAssets.getPublicParameters().getBg().getZn()::getZeroElement,
+                testPromotion.getPromotionParameters().getPointsVectorSize()
+        );
+        assertThat(token.getPoints()).isEqualTo(zeroPointsVector);
+    }
 
-        log.info("Deserialize data and setup incentive system");
-        var jsonConverter = new JSONConverter();
-        var publicParameters = new IncentivePublicParameters(jsonConverter.deserialize(serializedPublicParameters));
-        var providerPublicKey = new ProviderPublicKey(jsonConverter.deserialize(serializedProviderPublicKey), publicParameters);
-        var incentiveSystem = new IncentiveSystem(publicParameters);
-        assertTrue(incentiveClient.addPromotions(List.of(testPromotion), incentiveProviderSecret)
-                .block(Duration.ofSeconds(1))
-                .getStatusCode()
-                .is2xxSuccessful());
+    @Test
+    void earnTest() {
+        var token = generateToken();
+        var basket = createBasketWithItems();
+        var basketValueForPromotion = testPromotion.computeEarningsForBasket(basket);
 
-        var userPreKeyPair = incentiveSystem.generateUserPreKeyPair();
-        var serializedGenesisSignature = incentiveClient.genesis(userPreKeyPair).block().getBody();
-        var genesisSignature = publicParameters.getSpsEq().restoreSignature(jsonConverter.deserialize(serializedGenesisSignature));
-        var userKeyPair = new UserKeyPair(userPreKeyPair, genesisSignature);
+        log.info("Run valid credit earn protocol");
+        Token newToken = runEarnProtocol(token, basket, basketValueForPromotion);
 
+        Assertions.assertEquals(newToken.getPoints().map(RingElement::asInteger), basketValueForPromotion);
+    }
 
-        log.info("Send join request to server and retrieve token");
-        var generateIssueJoinOutput = incentiveSystem.generateJoinRequest(providerPublicKey, userKeyPair);
-        var serializedJoinResponse = incentiveClient.sendJoinRequest(
-                testPromotion.getPromotionParameters().getPromotionId(), jsonConverter.serialize(generateIssueJoinOutput.getJoinRequest().getRepresentation())
-        ).block(Duration.ofSeconds(1));
-        var joinResponse = new JoinResponse(jsonConverter.deserialize(serializedJoinResponse), publicParameters);
-        var token = incentiveSystem.handleJoinRequestResponse(testPromotion.getPromotionParameters(), providerPublicKey, generateIssueJoinOutput, joinResponse);
+    @Test
+    void spendRewardsAddedToBasketTest() {
+        Token token = generateToken(testPromotion.getPromotionParameters(), Vector.of(BigInteger.valueOf(20)));
+        var basketId = createBasket();
+        assert basketId != null;
+        log.info("BasketId: " + basketId.toString());
 
-        log.info("Create basket for testing credit-earn");
-        var basketDto = TestHelper.createBasketWithItems(basketUrl);
-        var items = basketClient.getItems().block(Duration.ofSeconds(1));
+        runSpendDeductWorkflow(token, basketId);
+        var basketAfterSpend = basketClient.getBasket(basketId).block();
 
-        var basket = new Basket(
+        assert basketAfterSpend != null;
+        org.assertj.core.api.Assertions.assertThat(basketAfterSpend.getRewardItems()).containsExactly(REWARD_ID);
+    }
+
+    private Basket createBasketWithItems() {
+        UUID basketId = basketClient.createBasket().block();
+        basketClient.putItemToBasket(basketId, firstTestItem.getId(), 3).block();
+        basketClient.putItemToBasket(basketId, secondTestItem.getId(), 1).block();
+
+        var basketDto = basketClient.getBasket(basketId).block();
+        assertThat(basketDto).isNotNull();
+        return new Basket(
                 basketDto.getBasketID(),
                 basketDto.getItems().entrySet().stream()
                         .map(stringIntegerEntry -> {
-                            var basketItem = Arrays.stream(items).filter(item -> item.getId().equals(stringIntegerEntry.getKey())).findAny().get();
+                            var basketItem = testBasketItems.stream().filter(item -> item.getId().equals(stringIntegerEntry.getKey())).findAny().orElseThrow();
                             return new BasketItem(basketItem.getId(), basketItem.getTitle(), basketItem.getPrice(), stringIntegerEntry.getValue());
                         })
                         .collect(Collectors.toList())
         );
+    }
 
-        /*
-        log.info("Test earn with unpaid basket should fail");
-        assertThatExceptionOfType(RuntimeException.class).isThrownBy(() ->
-                incentiveClient.sendBulkUpdates(basket.getBasketID(), new BulkRequestDto(List.of(new EarnRequestDto()), Collections.emptyList())).block())
-                .withCauseInstanceOf(IncentiveClientException.class);
-        */
+    private Token joinPromotion() {
+        var joinTuple = incentiveSystem.generateJoinRequest(cryptoAssets.getProviderKeyPair().getPk(), cryptoAssets.getUserKeyPair());
+        var serializedJoinResponse = incentiveClient.sendJoinRequest(
+                testPromotion.getPromotionParameters().getPromotionId(),
+                jsonConverter.serialize(joinTuple.getJoinRequest().getRepresentation())
+        ).block(Duration.ofSeconds(1));
+        var joinResponse = new JoinResponse(jsonConverter.deserialize(serializedJoinResponse), cryptoAssets.getPublicParameters());
+        return incentiveSystem.handleJoinRequestResponse(testPromotion.getPromotionParameters(), cryptoAssets.getProviderKeyPair().getPk(), joinTuple, joinResponse);
+    }
 
-
-        log.info("Run valid credit earn protocol");
-        var earnRequest = incentiveSystem.generateEarnRequest(token, providerPublicKey, userKeyPair);
+    private Token runEarnProtocol(Token token, org.cryptimeleon.incentive.promotion.model.Basket basket, org.cryptimeleon.math.structures.cartesian.Vector<java.math.BigInteger> basketValueForPromotion) {
+        var earnRequest = incentiveSystem.generateEarnRequest(token, cryptoAssets.getProviderKeyPair().getPk(), cryptoAssets.getUserKeyPair());
         var serializedEarnRequest = jsonConverter.serialize(earnRequest.getRepresentation());
         incentiveClient.sendBulkUpdates(basket.getBasketId(),
                 new BulkRequestDto(
@@ -113,38 +112,20 @@ public class FullWorkflowTest extends IncentiveSystemIntegrationTest {
                 )
         ).block();
 
-        basketClient.payBasket(basket.getBasketId(), basketDto.getValue(), paySecret).block();
+        basketClient.payBasket(basket.getBasketId(), basket.computeBasketValue(), paySecret).block();
 
         var serializedSignature = incentiveClient.retrieveBulkResults(basket.getBasketId()).block().getEarnTokenUpdateResultDtoList().get(0).getSerializedEarnResponse();
         var signature = new SPSEQSignature(
                 jsonConverter.deserialize(serializedSignature),
-                publicParameters.getBg().getG1(),
-                publicParameters.getBg().getG2());
-        var basketValueForPromotion = testPromotion.computeEarningsForBasket(basket);
-        var newToken = incentiveSystem.handleEarnRequestResponse(
+                cryptoAssets.getPublicParameters().getBg().getG1(),
+                cryptoAssets.getPublicParameters().getBg().getG2());
+        return incentiveSystem.handleEarnRequestResponse(
                 testPromotion.getPromotionParameters(),
                 earnRequest,
                 signature,
                 basketValueForPromotion,
                 token,
-                providerPublicKey,
-                userKeyPair);
-        Assertions.assertEquals(newToken.getPoints().map(RingElement::asInteger), basketValueForPromotion);
-
-        /*
-        log.info("Second earn with paid basket and same request should succeed");
-        incentiveClient.sendEarnRequest(serializedEarnRequest, basket.getBasketID()).block();
-
-        log.info("Test earn without valid basket should fail");
-        assertThatExceptionOfType(RuntimeException.class).isThrownBy(() ->
-                incentiveClient.sendEarnRequest("Some request", UUID.randomUUID()).block())
-                .withCauseInstanceOf(IncentiveClientException.class);
-
-        log.info("Second earn with paid basket and other request should fail");
-        var otherEarnRequest = incentiveSystem.generateEarnRequest(token, providerPublicKey, userKeyPair);
-        assertThatExceptionOfType(RuntimeException.class).isThrownBy(() ->
-                incentiveClient.sendEarnRequest(jsonConverter.serialize(otherEarnRequest.getRepresentation()), basket.getBasketID()).block())
-                .withCauseInstanceOf(IncentiveClientException.class);
-         */
+                cryptoAssets.getProviderKeyPair().getPk(),
+                cryptoAssets.getUserKeyPair());
     }
 }
