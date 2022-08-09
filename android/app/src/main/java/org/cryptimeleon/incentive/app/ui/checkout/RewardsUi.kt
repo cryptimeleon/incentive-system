@@ -33,7 +33,6 @@ import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import org.cryptimeleon.incentive.app.ui.preview.PreviewData
 import java.math.BigInteger
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RewardsUi(
     promotionDataList: List<PromotionData>,
@@ -87,10 +86,11 @@ fun RewardPromotionList(
                         RewardChoiceCard(tokenUpdate, promotion.pid, setUserUpdateChoice)
                     }
                 }
-
+            item {
+                ZkpSummaryUi(promotionDataList)
+            }
         }
     }
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

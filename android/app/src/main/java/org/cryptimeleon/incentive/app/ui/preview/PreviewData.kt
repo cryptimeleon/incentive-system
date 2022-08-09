@@ -51,7 +51,13 @@ class PreviewData {
             points = Vector.of(BigInteger.valueOf(6L)),
             tokenUpdates = listOf(
                 NoTokenUpdate(),
-                EarnTokenUpdate(PromotionUpdateFeasibility.CANDIDATE, "Earn 2 Points"),
+                EarnTokenUpdate(
+                    PromotionUpdateFeasibility.CANDIDATE,
+                    "Earn 2 Points",
+                    Vector.of(6),
+                    Vector.of(2),
+                    Vector.of(8),
+                ),
                 HazelTokenUpdateState(
                     zkpUpdateId = UUID.randomUUID(),
                     description = "Get a free glass of Nutella",
@@ -117,7 +123,11 @@ class PreviewData {
                     zkpUpdateId = UUID.randomUUID(),
                     description = "Update your streak",
                     sideEffect = Optional.empty(),
-                    feasibility = PromotionUpdateFeasibility.SELECTED
+                    feasibility = PromotionUpdateFeasibility.SELECTED,
+                    lastDate = StreakDate.DATE(LocalDate.of(2022, 8, 8)),
+                    newLastDate = LocalDate.of(2022, 8, 12),
+                    currentStreak = 3,
+                    newCurrentStreak = 4
                 ),
                 RangeProofStreakTokenUpdateState(
                     zkpUpdateId = UUID.randomUUID(),

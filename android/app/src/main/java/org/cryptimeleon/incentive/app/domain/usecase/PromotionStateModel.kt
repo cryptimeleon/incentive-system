@@ -14,6 +14,7 @@ import org.cryptimeleon.math.structures.cartesian.Vector
 import org.json.JSONObject
 import timber.log.Timber
 import java.math.BigInteger
+import java.time.Duration
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import java.util.*
@@ -21,7 +22,7 @@ import java.util.*
 private val jsonConverter = JSONConverter()
 
 private fun tokenToJsonString(token: Token) =
-    JSONObject(jsonConverter.serialize(token.representation)).toString(2);
+    JSONObject(jsonConverter.serialize(token.representation)).toString(2)
 
 /*
  * Data classes for representing the apps state of promotions.
@@ -172,11 +173,22 @@ data class VipPromotionData(
         tokenUpdates = tokenUpdates,
         tokenHash = TokenDsidHashMaker.hashToken(token, pp),
         score = token.toBigIntVector().get(0).toInt(),
-        vipLevel = VipStatus.fromInt(token.toBigIntVector().get(1).toInt()),
+        vipLevel = VipStatus.fromInt(
+            token.toBigIntVector().get(1).toInt()
+        ),
         tokenJson = tokenToJsonString(token),
-        bronzeScore = computeScoreForLevel(tokenUpdates, VipStatus.BRONZE),
-        silverScore = computeScoreForLevel(tokenUpdates, VipStatus.SILVER),
-        goldScore = computeScoreForLevel(tokenUpdates, VipStatus.GOLD)
+        bronzeScore = computeScoreForLevel(
+            tokenUpdates,
+            VipStatus.BRONZE
+        ),
+        silverScore = computeScoreForLevel(
+            tokenUpdates,
+            VipStatus.SILVER
+        ),
+        goldScore = computeScoreForLevel(
+            tokenUpdates,
+            VipStatus.GOLD
+        )
     )
 
 
@@ -204,6 +216,9 @@ data class NoTokenUpdate(
 data class EarnTokenUpdate(
     override val feasibility: PromotionUpdateFeasibility,
     override val description: String,
+    val currentPoints: Vector<Int>,
+    val addedPoints: Vector<Int>,
+    val targetPoints: Vector<Int>
 ) : TokenUpdate
 
 interface ZkpTokenUpdate : TokenUpdate {
@@ -245,7 +260,41 @@ data class StandardStreakTokenUpdateState(
     override val description: String,
     override val sideEffect: Optional<String>,
     override val feasibility: PromotionUpdateFeasibility,
-) : ZkpTokenUpdate
+    val lastDate: StreakDate,
+    val newLastDate: LocalDate,
+    val currentStreak: Int,
+    val newCurrentStreak: Int
+) : ZkpTokenUpdate {
+    companion object {
+        operator fun invoke(
+            zkpUpdateId: UUID,
+            description: String,
+            sideEffect: Optional<String>,
+            feasibility: PromotionUpdateFeasibility,
+            tokenPoints: Vector<BigInteger>,
+            intervalDays: Int
+        ): ZkpTokenUpdate {
+            val currentStreak = tokenPoints.get(0).toInt()
+            val lastDate = StreakDate.fromLong(tokenPoints.get(1).toLong())
+            val today = LocalDate.now()
+            val newStreak =
+                if (lastDate is StreakDate.DATE && Duration.between(today, lastDate.date)
+                        .toDays() <= intervalDays
+                ) currentStreak + 1 else 1
+            return StandardStreakTokenUpdateState(
+                zkpUpdateId,
+                description,
+                sideEffect,
+                feasibility,
+                lastDate,
+                today,
+                currentStreak,
+                newStreak
+            )
+        }
+
+    }
+}
 
 data class RangeProofStreakTokenUpdateState(
     override val zkpUpdateId: UUID,
