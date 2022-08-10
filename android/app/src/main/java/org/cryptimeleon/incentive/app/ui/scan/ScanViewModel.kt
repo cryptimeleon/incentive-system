@@ -21,6 +21,7 @@ import java.text.NumberFormat
 import java.util.*
 import javax.inject.Inject
 
+const val NUMBER_SEARCH_ITEMS = 3
 /**
  * ViewModel for the ScanFragment.
  * Handles detected barcodes, queries the product, processes the product and allows adding the basket.
@@ -43,7 +44,7 @@ class ScanViewModel @Inject constructor(
     val itemsFlow = basketRepository.shoppingItems.combine(itemFilter) { items, filter ->
         items.filter {
             it.title.lowercase().contains(filter.lowercase())
-        }.take(3)
+        }.take(NUMBER_SEARCH_ITEMS)
     }
 
     init {
