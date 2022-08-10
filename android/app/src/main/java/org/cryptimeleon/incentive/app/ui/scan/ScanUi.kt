@@ -126,9 +126,9 @@ private fun ScannerScreen(
             SearchableItemList(filteredItems, setBarcode, filter, setFilter)
 
             AnimatedVisibility(
-                visible = state != ScanEmptyState,
+                visible = state != ScanEmptyState && state != ScanBlockedState,
                 enter = fadeIn(),
-                exit = fadeOut()
+                exit = fadeOut(),
             ) {
                 Box(
                     modifier = Modifier
@@ -168,7 +168,7 @@ private fun SearchableItemList(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .offset(y = if (isKeyboardOpen == Keyboard.Opened) 100.dp else 0.dp)
+            .offset(y = if (isKeyboardOpen == Keyboard.Opened) 100.dp else 0.dp) // Unfortunate hack due to some ime padding bug
             .imePadding(),
         verticalArrangement = Arrangement.Bottom
     ) {
