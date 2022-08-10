@@ -9,6 +9,9 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.cryptimeleon.incentive.app.domain.IBasketRepository
@@ -28,14 +31,27 @@ import javax.inject.Inject
 class ScanViewModel @Inject constructor(
     private val basketRepository: IBasketRepository,
     application: Application
-) :
-    AndroidViewModel(application) {
+) : AndroidViewModel(application) {
+
     private val _state = MutableLiveData<ScanState>(ScanEmptyState)
     val state: LiveData<ScanState>
         get() = _state
 
+    private val _itemFilter = MutableStateFlow("")
+    val itemFilter: StateFlow<String>
+        get() = _itemFilter
+    val itemsFlow = basketRepository.shoppingItems.combine(itemFilter) { items, filter ->
+        items.filter {
+            it.title.lowercase().contains(filter.lowercase())
+        }.take(3)
+    }
+
     init {
         Timber.i("ScanViewModel created")
+    }
+
+    fun setFilter(filter: String) {
+        _itemFilter.value = filter
     }
 
     /**
@@ -48,6 +64,8 @@ class ScanViewModel @Inject constructor(
      *  @param barcode the scanned barcode
      */
     fun setBarcode(barcode: String) {
+        // Reset filter in case item was added via search
+        _itemFilter.value = ""
         // do this on main dispatcher!
         if (_state.value == ScanEmptyState) {
             _state.value = ScanLoadingState(barcode)
