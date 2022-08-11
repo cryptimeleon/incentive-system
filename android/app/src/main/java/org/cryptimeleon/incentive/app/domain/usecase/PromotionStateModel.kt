@@ -303,9 +303,43 @@ data class RangeProofStreakTokenUpdateState(
     override val description: String,
     override val sideEffect: Optional<String>,
     override val feasibility: PromotionUpdateFeasibility,
+    val lastDate: LocalDate,
+    val newLastDate: LocalDate,
     val requiredStreak: Int,
-    val currentStreak: Int
-) : ZkpTokenUpdate
+    val currentStreak: Int,
+    val newCurrentStreak: Int,
+    val intervalDays: Int
+) : ZkpTokenUpdate {
+    companion object {
+        operator fun invoke(
+            zkpUpdateId: UUID,
+            description: String,
+            sideEffect: Optional<String>,
+            feasibility: PromotionUpdateFeasibility,
+            tokenPoints: Vector<BigInteger>,
+            requiredStreak: Int,
+            intervalDays: Int
+        ): ZkpTokenUpdate {
+            val currentStreak = tokenPoints.get(0).toInt()
+            val lastStreakDate = StreakDate.fromLong(tokenPoints.get(1).toLong())
+            if (lastStreakDate is StreakDate.NONE) throw RuntimeException("Must be a valid last date in order to prove a streak > 0!")
+            val lastDate = (lastStreakDate as StreakDate.DATE).date
+            val today = LocalDate.now()
+            return RangeProofStreakTokenUpdateState(
+                zkpUpdateId,
+                description,
+                sideEffect,
+                feasibility,
+                lastDate,
+                today,
+                requiredStreak,
+                currentStreak,
+                currentStreak +1,
+                intervalDays
+            )
+        }
+    }
+}
 
 data class SpendStreakTokenUpdateState(
     override val zkpUpdateId: UUID,

@@ -134,9 +134,13 @@ class PreviewData {
                     zkpUpdateId = UUID.randomUUID(),
                     description = "Prove that streak is at least 5",
                     sideEffect = Optional.of("Free Coffee"),
-                    feasibility = PromotionUpdateFeasibility.NOT_APPLICABLE,
+                    feasibility = PromotionUpdateFeasibility.CANDIDATE,
                     requiredStreak = 10,
-                    currentStreak = 3
+                    currentStreak = 11,
+                    lastDate = LocalDate.of(2022, 8, 8),
+                    newLastDate = LocalDate.of(2022, 8, 12),
+                    newCurrentStreak = 12,
+                    intervalDays = 7
                 ),
                 SpendStreakTokenUpdateState(
                     zkpUpdateId = UUID.randomUUID(),

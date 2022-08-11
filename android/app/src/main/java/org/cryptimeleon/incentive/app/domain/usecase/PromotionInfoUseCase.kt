@@ -187,8 +187,9 @@ private class PromotionInfoUseCaseWorker(
                     description = description,
                     sideEffect = rewardUpdateOrEmpty,
                     feasibility = feasibility,
-                    currentStreak = tokenPoints.get(0).toInt(),
-                    requiredStreak = it.lowerLimit
+                    requiredStreak = it.lowerLimit,
+                    tokenPoints = tokenPoints,
+                    intervalDays = it.intervalDays
                 )
                 is UpgradeVipZkpTokenUpdate -> UpgradeVipTokenUpdateState(
                     zkpUpdateId = it.tokenUpdateId,
