@@ -263,7 +263,8 @@ data class StandardStreakTokenUpdateState(
     val lastDate: StreakDate,
     val newLastDate: LocalDate,
     val currentStreak: Int,
-    val newCurrentStreak: Int
+    val newCurrentStreak: Int,
+    val intervalDays: Int
 ) : ZkpTokenUpdate {
     companion object {
         operator fun invoke(
@@ -289,7 +290,8 @@ data class StandardStreakTokenUpdateState(
                 lastDate,
                 today,
                 currentStreak,
-                newStreak
+                newStreak,
+                intervalDays
             )
         }
 

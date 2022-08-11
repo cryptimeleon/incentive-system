@@ -127,7 +127,8 @@ class PreviewData {
                     lastDate = StreakDate.DATE(LocalDate.of(2022, 8, 8)),
                     newLastDate = LocalDate.of(2022, 8, 12),
                     currentStreak = 3,
-                    newCurrentStreak = 4
+                    newCurrentStreak = 4,
+                    intervalDays = 7
                 ),
                 RangeProofStreakTokenUpdateState(
                     zkpUpdateId = UUID.randomUUID(),
