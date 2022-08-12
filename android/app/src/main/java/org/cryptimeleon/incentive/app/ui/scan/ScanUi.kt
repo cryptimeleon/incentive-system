@@ -1,6 +1,9 @@
 package org.cryptimeleon.incentive.app.ui.scan
 
+import android.annotation.SuppressLint
 import android.content.res.Configuration
+import android.graphics.Rect
+import android.view.ViewTreeObserver
 import android.widget.NumberPicker
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
@@ -16,26 +19,43 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -47,12 +67,15 @@ import com.google.accompanist.permissions.rememberPermissionState
 import org.cryptimeleon.incentive.app.domain.model.ShoppingItem
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
+import timber.log.Timber
 import androidx.camera.core.Preview as CameraPreview
 
 @Composable
 fun ScanScreen(openSettings: () -> Unit, openBenchmark: () -> Unit, openAttacker: () -> Unit) {
     val viewModel = hiltViewModel<ScanViewModel>()
     val state by viewModel.state.observeAsState(ScanEmptyState)
+    val filter by viewModel.itemFilter.collectAsState()
+    val filteredItems by viewModel.itemsFlow.collectAsState(emptyList())
 
     ScannerScreen(
         openBenchmark,
@@ -62,11 +85,15 @@ fun ScanScreen(openSettings: () -> Unit, openBenchmark: () -> Unit, openAttacker
         viewModel::onAddToBasket,
         viewModel::onDiscardItem,
         viewModel::setBarcode,
-        state
+        state,
+        filter,
+        filteredItems,
+        viewModel::setFilter
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 private fun ScannerScreen(
     openBenchmark: () -> Unit,
@@ -76,7 +103,10 @@ private fun ScannerScreen(
     onAddToBasket: () -> Unit,
     onDiscard: () -> Unit,
     setBarcode: (String) -> Unit,
-    state: ScanState
+    state: ScanState,
+    filter: String,
+    filteredItems: List<ShoppingItem>,
+    setFilter: (String) -> Unit
 ) {
     Scaffold(topBar = {
         DefaultTopAppBar(
@@ -93,11 +123,12 @@ private fun ScannerScreen(
             CameraPermission {
                 Scanner(setBarcode)
             }
+            SearchableItemList(filteredItems, setBarcode, filter, setFilter)
 
             AnimatedVisibility(
-                visible = state != ScanEmptyState,
+                visible = state != ScanEmptyState && state != ScanBlockedState,
                 enter = fadeIn(),
-                exit = fadeOut()
+                exit = fadeOut(),
             ) {
                 Box(
                     modifier = Modifier
@@ -116,6 +147,78 @@ private fun ScannerScreen(
                 )
                 is ScanLoadingState -> CircularProgressIndicator(Modifier.align(Alignment.Center))
                 else -> {}
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SearchableItemList(
+    filteredItems: List<ShoppingItem>,
+    setBarcode: (String) -> Unit,
+    filter: String,
+    setFilter: (String) -> Unit
+) {
+    val showSuggestions = remember { mutableStateOf(false) }
+    val focusRequester = remember { FocusRequester() }
+    val focusManager = LocalFocusManager.current
+    val isKeyboardOpen by keyboardAsState()
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .offset(y = if (isKeyboardOpen == Keyboard.Opened) 100.dp else 0.dp) // Unfortunate hack due to some ime padding bug
+            .imePadding(),
+        verticalArrangement = Arrangement.Bottom
+    ) {
+        Column {
+            if (showSuggestions.value && isKeyboardOpen == Keyboard.Opened) {
+                Surface(shape = RoundedCornerShape(topEnd = 16.dp, topStart = 16.dp)) {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier
+                            .padding(top = 8.dp)
+                            .padding(horizontal = 16.dp),
+                    ) {
+                        filteredItems.forEachIndexed { index, item ->
+                            Surface(
+                                modifier = Modifier
+                                    .fillMaxWidth(),
+                                onClick = {
+                                    focusManager.clearFocus()
+                                    setBarcode(item.id)
+                                }) {
+                                Text(item.title)
+                            }
+
+                            if (index < filteredItems.lastIndex) {
+                                Divider()
+                            }
+                        }
+                    }
+                }
+            }
+            Surface() {
+                OutlinedTextField(
+                    value = filter,
+                    onValueChange = setFilter,
+                    label = { Text("Search") },
+                    placeholder = { Text("Product Name") },
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth()
+                        .focusRequester(focusRequester)
+                        .onFocusChanged {
+                            showSuggestions.value = it.hasFocus
+                        }
+                        .onKeyEvent {
+                            if (it.nativeKeyEvent.isCanceled) {
+                                Timber.i("is cancelled")
+                            }
+                            true
+                        }
+                )
             }
         }
     }
@@ -249,6 +352,37 @@ private fun Scanner(onScanBarcode: (String) -> Unit) {
         },
         modifier = Modifier.fillMaxSize(),
     )
+}
+
+// https://stackoverflow.com/questions/68847559/how-can-i-detect-keyboard-opening-and-closing-in-jetpack-compose/69533584#69533584
+enum class Keyboard {
+    Opened, Closed
+}
+
+@Composable
+fun keyboardAsState(): State<Keyboard> {
+    val keyboardState = remember { mutableStateOf(Keyboard.Closed) }
+    val view = LocalView.current
+    DisposableEffect(view) {
+        val onGlobalListener = ViewTreeObserver.OnGlobalLayoutListener {
+            val rect = Rect()
+            view.getWindowVisibleDisplayFrame(rect)
+            val screenHeight = view.rootView.height
+            val keypadHeight = screenHeight - rect.bottom
+            keyboardState.value = if (keypadHeight > screenHeight * 0.15) {
+                Keyboard.Opened
+            } else {
+                Keyboard.Closed
+            }
+        }
+        view.viewTreeObserver.addOnGlobalLayoutListener(onGlobalListener)
+
+        onDispose {
+            view.viewTreeObserver.removeOnGlobalLayoutListener(onGlobalListener)
+        }
+    }
+
+    return keyboardState
 }
 
 @Composable
