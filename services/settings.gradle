@@ -1,11 +1,11 @@
-rootProject.name = 'incentive-services'
+rootProject.name = 'services'
 
 includeBuild '../crypto'
 includeBuild '../promotion'
 include ':basket'
 include ':client'
 include ':info'
-include ':inc'
-include ':dsprotectionservice'
+include ':incentive'
+include ':dsprotection'
 include ':bootstrap'
 
