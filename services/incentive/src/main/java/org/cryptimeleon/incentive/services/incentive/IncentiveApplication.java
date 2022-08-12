@@ -35,5 +35,7 @@ public class IncentiveApplication {
     }
 
     @Bean
-    DSProtectionClient dsProtectionClient() { return new DSProtectionClient(dsProtectionServiceUrl); }
+    DSProtectionClient dsProtectionClient() {
+        return new DSProtectionClient(dsProtectionServiceUrl);
+    }
 }

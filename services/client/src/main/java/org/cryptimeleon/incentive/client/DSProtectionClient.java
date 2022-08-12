@@ -8,6 +8,7 @@ import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -55,6 +56,7 @@ public class DSProtectionClient {
                 .header("promotion-id", serializedPromotionId)
                 .header("userchoice", userChoice)
                 .retrieve()
+                .onStatus(httpStatus -> httpStatus != HttpStatus.OK, clientResponse -> Mono.just(new RuntimeException(clientResponse.toString())))
                 .bodyToMono(String.class);
 
         // return response
@@ -70,6 +72,7 @@ public class DSProtectionClient {
         Mono<String> response = this.dsProtectionClient.post()
                 .uri(uriBuilder -> uriBuilder.path(CLEAR_DB_PATH).build())
                 .retrieve()
+                .onStatus(httpStatus -> httpStatus != HttpStatus.OK, clientResponse -> Mono.just(new RuntimeException(clientResponse.toString())))
                 .bodyToMono(String.class);
 
         return response.block();

@@ -4,15 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSigningKey;
-import org.cryptimeleon.incentive.client.DSProtectionClient;
 import org.cryptimeleon.incentive.client.dto.inc.*;
-import org.cryptimeleon.incentive.crypto.model.DeductOutput;
-import org.cryptimeleon.incentive.crypto.model.EarnRequest;
-import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
-import org.cryptimeleon.incentive.crypto.model.SpendRequest;
+import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
-import org.cryptimeleon.incentive.crypto.model.JoinRequest;
-import org.cryptimeleon.incentive.crypto.model.JoinResponse;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
 import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellformednessProtocol;
 import org.cryptimeleon.incentive.promotion.Promotion;
@@ -21,10 +15,7 @@ import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
 import org.cryptimeleon.incentive.promotion.model.Basket;
 import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect;
 import org.cryptimeleon.incentive.promotion.sideeffect.SideEffect;
-import org.cryptimeleon.incentive.services.incentive.repository.BasketRepository;
-import org.cryptimeleon.incentive.services.incentive.repository.CryptoRepository;
-import org.cryptimeleon.incentive.services.incentive.repository.PromotionRepository;
-import org.cryptimeleon.incentive.services.incentive.repository.TokenUpdateResultRepository;
+import org.cryptimeleon.incentive.services.incentive.repository.*;
 import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.cartesian.Vector;
@@ -45,14 +36,13 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class IncentiveService {
-    private DSProtectionClient dsProtectionClient; // object handling the connectivity to the double-spending protection database
-
     private final JSONConverter jsonConverter = new JSONConverter();
 
     private CryptoRepository cryptoRepository;
     private PromotionRepository promotionRepository;
     private BasketRepository basketRepository;
     private TokenUpdateResultRepository tokenUpdateResultRepository;
+    private OfflineDSPRepository offlineDspRepository;
 
     @Autowired
     private IncentiveService(
@@ -60,13 +50,13 @@ public class IncentiveService {
             PromotionRepository promotionRepository,
             BasketRepository basketRepository,
             TokenUpdateResultRepository tokenUpdateResultRepository,
-            DSProtectionClient dsProtectionClient
+            OfflineDSPRepository offlineDspRepository
     ) {
         this.cryptoRepository = cryptoRepository;
         this.promotionRepository = promotionRepository;
         this.basketRepository = basketRepository;
         this.tokenUpdateResultRepository = tokenUpdateResultRepository;
-        this.dsProtectionClient = dsProtectionClient;
+        this.offlineDspRepository = offlineDspRepository;
     }
 
 
@@ -80,8 +70,8 @@ public class IncentiveService {
     /**
      * Join a promotion with the issue-join protocol.
      *
-     * @param promotionId             the id that identifies the promotion
-     * @param serializedJoinRequest   the serialized join request
+     * @param promotionId           the id that identifies the promotion
+     * @param serializedJoinRequest the serialized join request
      * @return a serialized join response
      */
     public String joinPromotion(BigInteger promotionId, String serializedJoinRequest) {
@@ -173,18 +163,7 @@ public class IncentiveService {
         // using tid as user choice TODO change this once user choice generation is properly implemented, see issue 75
         DeductOutput spendProviderOutput = incentiveSystem.generateSpendRequestResponse(promotion.getPromotionParameters(), spendRequest, new ProviderKeyPair(providerSecretKey, providerPublicKey), tid, spendDeductTree, tid);
 
-        try { // TODO: make this call asynchronous in the future: put transaction into a queue and batch-send them like every minute (note: this artificial delay might be annoying for test scenarios)
-            // send transaction data to double-spending protection service
-            String responseText = dsProtectionClient.dbSync(
-                    tid,
-                    spendRequest.getDsid(),
-                    spendProviderOutput.getDstag(),
-                    promotionId,
-                    tid.toString() // TODO change this once user choice generation is properly implemented
-            );
-        } catch(Exception e) {
-            System.out.println("Could not store transaction data in double-spending protection database: " + e.getMessage());
-        }
+        offlineDspRepository.addToDbSyncQueue(promotionId, tid, spendRequest, spendProviderOutput);
 
         var result = jsonConverter.serialize(spendProviderOutput.getSpendResponse().getRepresentation());
         log.info("SpendResult: " + result);
