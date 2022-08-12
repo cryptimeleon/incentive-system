@@ -37,7 +37,7 @@ import javax.inject.Singleton
 
 private const val BASKET_BASE_URL = "https://incentives.cs.upb.de/basket/"
 private const val INFO_BASE_URL = "https://incentives.cs.upb.de/info/"
-private const val PROMOTION_BASE_URL = "https://incentives.cs.upb.de/promotion/"
+private const val PROMOTION_BASE_URL = "https://incentives.cs.upb.de/incentive/"
 
 private const val USER_PREFERENCES = "user_preferences"
 

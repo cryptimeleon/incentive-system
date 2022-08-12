@@ -9,8 +9,8 @@ services:
     networks:
       - provider
     hostname: infoservice
-  promotionservice:
-    image: cryptimeleon/incentive-service-promotion:0.5.0
+  incentiveservice:
+    image: cryptimeleon/incentive-service-incentive:0.5.0
     ports:
       - "8012:8012"
     environment:
@@ -20,7 +20,7 @@ services:
       - INCENTIVE_SERVICE_PROVIDER_SECRET=${INCENTIVE_PROVIDER_SECRET}
     networks:
       - provider
-    hostname: promotionservice
+    hostname: incentiveservice
   basketservice:
     image: cryptimeleon/incentive-service-basket:0.5.0
     ports:
@@ -51,7 +51,7 @@ services:
       - INCENTIVE_SERVICE_PROVIDER_SECRET=${INCENTIVE_PROVIDER_SECRET}
     depends_on:
       - basketservice
-      - promotionservice
+      - incentiveservice
     networks:
       - provider
   web:
