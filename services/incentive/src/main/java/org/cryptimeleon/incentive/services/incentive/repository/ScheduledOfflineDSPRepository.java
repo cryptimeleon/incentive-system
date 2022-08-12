@@ -22,7 +22,7 @@ import java.util.List;
 @Slf4j
 @Repository
 public class ScheduledOfflineDSPRepository implements OfflineDSPRepository, CyclingScheduler {
-    private static final int DBSYNC_QUEUE_CYCLE_DELAY = 2000;
+    private static final int DB_SYNC_QUEUE_CYCLE_DELAY = 2000;
     private static final int SHORT_WAIT_PERIOD_SECONDS = 30;
     private static final int LONG_WAIT_PERIOD_SECONDS = 3600;
 
@@ -60,7 +60,7 @@ public class ScheduledOfflineDSPRepository implements OfflineDSPRepository, Cycl
         waitUntil = LocalDateTime.now().minus(Duration.ofSeconds(1));
     }
 
-    @Scheduled(fixedDelay = DBSYNC_QUEUE_CYCLE_DELAY)
+    @Scheduled(fixedDelay = DB_SYNC_QUEUE_CYCLE_DELAY)
     private void scheduleFixedDelayTask() {
         LocalDateTime now = LocalDateTime.now();
         if (now.isAfter(waitUntil)) {
@@ -88,6 +88,4 @@ public class ScheduledOfflineDSPRepository implements OfflineDSPRepository, Cycl
                 tid.toString() // TODO change this once user choice generation is properly implemented
         );
     }
-
 }
-

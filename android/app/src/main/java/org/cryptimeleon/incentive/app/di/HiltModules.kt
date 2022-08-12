@@ -22,6 +22,7 @@ import org.cryptimeleon.incentive.app.data.database.crypto.CryptoDatabase
 import org.cryptimeleon.incentive.app.data.database.promotion.PromotionDatabase
 import org.cryptimeleon.incentive.app.data.network.BasketApiService
 import org.cryptimeleon.incentive.app.data.network.CryptoApiService
+import org.cryptimeleon.incentive.app.data.network.DosApiService
 import org.cryptimeleon.incentive.app.data.network.InfoApiService
 import org.cryptimeleon.incentive.app.data.network.PromotionApiService
 import org.cryptimeleon.incentive.app.domain.IBasketRepository
@@ -76,6 +77,14 @@ class HiltApiModule {
             .baseUrl(PROMOTION_BASE_URL)
             .build()
             .create(PromotionApiService::class.java)
+
+    @Singleton
+    @Provides
+    fun provideDosApiService(): DosApiService =
+        Retrofit.Builder()
+            .baseUrl(PROMOTION_BASE_URL)
+            .build()
+            .create(DosApiService::class.java)
 
     @Singleton
     @Provides
