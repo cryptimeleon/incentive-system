@@ -37,6 +37,7 @@ public class IncentiveController {
 
         log.info("Provider secret: {}", providerSecret);
     }
+
     /**
      * Endpoint for alive testing etc.
      */
@@ -107,7 +108,7 @@ public class IncentiveController {
 
     @GetMapping("/dos/short-duration")
     public void shortDos() {
-            dosService.addShortWaitPeriod();
+        dosService.addShortWaitPeriod();
     }
 
     @GetMapping("/dos/long-duration")

@@ -38,11 +38,11 @@ import java.util.stream.Collectors;
 public class IncentiveService {
     private final JSONConverter jsonConverter = new JSONConverter();
 
-    private CryptoRepository cryptoRepository;
-    private PromotionRepository promotionRepository;
-    private BasketRepository basketRepository;
-    private TokenUpdateResultRepository tokenUpdateResultRepository;
-    private OfflineDSPRepository offlineDspRepository;
+    private final CryptoRepository cryptoRepository;
+    private final PromotionRepository promotionRepository;
+    private final BasketRepository basketRepository;
+    private final TokenUpdateResultRepository tokenUpdateResultRepository;
+    private final OfflineDSPRepository offlineDspRepository;
 
     @Autowired
     private IncentiveService(

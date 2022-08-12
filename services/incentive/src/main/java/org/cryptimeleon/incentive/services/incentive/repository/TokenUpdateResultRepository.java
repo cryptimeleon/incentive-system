@@ -13,7 +13,7 @@ import java.util.UUID;
 // This is the cache for results of token updates that are held back util the user pays the basket.
 @Repository
 public class TokenUpdateResultRepository {
-    private Map<UUID, Map<BigInteger, TokenUpdateResult>> tokenUpdateResultMap;
+    private final Map<UUID, Map<BigInteger, TokenUpdateResult>> tokenUpdateResultMap;
 
     public TokenUpdateResultRepository() {
         tokenUpdateResultMap = new HashMap<>();

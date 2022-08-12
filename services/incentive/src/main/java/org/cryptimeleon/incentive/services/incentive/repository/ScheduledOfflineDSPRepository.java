@@ -1,7 +1,6 @@
 package org.cryptimeleon.incentive.services.incentive.repository;
 
 import lombok.Getter;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.incentive.client.DSProtectionClient;
 import org.cryptimeleon.incentive.crypto.model.DeductOutput;
