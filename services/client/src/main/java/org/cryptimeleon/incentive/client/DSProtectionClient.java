@@ -56,7 +56,6 @@ public class DSProtectionClient {
                 .header("promotion-id", serializedPromotionId)
                 .header("userchoice", userChoice)
                 .retrieve()
-                .onStatus(httpStatus -> httpStatus != HttpStatus.OK, clientResponse -> Mono.just(new RuntimeException(clientResponse.toString())))
                 .bodyToMono(String.class);
 
         // return response
@@ -72,7 +71,6 @@ public class DSProtectionClient {
         Mono<String> response = this.dsProtectionClient.post()
                 .uri(uriBuilder -> uriBuilder.path(CLEAR_DB_PATH).build())
                 .retrieve()
-                .onStatus(httpStatus -> httpStatus != HttpStatus.OK, clientResponse -> Mono.just(new RuntimeException(clientResponse.toString())))
                 .bodyToMono(String.class);
 
         return response.block();
