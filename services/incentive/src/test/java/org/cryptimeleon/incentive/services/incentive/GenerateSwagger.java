@@ -28,7 +28,7 @@ public class GenerateSwagger {
         MockMvc mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
         mockMvc.perform(MockMvcRequestBuilders.get("/v2/api-docs").accept(MediaType.APPLICATION_JSON))
                 .andDo((result) -> {
-                    var swaggerPath = Paths.get("./../api/promotion.json");
+                    var swaggerPath = Paths.get("./../api/incentive.json");
                     Files.createDirectories(swaggerPath.getParent());
                     Files.writeString(swaggerPath, result.getResponse().getContentAsString(), StandardOpenOption.CREATE);
                 });
