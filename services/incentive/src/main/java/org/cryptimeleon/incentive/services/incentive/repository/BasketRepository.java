@@ -28,7 +28,12 @@ public class BasketRepository {
     @Value("${basket-service.redeem-secret}")
     private String redeemSecret;
 
-    private BasketClient basketClient;
+    private final BasketClient basketClient;
+
+    @Autowired
+    public BasketRepository(BasketClient basketClient) {
+        this.basketClient = basketClient;
+    }
 
     @PostConstruct
     public void validateValue() {
@@ -36,11 +41,6 @@ public class BasketRepository {
             throw new IllegalArgumentException("Redeem secret is not set!");
         }
         log.info("redeem secret: {}", redeemSecret);
-    }
-
-    @Autowired
-    public BasketRepository(BasketClient basketClient) {
-        this.basketClient = basketClient;
     }
 
     public BasketDto getBasketDto(UUID basketId) {

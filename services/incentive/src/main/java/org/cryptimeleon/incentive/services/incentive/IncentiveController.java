@@ -24,6 +24,7 @@ import java.util.UUID;
 public class IncentiveController {
 
     private final IncentiveService incentiveService;
+    private final DosService dosService;
 
     @Value("${incentive-service.provider-secret}")
     private String providerSecret;
@@ -36,6 +37,7 @@ public class IncentiveController {
 
         log.info("Provider secret: {}", providerSecret);
     }
+
     /**
      * Endpoint for alive testing etc.
      */
@@ -101,6 +103,27 @@ public class IncentiveController {
             @RequestHeader(name = "basket-id") UUID basketId
     ) {
         return new ResponseEntity<>(incentiveService.retrieveBulkResults(basketId), HttpStatus.OK);
+    }
+
+
+    @GetMapping("/dos/short-duration")
+    public void shortDos() {
+        dosService.addShortWaitPeriod();
+    }
+
+    @GetMapping("/dos/long-duration")
+    public void longDos() {
+        dosService.addLongWaitPeriod();
+    }
+
+    @GetMapping("/dos/stop")
+    public void stopDos() {
+        dosService.removeAllWaitPeriod();
+    }
+
+    @GetMapping("/dos/remaining-offline-time")
+    public long remainingOfflineTimeSeconds() {
+        return dosService.getRemainingOfflineTimeSeconds();
     }
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)

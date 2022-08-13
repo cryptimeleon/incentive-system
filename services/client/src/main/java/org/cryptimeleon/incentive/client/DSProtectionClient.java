@@ -8,6 +8,7 @@ import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 

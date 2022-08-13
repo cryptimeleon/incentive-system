@@ -44,7 +44,7 @@ public class CryptoRepository {
     private String sharedSecret; // used to authenticate the request for the provider secret key (set via environment variable)
 
     // Will be set via dependency injection
-    private InfoClient infoClient;
+    private final InfoClient infoClient;
 
     @Autowired
     private CryptoRepository(InfoClient infoClient) {
