@@ -13,6 +13,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.math.BigInteger;
+import java.time.Duration;
 
 
 /**
@@ -23,8 +24,13 @@ public class DSProtectionClient {
     private static final String DBSYNC_PATH = "/dbsync";
     private static final String CLEAR_DB_PATH = "/cleardb";
     private static final String GET_TRANSACTION_PATH = "/getta";
+    private static final String CONTAINS_DSID_PATH = "/containsdsid";
+    private static final String HEARTBEAT_PATH = "/";
+    private static final long HEARTBEAT_TIMEOUT = 3600; // how long to wait before considering the dsp service down
     private Logger logger = LoggerFactory.getLogger(DSProtectionClient.class);
     private WebClient dsProtectionClient; // the underlying web client making the requests
+
+
 
     public DSProtectionClient(String dsProtectionServiceURL) {
         logger.info("Creating a client that sends queries to " + dsProtectionServiceURL);
@@ -93,6 +99,31 @@ public class DSProtectionClient {
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
+    }
+
+    public Boolean containsDsid(GroupElement dsid) {
+        // marshall data
+        String serializedDsidRepr = computeSerializedRepresentation(dsid);
+
+        // make request and return result
+        return this.dsProtectionClient.get()
+                .uri(uriBuilder -> uriBuilder.path(CONTAINS_DSID_PATH).build())
+                .header("dsid", serializedDsidRepr)
+                .retrieve()
+                .bodyToMono(Boolean.class)
+                .block();
+    }
+
+    public Boolean dspServiceIsAlive(){
+        // make request to heartbeat endpoint
+        String heartbeatResponse = this.dsProtectionClient.get()
+                .uri(uriBuilder -> uriBuilder.path(HEARTBEAT_PATH).build())
+                .retrieve()
+                .bodyToMono(String.class)
+                .block(Duration.ofSeconds(HEARTBEAT_TIMEOUT));
+
+        // if received response: return true, else false
+        return heartbeatResponse != null;
     }
 
 

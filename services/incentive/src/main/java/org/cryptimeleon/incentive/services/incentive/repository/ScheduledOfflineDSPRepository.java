@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.incentive.client.DSProtectionClient;
 import org.cryptimeleon.incentive.crypto.model.DeductOutput;
 import org.cryptimeleon.incentive.crypto.model.SpendRequest;
+import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -37,6 +38,10 @@ public class ScheduledOfflineDSPRepository implements OfflineDSPRepository, Cycl
         this.dsProtectionClient = dsProtectionClient;
     }
 
+    /*
+    * OfflineDSPRepository methods
+    */
+
     @Override
     public void addToDbSyncQueue(BigInteger promotionId, Zn.ZnElement tid, SpendRequest spendRequest, DeductOutput spendProviderOutput) {
         DbSyncTask dbSyncTask = new DbSyncTask(promotionId, tid, spendRequest, spendProviderOutput);
@@ -44,6 +49,24 @@ public class ScheduledOfflineDSPRepository implements OfflineDSPRepository, Cycl
             taskQueue.add(dbSyncTask);
         }
     }
+
+    @Override
+    public boolean dspServiceIsAlive() {
+        return dsProtectionClient.dspServiceIsAlive();
+    }
+
+    @Override
+    public boolean containsDsid(GroupElement dsid) {
+        return dsProtectionClient.containsDsid(dsid);
+    }
+
+    /*
+    * end of OfflineDSPRepository methods
+    */
+
+    /*
+    * CyclingScheduler methods
+    */
 
     @Override
     public void addShortWaitPeriod() {
@@ -59,6 +82,10 @@ public class ScheduledOfflineDSPRepository implements OfflineDSPRepository, Cycl
     public void removeAllWaitPeriod() {
         waitUntil = LocalDateTime.now().minus(Duration.ofSeconds(1));
     }
+
+    /*
+    * end of CyclingScheduler methods
+    */
 
     @Scheduled(fixedDelay = DB_SYNC_QUEUE_CYCLE_DELAY)
     private void scheduleFixedDelayTask() {

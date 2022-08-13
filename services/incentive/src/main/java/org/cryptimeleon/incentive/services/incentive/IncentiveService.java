@@ -13,6 +13,7 @@ import org.cryptimeleon.incentive.promotion.Promotion;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdate;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
 import org.cryptimeleon.incentive.promotion.model.Basket;
+import org.cryptimeleon.incentive.promotion.sideeffect.CaughtDoubleSpendingSideEffect;
 import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect;
 import org.cryptimeleon.incentive.promotion.sideeffect.SideEffect;
 import org.cryptimeleon.incentive.services.incentive.repository.*;
@@ -163,7 +164,36 @@ public class IncentiveService {
         // using tid as user choice TODO change this once user choice generation is properly implemented, see issue 75
         DeductOutput spendProviderOutput = incentiveSystem.generateSpendRequestResponse(promotion.getPromotionParameters(), spendRequest, new ProviderKeyPair(providerSecretKey, providerPublicKey), tid, spendDeductTree, tid);
 
-        offlineDspRepository.addToDbSyncQueue(promotionId, tid, spendRequest, spendProviderOutput);
+        /*
+        * Incentive service queries double-spending protection service for whether dsid of spent token is already contained.
+        * If yes: abort transaction (since trivially identified as double-spending) and return dedicated caught-double-spending side effect.
+        * Else: spend request is answered as normal, transaction is recorded into the database as soon as possible
+        *
+        * If dsp service is down at the time of the above query, the transaction is recorded in the database regardless of the used dsid.
+        *
+        * Note that the above check is one-sided, i.e. while it never wrongly identifies a transaction as double-spending,
+        * it cannot identify all invalid transactions.
+        * An example scenario where the check does not notice an invalid transaction would be the following:
+        * 1. Customer spends token t1 in store A, obtaining remainder token t1'.
+        * 2. Store B is temporarily disconnected from the double-spending protection service
+        * 3. Customer spends token t1 in store B, obtaining remainder token t1''.
+        * 4. Customer spends token t1'' in store C.
+        * 5. Store B reconnects to the dsprotection service and syncs transaction into database.
+        *    => it was not known to dsprotection service (thus also to the incentive service) in step 4 that the spent token resulted from a double-spending transaction
+        *    => transaction was recorded in step 4 despite it is invalid
+        *    => needs to be invalidated now
+        *
+        * For the invalidation in step 5 to be possible,
+        * it is critical that transactions that occured during dsp service downtime are always recorded in the database,
+        * no matter whether dsid was already known.
+        */
+        GroupElement usedTokenDsid = spendRequest.getDsid();
+        if(offlineDspRepository.dspServiceIsAlive() && offlineDspRepository.containsDsid(usedTokenDsid)) {
+            return new CaughtDoubleSpendingSideEffect("Double-spending attempt detected: " + usedTokenDsid + " has already been spent!");
+        }
+        else {
+            offlineDspRepository.addToDbSyncQueue(promotionId, tid, spendRequest, spendProviderOutput);
+        }
 
         var result = jsonConverter.serialize(spendProviderOutput.getSpendResponse().getRepresentation());
         log.info("SpendResult: " + result);
