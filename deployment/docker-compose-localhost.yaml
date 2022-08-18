@@ -8,8 +8,8 @@ services:
     networks:
       - provider
     hostname: infoservice
-  promotionservice:
-    image: cryptimeleon/incentive-service-promotion:0.5.0
+  incentiveservice:
+    image: cryptimeleon/incentive-service-incentive:0.5.0
     ports:
       - "8012:8012"
     environment:
@@ -18,7 +18,7 @@ services:
       - DSPROTECTION_SERVICE_URL=http://dsprotectionservice:8004/
     networks:
       - provider
-    hostname: promotionservice
+    hostname: incentiveservice
   basketservice:
     image: cryptimeleon/incentive-service-basket:0.5.0
     ports:
@@ -39,7 +39,7 @@ services:
     image: cryptimeleon/incentive-service-bootstrap:0.5.0
     environment:
       - BASKET_SERVICE_URL=http://basketservice:8010/
-      - INCENTIVE_SERVICE_URL=http://promotionservice:8012/
+      - INCENTIVE_SERVICE_URL=http://incentiveservice:8012/
     networks:
       - provider
   web:

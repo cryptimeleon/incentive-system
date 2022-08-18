@@ -43,7 +43,7 @@ public class DsProtectionServiceIntegrationTest extends TransactionTestPreparati
      * and checks afterwards whether it was correctly recorded as a transaction in the database.
      */
     @Test
-    public void honestTransactionTest() {
+    public void honestTransactionTest() throws InterruptedException {
         log.info("Started honest transaction integration test.");
 
         log.info("Generate token and basket.");
@@ -53,6 +53,8 @@ public class DsProtectionServiceIntegrationTest extends TransactionTestPreparati
 
         log.info("Spend-Deduct protocol running...");
         TransactionIdentifier occuredTaId = runSpendDeductWorkflow(token, basketId);
+
+        Thread.sleep(2500);
 
         log.info("Done.");
         log.info("Query recorded transaction from database.");
@@ -74,7 +76,7 @@ public class DsProtectionServiceIntegrationTest extends TransactionTestPreparati
      * then checks whether second transaction was recorded as invalid in database.
      */
     @Test
-    public void doubleSpendingTest() {
+    public void doubleSpendingTest() throws InterruptedException {
         log.info("Started double-spending integration test.");
 
         log.info("Generate token to be double-spended and baskets.");
@@ -90,6 +92,8 @@ public class DsProtectionServiceIntegrationTest extends TransactionTestPreparati
         log.info("Double-spending Spend-Deduct execution running...");
         TransactionIdentifier occuredTaId2 = runSpendDeductWorkflow(token, basketId2);
         log.info("Done.");
+
+        Thread.sleep(2500);
 
         log.info("Query recorded transactions from database.");
         String serializedOccuredTaRepr1 = dsProtectionClient.getTransaction(occuredTaId1);

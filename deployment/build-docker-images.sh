@@ -22,13 +22,13 @@ docker build \
   -t cryptimeleon/incentive-service-info:$VERSION \
   -f services/Dockerfile .
 
-# promotion service
-DEPENDENCY_PATH=services/inc/build/dependency
+# incentive service
+DEPENDENCY_PATH=services/incentive/build/dependency
 mkdir -p $DEPENDENCY_PATH && (cd $DEPENDENCY_PATH; jar -xf ../libs/*.jar)
 docker build \
   --build-arg DEPENDENCY=$DEPENDENCY_PATH \
-  --build-arg APPLICATION=org.cryptimeleon.incentive.services.promotion.PromotionApplication\
-  -t cryptimeleon/incentive-service-promotion:$VERSION \
+  --build-arg APPLICATION=org.cryptimeleon.incentive.services.incentive.IncentiveApplication\
+  -t cryptimeleon/incentive-service-incentive:$VERSION \
   -f services/Dockerfile .
 
 # basket service
@@ -50,11 +50,11 @@ docker build \
   -f services/Dockerfile .
 
 # dsprotection service
-DEPENDENCY_PATH=services/dsprotectionservice/build/dependency
+DEPENDENCY_PATH=services/dsprotection/build/dependency
 mkdir -p $DEPENDENCY_PATH && (cd $DEPENDENCY_PATH; jar -xf ../libs/*.jar)
 docker build \
   --build-arg DEPENDENCY=$DEPENDENCY_PATH \
-  --build-arg APPLICATION=org.cryptimeleon.incentivesystem.dsprotectionservice.DsprotectionApplication \
+  --build-arg APPLICATION=org.cryptimeleon.incentive.services.dsprotection.DsprotectionApplication \
   -t cryptimeleon/incentive-service-dsprotection:$VERSION \
   -f services/Dockerfile .
 

@@ -1,0 +1,27 @@
+plugins {
+    id 'org.springframework.boot'
+    id 'io.spring.dependency-management'
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation "io.springfox:springfox-boot-starter:3.0.0"
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    implementation 'org.cryptimeleon.incentive:promotion'
+    testImplementation(testFixtures('org.cryptimeleon.incentive:crypto'))
+    implementation project(":client")
+}
+
+test {
+    useJUnitPlatform()
+}
+
+bootBuildImage {
+    if (System.getenv('VERSION') == null || System.getenv('VERSION') == '') {
+        imageName = "cryptimeleon/incentive-service-incentive:" + file("../version").text.trim()
+    } else {
+        imageName = "cryptimeleon/incentive-service-incentive:" + System.getenv('VERSION')
+    }
+}

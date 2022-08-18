@@ -18,6 +18,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -74,8 +75,9 @@ fun AttackerUi(onUpClicked: () -> Unit) {
         // We apply the contentPadding passed to us from the Scaffold
         AttackerUi(
             doubleSpendingAttackEnabled.discardUpdatedToken,
+            Modifier.padding(contentPadding),
             viewModel::setDiscardUpdatedToken,
-            Modifier.padding(contentPadding)
+            viewModel::launchShortDosAttack
         )
     }
 }
@@ -83,8 +85,9 @@ fun AttackerUi(onUpClicked: () -> Unit) {
 @Composable
 private fun AttackerUi(
     doubleSpendingAttackEnabled: Boolean,
+    modifier: Modifier = Modifier,
     setDiscardEnabled: (Boolean) -> Unit = {},
-    modifier: Modifier = Modifier
+    launchDosAttack: () -> Unit = {},
 ) {
     Column(
         modifier = modifier
@@ -120,6 +123,9 @@ private fun AttackerUi(
             Switch(checked = doubleSpendingAttackEnabled, onCheckedChange = setDiscardEnabled)
         }
         DoubleSpendingProtectionText(Modifier.padding(bottom = 32.dp))
+        Button(onClick = launchDosAttack, modifier = Modifier.fillMaxWidth()) {
+            Text("Short DoS Attack")
+        }
     }
 }
 
