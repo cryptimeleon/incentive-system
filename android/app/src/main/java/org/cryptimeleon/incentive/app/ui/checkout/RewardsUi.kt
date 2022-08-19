@@ -32,6 +32,7 @@ import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
 import org.cryptimeleon.incentive.app.domain.usecase.TokenUpdate
 import org.cryptimeleon.incentive.app.domain.usecase.ZkpTokenUpdate
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
+import org.cryptimeleon.incentive.app.ui.log.ZkpSummaryUi
 import org.cryptimeleon.incentive.app.ui.preview.PreviewData
 import java.math.BigInteger
 

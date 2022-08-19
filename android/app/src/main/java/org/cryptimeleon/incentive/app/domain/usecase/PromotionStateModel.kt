@@ -285,8 +285,10 @@ data class StandardStreakTokenUpdateState(
             val lastDate = StreakDate.fromLong(tokenPoints.get(1).toLong())
             val today = LocalDate.now()
             val newStreak =
-                if (lastDate is StreakDate.DATE && Duration.between(today, lastDate.date)
-                        .toDays() <= intervalDays
+                if (lastDate is StreakDate.DATE && Duration.between(
+                        today.atStartOfDay(),
+                        lastDate.date.atStartOfDay()
+                    ).toDays() <= intervalDays
                 ) currentStreak + 1 else 1
             return StandardStreakTokenUpdateState(
                 zkpUpdateId,
