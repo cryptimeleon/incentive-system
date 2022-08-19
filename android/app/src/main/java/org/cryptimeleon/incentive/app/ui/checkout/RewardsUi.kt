@@ -4,10 +4,12 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -86,8 +88,13 @@ fun RewardPromotionList(
                         RewardChoiceCard(tokenUpdate, promotion.pid, setUserUpdateChoice)
                     }
                 }
+            item(span = { GridItemSpan(2) }) {
+                Column() {
+                    ZkpSummaryUi(promotion)
+                }
+            }
             item {
-                ZkpSummaryUi(promotionDataList)
+                Spacer(modifier = Modifier.size(16.dp))
             }
         }
     }

@@ -137,7 +137,7 @@ class PreviewData {
                     feasibility = PromotionUpdateFeasibility.CANDIDATE,
                     requiredStreak = 10,
                     currentStreak = 11,
-                    lastDate = LocalDate.of(2022, 8, 8),
+                    lastDate = StreakDate.DATE(LocalDate.of(2022, 8, 8)),
                     newLastDate = LocalDate.of(2022, 8, 12),
                     newCurrentStreak = 12,
                     intervalDays = 7

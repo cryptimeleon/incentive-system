@@ -144,6 +144,11 @@ sealed class StreakDate {
                 is DATE -> ChronoUnit.DAYS.between(epochZero, this.date)
             }
     }
+        override fun toString(): String =
+            when (this) {
+                is NONE -> "None"
+                is DATE -> date.toString()
+            }
 }
 
 
@@ -303,7 +308,7 @@ data class RangeProofStreakTokenUpdateState(
     override val description: String,
     override val sideEffect: Optional<String>,
     override val feasibility: PromotionUpdateFeasibility,
-    val lastDate: LocalDate,
+    val lastDate: StreakDate,
     val newLastDate: LocalDate,
     val requiredStreak: Int,
     val currentStreak: Int,
@@ -322,19 +327,17 @@ data class RangeProofStreakTokenUpdateState(
         ): ZkpTokenUpdate {
             val currentStreak = tokenPoints.get(0).toInt()
             val lastStreakDate = StreakDate.fromLong(tokenPoints.get(1).toLong())
-            if (lastStreakDate is StreakDate.NONE) throw RuntimeException("Must be a valid last date in order to prove a streak > 0!")
-            val lastDate = (lastStreakDate as StreakDate.DATE).date
             val today = LocalDate.now()
             return RangeProofStreakTokenUpdateState(
                 zkpUpdateId,
                 description,
                 sideEffect,
                 feasibility,
-                lastDate,
+                lastStreakDate,
                 today,
                 requiredStreak,
                 currentStreak,
-                currentStreak +1,
+                currentStreak + 1,
                 intervalDays
             )
         }
