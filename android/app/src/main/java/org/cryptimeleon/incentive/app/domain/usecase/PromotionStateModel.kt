@@ -138,17 +138,17 @@ sealed class StreakDate {
                 DATE(LocalDate.ofEpochDay(epochDay))
             }
 
-        fun StreakDate.toLong(): Long =
-            when (this) {
-                is NONE -> 0
-                is DATE -> ChronoUnit.DAYS.between(epochZero, this.date)
-            }
+        fun StreakDate.toLong(): Long = when (this) {
+            is NONE -> 0
+            is DATE -> ChronoUnit.DAYS.between(epochZero, this.date)
+        }
     }
-        override fun toString(): String =
-            when (this) {
-                is NONE -> "None"
-                is DATE -> date.toString()
-            }
+
+    override fun toString(): String =
+        when (this) {
+            is NONE -> "None"
+            is DATE -> date.toString()
+        }
 }
 
 
@@ -237,7 +237,8 @@ data class HazelTokenUpdateState(
     override val sideEffect: Optional<String>,
     override val feasibility: PromotionUpdateFeasibility,
     val current: Int,
-    val goal: Int
+    val goal: Int,
+    val basketPoints: Int
 ) : ZkpTokenUpdate
 
 data class ProveVipTokenUpdateState(

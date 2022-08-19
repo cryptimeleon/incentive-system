@@ -27,7 +27,6 @@ import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
 import org.cryptimeleon.incentive.app.domain.usecase.RangeProofStreakTokenUpdateState
 import org.cryptimeleon.incentive.app.domain.usecase.SpendStreakTokenUpdateState
 import org.cryptimeleon.incentive.app.domain.usecase.StandardStreakTokenUpdateState
-import org.cryptimeleon.incentive.app.domain.usecase.StreakDate
 import org.cryptimeleon.incentive.app.domain.usecase.StreakPromotionData
 import org.cryptimeleon.incentive.app.ui.preview.CryptimeleonPreviewContainer
 import org.cryptimeleon.incentive.app.ui.preview.PreviewData.Companion.hazelPromotionData
@@ -55,9 +54,12 @@ fun ZkpSummaryUi(promotionData: PromotionData) {
                                         yourView()
                                         append("\tscore: ${tokenUpdate.current} ")
                                         arrow()
-                                        append(" ${tokenUpdate.current - tokenUpdate.goal}\n")
+                                        if (tokenUpdate.basketPoints > 0) append(" ${tokenUpdate.basketPoints} - ${tokenUpdate.goal} =")
+                                        append(" ${tokenUpdate.current + tokenUpdate.basketPoints - tokenUpdate.goal}\n")
                                         storeLearns()
-                                        append("\tscore_old $GEQ ${tokenUpdate.goal} AND score_new = score_old - ${tokenUpdate.goal}")
+                                        append("\tAND\n")
+                                        append("\t├── score_old + ${tokenUpdate.basketPoints} $GEQ ${tokenUpdate.goal}\n")
+                                        append("\t└── score_new = score_old + ${tokenUpdate.basketPoints} - ${tokenUpdate.goal}")
                                     }
                                 },
                                 inlineContent = arrowInlineContent

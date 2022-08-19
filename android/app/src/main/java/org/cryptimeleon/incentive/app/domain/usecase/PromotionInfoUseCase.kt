@@ -164,7 +164,8 @@ private class PromotionInfoUseCaseWorker(
                     sideEffect = rewardUpdateOrEmpty,
                     feasibility = feasibility,
                     current = tokenPoints.get(0).toInt(),
-                    goal = it.rewardCost
+                    goal = it.rewardCost,
+                    basketPoints = basketPoints.get(0).toInt()
                 )
                 is StandardStreakTokenUpdate -> StandardStreakTokenUpdateState(
                     zkpUpdateId = it.tokenUpdateId,

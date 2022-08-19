@@ -64,7 +64,8 @@ class PreviewData {
                     sideEffect = Optional.of("Free Nutella"),
                     feasibility = PromotionUpdateFeasibility.SELECTED,
                     current = 6,
-                    goal = 4
+                    goal = 4,
+                    basketPoints = 3
                 )
             ),
             tokenHash = "8458b17882973b01de083501c29579a6",
