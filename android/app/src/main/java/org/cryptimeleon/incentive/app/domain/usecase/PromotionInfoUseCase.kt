@@ -198,6 +198,7 @@ private class PromotionInfoUseCaseWorker(
                     sideEffect = rewardUpdateOrEmpty,
                     feasibility = feasibility,
                     currentPoints = tokenPoints.get(0).toInt(),
+                    basketPoints = basketPoints.get(0).toInt(),
                     requiredPoints = it.accumulatedCost,
                     targetVipStatus = VipStatus.fromInt(it.toVipStatus),
                     currentVipStatus = VipStatus.fromInt(
@@ -211,6 +212,8 @@ private class PromotionInfoUseCaseWorker(
                     description = description,
                     sideEffect = rewardUpdateOrEmpty,
                     feasibility = feasibility,
+                    currentPoints = tokenPoints.get(0).toInt(),
+                    basketPoints = basketPoints.get(0).toInt(),
                     currentStatus = VipStatus.fromInt(
                         tokenPoints.get(
                             1

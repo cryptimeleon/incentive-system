@@ -83,14 +83,18 @@ class PreviewData {
                     description = "Prove you are SILVER",
                     sideEffect = Optional.of("5% Discount"),
                     feasibility = PromotionUpdateFeasibility.CANDIDATE,
+                    currentPoints = 250,
+                    basketPoints = 20,
                     currentStatus = VipStatus.SILVER,
-                    requiredStatus = VipStatus.SILVER
+                    requiredStatus = VipStatus.SILVER,
                 ),
                 ProveVipTokenUpdateState(
                     zkpUpdateId = UUID.randomUUID(),
                     description = "Prove you are GOLD",
                     sideEffect = Optional.of("10% Discount"),
                     feasibility = PromotionUpdateFeasibility.NOT_APPLICABLE,
+                    currentPoints = 250,
+                    basketPoints = 20,
                     currentStatus = VipStatus.SILVER,
                     requiredStatus = VipStatus.GOLD
                 ),
@@ -100,6 +104,7 @@ class PreviewData {
                     sideEffect = Optional.of("10% Discount"),
                     feasibility = PromotionUpdateFeasibility.NOT_APPLICABLE,
                     currentPoints = 250,
+                    basketPoints = 20,
                     requiredPoints = 300,
                     targetVipStatus = VipStatus.GOLD,
                     currentVipStatus = VipStatus.SILVER

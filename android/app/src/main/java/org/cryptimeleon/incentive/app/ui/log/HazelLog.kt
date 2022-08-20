@@ -27,9 +27,9 @@ fun HazelEarnLog(tokenUpdate: EarnTokenUpdate) {
                     }\n"
                 )
                 yourView()
-                append("\tscore: ${tokenUpdate.currentPoints.get(0)} ")
+                append("\tscore_old = ${tokenUpdate.currentPoints.get(0)} ")
                 arrow()
-                append(" ${tokenUpdate.targetPoints.get(0)}")
+                append(" score_new = ${tokenUpdate.targetPoints.get(0)}")
             }
         },
         inlineContent = arrowInlineContent
@@ -56,9 +56,9 @@ fun HazelTokenUpdateLog(tokenUpdate: HazelTokenUpdateState) {
                 append("\t├── score_old + ${tokenUpdate.basketPoints} $GEQ ${tokenUpdate.goal}\n")
                 append("\t└── score_new = score_old + ${tokenUpdate.basketPoints} - ${tokenUpdate.goal}\n")
                 yourView()
-                append("\tscore_old ${tokenUpdate.current} ")
+                append("\tscore_old = ${tokenUpdate.current} ")
                 arrow()
-                append(" score_new")
+                append(" score_new =")
                 if (tokenUpdate.basketPoints > 0) append(" ${tokenUpdate.basketPoints} - ${tokenUpdate.goal} =")
                 append(" ${tokenUpdate.current + tokenUpdate.basketPoints - tokenUpdate.goal}\n")
             }

@@ -9,7 +9,6 @@ import org.cryptimeleon.incentive.app.domain.usecase.NoTokenUpdate
 import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
 import org.cryptimeleon.incentive.app.domain.usecase.ProveVipTokenUpdateState
 import org.cryptimeleon.incentive.app.domain.usecase.RangeProofStreakTokenUpdateState
-import org.cryptimeleon.incentive.app.domain.usecase.SpendStreakTokenUpdateState
 import org.cryptimeleon.incentive.app.domain.usecase.StandardStreakTokenUpdateState
 import org.cryptimeleon.incentive.app.domain.usecase.StreakPromotionData
 import org.cryptimeleon.incentive.app.domain.usecase.UpgradeVipTokenUpdateState
@@ -32,13 +31,12 @@ fun ZkpSummaryUi(promotionData: PromotionData) {
                 is StreakPromotionData -> when (tokenUpdate) {
                     is StandardStreakTokenUpdateState -> StandardStreakLog(tokenUpdate)
                     is RangeProofStreakTokenUpdateState -> RangeProofLog(tokenUpdate)
-                    is SpendStreakTokenUpdateState -> {}
                     is NoTokenUpdate -> NothingText()
                 }
                 is VipPromotionData -> when (tokenUpdate) {
-                    is UpgradeVipTokenUpdateState -> {}
-                    is ProveVipTokenUpdateState -> {}
-                    is EarnTokenUpdate -> {}
+                    is UpgradeVipTokenUpdateState -> UpgradeVipLog(tokenUpdate)
+                    is ProveVipTokenUpdateState -> ProveVipLog(tokenUpdate)
+                    is EarnTokenUpdate -> VipEarnLog(tokenUpdate)
                     is NoTokenUpdate -> NothingText()
                 }
             }

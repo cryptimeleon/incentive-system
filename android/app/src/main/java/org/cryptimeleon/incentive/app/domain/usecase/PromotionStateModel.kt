@@ -125,8 +125,13 @@ data class StreakPromotionData(
 }
 
 sealed class StreakDate {
-    object NONE : StreakDate()
-    data class DATE(val date: LocalDate) : StreakDate()
+    object NONE : StreakDate() {
+        override fun toString(): String = "None"
+    }
+
+    data class DATE(val date: LocalDate) : StreakDate() {
+        override fun toString(): String = date.toString()
+    }
 
     companion object {
         val epochZero = LocalDate.ofEpochDay(0)
@@ -143,12 +148,6 @@ sealed class StreakDate {
             is DATE -> ChronoUnit.DAYS.between(epochZero, this.date)
         }
     }
-
-    override fun toString(): String =
-        when (this) {
-            is NONE -> "None"
-            is DATE -> date.toString()
-        }
 }
 
 
@@ -246,6 +245,8 @@ data class ProveVipTokenUpdateState(
     override val description: String,
     override val sideEffect: Optional<String>,
     override val feasibility: PromotionUpdateFeasibility,
+    val currentPoints: Int,
+    val basketPoints: Int,
     val currentStatus: VipStatus,
     val requiredStatus: VipStatus
 ) : ZkpTokenUpdate
@@ -256,6 +257,7 @@ data class UpgradeVipTokenUpdateState(
     override val sideEffect: Optional<String>,
     override val feasibility: PromotionUpdateFeasibility,
     val currentPoints: Int,
+    val basketPoints: Int,
     val requiredPoints: Int,
     val targetVipStatus: VipStatus,
     val currentVipStatus: VipStatus,
