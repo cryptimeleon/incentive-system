@@ -65,14 +65,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import org.cryptimeleon.incentive.app.domain.model.Basket
 import org.cryptimeleon.incentive.app.domain.model.BasketItem
 import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
 import org.cryptimeleon.incentive.app.domain.usecase.TokenUpdate
 import org.cryptimeleon.incentive.app.domain.usecase.ZkpTokenUpdate
-import org.cryptimeleon.incentive.app.domain.usecase.feasibleTokenUpdates
-import org.cryptimeleon.incentive.app.domain.usecase.selectedTokenUpdate
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 import org.cryptimeleon.incentive.app.util.SLE
@@ -170,7 +169,6 @@ private fun BasketUi(
     }
 }
 
-@OptIn(ExperimentalPagerApi::class)
 @Composable
 private fun BasketNotEmptyView(
     basket: Basket,
@@ -215,22 +213,27 @@ private fun BasketNotEmptyView(
                 )
             }
 
-            items(promotionDataList) { promotionData: PromotionData ->
+            promotionDataList.forEach { promotionData: PromotionData ->
                 val idString = promotionData.pid.toString()
-                val tokenUpdates = promotionData.feasibleTokenUpdates()
-
-                if (tokenUpdates.size > 1) {
-                    Divider()
-                    TokenUpdateRow(
-                        tokenUpdates = tokenUpdates,
-                        selectedTokenUpdate = promotionData.selectedTokenUpdate(),
-                        promotionData = promotionData,
-                        expanded = expandedBasketItem == idString,
-                        onClick = {
-                            expandedBasketItem =
-                                if (expandedBasketItem == idString) wrongId else idString
-                        },
-                    ) { t -> setUpdateChoice(promotionData.pid, t) }
+                if (promotionData.feasibleTokenUpdates.size > 1) {
+                    item(key = promotionData.pid) {
+                        Divider()
+                        TokenUpdateRow(
+                            selectedUpdate = promotionData.selectedTokenUpdate,
+                            tokenUpdates = promotionData.feasibleTokenUpdates,
+                            promotionName = promotionData.promotionName,
+                            expanded = expandedBasketItem == idString,
+                            onClick = {
+                                Timber.i("Onclick $idString")
+                                expandedBasketItem =
+                                    if (expandedBasketItem == idString) wrongId else idString
+                            },
+                            setSelectedTokenUpdate = { t ->
+                                Timber.i("${promotionData.pid} $t")
+                                setUpdateChoice(promotionData.pid, t)
+                            }
+                        )
+                    }
                 }
             }
             item {
@@ -263,40 +266,29 @@ private fun BasketNotEmptyView(
 @Composable
 private fun TokenUpdateRow(
     tokenUpdates: List<TokenUpdate>,
-    selectedTokenUpdate: TokenUpdate?,
-    promotionData: PromotionData,
+    selectedUpdate: TokenUpdate?,
+    promotionName: String,
     expanded: Boolean,
     onClick: () -> Unit,
-    setSelectedTokenUpdate: (tokenUpdate: TokenUpdate) -> Unit = {},
+    setSelectedTokenUpdate: (TokenUpdate) -> Unit = { _ -> },
 ) {
     val scope = rememberCoroutineScope()
     val pagerState = rememberPagerState()
 
-    // Dirty hack to avoid initialization of pager trigger selection change
-    val initFinished = remember { mutableStateOf(false) }
-
     SideEffect {
         scope.launch {
-            selectedTokenUpdate?.let {
-                val index = tokenUpdates.indexOf(selectedTokenUpdate)
+            selectedUpdate?.let {
+                val index = tokenUpdates.indexOf(it)
                 if (index != -1) {
                     pagerState.scrollToPage(index)
                 }
             }
-            initFinished.value = true
         }
     }
 
     LaunchedEffect(pagerState) {
-        snapshotFlow { pagerState.currentPage }.collect { page ->
-            if (initFinished.value) {
-                try {
-                    val selectedUpdate = tokenUpdates[page]
-                    setSelectedTokenUpdate(selectedUpdate)
-                } catch (e: IndexOutOfBoundsException) {
-                    Timber.e(e)
-                }
-            }
+        snapshotFlow { pagerState.currentPage }.drop(1).collect { page ->
+            setSelectedTokenUpdate(tokenUpdates[page])
         }
     }
 
@@ -314,10 +306,10 @@ private fun TokenUpdateRow(
                         .weight(1f)
                 ) {
                     Text(
-                        promotionData.promotionName,
+                        promotionName,
                         fontWeight = FontWeight.SemiBold
                     )
-                    selectedTokenUpdate?.let {
+                    selectedUpdate?.let {
                         Text(it.description)
                     }
                 }
