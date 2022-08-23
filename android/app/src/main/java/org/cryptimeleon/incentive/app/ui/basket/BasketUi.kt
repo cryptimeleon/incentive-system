@@ -123,7 +123,7 @@ private fun BasketUi(
     openSettings: () -> Unit = {},
     openBenchmark: () -> Unit = {},
     openAttacker: () -> Unit = {},
-    setUpdateChoice: (BigInteger, TokenUpdate) -> Unit = { _, _ -> }
+    setUpdateChoice: (BigInteger, Int) -> Unit = { _, _ -> }
 ) {
 
     Scaffold(topBar = {
@@ -174,7 +174,7 @@ private fun BasketNotEmptyView(
     basket: Basket,
     promotionDataList: List<PromotionData>,
     setItemCount: (String, Int) -> Unit,
-    setUpdateChoice: (BigInteger, TokenUpdate) -> Unit,
+    setUpdateChoice: (BigInteger, Int) -> Unit,
     pay: () -> Unit
 ) {
     var expandedBasketItem by remember { mutableStateOf(wrongId) }
@@ -270,7 +270,7 @@ private fun TokenUpdateRow(
     promotionName: String,
     expanded: Boolean,
     onClick: () -> Unit,
-    setSelectedTokenUpdate: (TokenUpdate) -> Unit = { _ -> },
+    setSelectedTokenUpdate: (Int) -> Unit = { _ -> },
 ) {
     val scope = rememberCoroutineScope()
     val pagerState = rememberPagerState()
@@ -288,7 +288,7 @@ private fun TokenUpdateRow(
 
     LaunchedEffect(pagerState) {
         snapshotFlow { pagerState.currentPage }.drop(1).collect { page ->
-            setSelectedTokenUpdate(tokenUpdates[page])
+            setSelectedTokenUpdate(page)
         }
     }
 
@@ -309,8 +309,10 @@ private fun TokenUpdateRow(
                         promotionName,
                         fontWeight = FontWeight.SemiBold
                     )
-                    selectedUpdate?.let {
-                        Text(it.description)
+                    if (selectedUpdate != null) {
+                        Text(selectedUpdate.description)
+                    } else {
+                        Text("Nothing")
                     }
                 }
                 Crossfade(targetState = expanded) { expanded ->
