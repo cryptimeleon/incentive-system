@@ -1,11 +1,8 @@
 package org.cryptimeleon.incentive.app
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.Lifecycle
@@ -20,6 +17,7 @@ import org.cryptimeleon.incentive.app.ui.basket.BasketUi
 import org.cryptimeleon.incentive.app.ui.benchmark.BenchmarkUi
 import org.cryptimeleon.incentive.app.ui.checkout.CheckoutUi
 import org.cryptimeleon.incentive.app.ui.dashboard.Dashboard
+import org.cryptimeleon.incentive.app.ui.onboarding.OnboardingScreen
 import org.cryptimeleon.incentive.app.ui.promotion.PromotionDetailUi
 import org.cryptimeleon.incentive.app.ui.scan.ScanScreen
 import org.cryptimeleon.incentive.app.ui.settings.Settings
@@ -36,46 +34,44 @@ object MainDestination {
     const val SETTINGS_ROUTE = "settings"
     const val BENCHMARK_ROUTE = "benchmark"
     const val PROMOTION_DETAIL_ROUTE = "promotionDetail"
+    const val ONBOARDING_ROUTE = "onboarding"
 }
 
 @Composable
 fun NavGraph(
     navController: NavHostController,
-    finishActivity: () -> Unit = {},
-    innerPadding: PaddingValues
+    firstTimeOpening: Boolean,
+    innerPadding: PaddingValues,
+    onOnboardingFinished: () -> Unit
 ) {
-    val loadingComplete = remember { mutableStateOf(false) }
     val actions = remember(navController) { MainActions(navController) }
+
+    val startDestination =
+        if (firstTimeOpening) MainDestination.ONBOARDING_ROUTE else MainDestination.LOADING_ROUTE
 
     NavHost(
         navController,
-        startDestination = MainNavigationScreen.Dashboard.route,
+        startDestination = startDestination,
         Modifier.padding(innerPadding)
     ) {
-        composable(MainDestination.LOADING_ROUTE) {
-            BackHandler {
-                finishActivity()
+        composable(MainDestination.ONBOARDING_ROUTE) {
+            OnboardingScreen {
+                onOnboardingFinished()
+                navController.navigate(MainDestination.LOADING_ROUTE)
             }
-
+        }
+        composable(MainDestination.LOADING_ROUTE) {
             SetupUi {
-                loadingComplete.value = true
-                actions.onLoadingComplete()
+                actions.navigateToDashboard()
             }
         }
         composable(MainDestination.DASHBOARD_ROUTE) {
-            LaunchedEffect(loadingComplete) {
-                if (!loadingComplete.value) {
-                    navController.navigate(MainDestination.LOADING_ROUTE)
-                }
-            }
-            if (loadingComplete.value) {
-                Dashboard(
-                    actions.openSettings,
-                    actions.openBenchmark,
-                    actions.openAttacker,
-                    actions.navigateToPromotionDetail,
-                )
-            }
+            Dashboard(
+                actions.openSettings,
+                actions.openBenchmark,
+                actions.openAttacker,
+                actions.navigateToPromotionDetail,
+            )
         }
         composable(MainDestination.SCANNER_ROUTE) {
             ScanScreen(
@@ -120,9 +116,6 @@ fun NavGraph(
 
 class MainActions(navController: NavHostController) {
     val onExitAttackerScreen: () -> Unit = {
-        navController.popBackStack()
-    }
-    val onLoadingComplete: () -> Unit = {
         navController.popBackStack()
     }
 

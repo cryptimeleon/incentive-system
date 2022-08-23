@@ -55,7 +55,7 @@ val onboardingPages = listOf(
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun OnboardingScreen() {
+fun OnboardingScreen(navigateToApp: () -> Unit = {}) {
     val pagerState = rememberPagerState()
 
     Column(
@@ -78,7 +78,7 @@ fun OnboardingScreen() {
         )
         AnimatedVisibility(visible = pagerState.currentPage == onboardingPages.size - 1) {
             Button(
-                onClick = { /*TODO*/ },
+                onClick = navigateToApp,
                 Modifier
                     .fillMaxWidth()
                     .align(Alignment.CenterHorizontally)
@@ -101,9 +101,11 @@ fun OnboardingPage(page: Page) {
             .padding(32.dp)
     ) {
         Text(text = page.emoji, fontSize = 80.sp)
-        Spacer(modifier = Modifier
-            .height(32.dp)
-            .fillMaxWidth())
+        Spacer(
+            modifier = Modifier
+                .height(32.dp)
+                .fillMaxWidth()
+        )
         Text(text = page.title, style = MaterialTheme.typography.headlineLarge)
         Text(
             text = page.description,
