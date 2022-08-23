@@ -8,21 +8,24 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
@@ -34,26 +37,24 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Remove
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -62,11 +63,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.google.accompanist.pager.ExperimentalPagerApi
-import com.google.accompanist.pager.HorizontalPager
-import com.google.accompanist.pager.rememberPagerState
-import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.launch
 import org.cryptimeleon.incentive.app.domain.model.Basket
 import org.cryptimeleon.incentive.app.domain.model.BasketItem
 import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
@@ -74,6 +70,7 @@ import org.cryptimeleon.incentive.app.domain.usecase.TokenUpdate
 import org.cryptimeleon.incentive.app.domain.usecase.ZkpTokenUpdate
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
+import org.cryptimeleon.incentive.app.ui.log.ZkpSummaryUi
 import org.cryptimeleon.incentive.app.util.SLE
 import timber.log.Timber
 import java.math.BigInteger
@@ -123,7 +120,7 @@ private fun BasketUi(
     openSettings: () -> Unit = {},
     openBenchmark: () -> Unit = {},
     openAttacker: () -> Unit = {},
-    setUpdateChoice: (BigInteger, Int) -> Unit = { _, _ -> }
+    setUpdateChoice: (BigInteger, TokenUpdate) -> Unit = { _, _ -> }
 ) {
 
     Scaffold(topBar = {
@@ -174,10 +171,11 @@ private fun BasketNotEmptyView(
     basket: Basket,
     promotionDataList: List<PromotionData>,
     setItemCount: (String, Int) -> Unit,
-    setUpdateChoice: (BigInteger, Int) -> Unit,
+    setUpdateChoice: (BigInteger, TokenUpdate) -> Unit,
     pay: () -> Unit
 ) {
     var expandedBasketItem by remember { mutableStateOf(wrongId) }
+    val showLog = remember { mutableStateOf(false) }
     val basketItemsCount = basket.items.map { it.count }.sum()
 
     Column(
@@ -233,6 +231,21 @@ private fun BasketNotEmptyView(
                                 setUpdateChoice(promotionData.pid, t)
                             }
                         )
+                        if (showLog.value) {
+                            Surface(
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Column(Modifier.padding(8.dp).fillMaxWidth()) {
+                                    ZkpSummaryUi(promotionData = promotionData)
+                                }
+                            }
+                            Spacer(
+                                modifier = Modifier
+                                    .height(8.dp)
+                                    .fillMaxWidth()
+                            )
+                        }
                     }
                 }
             }
@@ -251,7 +264,13 @@ private fun BasketNotEmptyView(
                 )
             }
         }
-        Column() {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = { showLog.value = showLog.value.not() }
+            ) {
+                Text(if (showLog.value) "Show Transparency Log" else "Hide Transparency Log")
+            }
             Button(
                 modifier = Modifier.fillMaxWidth(),
                 onClick = pay
@@ -262,7 +281,7 @@ private fun BasketNotEmptyView(
     }
 }
 
-@OptIn(ExperimentalPagerApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TokenUpdateRow(
     tokenUpdates: List<TokenUpdate>,
@@ -270,27 +289,8 @@ private fun TokenUpdateRow(
     promotionName: String,
     expanded: Boolean,
     onClick: () -> Unit,
-    setSelectedTokenUpdate: (Int) -> Unit = { _ -> },
+    setSelectedTokenUpdate: (TokenUpdate) -> Unit = { _ -> },
 ) {
-    val scope = rememberCoroutineScope()
-    val pagerState = rememberPagerState()
-
-    SideEffect {
-        scope.launch {
-            selectedUpdate?.let {
-                val index = tokenUpdates.indexOf(it)
-                if (index != -1) {
-                    pagerState.scrollToPage(index)
-                }
-            }
-        }
-    }
-
-    LaunchedEffect(pagerState) {
-        snapshotFlow { pagerState.currentPage }.drop(1).collect { page ->
-            setSelectedTokenUpdate(page)
-        }
-    }
 
     Column {
         Surface(
@@ -327,32 +327,38 @@ private fun TokenUpdateRow(
                 }
             }
         }
+        val scrollState = rememberScrollState()
         AnimatedVisibility(visible = expanded) {
-            HorizontalPager(
-                count = tokenUpdates.size,
-                state = pagerState,
-                contentPadding = PaddingValues(horizontal = 64.dp)
-            ) { i ->
-                val tokenUpdate = tokenUpdates[i]
-                RewardChoiceCard(
-                    tokenUpdate = tokenUpdate,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(8.dp)
-                )
+            Row(Modifier.horizontalScroll(scrollState)) {
+                tokenUpdates.forEach {
+                    RewardChoiceCard(
+                        tokenUpdate = it,
+                        selected = selectedUpdate == it,
+                        onClick = { setSelectedTokenUpdate(it) },
+                        modifier = Modifier
+                            .width(200.dp)
+                            .padding(8.dp)
+                    )
+                }
             }
         }
     }
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RewardChoiceCard(
     tokenUpdate: TokenUpdate,
+    selected: Boolean,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     OutlinedCard(
-        // colors = if (choice.isSelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
+        onClick = onClick,
+        colors = if (selected) CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer) else CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
         modifier = modifier
             .defaultMinSize(minHeight = 100.dp)
     ) {

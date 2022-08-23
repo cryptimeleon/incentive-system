@@ -24,14 +24,14 @@ fun VipEarnLog(tokenUpdate: EarnTokenUpdate) {
                 append("Choice: \"Earn\"\n")
                 append(
                     "\tscore_new = score_old + ${
-                        tokenUpdate.addedPoints.get(1).toInt()
+                        tokenUpdate.addedPoints.get(0).toInt()
                     }\n"
                 )
                 yourView()
-                append("\tvip_level= ${VipStatus.fromInt(tokenUpdate.currentPoints.get(0))}\n")
-                append("\tscore_old = ${tokenUpdate.currentPoints.get(1)} ")
+                append("\tvip_level = ${VipStatus.fromInt(tokenUpdate.currentPoints.get(1))}\n")
+                append("\tscore_old = ${tokenUpdate.currentPoints.get(0)} ")
                 arrow()
-                append(" score_new = ${tokenUpdate.targetPoints.get(1)}")
+                append(" score_new = ${tokenUpdate.targetPoints.get(0)}")
             }
         },
         inlineContent = arrowInlineContent
