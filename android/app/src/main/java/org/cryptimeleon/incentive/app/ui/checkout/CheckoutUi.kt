@@ -130,7 +130,7 @@ private fun PayProgressUi() {
 
         val target by produceState(initialValue = checkoutTexts.random()) {
             while (true) {
-                delay(1200L)
+                delay(2000L)
                 value = checkoutTexts.random()
             }
         }
