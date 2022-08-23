@@ -41,6 +41,11 @@ interface PromotionData {
     val tokenJson: String
 }
 
+fun PromotionData.feasibleTokenUpdates(): List<TokenUpdate> =
+    tokenUpdates.filter { t -> t.isFeasible() }
+
+fun PromotionData.selectedTokenUpdate(): TokenUpdate? = tokenUpdates.find { t -> t.isSelected() }
+
 enum class PromotionUpdateFeasibility {
     SELECTED, CANDIDATE, NOT_APPLICABLE
 }

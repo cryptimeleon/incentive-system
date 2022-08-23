@@ -2,6 +2,8 @@ package org.cryptimeleon.incentive.app.ui.basket
 
 import android.content.res.Configuration
 import android.icu.text.NumberFormat
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.border
@@ -9,8 +11,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -23,6 +27,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CardGiftcard
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Remove
 import androidx.compose.material3.Button
@@ -33,15 +40,20 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -50,12 +62,22 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.google.accompanist.pager.ExperimentalPagerApi
+import com.google.accompanist.pager.HorizontalPager
+import com.google.accompanist.pager.rememberPagerState
+import kotlinx.coroutines.launch
 import org.cryptimeleon.incentive.app.domain.model.Basket
 import org.cryptimeleon.incentive.app.domain.model.BasketItem
+import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
+import org.cryptimeleon.incentive.app.domain.usecase.TokenUpdate
+import org.cryptimeleon.incentive.app.domain.usecase.ZkpTokenUpdate
+import org.cryptimeleon.incentive.app.domain.usecase.feasibleTokenUpdates
+import org.cryptimeleon.incentive.app.domain.usecase.selectedTokenUpdate
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 import org.cryptimeleon.incentive.app.util.SLE
 import timber.log.Timber
+import java.math.BigInteger
 import java.util.*
 
 val wrongId: String =
@@ -74,10 +96,13 @@ fun BasketUi(
 ) {
     val basketViewModel = hiltViewModel<BasketViewModel>()
     val basket: SLE<Basket> by basketViewModel.basket.collectAsState(initial = SLE.Loading())
+    val promotionDataList by basketViewModel.promotionData.collectAsState(initial = emptyList())
 
     BasketUi(
         basketSle = basket,
+        promotionDataList = promotionDataList,
         setItemCount = basketViewModel::setItemCount,
+        setUpdateChoice = basketViewModel::setUpdateChoice,
         pay = gotoRewards,
         openScanner = openScanner,
         openSettings = openSettings,
@@ -92,12 +117,14 @@ fun BasketUi(
 @Composable
 private fun BasketUi(
     basketSle: SLE<Basket>,
+    promotionDataList: List<PromotionData> = emptyList(),
     setItemCount: (String, Int) -> Unit = { _, _ -> },
     pay: () -> Unit = {},
     openScanner: () -> Unit = {},
     openSettings: () -> Unit = {},
     openBenchmark: () -> Unit = {},
-    openAttacker: () -> Unit = {}
+    openAttacker: () -> Unit = {},
+    setUpdateChoice: (BigInteger, TokenUpdate) -> Unit = { _, _ -> }
 ) {
 
     Scaffold(topBar = {
@@ -129,7 +156,13 @@ private fun BasketUi(
                     if (basket.items.isEmpty()) {
                         BasketEmptyView(openScanner)
                     } else {
-                        BasketNotEmptyView(basket, setItemCount, pay)
+                        BasketNotEmptyView(
+                            basket,
+                            promotionDataList,
+                            setItemCount,
+                            setUpdateChoice,
+                            pay
+                        )
                     }
                 }
             }
@@ -137,15 +170,18 @@ private fun BasketUi(
     }
 }
 
+@OptIn(ExperimentalPagerApi::class)
 @Composable
 private fun BasketNotEmptyView(
     basket: Basket,
+    promotionDataList: List<PromotionData>,
     setItemCount: (String, Int) -> Unit,
+    setUpdateChoice: (BigInteger, TokenUpdate) -> Unit,
     pay: () -> Unit
 ) {
     var expandedBasketItem by remember { mutableStateOf(wrongId) }
-
     val basketItemsCount = basket.items.map { it.count }.sum()
+
     Column(
         modifier = Modifier
             .fillMaxHeight()
@@ -178,6 +214,25 @@ private fun BasketNotEmptyView(
                     },
                 )
             }
+
+            items(promotionDataList) { promotionData: PromotionData ->
+                val idString = promotionData.pid.toString()
+                val tokenUpdates = promotionData.feasibleTokenUpdates()
+
+                if (tokenUpdates.size > 1) {
+                    Divider()
+                    TokenUpdateRow(
+                        tokenUpdates = tokenUpdates,
+                        selectedTokenUpdate = promotionData.selectedTokenUpdate(),
+                        promotionData = promotionData,
+                        expanded = expandedBasketItem == idString,
+                        onClick = {
+                            expandedBasketItem =
+                                if (expandedBasketItem == idString) wrongId else idString
+                        },
+                    ) { t -> setUpdateChoice(promotionData.pid, t) }
+                }
+            }
             item {
                 Divider()
                 BasketSummaryRow(basketItemsCount, basket)
@@ -199,6 +254,129 @@ private fun BasketNotEmptyView(
                 onClick = pay
             ) {
                 Text("Checkout")
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalPagerApi::class, ExperimentalMaterial3Api::class)
+@Composable
+private fun TokenUpdateRow(
+    tokenUpdates: List<TokenUpdate>,
+    selectedTokenUpdate: TokenUpdate?,
+    promotionData: PromotionData,
+    expanded: Boolean,
+    onClick: () -> Unit,
+    setSelectedTokenUpdate: (tokenUpdate: TokenUpdate) -> Unit = {},
+) {
+    val scope = rememberCoroutineScope()
+    val pagerState = rememberPagerState()
+
+    // Dirty hack to avoid initialization of pager trigger selection change
+    val initFinished = remember { mutableStateOf(false) }
+
+    SideEffect {
+        scope.launch {
+            selectedTokenUpdate?.let {
+                val index = tokenUpdates.indexOf(selectedTokenUpdate)
+                if (index != -1) {
+                    pagerState.scrollToPage(index)
+                }
+            }
+            initFinished.value = true
+        }
+    }
+
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.currentPage }.collect { page ->
+            if (initFinished.value) {
+                try {
+                    val selectedUpdate = tokenUpdates[page]
+                    setSelectedTokenUpdate(selectedUpdate)
+                } catch (e: IndexOutOfBoundsException) {
+                    Timber.e(e)
+                }
+            }
+        }
+    }
+
+    Column {
+        Surface(
+            onClick = onClick,
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(
+                    Modifier
+                        .padding(vertical = 8.dp)
+                        .weight(1f)
+                ) {
+                    Text(
+                        promotionData.promotionName,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    selectedTokenUpdate?.let {
+                        Text(it.description)
+                    }
+                }
+                Crossfade(targetState = expanded) { expanded ->
+                    when (expanded) {
+                        false -> IconButton(onClick = onClick) {
+                            Icon(Icons.Default.ExpandMore, contentDescription = "Expand More")
+                        }
+                        true -> IconButton(onClick = onClick) {
+                            Icon(Icons.Default.ExpandLess, contentDescription = "Expand Less")
+                        }
+                    }
+                }
+            }
+        }
+        AnimatedVisibility(visible = expanded) {
+            HorizontalPager(
+                count = tokenUpdates.size,
+                state = pagerState,
+                contentPadding = PaddingValues(horizontal = 64.dp)
+            ) { i ->
+                val tokenUpdate = tokenUpdates[i]
+                RewardChoiceCard(
+                    tokenUpdate = tokenUpdate,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp)
+                )
+            }
+        }
+    }
+}
+
+
+@Composable
+private fun RewardChoiceCard(
+    tokenUpdate: TokenUpdate,
+    modifier: Modifier = Modifier
+) {
+    OutlinedCard(
+        // colors = if (choice.isSelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
+        modifier = modifier
+            .defaultMinSize(minHeight = 100.dp)
+    ) {
+        Column(modifier = Modifier.padding(8.dp), Arrangement.spacedBy(8.dp)) {
+            Text(
+                text = tokenUpdate.description,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold,
+            )
+            if (tokenUpdate is ZkpTokenUpdate && tokenUpdate.sideEffect.isPresent) {
+                Row {
+                    Icon(Icons.Default.CardGiftcard, contentDescription = "Gift icon")
+                    Text(
+                        text = tokenUpdate.sideEffect.get(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(start = 16.dp)
+                    )
+                }
             }
         }
     }
@@ -467,12 +645,7 @@ private fun BasketPreviewEmpty() {
 )
 private fun BasketPreviewError() {
     CryptimeleonTheme {
-        BasketUi(
-            SLE.Error(),
-            { _, _ -> },
-            {},
-            {},
-            {})
+        BasketUi(SLE.Error())
     }
 }
 
