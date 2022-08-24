@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.TokenUpdateResultsDto;
+import org.cryptimeleon.incentive.services.incentive.error.IncentiveServiceException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -91,6 +92,7 @@ public class IncentiveController {
     }
 
     @PostMapping("/bulk-token-updates")
+    @ExceptionHandler()
     public void bulkUpdates(
             @RequestHeader(name = "basket-id") UUID basketId,
             @RequestBody BulkRequestDto bulkRequestDto
@@ -99,10 +101,10 @@ public class IncentiveController {
     }
 
     @PostMapping("/bulk-token-update-results")
-    public ResponseEntity<TokenUpdateResultsDto> bulkResults(
+    public TokenUpdateResultsDto bulkResults(
             @RequestHeader(name = "basket-id") UUID basketId
     ) {
-        return new ResponseEntity<>(incentiveService.retrieveBulkResults(basketId), HttpStatus.OK);
+        return incentiveService.retrieveBulkResults(basketId);
     }
 
 
@@ -128,7 +130,8 @@ public class IncentiveController {
 
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(IncentiveServiceException.class)
-    public String handleIncentiveException(RuntimeException ex) {
+    public String handleException(IncentiveServiceException ex) {
+        // For debugging causes send the exception string
         return "An exception occurred!\n" + ex.getMessage();
     }
 }
