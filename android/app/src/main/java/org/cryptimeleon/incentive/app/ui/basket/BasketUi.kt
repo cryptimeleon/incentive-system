@@ -105,7 +105,8 @@ fun BasketUi(
         openScanner = openScanner,
         openSettings = openSettings,
         openBenchmark = openBenchmark,
-        openAttacker = openAttacker
+        openAttacker = openAttacker,
+        discardBasket = basketViewModel::discardCurrentBasket
     )
 }
 
@@ -122,6 +123,7 @@ private fun BasketUi(
     openSettings: () -> Unit = {},
     openBenchmark: () -> Unit = {},
     openAttacker: () -> Unit = {},
+    discardBasket: () -> Unit = {},
     setUpdateChoice: (BigInteger, TokenUpdate) -> Unit = { _, _ -> }
 ) {
 
@@ -130,7 +132,8 @@ private fun BasketUi(
             title = { Text("My Basket") },
             onOpenSettings = openSettings,
             onOpenBenchmark = openBenchmark,
-            onOpenAttacker = openAttacker
+            onOpenAttacker = openAttacker,
+            onDiscardBasket = discardBasket
         )
     }) {
         Box(modifier = Modifier.padding(it)) {

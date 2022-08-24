@@ -79,4 +79,12 @@ class BasketViewModel @Inject constructor(
             }
         }
     }
+
+    fun discardCurrentBasket() {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                basketRepository.discardCurrentBasket(delete = false)
+            }
+        }
+    }
 }

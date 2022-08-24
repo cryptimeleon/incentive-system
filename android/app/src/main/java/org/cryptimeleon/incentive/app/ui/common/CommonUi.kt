@@ -34,6 +34,7 @@ fun DefaultTopAppBar(
     onOpenSettings: () -> Unit = {},
     onOpenBenchmark: () -> Unit = {},
     onOpenAttacker: () -> Unit = {},
+    onDiscardBasket: () -> Unit = {},
     title: @Composable () -> Unit = { Text("Cryptimeleon Rewards") },
     navigationIcon: @Composable (() -> Unit) = {},
     menuEnabled: Boolean = true
@@ -82,6 +83,11 @@ fun DefaultTopAppBar(
                             onClick = onOpenAttacker,
                             text = { Text("Double-Spending Attack") }
                         )
+                        if (onDiscardBasket != {})
+                            DropdownMenuItem(
+                                onClick = onDiscardBasket,
+                                text = { Text("Discard Basket") }
+                            )
                     }
                 }
             }

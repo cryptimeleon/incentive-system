@@ -142,7 +142,6 @@ internal fun SummaryUi(
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PromotionUpdateSummaryCard(
     promotionState: PromotionData,

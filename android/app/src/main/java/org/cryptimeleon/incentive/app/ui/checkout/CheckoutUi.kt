@@ -26,12 +26,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.delay
 import org.cryptimeleon.incentive.app.domain.model.Basket
-import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemState
 import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
-import org.cryptimeleon.incentive.app.domain.usecase.TokenUpdate
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 import org.cryptimeleon.incentive.app.ui.preview.CryptimeleonPreviewContainer
-import java.math.BigInteger
 import java.util.*
 
 val checkoutTexts = arrayOf(
@@ -62,8 +59,6 @@ fun CheckoutUi(navigateHome: () -> Unit) {
         promotionDataCollection,
         checkoutStep,
         paidBasketId,
-        checkoutViewModel::gotoSummary,
-        checkoutViewModel::setUpdateChoice,
         checkoutViewModel::startPayAndRedeem,
         navigateHome
     )
@@ -76,13 +71,10 @@ private fun CheckoutUi(
     promotionDataCollection: List<PromotionData>,
     checkoutStep: CheckoutStep,
     paidBasketId: UUID? = null,
-    gotoSummary: () -> Unit,
-    setUserUpdateChoice: (BigInteger, TokenUpdate) -> Unit,
     triggerCheckout: () -> Unit,
     navigateHome: () -> Unit,
 ) {
     val title = when (checkoutStep) {
-        CheckoutStep.REWARDS -> "Rewards"
         CheckoutStep.SUMMARY -> "Summary"
         CheckoutStep.PROCESSING -> "Processing"
         CheckoutStep.FINISHED -> "Finished"
@@ -92,13 +84,6 @@ private fun CheckoutUi(
     ) {
         Box(Modifier.padding(it)) {
             when (checkoutStep) {
-                CheckoutStep.REWARDS -> {
-                    RewardsUi(
-                        promotionDataCollection,
-                        setUserUpdateChoice,
-                        gotoSummary,
-                    )
-                }
                 CheckoutStep.SUMMARY -> {
                     basket?.let { // Should not be null in this case, but can be in finished case!
                         SummaryUi(basket, promotionDataCollection, triggerCheckout)
