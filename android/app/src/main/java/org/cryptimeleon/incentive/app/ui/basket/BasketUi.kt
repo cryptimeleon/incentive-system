@@ -6,6 +6,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -23,10 +25,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -44,13 +45,14 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -177,105 +179,125 @@ private fun BasketNotEmptyView(
     var expandedBasketItem by remember { mutableStateOf(wrongId) }
     val showLog = remember { mutableStateOf(false) }
     val basketItemsCount = basket.items.map { it.count }.sum()
+    val scrollState = rememberScrollState()
 
-    Column(
-        modifier = Modifier
-            .fillMaxHeight()
-            .padding(16.dp)
-    ) {
-        LazyColumn(modifier = Modifier.weight(1f)) {
-            item {
-                Row(Modifier.fillMaxWidth(), Arrangement.End) {
-                    Text(
-                        "Price",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onBackground.copy(
-                            alpha = 0.6F
-                        )
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            verticalArrangement = Arrangement.Top,
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)
+        ) {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp), Arrangement.End
+            ) {
+                Text(
+                    "Price",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onBackground.copy(
+                        alpha = 0.6F
+                    )
+                )
+            }
+            basket.items.forEach { item ->
+                Column(Modifier.padding(horizontal = 16.dp)) {
+                    Divider()
+                    BasketItem(
+                        item = item,
+                        expanded = expandedBasketItem == item.itemId,
+                        onClick = {
+                            Timber.i("On click ${item.itemId}")
+                            expandedBasketItem =
+                                if (expandedBasketItem == item.itemId) wrongId else item.itemId
+                        },
+                        setCount = { count ->
+                            setItemCount(item.itemId, count)
+                        },
                     )
                 }
-            }
-            items(basket.items) { item ->
-                Divider()
-                BasketItem(
-                    item = item,
-                    expanded = expandedBasketItem == item.itemId,
-                    onClick = {
-                        Timber.i("On click ${item.itemId}")
-                        expandedBasketItem =
-                            if (expandedBasketItem == item.itemId) wrongId else item.itemId
-                    },
-                    setCount = { count ->
-                        setItemCount(item.itemId, count)
-                    },
-                )
             }
 
             promotionDataList.forEach { promotionData: PromotionData ->
                 val idString = promotionData.pid.toString()
                 if (promotionData.feasibleTokenUpdates.size > 1) {
-                    item(key = promotionData.pid) {
-                        Divider()
-                        TokenUpdateRow(
-                            selectedUpdate = promotionData.selectedTokenUpdate,
-                            tokenUpdates = promotionData.feasibleTokenUpdates,
-                            promotionName = promotionData.promotionName,
-                            expanded = expandedBasketItem == idString,
-                            onClick = {
-                                Timber.i("Onclick $idString")
-                                expandedBasketItem =
-                                    if (expandedBasketItem == idString) wrongId else idString
-                            },
-                            setSelectedTokenUpdate = { t ->
-                                Timber.i("${promotionData.pid} $t")
-                                setUpdateChoice(promotionData.pid, t)
-                            }
-                        )
-                        if (showLog.value) {
-                            Surface(
-                                color = MaterialTheme.colorScheme.surfaceVariant,
-                                shape = RoundedCornerShape(8.dp)
-                            ) {
-                                Column(Modifier.padding(8.dp).fillMaxWidth()) {
-                                    ZkpSummaryUi(promotionData = promotionData)
-                                }
-                            }
-                            Spacer(
-                                modifier = Modifier
-                                    .height(8.dp)
+                    Divider(Modifier.padding(horizontal = 16.dp))
+                    TokenUpdateRow(
+                        selectedUpdate = promotionData.selectedTokenUpdate,
+                        tokenUpdates = promotionData.feasibleTokenUpdates,
+                        promotionName = promotionData.promotionName,
+                        expanded = expandedBasketItem == idString,
+                        onClick = {
+                            Timber.i("Onclick $idString")
+                            expandedBasketItem =
+                                if (expandedBasketItem == idString) wrongId else idString
+                        },
+                        setSelectedTokenUpdate = { t ->
+                            Timber.i("${promotionData.pid} $t")
+                            setUpdateChoice(promotionData.pid, t)
+                        }
+                    )
+                    if (showLog.value) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp)
+                                .padding(top = 8.dp)
+                                .padding(bottom = 18.dp)
+                        ) {
+                            Column(
+                                Modifier
+                                    .padding(8.dp)
                                     .fillMaxWidth()
-                            )
+                            ) {
+                                ZkpSummaryUi(promotionData = promotionData)
+                            }
                         }
                     }
                 }
             }
-            item {
-                Divider()
-                BasketSummaryRow(basketItemsCount, basket)
-                Spacer(
-                    modifier = Modifier
-                        .size(32.dp)
-                )
-            }
-            item {
-                Spacer(
-                    modifier = Modifier
-                        .size(32.dp)
-                )
+            Divider(Modifier.padding(horizontal = 16.dp))
+            BasketSummaryRow(
+                basketItemsCount = basketItemsCount,
+                basket = basket,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+            Spacer(
+                modifier = Modifier
+                    .height(128.dp)
+                    .fillMaxWidth()
+            )
+        }
+        Spacer(
+            modifier = Modifier
+                .size(16.dp)
+        )
+        val showDivider by remember {
+            derivedStateOf {
+                scrollState.value > 0 && scrollState.value < scrollState.maxValue
             }
         }
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(
-                modifier = Modifier.fillMaxWidth(),
-                onClick = { showLog.value = showLog.value.not() }
+        val elevation by animateDpAsState(targetValue = if (showDivider) 32.dp else 0.dp)
+        Surface(shadowElevation = elevation, modifier = Modifier.align(Alignment.BottomCenter)) {
+            Column(
+                Modifier
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 8.dp)
             ) {
-                Text(if (showLog.value) "Show Transparency Log" else "Hide Transparency Log")
-            }
-            Button(
-                modifier = Modifier.fillMaxWidth(),
-                onClick = pay
-            ) {
-                Text("Checkout")
+                TextButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = { showLog.value = showLog.value.not() }
+                ) {
+                    Text((if (showLog.value) "Hide" else "Show") + "Promotion Privacy Details")
+                }
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = pay
+                ) {
+                    Text("Checkout")
+                }
             }
         }
     }
@@ -298,7 +320,8 @@ private fun TokenUpdateRow(
         ) {
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(horizontal = 16.dp)
             ) {
                 Column(
                     Modifier
@@ -330,7 +353,7 @@ private fun TokenUpdateRow(
         val scrollState = rememberScrollState()
         AnimatedVisibility(visible = expanded) {
             Row(Modifier.horizontalScroll(scrollState)) {
-                tokenUpdates.forEach {
+                tokenUpdates.forEachIndexed { i, it ->
                     RewardChoiceCard(
                         tokenUpdate = it,
                         selected = selectedUpdate == it,
@@ -338,6 +361,8 @@ private fun TokenUpdateRow(
                         modifier = Modifier
                             .width(200.dp)
                             .padding(8.dp)
+                            .padding(start = if (i == 0) 16.dp else 0.dp)
+                            .padding(end = if (i == tokenUpdates.lastIndex) 16.dp else 0.dp)
                     )
                 }
             }
@@ -385,11 +410,12 @@ private fun RewardChoiceCard(
 @Composable
 private fun BasketSummaryRow(
     basketItemsCount: Int,
-    basket: Basket
+    basket: Basket,
+    modifier: Modifier = Modifier
 ) {
     Row(
         horizontalArrangement = Arrangement.End,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
     ) {
