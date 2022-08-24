@@ -60,8 +60,6 @@ class CheckoutViewModel @Inject constructor(
         PromotionInfoUseCase(promotionRepository, cryptoRepository, basketRepository).invoke()
     val basket = basketRepository.basket
 
-    val payAndRedeemState = MutableStateFlow(PayAndRedeemState.NOT_STARTED)
-
     fun gotoSummary() {
         _checkoutStep.value = CheckoutStep.SUMMARY
     }
@@ -72,7 +70,7 @@ class CheckoutViewModel @Inject constructor(
                 // Store basket ID since use case will retrieve a new one
                 _checkoutStep.value = CheckoutStep.PROCESSING
                 _paidBasketId.value = basket.first()?.basketId
-                payAndRedeemUseCase.invoke().collect { payAndRedeemState.emit(it) }
+                payAndRedeemUseCase.invoke()
                 _checkoutStep.value = CheckoutStep.FINISHED
             }
         }
