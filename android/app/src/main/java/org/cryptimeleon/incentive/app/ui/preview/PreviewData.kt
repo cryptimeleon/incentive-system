@@ -51,14 +51,21 @@ class PreviewData {
             points = Vector.of(BigInteger.valueOf(6L)),
             tokenUpdates = listOf(
                 NoTokenUpdate(),
-                EarnTokenUpdate(PromotionUpdateFeasibility.CANDIDATE, "Earn 2 Points"),
+                EarnTokenUpdate(
+                    PromotionUpdateFeasibility.CANDIDATE,
+                    "Earn 2 Points",
+                    Vector.of(6),
+                    Vector.of(2),
+                    Vector.of(8),
+                ),
                 HazelTokenUpdateState(
                     zkpUpdateId = UUID.randomUUID(),
                     description = "Get a free glass of Nutella",
                     sideEffect = Optional.of("Free Nutella"),
                     feasibility = PromotionUpdateFeasibility.SELECTED,
                     current = 6,
-                    goal = 4
+                    goal = 4,
+                    basketPoints = 3
                 )
             ),
             tokenHash = "8458b17882973b01de083501c29579a6",
@@ -76,14 +83,18 @@ class PreviewData {
                     description = "Prove you are SILVER",
                     sideEffect = Optional.of("5% Discount"),
                     feasibility = PromotionUpdateFeasibility.CANDIDATE,
+                    currentPoints = 250,
+                    basketPoints = 20,
                     currentStatus = VipStatus.SILVER,
-                    requiredStatus = VipStatus.SILVER
+                    requiredStatus = VipStatus.SILVER,
                 ),
                 ProveVipTokenUpdateState(
                     zkpUpdateId = UUID.randomUUID(),
                     description = "Prove you are GOLD",
                     sideEffect = Optional.of("10% Discount"),
                     feasibility = PromotionUpdateFeasibility.NOT_APPLICABLE,
+                    currentPoints = 250,
+                    basketPoints = 20,
                     currentStatus = VipStatus.SILVER,
                     requiredStatus = VipStatus.GOLD
                 ),
@@ -93,6 +104,7 @@ class PreviewData {
                     sideEffect = Optional.of("10% Discount"),
                     feasibility = PromotionUpdateFeasibility.NOT_APPLICABLE,
                     currentPoints = 250,
+                    basketPoints = 20,
                     requiredPoints = 300,
                     targetVipStatus = VipStatus.GOLD,
                     currentVipStatus = VipStatus.SILVER
@@ -117,15 +129,24 @@ class PreviewData {
                     zkpUpdateId = UUID.randomUUID(),
                     description = "Update your streak",
                     sideEffect = Optional.empty(),
-                    feasibility = PromotionUpdateFeasibility.SELECTED
+                    feasibility = PromotionUpdateFeasibility.SELECTED,
+                    lastDate = StreakDate.DATE(LocalDate.of(2022, 8, 8)),
+                    newLastDate = LocalDate.of(2022, 8, 12),
+                    currentStreak = 3,
+                    newCurrentStreak = 4,
+                    intervalDays = 7
                 ),
                 RangeProofStreakTokenUpdateState(
                     zkpUpdateId = UUID.randomUUID(),
                     description = "Prove that streak is at least 5",
                     sideEffect = Optional.of("Free Coffee"),
-                    feasibility = PromotionUpdateFeasibility.NOT_APPLICABLE,
+                    feasibility = PromotionUpdateFeasibility.CANDIDATE,
                     requiredStreak = 10,
-                    currentStreak = 3
+                    currentStreak = 11,
+                    lastDate = StreakDate.DATE(LocalDate.of(2022, 8, 8)),
+                    newLastDate = LocalDate.of(2022, 8, 12),
+                    newCurrentStreak = 12,
+                    intervalDays = 7
                 ),
                 SpendStreakTokenUpdateState(
                     zkpUpdateId = UUID.randomUUID(),

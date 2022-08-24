@@ -4,10 +4,12 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -30,10 +32,10 @@ import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
 import org.cryptimeleon.incentive.app.domain.usecase.TokenUpdate
 import org.cryptimeleon.incentive.app.domain.usecase.ZkpTokenUpdate
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
+import org.cryptimeleon.incentive.app.ui.log.ZkpSummaryUi
 import org.cryptimeleon.incentive.app.ui.preview.PreviewData
 import java.math.BigInteger
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RewardsUi(
     promotionDataList: List<PromotionData>,
@@ -87,10 +89,16 @@ fun RewardPromotionList(
                         RewardChoiceCard(tokenUpdate, promotion.pid, setUserUpdateChoice)
                     }
                 }
-
+            item(span = { GridItemSpan(2) }) {
+                Column() {
+                    ZkpSummaryUi(promotion)
+                }
+            }
+            item {
+                Spacer(modifier = Modifier.size(16.dp))
+            }
         }
     }
-
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
