@@ -41,7 +41,7 @@ val checkoutTexts = arrayOf(
 )
 
 @Composable
-fun CheckoutUi(navigateHome: () -> Unit) {
+fun CheckoutUi(navigateHome: () -> Unit, navigateToLoadingScreen: () -> Unit) {
     val checkoutViewModel = hiltViewModel<CheckoutViewModel>()
 
     val basket by checkoutViewModel.basket.collectAsState(initial = null)
@@ -51,6 +51,7 @@ fun CheckoutUi(navigateHome: () -> Unit) {
     // Once a basket is paid and new tokens are retrieved, it is removed from the database.
     // Therefore, we need to store the old ID
     val paidBasketId: UUID? by checkoutViewModel.paidBasketId.collectAsState()
+    val returnCode: PayAndRedeemStatus? by checkoutViewModel.returnCode.collectAsState()
 
     val checkoutStep: CheckoutStep by checkoutViewModel.checkoutStep.collectAsState()
 
@@ -58,9 +59,13 @@ fun CheckoutUi(navigateHome: () -> Unit) {
         basket,
         promotionDataCollection,
         checkoutStep,
+        returnCode,
         paidBasketId,
         checkoutViewModel::startPayAndRedeem,
-        navigateHome
+        checkoutViewModel::deleteBasket,
+        checkoutViewModel::disableDSAndRecover,
+        navigateHome,
+        navigateToLoadingScreen
     )
 }
 
@@ -70,9 +75,13 @@ private fun CheckoutUi(
     basket: Basket?,
     promotionDataCollection: List<PromotionData>,
     checkoutStep: CheckoutStep,
+    returnCode: PayAndRedeemStatus? = null,
     paidBasketId: UUID? = null,
     triggerCheckout: () -> Unit,
+    deleteBasket: () -> Unit,
+    disableDsAndRecover: () -> Unit,
     navigateHome: () -> Unit,
+    navigateToLoadingScreen: () -> Unit
 ) {
     val title = when (checkoutStep) {
         CheckoutStep.SUMMARY -> "Summary"
@@ -90,7 +99,24 @@ private fun CheckoutUi(
                     }
                 }
                 CheckoutStep.FINISHED -> {
-                    FinishedUi(paidBasketId, navigateHome)
+                    when (returnCode) {
+                        PayAndRedeemStatus.Success -> FinishedUi(paidBasketId, navigateHome)
+                        PayAndRedeemStatus.DSDetected -> DSPreventedUi(
+                            navigateHome = navigateHome,
+                            disableDoubleSpending = {
+                                disableDsAndRecover()
+                                navigateToLoadingScreen()
+                            },
+                        )
+                        is PayAndRedeemStatus.Error -> ErrorUi(
+                            e = returnCode,
+                            deleteBasketAndGoHome = {
+                                deleteBasket()
+                                navigateHome()
+                            }
+                        )
+                        else -> {}
+                    }
                 }
                 CheckoutStep.PROCESSING -> {
                     PayProgressUi()

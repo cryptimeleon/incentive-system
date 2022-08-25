@@ -1,5 +1,6 @@
 package org.cryptimeleon.incentive.app
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -56,6 +57,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // To ensure onboarding is only displayed once
+        val sharedPref = getSharedPreferences("ONBOARDING", Context.MODE_PRIVATE)
+        val firstTimeOpening = sharedPref.getBoolean("first-time", true)
+
         WindowCompat.setDecorFitsSystemWindows(window, false)
         setContent {
             // Update the system bars to be translucent
@@ -78,7 +83,13 @@ class MainActivity : ComponentActivity() {
                 ) { innerPadding ->
                     NavGraph(
                         navController = navController,
-                        finishActivity = { finish() },
+                        firstTimeOpening = firstTimeOpening,
+                        onOnboardingFinished = {
+                            with(sharedPref.edit()) {
+                                putBoolean("first-time", false)
+                                apply()
+                            }
+                        },
                         innerPadding = innerPadding
                     )
                 }
