@@ -90,7 +90,10 @@ fun NavGraph(
             )
         }
         composable(MainDestination.CHECKOUT_ROUTE) {
-            CheckoutUi(actions.navigateToDashboard)
+            CheckoutUi(actions.navigateToDashboard) {
+                loadingComplete.value = false
+                navController.navigate(MainDestination.DASHBOARD_ROUTE)
+            }
         }
         composable(MainDestination.SETTINGS_ROUTE) { Settings(actions.onExitSettings) }
         composable(MainDestination.BENCHMARK_ROUTE) { BenchmarkUi(actions.onExitBenchmark) }

@@ -5,6 +5,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.TokenUpdateResultsDto;
+import org.cryptimeleon.incentive.services.incentive.error.BasketAlreadyPaidException;
+import org.cryptimeleon.incentive.services.incentive.error.BasketNotPaidException;
+import org.cryptimeleon.incentive.services.incentive.error.IncentiveServiceException;
+import org.cryptimeleon.incentive.services.incentive.error.OnlineDoubleSpendingException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -99,10 +103,10 @@ public class IncentiveController {
     }
 
     @PostMapping("/bulk-token-update-results")
-    public ResponseEntity<TokenUpdateResultsDto> bulkResults(
+    public TokenUpdateResultsDto bulkResults(
             @RequestHeader(name = "basket-id") UUID basketId
     ) {
-        return new ResponseEntity<>(incentiveService.retrieveBulkResults(basketId), HttpStatus.OK);
+        return incentiveService.retrieveBulkResults(basketId);
     }
 
 
@@ -126,9 +130,28 @@ public class IncentiveController {
         return dosService.getRemainingOfflineTimeSeconds();
     }
 
+    @ResponseStatus(HttpStatus.I_AM_A_TEAPOT)
+    @ExceptionHandler(OnlineDoubleSpendingException.class)
+    public String handleOnlineDSPException() {
+        return "Double-spending attempt detected and prevented!";
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(BasketAlreadyPaidException.class)
+    public String handleBasketAlreadyPaidException() {
+        return "Basket already payed and thus cannot be used for promotions!";
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(BasketNotPaidException.class)
+    public String handleBasketNotPaidException() {
+        return "Cannot retrieve token update results! Basket must be payed!";
+    }
+
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(IncentiveServiceException.class)
-    public String handleIncentiveException(RuntimeException ex) {
+    public String handleException(IncentiveServiceException ex) {
+        // For debugging causes send the exception string
         return "An exception occurred!\n" + ex.getMessage();
     }
 }

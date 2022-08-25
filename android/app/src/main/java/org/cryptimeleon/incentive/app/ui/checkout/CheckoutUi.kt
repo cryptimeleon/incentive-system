@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.delay
 import org.cryptimeleon.incentive.app.domain.model.Basket
-import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemState
+import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemStatus
 import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
 import org.cryptimeleon.incentive.app.domain.usecase.TokenUpdate
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
@@ -44,7 +44,7 @@ val checkoutTexts = arrayOf(
 )
 
 @Composable
-fun CheckoutUi(navigateHome: () -> Unit) {
+fun CheckoutUi(navigateHome: () -> Unit, navigateToLoadingScreen: () -> Unit) {
     val checkoutViewModel = hiltViewModel<CheckoutViewModel>()
 
     val basket by checkoutViewModel.basket.collectAsState(initial = null)
@@ -54,6 +54,7 @@ fun CheckoutUi(navigateHome: () -> Unit) {
     // Once a basket is paid and new tokens are retrieved, it is removed from the database.
     // Therefore, we need to store the old ID
     val paidBasketId: UUID? by checkoutViewModel.paidBasketId.collectAsState()
+    val returnCode: PayAndRedeemStatus? by checkoutViewModel.returnCode.collectAsState()
 
     val checkoutStep: CheckoutStep by checkoutViewModel.checkoutStep.collectAsState()
 
@@ -61,11 +62,15 @@ fun CheckoutUi(navigateHome: () -> Unit) {
         basket,
         promotionDataCollection,
         checkoutStep,
+        returnCode,
         paidBasketId,
         checkoutViewModel::gotoSummary,
         checkoutViewModel::setUpdateChoice,
         checkoutViewModel::startPayAndRedeem,
-        navigateHome
+        checkoutViewModel::deleteBasket,
+        checkoutViewModel::disableDSAndRecover,
+        navigateHome,
+        navigateToLoadingScreen
     )
 }
 
@@ -75,11 +80,15 @@ private fun CheckoutUi(
     basket: Basket?,
     promotionDataCollection: List<PromotionData>,
     checkoutStep: CheckoutStep,
+    returnCode: PayAndRedeemStatus? = null,
     paidBasketId: UUID? = null,
     gotoSummary: () -> Unit,
     setUserUpdateChoice: (BigInteger, TokenUpdate) -> Unit,
     triggerCheckout: () -> Unit,
+    deleteBasket: () -> Unit,
+    disableDsAndRecover: () -> Unit,
     navigateHome: () -> Unit,
+    navigateToLoadingScreen: () -> Unit
 ) {
     val title = when (checkoutStep) {
         CheckoutStep.REWARDS -> "Rewards"
@@ -105,7 +114,24 @@ private fun CheckoutUi(
                     }
                 }
                 CheckoutStep.FINISHED -> {
-                    FinishedUi(paidBasketId, navigateHome)
+                    when (returnCode) {
+                        PayAndRedeemStatus.Success -> FinishedUi(paidBasketId, navigateHome)
+                        PayAndRedeemStatus.DSDetected -> DSPreventedUi(
+                            navigateHome = navigateHome,
+                            disableDoubleSpending = {
+                                disableDsAndRecover()
+                                navigateToLoadingScreen()
+                            },
+                        )
+                        is PayAndRedeemStatus.Error -> ErrorUi(
+                            e = returnCode,
+                            deleteBasketAndGoHome = {
+                                deleteBasket()
+                                navigateHome()
+                            }
+                        )
+                        else -> {}
+                    }
                 }
                 CheckoutStep.PROCESSING -> {
                     PayProgressUi()
