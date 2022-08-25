@@ -52,7 +52,7 @@ public class DsProtectionServiceIntegrationTest extends TransactionTestPreparati
         assert basketId != null;
 
         log.info("Spend-Deduct protocol running...");
-        TransactionIdentifier occuredTaId = runSpendDeductWorkflow(token, basketId);
+        TransactionIdentifier occuredTaId = runSpendDeductWorkflow(token, basketId, true);
 
         Thread.sleep(2500);
 
@@ -87,10 +87,10 @@ public class DsProtectionServiceIntegrationTest extends TransactionTestPreparati
         assert basketId2 != null;
 
         log.info("Spend-Deduct protocol running...");
-        TransactionIdentifier occuredTaId1 = runSpendDeductWorkflow(token, basketId1);
+        TransactionIdentifier occuredTaId1 = runSpendDeductWorkflow(token, basketId1, true);
         log.info("Done.");
         log.info("Double-spending Spend-Deduct execution running...");
-        TransactionIdentifier occuredTaId2 = runSpendDeductWorkflow(token, basketId2);
+        TransactionIdentifier occuredTaId2 = runSpendDeductWorkflow(token, basketId2, true);
         log.info("Done.");
 
         Thread.sleep(2500);

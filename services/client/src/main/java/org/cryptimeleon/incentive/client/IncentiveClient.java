@@ -59,10 +59,11 @@ public class IncentiveClient implements AliveEndpoint {
                 .bodyToMono(String.class);
     }
 
-    public Mono<Void> sendBulkUpdates(UUID basketId, BulkRequestDto bulkRequestDto) {
+    public Mono<Void> sendBulkUpdates(UUID basketId, BulkRequestDto bulkRequestDto, boolean doSync) {
         return incentiveClient.post()
                 .uri("/bulk-token-updates")
                 .header("basket-id", basketId.toString())
+                .header("do-sync", Boolean.toString(doSync))
                 .body(BodyInserters.fromValue(bulkRequestDto))
                 .retrieve()
                 .bodyToMono(Void.class);

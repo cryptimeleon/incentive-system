@@ -93,9 +93,11 @@ public class IncentiveController {
     @PostMapping("/bulk-token-updates")
     public void bulkUpdates(
             @RequestHeader(name = "basket-id") UUID basketId,
+            @RequestHeader(name= "do-sync") String doSyncString,
             @RequestBody BulkRequestDto bulkRequestDto
     ) {
-        incentiveService.handleBulk(basketId, bulkRequestDto);
+        boolean doSync = doSyncString.equals("true");
+        incentiveService.handleBulk(basketId, bulkRequestDto, doSync);
     }
 
     @PostMapping("/bulk-token-update-results")

@@ -67,7 +67,7 @@ public class FullWorkflowTest extends TransactionTestPreparation {
         assert basketId != null;
         log.info("BasketId: " + basketId.toString());
 
-        runSpendDeductWorkflow(token, basketId);
+        runSpendDeductWorkflow(token, basketId, false);
         var basketAfterSpend = basketClient.getBasket(basketId).block();
 
         assert basketAfterSpend != null;
@@ -109,7 +109,8 @@ public class FullWorkflowTest extends TransactionTestPreparation {
                 new BulkRequestDto(
                         List.of(new EarnRequestDto(testPromotion.getPromotionParameters().getPromotionId(), serializedEarnRequest)),
                         Collections.emptyList()
-                )
+                ),
+                false
         ).block();
 
         basketClient.payBasket(basket.getBasketId(), basket.computeBasketValue(), paySecret).block();

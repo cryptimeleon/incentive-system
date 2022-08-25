@@ -129,7 +129,19 @@ public class IncentiveService {
         return jsonConverter.serialize(signature.getRepresentation());
     }
 
-    private SideEffect handleSpendRequest(BigInteger promotionId, UUID basketId, UUID rewardId, String serializedSpendRequest, String serializedMetadata) {
+    /**
+     * Processes a single spend request and returns a description of the side effect that occured during the transaction
+     * (usually what reward the user chose or that she was caught double-spending).
+     * @param promotionId identifier for the promotion the user issuing the spend request wants to take part in
+     * @param basketId identifier for the basket the user used
+     * @param rewardId identifier for the reward the user wants to claim with this spend transaction
+     * @param serializedSpendRequest serialized representation of the spend request
+     * @param serializedMetadata
+     * @param doSync whether the transaction representing the spend request should be recorded in the database
+     *               (disabled for IncentiveService integration tests, only enabled for production and system tests)
+     * @return side effect description (SideEffect object)
+     */
+    private SideEffect handleSpendRequest(BigInteger promotionId, UUID basketId, UUID rewardId, String serializedSpendRequest, String serializedMetadata, boolean doSync) {
         log.info("SpendRequest:" + serializedSpendRequest);
 
         Promotion promotion = promotionRepository.getPromotion(promotionId).orElseThrow(() -> new IncentiveServiceException(String.format("promotionId %d not found", promotionId)));
@@ -187,12 +199,14 @@ public class IncentiveService {
         * it is critical that transactions that occured during dsp service downtime are always recorded in the database,
         * no matter whether dsid was already known.
         */
-        GroupElement usedTokenDsid = spendRequest.getDsid();
-        if(offlineDspRepository.dspServiceIsAlive() && offlineDspRepository.containsDsid(usedTokenDsid)) {
-            return new CaughtDoubleSpendingSideEffect("Double-spending attempt detected: " + usedTokenDsid + " has already been spent!");
-        }
-        else {
-            offlineDspRepository.addToDbSyncQueue(promotionId, tid, spendRequest, spendProviderOutput);
+        if(doSync) {
+            GroupElement usedTokenDsid = spendRequest.getDsid();
+            if(offlineDspRepository.dspServiceIsAlive() && offlineDspRepository.containsDsid(usedTokenDsid)) {
+                return new CaughtDoubleSpendingSideEffect("Double-spending attempt detected: " + usedTokenDsid + " has already been spent!");
+            }
+            else {
+                offlineDspRepository.addToDbSyncQueue(promotionId, tid, spendRequest, spendProviderOutput);
+            }
         }
 
         var result = jsonConverter.serialize(spendProviderOutput.getSpendResponse().getRepresentation());
@@ -218,7 +232,7 @@ public class IncentiveService {
         promotionRepository.deleteAllPromotions();
     }
 
-    public void handleBulk(UUID basketId, BulkRequestDto bulkRequestDto) {
+    public void handleBulk(UUID basketId, BulkRequestDto bulkRequestDto, boolean doSync) {
         // Can only perform zkp updates on baskets that are locked but not paid.
         basketRepository.lockBasket(basketId);
         if (basketRepository.isBasketPaid(basketId)) {
@@ -228,7 +242,14 @@ public class IncentiveService {
         log.info("Start bulk proofs");
         var rewardIds = new ArrayList<String>();
         for (SpendRequestDto spendRequestDto : bulkRequestDto.getSpendRequestDtoList()) {
-            var sideEffect = handleSpendRequest(spendRequestDto.getPromotionId(), basketId, spendRequestDto.getTokenUpdateId(), spendRequestDto.getSerializedSpendRequest(), spendRequestDto.getSerializedMetadata());
+            var sideEffect = handleSpendRequest(
+                    spendRequestDto.getPromotionId(),
+                    basketId,
+                    spendRequestDto.getTokenUpdateId(),
+                    spendRequestDto.getSerializedSpendRequest(),
+                    spendRequestDto.getSerializedMetadata(),
+                    doSync
+            );
             if (sideEffect instanceof RewardSideEffect) {
                 rewardIds.add(((RewardSideEffect) sideEffect).getRewardId());
             }

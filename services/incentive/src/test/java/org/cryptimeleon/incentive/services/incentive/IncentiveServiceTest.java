@@ -197,7 +197,8 @@ public class IncentiveServiceTest {
                 tokenPoints
         );
 
-        SpendRequest spendRequest = sendSingleSpendRequest(webTestClient, basketPoints, pointsAfterSpend, token, HttpStatus.OK);
+        // transaction shall not be synced into DB in this test case
+        SpendRequest spendRequest = sendSingleSpendRequest(webTestClient, basketPoints, pointsAfterSpend, token, false, HttpStatus.OK);
         when(basketRepository.isBasketPaid(emptyTestBasket.getBasketId())).thenReturn(true);
         retrieveTokenAfterSpend(webTestClient, token, pointsAfterSpend, spendRequest);
     }
@@ -216,7 +217,8 @@ public class IncentiveServiceTest {
                 tokenPoints
         );
 
-        sendSingleSpendRequest(webTestClient, basketPoints, pointsAfterSpend, token, HttpStatus.OK);
+        // transaction shall not be synced into db in this test case
+        sendSingleSpendRequest(webTestClient, basketPoints, pointsAfterSpend, token, false, HttpStatus.OK);
 
         // Not paid yet
         webTestClient.post()
@@ -229,7 +231,7 @@ public class IncentiveServiceTest {
 
     @Test
     void emptyBulkRequestTest(@Autowired WebTestClient webTestClient) {
-        sendBulkRequests(webTestClient, new BulkRequestDto(List.of(), List.of()), emptyTestBasket, HttpStatus.OK);
+        sendBulkRequests(webTestClient, new BulkRequestDto(List.of(), List.of()), emptyTestBasket, false, HttpStatus.OK); // transaction shall not be synced into DB in this test case
     }
 
     private SPSEQSignature retrieveGenesisSignature(WebTestClient webClient, org.cryptimeleon.incentive.crypto.model.keys.user.UserPreKeyPair userPreKeyPair) {
@@ -243,7 +245,17 @@ public class IncentiveServiceTest {
         return pp.getSpsEq().restoreSignature(jsonConverter.deserialize(serializedSignature));
     }
 
-    private SpendRequest sendSingleSpendRequest(WebTestClient webTestClient, Vector<BigInteger> basketPoints, Vector<BigInteger> pointsAfterSpend, Token token, HttpStatus expectedStatus) {
+    /**
+     *
+     * @param webTestClient
+     * @param basketPoints
+     * @param pointsAfterSpend
+     * @param token
+     * @param doSync whether the transaction emerging from this spend request shall be synchronized into the database
+     * @param expectedStatus
+     * @return
+     */
+    private SpendRequest sendSingleSpendRequest(WebTestClient webTestClient, Vector<BigInteger> basketPoints, Vector<BigInteger> pointsAfterSpend, Token token, boolean doSync, HttpStatus expectedStatus) {
         var metadata = testPromotion.generateMetadataForUpdate();
         var spendDeductTree = testTokenUpdate.generateRelationTree(basketPoints, metadata);
         var tid = emptyTestBasket.getBasketId(pp.getBg().getZn());
@@ -256,14 +268,15 @@ public class IncentiveServiceTest {
                         jsonConverter.serialize(spendRequest.getRepresentation()),
                         jsonConverter.serialize(new RepresentableRepresentation(metadata))
                 )));
-        sendBulkRequests(webTestClient, bulkRequestDto, emptyTestBasket, expectedStatus);
+        sendBulkRequests(webTestClient, bulkRequestDto, emptyTestBasket, doSync, expectedStatus);
         return spendRequest;
     }
 
-    private void sendBulkRequests(WebTestClient webTestClient, BulkRequestDto bulkRequestDto, Basket emptyTestBasket, HttpStatus expectedStatus) {
+    private void sendBulkRequests(WebTestClient webTestClient, BulkRequestDto bulkRequestDto, Basket emptyTestBasket, boolean doSync, HttpStatus expectedStatus) {
         webTestClient.post()
                 .uri(uriBuilder -> uriBuilder.path("/bulk-token-updates").build())
                 .header("basket-id", String.valueOf(emptyTestBasket.getBasketId()))
+                .header("do-sync", Boolean.toString(doSync))
                 .body(BodyInserters.fromValue(bulkRequestDto))
                 .exchange()
                 .expectStatus()
