@@ -15,30 +15,19 @@ import org.cryptimeleon.incentive.app.domain.IBasketRepository
 import org.cryptimeleon.incentive.app.domain.ICryptoRepository
 import org.cryptimeleon.incentive.app.domain.IPreferencesRepository
 import org.cryptimeleon.incentive.app.domain.IPromotionRepository
-import org.cryptimeleon.incentive.app.domain.model.Earn
-import org.cryptimeleon.incentive.app.domain.model.None
-import org.cryptimeleon.incentive.app.domain.model.ZKP
-import org.cryptimeleon.incentive.app.domain.usecase.EarnTokenUpdate
-import org.cryptimeleon.incentive.app.domain.usecase.NoTokenUpdate
 import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemStatus
 import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemUseCase
 import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
 import org.cryptimeleon.incentive.app.domain.usecase.PromotionInfoUseCase
 import org.cryptimeleon.incentive.app.domain.usecase.ResetAppUseCase
-import org.cryptimeleon.incentive.app.domain.usecase.TokenUpdate
-import org.cryptimeleon.incentive.app.domain.usecase.ZkpTokenUpdate
-import java.math.BigInteger
 import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
 class CheckoutViewModel @Inject constructor(
     cryptoRepository: ICryptoRepository,
-    basketRepository: IBasketRepository,
     promotionRepository: IPromotionRepository,
-    preferencesRepository: IPreferencesRepository,
     private val basketRepository: IBasketRepository,
-    private val promotionRepository: IPromotionRepository,
     private val preferencesRepository: IPreferencesRepository,
     application: Application
 ) : AndroidViewModel(application) {
@@ -51,12 +40,11 @@ class CheckoutViewModel @Inject constructor(
         )
 
     private val _checkoutStep = MutableStateFlow(CheckoutStep.SUMMARY)
-    private val resetAppUseCase =
-        ResetAppUseCase(cryptoRepository, basketRepository, promotionRepository)
-
-    private val _checkoutStep = MutableStateFlow(CheckoutStep.REWARDS)
     val checkoutStep: StateFlow<CheckoutStep>
         get() = _checkoutStep
+
+    private val resetAppUseCase =
+        ResetAppUseCase(cryptoRepository, basketRepository, promotionRepository)
 
 
     // store basketId since a new one is retrieved after payment
@@ -72,12 +60,6 @@ class CheckoutViewModel @Inject constructor(
         PromotionInfoUseCase(promotionRepository, cryptoRepository, basketRepository).invoke()
     val basket = basketRepository.basket
 
-    private val _resetAppFinished = MutableStateFlow(false)
-
-    fun gotoSummary() {
-        _checkoutStep.value = CheckoutStep.SUMMARY
-    }
-
     fun startPayAndRedeem() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
@@ -86,22 +68,6 @@ class CheckoutViewModel @Inject constructor(
                 _paidBasketId.value = basket.first()?.basketId
                 _returnCode.value = payAndRedeemUseCase.invoke()
                 _checkoutStep.value = CheckoutStep.FINISHED
-            }
-        }
-    }
-
-    fun setUpdateChoice(promotionId: BigInteger, tokenUpdate: TokenUpdate) {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) {
-                val userUpdateChoice = when (tokenUpdate) {
-                    is NoTokenUpdate -> None
-                    is EarnTokenUpdate -> Earn
-                    is ZkpTokenUpdate -> ZKP(tokenUpdate.zkpUpdateId)
-                    else -> {
-                        throw RuntimeException("Unknown token update $tokenUpdate")
-                    }
-                }
-                promotionRepository.putUserUpdateChoice(promotionId, userUpdateChoice)
             }
         }
     }

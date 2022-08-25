@@ -73,6 +73,7 @@ import org.cryptimeleon.incentive.app.domain.usecase.ZkpTokenUpdate
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 import org.cryptimeleon.incentive.app.ui.log.ZkpSummaryUi
+import org.cryptimeleon.incentive.app.ui.preview.PreviewData
 import org.cryptimeleon.incentive.app.util.SLE
 import timber.log.Timber
 import java.math.BigInteger
@@ -628,6 +629,7 @@ private fun BasketPreview() {
     CryptimeleonTheme {
         BasketUi(
             SLE.Success(testBasket),
+            promotionDataList = PreviewData.promotionDataList
         )
     }
 }

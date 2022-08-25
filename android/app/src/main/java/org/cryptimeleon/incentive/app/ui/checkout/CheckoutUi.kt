@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.delay
 import org.cryptimeleon.incentive.app.domain.model.Basket
+import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemStatus
 import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 import org.cryptimeleon.incentive.app.ui.preview.CryptimeleonPreviewContainer
