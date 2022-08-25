@@ -33,7 +33,7 @@ data class Page(
 val onboardingPages = listOf(
     Page(
         "Go Shopping",
-        "Scan product when you put them in you shopping cart.",
+        "Scan products when you put them in your shopping cart.",
         "🛒"
     ),
     Page(
