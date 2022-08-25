@@ -16,6 +16,9 @@ import org.cryptimeleon.incentive.promotion.model.Basket;
 import org.cryptimeleon.incentive.promotion.sideeffect.CaughtDoubleSpendingSideEffect;
 import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect;
 import org.cryptimeleon.incentive.promotion.sideeffect.SideEffect;
+import org.cryptimeleon.incentive.services.incentive.error.BasketAlreadyPaidException;
+import org.cryptimeleon.incentive.services.incentive.error.BasketNotPaidException;
+import org.cryptimeleon.incentive.services.incentive.error.IncentiveServiceException;
 import org.cryptimeleon.incentive.services.incentive.repository.*;
 import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
@@ -236,7 +239,7 @@ public class IncentiveService {
         // Can only perform zkp updates on baskets that are locked but not paid.
         basketRepository.lockBasket(basketId);
         if (basketRepository.isBasketPaid(basketId)) {
-            throw new RuntimeException("Basket already paid!");
+            throw new BasketAlreadyPaidException();
         }
 
         log.info("Start bulk proofs");

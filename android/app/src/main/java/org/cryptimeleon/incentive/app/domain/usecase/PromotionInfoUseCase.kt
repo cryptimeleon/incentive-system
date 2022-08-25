@@ -116,7 +116,10 @@ private class PromotionInfoUseCaseWorker(
             Optional.of(
                 EarnTokenUpdate(
                     feasibility = PromotionUpdateFeasibility.NOT_APPLICABLE,
-                    "Your basket does not qualify for earning any points."
+                    "Your basket does not qualify for earning any points.",
+                    tokenPoints.map(BigInteger::toInt),
+                    basketPoints.map(BigInteger::toInt),
+                    tokenPoints.zip(basketPoints) { x, y -> x.add(y) }.map(BigInteger::toInt)
                 )
             )
         else
@@ -137,6 +140,9 @@ private class PromotionInfoUseCaseWorker(
         return EarnTokenUpdate(
             feasibility = if ((updateChoice != null) && (updateChoice.userUpdateChoice is Earn)) PromotionUpdateFeasibility.SELECTED else PromotionUpdateFeasibility.CANDIDATE,
             description = description,
+            tokenPoints.map(BigInteger::toInt),
+            basketPoints.map(BigInteger::toInt),
+            tokenPoints.zip(basketPoints) { x, y -> x.add(y) }.map(BigInteger::toInt)
         )
     }
 
@@ -158,13 +164,16 @@ private class PromotionInfoUseCaseWorker(
                     sideEffect = rewardUpdateOrEmpty,
                     feasibility = feasibility,
                     current = tokenPoints.get(0).toInt(),
-                    goal = it.rewardCost
+                    goal = it.rewardCost,
+                    basketPoints = basketPoints.get(0).toInt()
                 )
                 is StandardStreakTokenUpdate -> StandardStreakTokenUpdateState(
                     zkpUpdateId = it.tokenUpdateId,
                     description = description,
                     sideEffect = rewardUpdateOrEmpty,
-                    feasibility = feasibility
+                    feasibility = feasibility,
+                    tokenPoints = tokenPoints,
+                    intervalDays = it.intervalDays
                 )
                 is SpendStreakTokenUpdate -> SpendStreakTokenUpdateState(
                     zkpUpdateId = it.tokenUpdateId,
@@ -179,8 +188,9 @@ private class PromotionInfoUseCaseWorker(
                     description = description,
                     sideEffect = rewardUpdateOrEmpty,
                     feasibility = feasibility,
-                    currentStreak = tokenPoints.get(0).toInt(),
-                    requiredStreak = it.lowerLimit
+                    requiredStreak = it.lowerLimit,
+                    tokenPoints = tokenPoints,
+                    intervalDays = it.intervalDays
                 )
                 is UpgradeVipZkpTokenUpdate -> UpgradeVipTokenUpdateState(
                     zkpUpdateId = it.tokenUpdateId,
@@ -188,16 +198,27 @@ private class PromotionInfoUseCaseWorker(
                     sideEffect = rewardUpdateOrEmpty,
                     feasibility = feasibility,
                     currentPoints = tokenPoints.get(0).toInt(),
+                    basketPoints = basketPoints.get(0).toInt(),
                     requiredPoints = it.accumulatedCost,
                     targetVipStatus = VipStatus.fromInt(it.toVipStatus),
-                    currentVipStatus = VipStatus.fromInt(tokenPoints.get(1).toInt()),
+                    currentVipStatus = VipStatus.fromInt(
+                        tokenPoints.get(
+                            1
+                        ).toInt()
+                    ),
                 )
                 is ProveVipTokenUpdate -> ProveVipTokenUpdateState(
                     zkpUpdateId = it.tokenUpdateId,
                     description = description,
                     sideEffect = rewardUpdateOrEmpty,
                     feasibility = feasibility,
-                    currentStatus = VipStatus.fromInt(tokenPoints.get(1).toInt()),
+                    currentPoints = tokenPoints.get(0).toInt(),
+                    basketPoints = basketPoints.get(0).toInt(),
+                    currentStatus = VipStatus.fromInt(
+                        tokenPoints.get(
+                            1
+                        ).toInt()
+                    ),
                     requiredStatus = VipStatus.fromInt(it.requiredStatus)
                 )
                 else -> {

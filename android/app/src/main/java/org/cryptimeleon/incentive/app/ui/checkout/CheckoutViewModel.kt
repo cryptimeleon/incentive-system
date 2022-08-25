@@ -20,10 +20,11 @@ import org.cryptimeleon.incentive.app.domain.model.None
 import org.cryptimeleon.incentive.app.domain.model.ZKP
 import org.cryptimeleon.incentive.app.domain.usecase.EarnTokenUpdate
 import org.cryptimeleon.incentive.app.domain.usecase.NoTokenUpdate
-import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemState
+import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemStatus
 import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemUseCase
 import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
 import org.cryptimeleon.incentive.app.domain.usecase.PromotionInfoUseCase
+import org.cryptimeleon.incentive.app.domain.usecase.ResetAppUseCase
 import org.cryptimeleon.incentive.app.domain.usecase.TokenUpdate
 import org.cryptimeleon.incentive.app.domain.usecase.ZkpTokenUpdate
 import java.math.BigInteger
@@ -33,9 +34,9 @@ import javax.inject.Inject
 @HiltViewModel
 class CheckoutViewModel @Inject constructor(
     cryptoRepository: ICryptoRepository,
-    basketRepository: IBasketRepository,
+    private val basketRepository: IBasketRepository,
     private val promotionRepository: IPromotionRepository,
-    preferencesRepository: IPreferencesRepository,
+    private val preferencesRepository: IPreferencesRepository,
     application: Application
 ) : AndroidViewModel(application) {
     private val payAndRedeemUseCase =
@@ -45,6 +46,9 @@ class CheckoutViewModel @Inject constructor(
             basketRepository,
             preferencesRepository
         )
+
+    private val resetAppUseCase =
+        ResetAppUseCase(cryptoRepository, basketRepository, promotionRepository)
 
     private val _checkoutStep = MutableStateFlow(CheckoutStep.REWARDS)
     val checkoutStep: StateFlow<CheckoutStep>
@@ -56,11 +60,15 @@ class CheckoutViewModel @Inject constructor(
     val paidBasketId: StateFlow<UUID?>
         get() = _paidBasketId
 
+    private val _returnCode: MutableStateFlow<PayAndRedeemStatus?> = MutableStateFlow(null)
+    val returnCode: StateFlow<PayAndRedeemStatus?>
+        get() = _returnCode
+
     val promotionData: Flow<List<PromotionData>> =
         PromotionInfoUseCase(promotionRepository, cryptoRepository, basketRepository).invoke()
     val basket = basketRepository.basket
 
-    val payAndRedeemState = MutableStateFlow(PayAndRedeemState.NOT_STARTED)
+    private val _resetAppFinished = MutableStateFlow(false)
 
     fun gotoSummary() {
         _checkoutStep.value = CheckoutStep.SUMMARY
@@ -72,7 +80,7 @@ class CheckoutViewModel @Inject constructor(
                 // Store basket ID since use case will retrieve a new one
                 _checkoutStep.value = CheckoutStep.PROCESSING
                 _paidBasketId.value = basket.first()?.basketId
-                payAndRedeemUseCase.invoke().collect { payAndRedeemState.emit(it) }
+                _returnCode.value = payAndRedeemUseCase.invoke()
                 _checkoutStep.value = CheckoutStep.FINISHED
             }
         }
@@ -93,11 +101,30 @@ class CheckoutViewModel @Inject constructor(
             }
         }
     }
+
+    fun deleteBasket() {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                basketRepository.discardCurrentBasket()
+            }
+        }
+    }
+
+    fun disableDSAndRecover() {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                // Disable double spending attack
+                preferencesRepository.updateDiscardUpdatedToken(false)
+                // Recover, i.e. make sure the current token will not be blocked by DSP
+                resetAppUseCase()
+            }
+        }
+    }
 }
 
 enum class CheckoutStep {
     REWARDS,
     SUMMARY,
     PROCESSING,
-    FINISHED
+    FINISHED,
 }
