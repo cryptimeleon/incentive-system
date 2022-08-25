@@ -91,8 +91,7 @@ fun NavGraph(
         }
         composable(MainDestination.CHECKOUT_ROUTE) {
             CheckoutUi(actions.navigateToDashboard) {
-                loadingComplete.value = false
-                navController.navigate(MainDestination.DASHBOARD_ROUTE)
+                navController.navigate(MainDestination.LOADING_ROUTE)
             }
         }
         composable(MainDestination.SETTINGS_ROUTE) { Settings(actions.onExitSettings) }
