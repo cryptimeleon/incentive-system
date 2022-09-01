@@ -85,10 +85,9 @@ public class TransactionTestPreparation extends IncentiveSystemIntegrationTest {
      *
      * @param token    token spent in the transaction
      * @param basketId ID of the basket used for the basket used in the transaction
-     * @param doSync whether the transaction resulting from the spend-deduct interaction shall be recorded in the database or not
      * @return TransactionIdentifier
      */
-    protected TransactionIdentifier runSpendDeductWorkflow(Token token, UUID basketId, boolean doSync) {
+    protected TransactionIdentifier runSpendDeductWorkflow(Token token, UUID basketId) {
         // generate transaction ID from basket ID
         var tid = cryptoAssets.getPublicParameters().getBg().getZn().createZnElement(new BigInteger(basketId.toString().replace("-", ""), 16));
 
@@ -115,7 +114,7 @@ public class TransactionTestPreparation extends IncentiveSystemIntegrationTest {
                 jsonConverter.serialize(new RepresentableRepresentation(new EmptyTokenUpdateMetadata()))
         );
         var bulkRequestDto = new BulkRequestDto(List.of(), List.of(spendRequestDto));
-        incentiveClient.sendBulkUpdates(basketId, bulkRequestDto, doSync).block();
+        incentiveClient.sendBulkUpdates(basketId, bulkRequestDto).block();
 
         // pay basket
         basketClient.payBasket(basketId, paySecret).block();

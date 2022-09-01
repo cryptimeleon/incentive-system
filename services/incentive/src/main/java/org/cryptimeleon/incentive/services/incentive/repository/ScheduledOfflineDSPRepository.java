@@ -56,9 +56,7 @@ public class ScheduledOfflineDSPRepository implements OfflineDSPRepository, Cycl
     }
 
     @Override
-    public boolean containsDsid(GroupElement dsid) {
-        return dsProtectionClient.containsDsid(dsid);
-    }
+    public boolean containsDsid(GroupElement dsid) { return dsProtectionClient.containsDsid(dsid); }
 
     /*
     * end of OfflineDSPRepository methods
