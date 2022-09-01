@@ -43,8 +43,8 @@ public class ScheduledOfflineDSPRepository implements OfflineDSPRepository, Cycl
     */
 
     @Override
-    public void addToDbSyncQueue(BigInteger promotionId, Zn.ZnElement tid, SpendRequest spendRequest, DeductOutput spendProviderOutput) {
-        DbSyncTask dbSyncTask = new DbSyncTask(promotionId, tid, spendRequest, spendProviderOutput);
+    public void addToDbSyncQueue(BigInteger promotionId, Zn.ZnElement tid, SpendRequest spendRequest, DeductOutput deductOutput) {
+        DbSyncTask dbSyncTask = new DbSyncTask(promotionId, tid, spendRequest, deductOutput);
         synchronized (taskQueue) {
             taskQueue.add(dbSyncTask);
         }
