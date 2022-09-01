@@ -32,7 +32,13 @@ import java.util.stream.Collectors;
 
 
 /**
- * This service processes the requests and contains all the business.
+ * Main service of the system that handles client requests for
+ * joining an incentive system, earning points and spending tokens.
+ *
+ * More precisely, this service runs the server side of the crypto protocols with clients
+ * (i.e. Issue in Issue-Join, Credit in Credit-Earn and Deduct in Spend-Deduct).
+ *
+ * Furthermore, this service also issues genesis tokens.
  */
 @Slf4j
 @Service

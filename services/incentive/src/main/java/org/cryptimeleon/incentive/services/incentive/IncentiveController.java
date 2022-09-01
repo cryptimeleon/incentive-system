@@ -16,19 +16,30 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * The controller of this service that defines all REST endpoints.
+ * The controller of the incentive service that defines all REST endpoints.
+ * Maps GET and POST requests to the respective actions to be executed.
+ *
+ * Also provides the endpoints to take the double-spending database down for a short time
+ * (for demonstration purposes only; the outgoing queue of spend transactions will be stopped to be fed into the double-spending database).
  */
 @Slf4j
 @RestController
 @RequiredArgsConstructor
 public class IncentiveController {
 
+    // ref to service that handles server side of crypto protocols + genesis token issuing
     private final IncentiveService incentiveService;
+
+    // ref to service that handles temporary DoS of double-spending protection service
     private final DosService dosService;
 
     @Value("${incentive-service.provider-secret}")
     private String providerSecret;
 
+    /**
+     * Checks if shared secret for privileged actions on the basket server is set properly.
+     * Throws an exception if not.
+     */
     @PostConstruct
     public void validateValue() {
         if (providerSecret.equals("")) {
