@@ -60,9 +60,9 @@ fun HazelTokenUpdateLog(tokenUpdate: HazelTokenUpdateState) {
                 arrow()
                 append(" score_new =")
                 if (tokenUpdate.basketPoints > 0) append(" ${tokenUpdate.basketPoints} - ${tokenUpdate.goal} =")
-                append(" ${tokenUpdate.current + tokenUpdate.basketPoints - tokenUpdate.goal}\n")
+                append(" ${tokenUpdate.current + tokenUpdate.basketPoints - tokenUpdate.goal}")
             }
         },
-        inlineContent = arrowInlineContent
+        inlineContent = arrowInlineContent,
     )
 }

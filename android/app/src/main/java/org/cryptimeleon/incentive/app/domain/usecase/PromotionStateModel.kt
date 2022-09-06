@@ -39,6 +39,10 @@ interface PromotionData {
     val shortTokenHash: String
         get() = TokenDsidHashMaker.shortHash(tokenHash)
     val tokenJson: String
+    val feasibleTokenUpdates: List<TokenUpdate>
+        get() = tokenUpdates.filter { t -> t.isFeasible() }
+    val selectedTokenUpdate: TokenUpdate?
+        get() = tokenUpdates.find { t -> t.isSelected() }
 }
 
 enum class PromotionUpdateFeasibility {

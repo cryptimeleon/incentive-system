@@ -2,42 +2,57 @@ package org.cryptimeleon.incentive.app.ui.basket
 
 import android.content.res.Configuration
 import android.icu.text.NumberFormat
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CardGiftcard
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Remove
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,10 +67,16 @@ import androidx.compose.ui.unit.em
 import androidx.hilt.navigation.compose.hiltViewModel
 import org.cryptimeleon.incentive.app.domain.model.Basket
 import org.cryptimeleon.incentive.app.domain.model.BasketItem
+import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
+import org.cryptimeleon.incentive.app.domain.usecase.TokenUpdate
+import org.cryptimeleon.incentive.app.domain.usecase.ZkpTokenUpdate
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
+import org.cryptimeleon.incentive.app.ui.log.ZkpSummaryUi
+import org.cryptimeleon.incentive.app.ui.preview.PreviewData
 import org.cryptimeleon.incentive.app.util.SLE
 import timber.log.Timber
+import java.math.BigInteger
 import java.util.*
 
 val wrongId: String =
@@ -74,15 +95,19 @@ fun BasketUi(
 ) {
     val basketViewModel = hiltViewModel<BasketViewModel>()
     val basket: SLE<Basket> by basketViewModel.basket.collectAsState(initial = SLE.Loading())
+    val promotionDataList by basketViewModel.promotionData.collectAsState(initial = emptyList())
 
     BasketUi(
         basketSle = basket,
+        promotionDataList = promotionDataList,
         setItemCount = basketViewModel::setItemCount,
+        setUpdateChoice = basketViewModel::setUpdateChoice,
         pay = gotoRewards,
         openScanner = openScanner,
         openSettings = openSettings,
         openBenchmark = openBenchmark,
-        openAttacker = openAttacker
+        openAttacker = openAttacker,
+        discardBasket = basketViewModel::discardCurrentBasket
     )
 }
 
@@ -92,12 +117,15 @@ fun BasketUi(
 @Composable
 private fun BasketUi(
     basketSle: SLE<Basket>,
+    promotionDataList: List<PromotionData> = emptyList(),
     setItemCount: (String, Int) -> Unit = { _, _ -> },
     pay: () -> Unit = {},
     openScanner: () -> Unit = {},
     openSettings: () -> Unit = {},
     openBenchmark: () -> Unit = {},
-    openAttacker: () -> Unit = {}
+    openAttacker: () -> Unit = {},
+    discardBasket: () -> Unit = {},
+    setUpdateChoice: (BigInteger, TokenUpdate) -> Unit = { _, _ -> }
 ) {
 
     Scaffold(topBar = {
@@ -105,7 +133,8 @@ private fun BasketUi(
             title = { Text("My Basket") },
             onOpenSettings = openSettings,
             onOpenBenchmark = openBenchmark,
-            onOpenAttacker = openAttacker
+            onOpenAttacker = openAttacker,
+            onDiscardBasket = discardBasket
         )
     }) {
         Box(modifier = Modifier.padding(it)) {
@@ -129,7 +158,13 @@ private fun BasketUi(
                     if (basket.items.isEmpty()) {
                         BasketEmptyView(openScanner)
                     } else {
-                        BasketNotEmptyView(basket, setItemCount, pay)
+                        BasketNotEmptyView(
+                            basket,
+                            promotionDataList,
+                            setItemCount,
+                            setUpdateChoice,
+                            pay
+                        )
                     }
                 }
             }
@@ -140,65 +175,237 @@ private fun BasketUi(
 @Composable
 private fun BasketNotEmptyView(
     basket: Basket,
+    promotionDataList: List<PromotionData>,
     setItemCount: (String, Int) -> Unit,
+    setUpdateChoice: (BigInteger, TokenUpdate) -> Unit,
     pay: () -> Unit
 ) {
     var expandedBasketItem by remember { mutableStateOf(wrongId) }
-
+    val showLog = remember { mutableStateOf(false) }
     val basketItemsCount = basket.items.map { it.count }.sum()
-    Column(
-        modifier = Modifier
-            .fillMaxHeight()
-            .padding(16.dp)
-    ) {
-        LazyColumn(modifier = Modifier.weight(1f)) {
-            item {
-                Row(Modifier.fillMaxWidth(), Arrangement.End) {
-                    Text(
-                        "Price",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onBackground.copy(
-                            alpha = 0.6F
-                        )
+    val scrollState = rememberScrollState()
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
+            verticalArrangement = Arrangement.Top,
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)
+        ) {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp), Arrangement.End
+            ) {
+                Text(
+                    "Price",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onBackground.copy(
+                        alpha = 0.6F
+                    )
+                )
+            }
+            basket.items.forEach { item ->
+                Column(Modifier.padding(horizontal = 16.dp)) {
+                    Divider()
+                    BasketItem(
+                        item = item,
+                        expanded = expandedBasketItem == item.itemId,
+                        onClick = {
+                            Timber.i("On click ${item.itemId}")
+                            expandedBasketItem =
+                                if (expandedBasketItem == item.itemId) wrongId else item.itemId
+                        },
+                        setCount = { count ->
+                            setItemCount(item.itemId, count)
+                        },
                     )
                 }
             }
-            items(basket.items) { item ->
-                Divider()
-                BasketItem(
-                    item = item,
-                    expanded = expandedBasketItem == item.itemId,
-                    onClick = {
-                        Timber.i("On click ${item.itemId}")
-                        expandedBasketItem =
-                            if (expandedBasketItem == item.itemId) wrongId else item.itemId
-                    },
-                    setCount = { count ->
-                        setItemCount(item.itemId, count)
-                    },
-                )
+
+            promotionDataList.forEach { promotionData: PromotionData ->
+                val idString = promotionData.pid.toString()
+                if (promotionData.feasibleTokenUpdates.size > 1) {
+                    Divider(Modifier.padding(horizontal = 16.dp))
+                    TokenUpdateRow(
+                        selectedUpdate = promotionData.selectedTokenUpdate,
+                        tokenUpdates = promotionData.feasibleTokenUpdates,
+                        promotionName = promotionData.promotionName,
+                        expanded = expandedBasketItem == idString,
+                        onClick = {
+                            Timber.i("Onclick $idString")
+                            expandedBasketItem =
+                                if (expandedBasketItem == idString) wrongId else idString
+                        },
+                        setSelectedTokenUpdate = { t ->
+                            Timber.i("${promotionData.pid} $t")
+                            setUpdateChoice(promotionData.pid, t)
+                        }
+                    )
+                    if (showLog.value) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp)
+                                .padding(top = 8.dp)
+                                .padding(bottom = 18.dp)
+                        ) {
+                            Column(
+                                Modifier
+                                    .padding(8.dp)
+                                    .fillMaxWidth()
+                            ) {
+                                ZkpSummaryUi(promotionData = promotionData)
+                            }
+                        }
+                    }
+                }
             }
-            item {
-                Divider()
-                BasketSummaryRow(basketItemsCount, basket)
-                Spacer(
-                    modifier = Modifier
-                        .size(32.dp)
-                )
-            }
-            item {
-                Spacer(
-                    modifier = Modifier
-                        .size(32.dp)
-                )
+            Divider(Modifier.padding(horizontal = 16.dp))
+            BasketSummaryRow(
+                basketItemsCount = basketItemsCount,
+                basket = basket,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+            Spacer(
+                modifier = Modifier
+                    .height(128.dp)
+                    .fillMaxWidth()
+            )
+        }
+        Spacer(
+            modifier = Modifier
+                .size(16.dp)
+        )
+        val showDivider by remember {
+            derivedStateOf {
+                scrollState.value > 0 && scrollState.value < scrollState.maxValue
             }
         }
-        Column() {
-            Button(
-                modifier = Modifier.fillMaxWidth(),
-                onClick = pay
+        val elevation by animateDpAsState(targetValue = if (showDivider) 32.dp else 0.dp)
+        Surface(shadowElevation = elevation, modifier = Modifier.align(Alignment.BottomCenter)) {
+            Column(
+                Modifier
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 8.dp)
             ) {
-                Text("Checkout")
+                TextButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = { showLog.value = showLog.value.not() }
+                ) {
+                    Text((if (showLog.value) "Hide" else "Show") + "Promotion Privacy Details")
+                }
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = pay
+                ) {
+                    Text("Checkout")
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TokenUpdateRow(
+    tokenUpdates: List<TokenUpdate>,
+    selectedUpdate: TokenUpdate?,
+    promotionName: String,
+    expanded: Boolean,
+    onClick: () -> Unit,
+    setSelectedTokenUpdate: (TokenUpdate) -> Unit = { _ -> },
+) {
+
+    Column {
+        Surface(
+            onClick = onClick,
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            ) {
+                Column(
+                    Modifier
+                        .padding(vertical = 8.dp)
+                        .weight(1f)
+                ) {
+                    Text(
+                        promotionName,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    if (selectedUpdate != null) {
+                        Text(selectedUpdate.description)
+                    } else {
+                        Text("Nothing")
+                    }
+                }
+                Crossfade(targetState = expanded) { expanded ->
+                    when (expanded) {
+                        false -> IconButton(onClick = onClick) {
+                            Icon(Icons.Default.ExpandMore, contentDescription = "Expand More")
+                        }
+                        true -> IconButton(onClick = onClick) {
+                            Icon(Icons.Default.ExpandLess, contentDescription = "Expand Less")
+                        }
+                    }
+                }
+            }
+        }
+        val scrollState = rememberScrollState()
+        AnimatedVisibility(visible = expanded) {
+            Row(Modifier.horizontalScroll(scrollState)) {
+                tokenUpdates.forEachIndexed { i, it ->
+                    RewardChoiceCard(
+                        tokenUpdate = it,
+                        selected = selectedUpdate == it,
+                        onClick = { setSelectedTokenUpdate(it) },
+                        modifier = Modifier
+                            .width(200.dp)
+                            .padding(8.dp)
+                            .padding(start = if (i == 0) 16.dp else 0.dp)
+                            .padding(end = if (i == tokenUpdates.lastIndex) 16.dp else 0.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun RewardChoiceCard(
+    tokenUpdate: TokenUpdate,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    OutlinedCard(
+        onClick = onClick,
+        colors = if (selected) CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer) else CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        modifier = modifier
+            .defaultMinSize(minHeight = 100.dp)
+    ) {
+        Column(modifier = Modifier.padding(8.dp), Arrangement.spacedBy(8.dp)) {
+            Text(
+                text = tokenUpdate.description,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold,
+            )
+            if (tokenUpdate is ZkpTokenUpdate && tokenUpdate.sideEffect.isPresent) {
+                Row {
+                    Icon(Icons.Default.CardGiftcard, contentDescription = "Gift icon")
+                    Text(
+                        text = tokenUpdate.sideEffect.get(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(start = 16.dp)
+                    )
+                }
             }
         }
     }
@@ -207,11 +414,12 @@ private fun BasketNotEmptyView(
 @Composable
 private fun BasketSummaryRow(
     basketItemsCount: Int,
-    basket: Basket
+    basket: Basket,
+    modifier: Modifier = Modifier
 ) {
     Row(
         horizontalArrangement = Arrangement.End,
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp)
     ) {
@@ -421,6 +629,7 @@ private fun BasketPreview() {
     CryptimeleonTheme {
         BasketUi(
             SLE.Success(testBasket),
+            promotionDataList = PreviewData.promotionDataList
         )
     }
 }
@@ -467,12 +676,7 @@ private fun BasketPreviewEmpty() {
 )
 private fun BasketPreviewError() {
     CryptimeleonTheme {
-        BasketUi(
-            SLE.Error(),
-            { _, _ -> },
-            {},
-            {},
-            {})
+        BasketUi(SLE.Error())
     }
 }
 

@@ -28,10 +28,8 @@ import kotlinx.coroutines.delay
 import org.cryptimeleon.incentive.app.domain.model.Basket
 import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemStatus
 import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
-import org.cryptimeleon.incentive.app.domain.usecase.TokenUpdate
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 import org.cryptimeleon.incentive.app.ui.preview.CryptimeleonPreviewContainer
-import java.math.BigInteger
 import java.util.*
 
 val checkoutTexts = arrayOf(
@@ -64,8 +62,6 @@ fun CheckoutUi(navigateHome: () -> Unit, navigateToLoadingScreen: () -> Unit) {
         checkoutStep,
         returnCode,
         paidBasketId,
-        checkoutViewModel::gotoSummary,
-        checkoutViewModel::setUpdateChoice,
         checkoutViewModel::startPayAndRedeem,
         checkoutViewModel::deleteBasket,
         checkoutViewModel::disableDSAndRecover,
@@ -82,8 +78,6 @@ private fun CheckoutUi(
     checkoutStep: CheckoutStep,
     returnCode: PayAndRedeemStatus? = null,
     paidBasketId: UUID? = null,
-    gotoSummary: () -> Unit,
-    setUserUpdateChoice: (BigInteger, TokenUpdate) -> Unit,
     triggerCheckout: () -> Unit,
     deleteBasket: () -> Unit,
     disableDsAndRecover: () -> Unit,
@@ -91,7 +85,6 @@ private fun CheckoutUi(
     navigateToLoadingScreen: () -> Unit
 ) {
     val title = when (checkoutStep) {
-        CheckoutStep.REWARDS -> "Rewards"
         CheckoutStep.SUMMARY -> "Summary"
         CheckoutStep.PROCESSING -> "Processing"
         CheckoutStep.FINISHED -> "Finished"
@@ -101,13 +94,6 @@ private fun CheckoutUi(
     ) {
         Box(Modifier.padding(it)) {
             when (checkoutStep) {
-                CheckoutStep.REWARDS -> {
-                    RewardsUi(
-                        promotionDataCollection,
-                        setUserUpdateChoice,
-                        gotoSummary,
-                    )
-                }
                 CheckoutStep.SUMMARY -> {
                     basket?.let { // Should not be null in this case, but can be in finished case!
                         SummaryUi(basket, promotionDataCollection, triggerCheckout)
