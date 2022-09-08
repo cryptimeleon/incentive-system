@@ -191,7 +191,7 @@ public class IncentiveController {
     */
 
     /**
-     * HTTP endpoint to take the double-spending protection database down for a short time.
+     * HTTP endpoint to start a short simulated DoS attack on the double-spending protection database.
      */
     @GetMapping("/dos/short-duration")
     public void shortDos() {
@@ -199,7 +199,7 @@ public class IncentiveController {
     }
 
     /**
-     * HTTP endpoint to take the double-spending protection database down for a longer time.
+     * HTTP endpoint to start a longer simulated DoS attack on the double-spending protection database.
      */
     @GetMapping("/dos/long-duration")
     public void longDos() {

@@ -38,10 +38,21 @@ public class ScheduledOfflineDSPRepository implements OfflineDSPRepository, Cycl
         this.dsProtectionClient = dsProtectionClient;
     }
 
+
+
     /*
     * OfflineDSPRepository methods
     */
 
+    /**
+     * Adds a new transaction with the passed information to the queue of transactions to be added to the double-spending database as soon as possible.
+     * Uses a List as the data structure to simulate the queue of transactions to be synced into the database.
+     *
+     * @param promotionId ID of the promotion that the transaction exploits
+     * @param tid ID of the transaction
+     * @param spendRequest object describing spend request that lead to the transaction
+     * @param deductOutput output (= spend response + double-spending tag) that the provider generated when processing the above spend request
+     */
     @Override
     public void addToDbSyncQueue(BigInteger promotionId, Zn.ZnElement tid, SpendRequest spendRequest, DeductOutput deductOutput) {
         DbSyncTask dbSyncTask = new DbSyncTask(promotionId, tid, spendRequest, deductOutput);
@@ -50,17 +61,27 @@ public class ScheduledOfflineDSPRepository implements OfflineDSPRepository, Cycl
         }
     }
 
+    /**
+     * Returns true if and only if the double-spending protection service is currently available
+     * (i.e. available via the network + not currently experiencing a simulated DoS attack).
+     */
     @Override
     public boolean dspServiceIsAlive() {
         return dsProtectionClient.dspServiceIsAlive();
     }
 
+    /**
+     * Returns true if and only if the double-spending database contains a node for the passed dsid.
+     */
     @Override
     public boolean containsDsid(GroupElement dsid) { return dsProtectionClient.containsDsid(dsid); }
 
     /*
     * end of OfflineDSPRepository methods
     */
+
+
+
 
     /*
     * CyclingScheduler methods
@@ -84,6 +105,9 @@ public class ScheduledOfflineDSPRepository implements OfflineDSPRepository, Cycl
     /*
     * end of CyclingScheduler methods
     */
+
+
+
 
     @Scheduled(fixedDelay = DB_SYNC_QUEUE_CYCLE_DELAY)
     private void scheduleFixedDelayTask() {
