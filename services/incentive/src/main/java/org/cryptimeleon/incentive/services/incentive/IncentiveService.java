@@ -300,7 +300,7 @@ public class IncentiveService {
         */
         var rewardIds = new ArrayList<String>();
 
-        // process spend request
+        // process spend requests
         for (SpendRequestDto spendRequestDto : bulkRequestDto.getSpendRequestDtoList()) {
             /*
             * Handles spend request and synchronizes occured transaction into double-spending database.
@@ -320,8 +320,12 @@ public class IncentiveService {
             }
         }
 
+        log.info("All spend requests processed.");
+
         // add rewards to basket
         basketRepository.setRewardsOfBasket(basketId, rewardIds);
+
+        log.info("Added rewards to basket.");
 
         // handle earn requests
         for (EarnRequestDto earnRequestDto : bulkRequestDto.getEarnRequestDtoList()) {
@@ -332,6 +336,8 @@ public class IncentiveService {
             // remember earn responses for later (earned points only granted after basket paid)
             tokenUpdateResultRepository.insertEarnResponse(basketId, earnRequestDto.getPromotionId(), result);
         }
+
+        log.info("Processed earn requests.");
 
         log.info("Bulk proofs for basket " + basketId.toString() + " finished!");
     }

@@ -11,7 +11,7 @@ import java.util.Optional;
 
 /**
  * This repository manages all promotions.
- * Currently a hard-coded implementation. Will be replaced by a database in the future.
+ * Currently just a list. Will be replaced by a database in the future.
  */
 @Repository
 public class PromotionRepository {
@@ -21,10 +21,18 @@ public class PromotionRepository {
         return promotions;
     }
 
+    /**
+     * Returns the promotion with the passed promotion ID if it exists.
+     * @return Optional
+     */
     public Optional<Promotion> getPromotion(BigInteger promotionId) {
         return promotions.stream().filter(p -> p.getPromotionParameters().getPromotionId().equals(promotionId)).findAny();
     }
 
+    /**
+     * Adds the passed promotion to the system if its promotion ID is not used yet.
+     * @param promotion promotion object
+     */
     public void addPromotion(Promotion promotion) {
         if (promotions.stream().noneMatch(p -> p.getPromotionParameters().getPromotionId().equals(promotion.getPromotionParameters().getPromotionId()))) {
             promotions.add(promotion);
@@ -33,6 +41,9 @@ public class PromotionRepository {
         }
     }
 
+    /**
+     * Deletes all promotions from the system.
+     */
     public void deleteAllPromotions() {
         promotions.clear();
     }
