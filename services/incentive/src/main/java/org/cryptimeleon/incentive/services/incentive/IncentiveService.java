@@ -79,8 +79,9 @@ public class IncentiveService {
     }
 
     /**
-     * Executes Issue algorithm for the passed promotion and join request
-     * to let user join the promotion specified by the promotion ID.
+     * Executes Issue algorithm of Issue-Join protocol for the passed promotion and join request
+     * to let user join the promotion specified by the promotion ID
+     * (Issue-Join yields a token for the respective promotion that contains no points).
      *
      * @param promotionId           the id that identifies the promotion
      * @param serializedJoinRequest the serialized join request
@@ -281,7 +282,7 @@ public class IncentiveService {
     }
 
     /**
-     * Handles a bulk of spend and earn requests that is specified by the passed data transfer object (DTO).
+     * Processes a bulk of spend and earn requests that is specified by the passed data transfer object (DTO).
      * @param basketId ID of the basket to apply the spends/earns to
      */
     public void handleBulk(UUID basketId, BulkRequestDto bulkRequestDto) {
@@ -293,7 +294,10 @@ public class IncentiveService {
 
         log.info("Start bulk proofs");
 
-        // initialize empty list of granted rewards
+        /*
+        * Initialize empty list of granted rewards.
+        * Rewards are only granted to user after basket is paid, so they need to be saved for later.
+        */
         var rewardIds = new ArrayList<String>();
 
         // process spend request
@@ -367,11 +371,12 @@ public class IncentiveService {
     }
 
     /**
-     * Computes a genesis signature on the passed user public key.
+     * Computes a genesis signature on the passed user public key using the passed SPS-EQ signing key in the SPS-EQ contained in the passed public parameters.
+     * A genesis signature for a user is a signature on this user's public key together with the common base w of all users' public keys.
      */
-    private SPSEQSignature generateGenesisSignature(IncentivePublicParameters pp, SPSEQSigningKey sk, GroupElement upk) {
+    private SPSEQSignature generateGenesisSignature(IncentivePublicParameters pp, SPSEQSigningKey skSpsEq, GroupElement upk) {
         return (SPSEQSignature) pp.getSpsEq().sign(
-                sk,
+                skSpsEq,
                 upk,
                 pp.getW()
         );
