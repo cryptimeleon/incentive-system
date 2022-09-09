@@ -63,21 +63,6 @@ public class ScheduledOfflineDSPRepository implements OfflineDSPRepository, Cycl
     }
 
     /**
-     * Returns true if and only if the double-spending protection service is currently available
-     * (i.e. available via the network + not currently experiencing a simulated DoS attack).
-     */
-    @Override
-    public boolean dspServiceIsAlive() {
-        // check for simulated DoS attack ongoing
-        if(simulatedDosAttackOngoing()) {
-            return false;
-        }
-
-        // if no simulated DoS attack ongoing: do actual heartbeat check
-        return dsProtectionClient.dspServiceIsAlive();
-    }
-
-    /**
      * Returns true if and only if the double-spending database contains a node for the passed dsid.
      */
     @Override
@@ -164,7 +149,7 @@ public class ScheduledOfflineDSPRepository implements OfflineDSPRepository, Cycl
     /**
      * Returns true if and only if a simulated DoS attack is currently ongoing.
      */
-    private boolean simulatedDosAttackOngoing() {
+    public boolean simulatedDosAttackOngoing() {
         return waitUntil.isAfter(LocalDateTime.now());
     }
 }

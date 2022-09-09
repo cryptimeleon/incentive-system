@@ -219,7 +219,7 @@ public class IncentiveService {
         * If yes: abort transaction (since trivially identified as double-spending) and return dedicated caught-double-spending side effect.
         * Else: spend request is answered as normal, transaction is recorded into the database as soon as possible
         *
-        * If dsp service is down at the time of the above query, the transaction is recorded in the database regardless of the used dsid.
+        * If dsp service is down at the time of the above query (due to a simulated dos attack), the transaction is recorded in the database regardless of the used dsid.
         *
         * Note that the above check is one-sided, i.e. while it never wrongly identifies a transaction as double-spending,
         * it cannot identify all invalid transactions.
@@ -238,7 +238,7 @@ public class IncentiveService {
         * no matter whether dsid was already known.
         */
         GroupElement usedTokenDsid = spendRequest.getDsid();
-        if(offlineDspRepository.dspServiceIsAlive() && offlineDspRepository.containsDsid(usedTokenDsid)) {
+        if(offlineDspRepository.simulatedDosAttackOngoing() && offlineDspRepository.containsDsid(usedTokenDsid)) {
             return new CaughtDoubleSpendingSideEffect("Double-spending attempt detected: Token " + usedTokenDsid + " has already been spent!");
         }
         else {

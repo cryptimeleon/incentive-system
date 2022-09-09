@@ -25,10 +25,9 @@ public interface OfflineDSPRepository {
     void addToDbSyncQueue(BigInteger promotionId, Zn.ZnElement tid, SpendRequest spendRequest, DeductOutput deductOutput);
 
     /**
-     * Returns true if and only if the double-spending protection service is currently available
-     * (i.e. available via the network + not currently experiencing a simulated DoS attack).
+     * Returns true if and only if a simulated DoS attack is currently ongoing.
      */
-    boolean dspServiceIsAlive();
+    boolean simulatedDosAttackOngoing();
 
     /**
      * Returns true if and only if the double-spending database contains a node for the passed dsid.

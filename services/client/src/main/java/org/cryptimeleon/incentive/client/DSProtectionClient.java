@@ -108,7 +108,9 @@ public class DSProtectionClient {
         // marshall data
         String serializedDsidRepr = computeSerializedRepresentation(dsid);
 
-        // make request and return result
+        /*
+         * Make request and return result if present.
+         */
         return this.dsProtectionClient.get()
                 .uri(uriBuilder -> uriBuilder.path(CONTAINS_DSID_PATH).build())
                 .header("dsid", serializedDsidRepr)
