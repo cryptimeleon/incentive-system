@@ -238,10 +238,18 @@ public class IncentiveService {
         * no matter whether dsid was already known.
         */
         GroupElement usedTokenDsid = spendRequest.getDsid();
-        if(offlineDspRepository.simulatedDosAttackOngoing() && offlineDspRepository.containsDsid(usedTokenDsid)) {
-            return new CaughtDoubleSpendingSideEffect("Double-spending attempt detected: Token " + usedTokenDsid + " has already been spent!");
+        try {
+            // immediately reject transaction if no simulated DoS attack ongoing and spent token already contained
+            if(offlineDspRepository.simulatedDosAttackOngoing() && offlineDspRepository.containsDsid(usedTokenDsid)) {
+                return new CaughtDoubleSpendingSideEffect("Double-spending attempt detected: Token " + usedTokenDsid + " has already been spent!");
+            }
+            // otherwise: record transaction in database as soon as possible
+            else {
+                offlineDspRepository.addToDbSyncQueue(promotionId, tid, spendRequest, deductOutput);
+            }
         }
-        else {
+        // runtime exception is thrown if the dsp service is offline
+        catch (RuntimeException re) {
             offlineDspRepository.addToDbSyncQueue(promotionId, tid, spendRequest, deductOutput);
         }
 
