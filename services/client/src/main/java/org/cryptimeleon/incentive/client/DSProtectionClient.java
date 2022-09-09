@@ -101,6 +101,9 @@ public class DSProtectionClient {
                 .block();
     }
 
+    /**
+     * Returns true if and only if token with the specified double-spending protection ID is already contained in the database.
+     */
     public Boolean containsDsid(GroupElement dsid) {
         // marshall data
         String serializedDsidRepr = computeSerializedRepresentation(dsid);
@@ -114,19 +117,34 @@ public class DSProtectionClient {
                 .block();
     }
 
+    /**
+     * Performs a heartbeat check for the double-spending protection service.
+     * I.e. returns true if and only if the double-spending protection service is up and running.
+     */
     public Boolean dspServiceIsAlive(){
-        // make request to heartbeat endpoint
-        String heartbeatResponse = this.dsProtectionClient.get()
-                .uri(uriBuilder -> uriBuilder.path(HEARTBEAT_PATH).build())
-                .retrieve()
-                .bodyToMono(String.class)
-                .block(Duration.ofSeconds(HEARTBEAT_TIMEOUT));
+        String heartbeatResponse = null;
+
+        // make request to heartbeat endpoint, timeout leads to RuntimeException
+        try {
+            heartbeatResponse = this.dsProtectionClient.get()
+                    .uri(uriBuilder -> uriBuilder.path(HEARTBEAT_PATH).build())
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block(Duration.ofSeconds(HEARTBEAT_TIMEOUT));
+        }
+        catch (RuntimeException re) {
+            // if previous request times out: dsp service is down
+            return false;
+        }
 
         // if received response: return true, else false
         return heartbeatResponse != null;
     }
 
 
+    /**
+     * Helper method that computes a serialized representation of the passed representable r.
+     */
     private static String computeSerializedRepresentation(Representable r) {
         JSONConverter jsonConverter = new JSONConverter();
         return jsonConverter.serialize(

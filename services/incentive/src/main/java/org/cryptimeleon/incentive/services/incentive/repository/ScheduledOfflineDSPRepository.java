@@ -2,6 +2,7 @@ package org.cryptimeleon.incentive.services.incentive.repository;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tomcat.jni.Local;
 import org.cryptimeleon.incentive.client.DSProtectionClient;
 import org.cryptimeleon.incentive.crypto.model.DeductOutput;
 import org.cryptimeleon.incentive.crypto.model.SpendRequest;
@@ -30,7 +31,7 @@ public class ScheduledOfflineDSPRepository implements OfflineDSPRepository, Cycl
     private final DSProtectionClient dsProtectionClient; // object handling the connectivity to the double-spending protection database
     private final List<DbSyncTask> taskQueue = Collections.synchronizedList(new ArrayList<>());
 
-    @Getter
+    @Getter // because of lomboks naming convention, this implements the method getWaitUntil of CyclingScheduler
     private LocalDateTime waitUntil = LocalDateTime.now().plus(Duration.ofSeconds(5));
 
     @Autowired
@@ -67,6 +68,12 @@ public class ScheduledOfflineDSPRepository implements OfflineDSPRepository, Cycl
      */
     @Override
     public boolean dspServiceIsAlive() {
+        // check for simulated DoS attack ongoing
+        if(simulatedDosAttackOngoing()) {
+            return false;
+        }
+
+        // if no simulated DoS attack ongoing: do actual heartbeat check
         return dsProtectionClient.dspServiceIsAlive();
     }
 
@@ -152,5 +159,12 @@ public class ScheduledOfflineDSPRepository implements OfflineDSPRepository, Cycl
                 promotionId,
                 tid.toString() // TODO change this once user choice generation is properly implemented
         );
+    }
+
+    /**
+     * Returns true if and only if a simulated DoS attack is currently ongoing.
+     */
+    private boolean simulatedDosAttackOngoing() {
+        return waitUntil.isAfter(LocalDateTime.now());
     }
 }
