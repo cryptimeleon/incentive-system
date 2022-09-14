@@ -1,7 +1,7 @@
 package org.cryptimeleon.incentive.services.incentive.repository;
 
 import org.cryptimeleon.incentive.promotion.Promotion;
-import org.cryptimeleon.incentive.services.incentive.IncentiveServiceException;
+import org.cryptimeleon.incentive.services.incentive.error.IncentiveServiceException;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;

@@ -10,7 +10,9 @@ import org.cryptimeleon.incentive.app.data.database.crypto.CryptoMaterialEntity
 import org.cryptimeleon.incentive.app.data.database.crypto.CryptoTokenEntity
 import org.cryptimeleon.incentive.app.data.network.CryptoApiService
 import org.cryptimeleon.incentive.app.data.network.InfoApiService
+import org.cryptimeleon.incentive.app.domain.DSException
 import org.cryptimeleon.incentive.app.domain.ICryptoRepository
+import org.cryptimeleon.incentive.app.domain.PayRedeemException
 import org.cryptimeleon.incentive.app.domain.RefreshCryptoMaterialException
 import org.cryptimeleon.incentive.app.domain.model.BulkRequestDto
 import org.cryptimeleon.incentive.app.domain.model.BulkResponseDto
@@ -99,7 +101,11 @@ class CryptoRepository(
         val response = cryptoApiService.sendTokenUpdatesBatch(basketId, bulkRequestDto)
         if (!response.isSuccessful) {
             Timber.e(response.raw().toString())
-            throw RuntimeException(response.errorBody().toString())
+            if (response.code() == 418) {
+                throw DSException()
+            } else {
+                throw PayRedeemException(response.code(), response.errorBody()?.string() ?: "")
+            }
         }
     }
 
@@ -107,7 +113,7 @@ class CryptoRepository(
         val response = cryptoApiService.retrieveTokenUpdatesResults(basketId)
         if (!response.isSuccessful || response.body() == null) {
             Timber.e(response.raw().toString())
-            throw RuntimeException(response.errorBody().toString())
+            throw PayRedeemException(response.code(), response.errorBody()?.string() ?: "")
         }
         return response.body()!!
     }

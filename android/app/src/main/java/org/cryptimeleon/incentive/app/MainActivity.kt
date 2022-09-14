@@ -1,5 +1,6 @@
 package org.cryptimeleon.incentive.app
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -56,6 +57,10 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // To ensure onboarding is only displayed once
+        val sharedPref = getSharedPreferences("ONBOARDING", Context.MODE_PRIVATE)
+        val firstTimeOpening = sharedPref.getBoolean("first-time", true)
+
         WindowCompat.setDecorFitsSystemWindows(window, false)
         setContent {
             // Update the system bars to be translucent
@@ -78,7 +83,13 @@ class MainActivity : ComponentActivity() {
                 ) { innerPadding ->
                     NavGraph(
                         navController = navController,
-                        finishActivity = { finish() },
+                        firstTimeOpening = firstTimeOpening,
+                        onOnboardingFinished = {
+                            with(sharedPref.edit()) {
+                                putBoolean("first-time", false)
+                                apply()
+                            }
+                        },
                         innerPadding = innerPadding
                     )
                 }
@@ -126,18 +137,20 @@ class MainActivity : ComponentActivity() {
                             label = { Text(stringResource(screen.resourceId)) },
                             selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
                             onClick = {
-                                navController.navigate(screen.route) {
-                                    // Pop up to the start destination of the graph to
-                                    // avoid building up a large stack of destinations
-                                    // on the back stack as users select items
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = false
+                                if (screen.route != currentRoute) {
+                                    navController.navigate(screen.route) {
+                                        // Pop up to the start destination of the graph to
+                                        // avoid building up a large stack of destinations
+                                        // on the back stack as users select items
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = false
+                                        }
+                                        // Avoid multiple copies of the same destination when
+                                        // reselecting the same item
+                                        launchSingleTop = true
+                                        // Restore state when reselecting a previously selected item
+                                        restoreState = false
                                     }
-                                    // Avoid multiple copies of the same destination when
-                                    // reselecting the same item
-                                    launchSingleTop = true
-                                    // Restore state when reselecting a previously selected item
-                                    restoreState = false
                                 }
                             }
                         )

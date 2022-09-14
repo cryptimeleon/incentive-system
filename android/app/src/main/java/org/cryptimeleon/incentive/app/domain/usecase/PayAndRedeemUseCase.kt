@@ -1,13 +1,13 @@
 package org.cryptimeleon.incentive.app.domain.usecase
 
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flow
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature
+import org.cryptimeleon.incentive.app.domain.DSException
 import org.cryptimeleon.incentive.app.domain.IBasketRepository
 import org.cryptimeleon.incentive.app.domain.ICryptoRepository
 import org.cryptimeleon.incentive.app.domain.IPreferencesRepository
 import org.cryptimeleon.incentive.app.domain.IPromotionRepository
+import org.cryptimeleon.incentive.app.domain.PayRedeemException
 import org.cryptimeleon.incentive.app.domain.model.BulkRequestDto
 import org.cryptimeleon.incentive.app.domain.model.Earn
 import org.cryptimeleon.incentive.app.domain.model.EarnRequestData
@@ -49,8 +49,8 @@ class PayAndRedeemUseCase(
      * 4. Update tokens
      * 5. Clear basket and user choices
      */
-    suspend operator fun invoke(): Flow<PayAndRedeemState> =
-        flow {
+    suspend operator fun invoke(): PayAndRedeemStatus {
+        try {
             // Some setup
             val userTokenUpdates: List<PromotionUserUpdateChoice> =
                 analyzeUserTokenUpdatesUseCase().first()
@@ -63,7 +63,6 @@ class PayAndRedeemUseCase(
 
             // TODO some checks on the basket and user choices
 
-            emit(PayAndRedeemState.GEN_ZKP)
             Timber.i("Pay and redeem setup")
             Timber.i("Generate Earn Requests")
             val earnUpdateRequestPairs: List<Pair<EarnRequestData, EarnCache>> =
@@ -140,32 +139,38 @@ class PayAndRedeemUseCase(
                 }
 
             Timber.i("Send requests")
-            emit(PayAndRedeemState.SEND_REQUESTS)
             if (earnUpdateRequestPairs.isNotEmpty() || spendUpdateRequestPairs.isNotEmpty()) {
-                cryptoRepository.sendTokenUpdatesBatch(
-                    basketId, BulkRequestDto(
-                        earnUpdateRequestPairs.map { it.first },
-                        spendUpdateRequestPairs.map { it.first }
+                try {
+                    cryptoRepository.sendTokenUpdatesBatch(
+                        basketId, BulkRequestDto(
+                            earnUpdateRequestPairs.map { it.first },
+                            spendUpdateRequestPairs.map { it.first }
+                        )
                     )
-                )
+                } catch (e: DSException) {
+                    return PayAndRedeemStatus.DSDetected
+                } catch (e: PayRedeemException) {
+                    return PayAndRedeemStatus.Error(e)
+                }
             }
 
             Timber.i("Pay basket")
-            emit(PayAndRedeemState.PAY)
             basketRepository.payCurrentBasket()
 
             // Process results / updates tokens
             if (earnUpdateRequestPairs.isNotEmpty() || spendUpdateRequestPairs.isNotEmpty()) {
                 Timber.i("Retrieve responses")
-                emit(PayAndRedeemState.RETRIEVE_RESPONSES)
-                val updateResults = cryptoRepository.retrieveTokenUpdatesResults(basketId)
+                val updateResults = try {
+                    cryptoRepository.retrieveTokenUpdatesResults(basketId)
+                } catch (e: PayRedeemException) {
+                    return PayAndRedeemStatus.Error(e)
+                }
                 val pp = incentiveSystem.pp
 
                 Timber.i("Update tokens")
-                emit(PayAndRedeemState.UPDATE_TOKENS)
 
                 Timber.i("Earn updates")
-                updateResults.earnTokenUpdateResultDtoList.forEach { it ->
+                updateResults.earnTokenUpdateResultDtoList.forEach {
                     val promotion =
                         promotionParameters.find { promotion -> promotion.promotionParameters.promotionId == it.promotionId }!!
                     Timber.i("Earn for promotion ${promotion.promotionParameters.promotionId}")
@@ -224,8 +229,11 @@ class PayAndRedeemUseCase(
             basketRepository.discardCurrentBasket(false)
 
             Timber.i("Finished Pay and Redeem")
-            emit(PayAndRedeemState.FINISHED)
+            return PayAndRedeemStatus.Success
+        } catch (e: Exception) {
+            return PayAndRedeemStatus.Error(e)
         }
+    }
 
     // Don't store token if you want to double-spend it
     private suspend fun storeUpdatedToken() = !doubleSpendingPreferences.first().discardUpdatedToken
@@ -244,6 +252,8 @@ data class SpendCache(
     val token: Token
 )
 
-enum class PayAndRedeemState {
-    GEN_ZKP, SEND_REQUESTS, PAY, RETRIEVE_RESPONSES, UPDATE_TOKENS, FINISHED, NOT_STARTED
+sealed class PayAndRedeemStatus {
+    object Success : PayAndRedeemStatus()
+    object DSDetected : PayAndRedeemStatus()
+    data class Error(val e: Exception) : PayAndRedeemStatus()
 }

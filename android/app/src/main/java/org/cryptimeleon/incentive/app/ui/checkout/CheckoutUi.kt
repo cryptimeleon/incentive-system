@@ -1,5 +1,7 @@
 package org.cryptimeleon.incentive.app.ui.checkout
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,22 +17,32 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import kotlinx.coroutines.delay
 import org.cryptimeleon.incentive.app.domain.model.Basket
-import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemState
+import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemStatus
 import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
-import org.cryptimeleon.incentive.app.domain.usecase.TokenUpdate
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 import org.cryptimeleon.incentive.app.ui.preview.CryptimeleonPreviewContainer
-import java.math.BigInteger
 import java.util.*
 
+val checkoutTexts = arrayOf(
+    "Your data is protected by cryptography",
+    "Leveraging zero-knowledge proofs to keep your private data safe",
+    "Fiat-Shamir-transforming the zero-knowledge proofs to speedup the checkout",
+    "We value your privacy by only disclosing necessary data",
+    "Our code is 100% open-source",
+    "Privacy and transparency first!",
+)
+
 @Composable
-fun CheckoutUi(navigateHome: () -> Unit) {
+fun CheckoutUi(navigateHome: () -> Unit, navigateToLoadingScreen: () -> Unit) {
     val checkoutViewModel = hiltViewModel<CheckoutViewModel>()
 
     val basket by checkoutViewModel.basket.collectAsState(initial = null)
@@ -40,20 +52,21 @@ fun CheckoutUi(navigateHome: () -> Unit) {
     // Once a basket is paid and new tokens are retrieved, it is removed from the database.
     // Therefore, we need to store the old ID
     val paidBasketId: UUID? by checkoutViewModel.paidBasketId.collectAsState()
+    val returnCode: PayAndRedeemStatus? by checkoutViewModel.returnCode.collectAsState()
 
-    val payAndRedeemState: PayAndRedeemState by checkoutViewModel.payAndRedeemState.collectAsState()
     val checkoutStep: CheckoutStep by checkoutViewModel.checkoutStep.collectAsState()
 
     CheckoutUi(
         basket,
         promotionDataCollection,
         checkoutStep,
-        payAndRedeemState,
+        returnCode,
         paidBasketId,
-        checkoutViewModel::gotoSummary,
-        checkoutViewModel::setUpdateChoice,
         checkoutViewModel::startPayAndRedeem,
-        navigateHome
+        checkoutViewModel::deleteBasket,
+        checkoutViewModel::disableDSAndRecover,
+        navigateHome,
+        navigateToLoadingScreen
     )
 }
 
@@ -63,15 +76,15 @@ private fun CheckoutUi(
     basket: Basket?,
     promotionDataCollection: List<PromotionData>,
     checkoutStep: CheckoutStep,
-    payAndRedeemState: PayAndRedeemState,
+    returnCode: PayAndRedeemStatus? = null,
     paidBasketId: UUID? = null,
-    gotoSummary: () -> Unit,
-    setUserUpdateChoice: (BigInteger, TokenUpdate) -> Unit,
     triggerCheckout: () -> Unit,
+    deleteBasket: () -> Unit,
+    disableDsAndRecover: () -> Unit,
     navigateHome: () -> Unit,
+    navigateToLoadingScreen: () -> Unit
 ) {
     val title = when (checkoutStep) {
-        CheckoutStep.REWARDS -> "Rewards"
         CheckoutStep.SUMMARY -> "Summary"
         CheckoutStep.PROCESSING -> "Processing"
         CheckoutStep.FINISHED -> "Finished"
@@ -81,42 +94,68 @@ private fun CheckoutUi(
     ) {
         Box(Modifier.padding(it)) {
             when (checkoutStep) {
-                CheckoutStep.REWARDS -> {
-                    RewardsUi(
-                        promotionDataCollection,
-                        setUserUpdateChoice,
-                        gotoSummary,
-                    )
-                }
                 CheckoutStep.SUMMARY -> {
                     basket?.let { // Should not be null in this case, but can be in finished case!
                         SummaryUi(basket, promotionDataCollection, triggerCheckout)
                     }
                 }
                 CheckoutStep.FINISHED -> {
-                    FinishedUi(paidBasketId, navigateHome)
+                    when (returnCode) {
+                        PayAndRedeemStatus.Success -> FinishedUi(paidBasketId, navigateHome)
+                        PayAndRedeemStatus.DSDetected -> DSPreventedUi(
+                            navigateHome = navigateHome,
+                            disableDoubleSpending = {
+                                disableDsAndRecover()
+                                navigateToLoadingScreen()
+                            },
+                        )
+                        is PayAndRedeemStatus.Error -> ErrorUi(
+                            e = returnCode,
+                            deleteBasketAndGoHome = {
+                                deleteBasket()
+                                navigateHome()
+                            }
+                        )
+                        else -> {}
+                    }
                 }
                 CheckoutStep.PROCESSING -> {
-                    PayProgressUi(payAndRedeemState)
+                    PayProgressUi()
                 }
             }
         }
     }
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
-private fun PayProgressUi(payAndRedeemState: PayAndRedeemState) {
+private fun PayProgressUi() {
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 32.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        CircularProgressIndicator()
-        Spacer(modifier = Modifier.size(8.dp))
-        Text(
-            payAndRedeemState.toString(),
-            style = MaterialTheme.typography.labelMedium
-        )
+        CircularProgressIndicator(strokeWidth = 4.dp, modifier = Modifier.size(64.dp))
+        Spacer(modifier = Modifier.size(32.dp))
+
+        val target by produceState(initialValue = checkoutTexts.random()) {
+            while (true) {
+                delay(2000L)
+                value = checkoutTexts.random()
+            }
+        }
+
+        AnimatedContent(
+            targetState = target,
+        ) { str ->
+            Text(
+                text = str,
+                style = MaterialTheme.typography.headlineSmall,
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }
 
@@ -125,6 +164,6 @@ private fun PayProgressUi(payAndRedeemState: PayAndRedeemState) {
 @Composable
 fun CheckoutUiInProgressPreview() {
     CryptimeleonPreviewContainer {
-        PayProgressUi(payAndRedeemState = PayAndRedeemState.UPDATE_TOKENS)
+        PayProgressUi()
     }
 }
