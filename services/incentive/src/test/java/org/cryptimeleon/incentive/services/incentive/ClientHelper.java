@@ -110,7 +110,6 @@ public class ClientHelper {
         webTestClient.post()
                 .uri("/bulk-token-updates")
                 .header("basket-id", String.valueOf(basketId))
-                .header("do-sync", Boolean.toString(false))
                 .body(BodyInserters.fromValue(
                         new BulkRequestDto(
                                 List.of(new EarnRequestDto(promotionId,
