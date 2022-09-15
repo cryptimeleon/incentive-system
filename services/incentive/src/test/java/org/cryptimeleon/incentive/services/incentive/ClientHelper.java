@@ -26,6 +26,13 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+/**
+ * Implements the functionality of the incentive client for the test cases.
+ *
+ * More precisely, a WebTestClient is used in the test cases
+ * so this class provides one method for each incentive service endpoint
+ * which makes the passed WebTestClient make the respective request.
+ */
 public class ClientHelper {
 
     private static final JSONConverter jsonConverter = new JSONConverter();
@@ -79,13 +86,13 @@ public class ClientHelper {
                                UserKeyPair ukp,
                                Promotion promotion,
                                HttpStatus expectedStatus) {
-        var generateIssueJoinOutput = incentiveSystem.generateJoinRequest(pkp.getPk(), ukp);
+        var joinFirstStepOutput = incentiveSystem.generateJoinRequest(pkp.getPk(), ukp);
 
         // Send request and process response to assert correct behavior
         var serializedJoinResponse = webTestClient.post()
                 .uri("/join-promotion")
                 .header("user-public-key", jsonConverter.serialize(ukp.getPk().getRepresentation()))
-                .header("join-request", jsonConverter.serialize(generateIssueJoinOutput.getJoinRequest().getRepresentation()))
+                .header("join-request", jsonConverter.serialize(joinFirstStepOutput.getJoinRequest().getRepresentation()))
                 .header("promotion-id", String.valueOf(promotion.getPromotionParameters().getPromotionId()))
                 .exchange()
                 .expectStatus()
@@ -95,7 +102,7 @@ public class ClientHelper {
                 .getResponseBody();
 
         var joinResponse = new JoinResponse(jsonConverter.deserialize(serializedJoinResponse), incentiveSystem.pp);
-        return incentiveSystem.handleJoinRequestResponse(promotion.getPromotionParameters(), pkp.getPk(), generateIssueJoinOutput, joinResponse);
+        return incentiveSystem.handleJoinRequestResponse(promotion.getPromotionParameters(), pkp.getPk(), joinFirstStepOutput, joinResponse);
     }
 
     static EarnRequest generateAndSendEarnRequest(WebTestClient webTestClient,
