@@ -68,6 +68,14 @@ public class ScheduledOfflineDSPRepository implements OfflineDSPRepository, Cycl
     @Override
     public boolean containsDsid(GroupElement dsid) { return dsProtectionClient.containsDsid(dsid); }
 
+    /**
+     * Returns true if and only if a simulated DoS attack is currently ongoing.
+     */
+    @Override
+    public boolean simulatedDosAttackOngoing() {
+        return waitUntil.isAfter(LocalDateTime.now());
+    }
+
     /*
     * end of OfflineDSPRepository methods
     */
@@ -144,12 +152,5 @@ public class ScheduledOfflineDSPRepository implements OfflineDSPRepository, Cycl
                 promotionId,
                 tid.toString() // TODO change this once user choice generation is properly implemented
         );
-    }
-
-    /**
-     * Returns true if and only if a simulated DoS attack is currently ongoing.
-     */
-    public boolean simulatedDosAttackOngoing() {
-        return waitUntil.isAfter(LocalDateTime.now());
     }
 }

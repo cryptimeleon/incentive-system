@@ -243,7 +243,7 @@ public class IncentiveService {
         GroupElement usedTokenDsid = spendRequest.getDsid();
         try {
             // immediately reject transaction if no simulated DoS attack ongoing and spent token already contained
-            if(offlineDspRepository.simulatedDosAttackOngoing() && offlineDspRepository.containsDsid(usedTokenDsid)) {
+            if(!offlineDspRepository.simulatedDosAttackOngoing() && offlineDspRepository.containsDsid(usedTokenDsid)) {
                 return new CaughtDoubleSpendingSideEffect("Double-spending attempt detected: Token " + usedTokenDsid + " has already been spent!");
             }
             // otherwise: record transaction in database as soon as possible
