@@ -22,9 +22,14 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cryptimeleon.incentive.services.incentive.ClientHelper.*;
 
+/**
+ * Tests for promotion management functionality of incentive service.
+ * This includes adding and deleting promotions, listing all existing promotions
+ * and assuring that promotion list does not contain duplicates.
+ */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class PromotionTest {
-
+    // hard-coded promotions used for tests
     private final Promotion firstTestPromotion = new HazelPromotion(
             HazelPromotion.generatePromotionParameters(),
             "First Test Promotion",
@@ -37,13 +42,26 @@ public class PromotionTest {
             "Second Test Description",
             List.of(new HazelTokenUpdate(UUID.randomUUID(), "Reward", new RewardSideEffect("Yay"), 2)),
             7);
-    // Do not use real crypto repository since it automatically queries info service
+
+    /*
+    * Declares the crypto repository field as an attribute that is mocked
+    * (i.e. replaced by an object providing the same API but possibly with different implementation).
+    * This is done to prevent the crypto repository from attempting to connect to the info service
+    * which allows testing in environments where no info service is running.
+    */
     @MockBean
     private CryptoRepository cryptoRepository;
 
+    // shared secret used to make authenticated requests to the promotion service
     @Value("${incentive-service.provider-secret}")
     private String providerSecret;
 
+    /**
+     * Deletes all promotions that currently exist in the system.
+     * Annotation leads to this being executed before every single test
+     * to ensure a fresh + well-defined test scenario that is independent of previous tests.
+     * @param webTestClient test client used to make the DELETE request
+     */
     @BeforeEach
     public void clearPromotionRepository(@Autowired WebTestClient webTestClient) {
         deleteAllPromotions(webTestClient, providerSecret, HttpStatus.OK);

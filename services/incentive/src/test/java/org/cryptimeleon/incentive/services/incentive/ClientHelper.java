@@ -85,7 +85,8 @@ public class ClientHelper {
     }
 
     /**
-     * Wrapper around DELETE requests
+     * Wrapper around DELETE requests for deleting all promotions in the system.
+     *
      * @param webTestClient test client used to make request to the server
      * @param providerSecret shared secret used to authenticate the request
      * @param expectedStatus if another HTTP status than this is sent back for the query, an exception is thrown
