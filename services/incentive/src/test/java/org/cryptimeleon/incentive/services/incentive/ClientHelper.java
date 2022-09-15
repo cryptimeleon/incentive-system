@@ -184,6 +184,7 @@ public class ClientHelper {
     }
 
     /**
+     * Helper method.
      * User claims the points she earned with the passed earn request.
      * The separation from making the earn request is necessary
      * since the user's basket needs to be paid after making the earn request and before claiming the points.
@@ -198,7 +199,7 @@ public class ClientHelper {
      * @param basketId ID of the basket that the user wants to claim points for
      * @param pointsToEarn how many points the user earns for her basket
      * @param expectedStatus if any other HTTP status than this one is returned, an exception is thrown
-     * @return
+     * @return updated token
      */
     public static Token retrieveTokenAfterEarn(WebTestClient webTestClient,
                                                IncentiveSystem incentiveSystem,
@@ -212,6 +213,7 @@ public class ClientHelper {
                                                HttpStatus expectedStatus) {
         var pp = incentiveSystem.pp;
 
+        // make request
         var resultsDto = webTestClient.post()
                 .uri("/bulk-token-update-results")
                 .header("basket-id", String.valueOf(basketId))
@@ -220,10 +222,17 @@ public class ClientHelper {
                 .isEqualTo(expectedStatus)
                 .expectBody(TokenUpdateResultsDto.class)
                 .returnResult().getResponseBody();
+
+        // assert well-formedness of result
         assert resultsDto != null;
+
+        // extract earn response
         var serializedEarnResponse = resultsDto.getEarnTokenUpdateResultDtoList().get(0).getSerializedEarnResponse();
+
+        // extract updated signature from earn responses
         SPSEQSignature spseqSignature = new SPSEQSignature(jsonConverter.deserialize(serializedEarnResponse), pp.getBg().getG1(), pp.getBg().getG2());
 
+        // execute second part of Earn algorithm and output resulting token
         return incentiveSystem.handleEarnRequestResponse(promotion.getPromotionParameters(), earnRequest, spseqSignature, pointsToEarn, token, pkp.getPk(), ukp);
     }
 
