@@ -11,7 +11,7 @@ import java.math.BigInteger;
  * Data class modelling a single transaction that needs to be synced into the double-spending protection database.
  */
 @Value
-class DbSyncTask {
+public class DbSyncTask {
     BigInteger promotionId; // ID of the promotion that the transaction exploits
     Zn.ZnElement tid; // ID of the transaction
     SpendRequest spendRequest; // object describing the spend request that lead to the transaction

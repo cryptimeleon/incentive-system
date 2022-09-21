@@ -106,9 +106,11 @@ public class IncentiveServiceTest {
     @MockBean
     private BasketRepository basketRepository;
 
+    private FakeScheduledOfflineDSPRepository offlineDspRepository;
+
     @BeforeEach
     public void mock(@Autowired WebTestClient webTestClient) {
-        // Setup the mock to return the correct values when crypto and basket repos are queried.
+        // program hard-coded return values for the crypto and basket repositories using mockito
         when(cryptoRepository.getPublicParameters()).thenReturn(pp);
         when(cryptoRepository.getIncentiveSystem()).thenReturn(incentiveSystem);
         when(cryptoRepository.getProviderPublicKey()).thenReturn(pkp.getPk());
@@ -117,6 +119,9 @@ public class IncentiveServiceTest {
         when(basketRepository.isBasketPaid(testBasket.getBasketId())).thenReturn(false);
         when(basketRepository.getBasket(emptyTestBasket.getBasketId())).thenReturn(emptyTestBasket);
         when(basketRepository.isBasketPaid(emptyTestBasket.getBasketId())).thenReturn(false);
+
+        // mock the offlineDspRepo manually with a test-only implementation
+        this.offlineDspRepository = new FakeScheduledOfflineDSPRepository();
 
         // clear all promotions for clean test starting state
         deleteAllPromotions(webTestClient, providerSecret, HttpStatus.OK);
@@ -296,6 +301,27 @@ public class IncentiveServiceTest {
                 .returnResult()
                 .getResponseBody();
         return pp.getSpsEq().restoreSignature(jsonConverter.deserialize(serializedSignature));
+    }
+
+    /**
+     * Ensures that dbSync is only triggered eventually if the
+     */
+    @Test
+    private void dosAttackPreventsDbSyncTest() {
+        // start DoS attack
+        offlineDspRepository.addLongWaitPeriod();
+
+        // let client make a spend request
+
+        // ensure that no dsid recorded in database
+
+        // stop DoS attack
+        offlineDspRepository.removeAllWaitPeriod();
+
+        // let client make another request
+
+        // ensure that exactly one dsid is recorded in database
+
     }
 
     private SpendRequest sendSingleSpendRequest(WebTestClient webTestClient, Vector<BigInteger> basketPoints, Vector<BigInteger> pointsAfterSpend, Token token, HttpStatus expectedStatus) {
