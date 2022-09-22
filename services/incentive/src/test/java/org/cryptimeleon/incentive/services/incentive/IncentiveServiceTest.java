@@ -6,6 +6,7 @@ import org.cryptimeleon.incentive.client.dto.inc.SpendRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.TokenUpdateResultsDto;
 import org.cryptimeleon.incentive.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
+import org.cryptimeleon.incentive.crypto.Setup;
 import org.cryptimeleon.incentive.crypto.crypto.TestSuite;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.SpendRequest;
@@ -255,7 +256,6 @@ public class IncentiveServiceTest {
                 tokenPoints
         );
 
-        // transaction shall not be synced into DB in this test case
         SpendRequest spendRequest = sendSingleSpendRequest(webTestClient, basketPoints, pointsAfterSpend, token, HttpStatus.OK);
         when(basketRepository.isBasketPaid(emptyTestBasket.getBasketId())).thenReturn(true);
         retrieveTokenAfterSpend(webTestClient, token, pointsAfterSpend, spendRequest);
@@ -307,16 +307,29 @@ public class IncentiveServiceTest {
      * Ensures that dbSync is only triggered eventually if the
      */
     @Test
-    private void dosAttackPreventsDbSyncTest() {
+    private void dosAttackPreventsDbSyncTest(@Autowired WebTestClient webTestClient) {
         // start DoS attack
         offlineDspRepository.addLongWaitPeriod();
 
-        // let client make a spend request
+        // generate token
+        var tokenPoints = Vector.of(BigInteger.valueOf(35));
+        Token token = Helper.generateToken(
+                pp,
+                ukp,
+                pkp,
+                testPromotion.getPromotionParameters(),
+                tokenPoints
+        );
+
+        // generate and let client make spend request
+        // sendSingleSpendRequest
 
         // ensure that no dsid recorded in database
 
         // stop DoS attack
         offlineDspRepository.removeAllWaitPeriod();
+
+        // generate token and spend request
 
         // let client make another request
 
