@@ -54,4 +54,16 @@ public class FakeScheduledOfflineDSPRepository implements OfflineDSPRepository, 
 
     // not needed for tests, just for semantical correctness of interface implementation
     public LocalDateTime getWaitUntil() { return null; }
+
+    /*
+    * additional methods
+    */
+
+    /**
+     * Returns the total number of tokens currently recorded in the database.
+     * @return integer
+     */
+    public int dsidCount() {
+        return dsidList.size();
+    }
 }

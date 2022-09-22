@@ -25,6 +25,7 @@ import org.cryptimeleon.incentive.services.incentive.repository.CryptoRepository
 import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.cartesian.Vector;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -304,44 +305,87 @@ public class IncentiveServiceTest {
     }
 
     /**
-     * Ensures that dbSync is only triggered eventually if the
+     * Ensures that dbSync is not triggered (immediately) if a simulated DoS attack is ongoing.
      */
     @Test
-    private void dosAttackPreventsDbSyncTest(@Autowired WebTestClient webTestClient) {
+    void dosAttackPreventsDbSyncTest(@Autowired WebTestClient webTestClient) {
         // start DoS attack
         offlineDspRepository.addLongWaitPeriod();
 
         // generate token
-        var tokenPoints = Vector.of(BigInteger.valueOf(35));
-        Token token = Helper.generateToken(
+        var tokenPoints1 = Vector.of(BigInteger.valueOf(35));
+        Token token1 = Helper.generateToken(
                 pp,
                 ukp,
                 pkp,
                 testPromotion.getPromotionParameters(),
-                tokenPoints
+                tokenPoints1
         );
 
         // generate and let client make spend request
-        // sendSingleSpendRequest
+        SpendRequest spendRequest1 = sendSingleSpendRequest(
+                webTestClient,
+                Vector.of(BigInteger.valueOf(36415)),
+                Vector.of(BigInteger.valueOf(17)),
+                token1,
+                HttpStatus.OK
+        );
 
-        // ensure that no dsid recorded in database
+        // ensure that dsid is recorded in waiting queue
+        Assertions.assertEquals(1, offlineDspRepository.dsidCount());
+        Assertions.assertTrue(offlineDspRepository.containsDsid(spendRequest1.getDsid()));
 
         // stop DoS attack
         offlineDspRepository.removeAllWaitPeriod();
 
         // generate token and spend request
+        var tokenPoints2 = Vector.of(BigInteger.valueOf(35));
+        Token token2 = Helper.generateToken(
+                pp,
+                ukp,
+                pkp,
+                testPromotion.getPromotionParameters(),
+                tokenPoints2
+        );
 
         // let client make another request
+        SpendRequest spendRequest2 = sendSingleSpendRequest(
+                webTestClient,
+                Vector.of(BigInteger.valueOf(36415)),
+                Vector.of(BigInteger.valueOf(17)),
+                token2,
+                HttpStatus.OK
+        );
 
-        // ensure that exactly one dsid is recorded in database
-
+        /*
+        * Ensure that second dsid is not recorded in queue.
+        */
+        Assertions.assertFalse(offlineDspRepository.containsDsid(spendRequest2.getDsid()));
     }
 
+    /**
+     * Generates and returns a single spend request and sends it to the incentive service using the passed WebTestClient.
+     *
+     * @param webTestClient the client used for sending the request
+     * @param basketPoints vector representing the points that the user can earn for this basket
+     * @param pointsAfterSpend remaining points in the token after the spend transaction
+     * @param token spent token
+     * @param expectedStatus an exception if the HTTPResponse status code differs from this one
+     * @return spend request crypto object
+     */
     private SpendRequest sendSingleSpendRequest(WebTestClient webTestClient, Vector<BigInteger> basketPoints, Vector<BigInteger> pointsAfterSpend, Token token, HttpStatus expectedStatus) {
         var metadata = testPromotion.generateMetadataForUpdate();
         var spendDeductTree = testTokenUpdate.generateRelationTree(basketPoints, metadata);
         var tid = emptyTestBasket.getBasketId(pp.getBg().getZn());
-        SpendRequest spendRequest = incentiveSystem.generateSpendRequest(testPromotion.getPromotionParameters(), token, pkp.getPk(), pointsAfterSpend, ukp, tid, spendDeductTree);
+        SpendRequest spendRequest = incentiveSystem.generateSpendRequest(
+                testPromotion.getPromotionParameters(),
+                token,
+                pkp.getPk(),
+                pointsAfterSpend,
+                ukp,
+                tid,
+                spendDeductTree
+        );
         var bulkRequestDto = new BulkRequestDto(
                 Collections.emptyList(),
                 List.of(new SpendRequestDto(
@@ -354,10 +398,17 @@ public class IncentiveServiceTest {
         return spendRequest;
     }
 
-    private void sendBulkRequests(WebTestClient webTestClient, BulkRequestDto bulkRequestDto, Basket emptyTestBasket, HttpStatus expectedStatus) {
+    /**
+     * Sends a bulk of multiple earn and spend requests to the incentive server using the WebTestClient.
+     * @param webTestClient the client used to send the request bulk to the server
+     * @param bulkRequestDto bulk of Earn and Spend requests
+     * @param testBasket basket the user earns points for
+     * @param expectedStatus an exception if the HTTPResponse status code differs from this one
+     */
+    private void sendBulkRequests(WebTestClient webTestClient, BulkRequestDto bulkRequestDto, Basket testBasket, HttpStatus expectedStatus) {
         webTestClient.post()
                 .uri(uriBuilder -> uriBuilder.path("/bulk-token-updates").build())
-                .header("basket-id", String.valueOf(emptyTestBasket.getBasketId()))
+                .header("basket-id", String.valueOf(testBasket.getBasketId()))
                 .body(BodyInserters.fromValue(bulkRequestDto))
                 .exchange()
                 .expectStatus()
