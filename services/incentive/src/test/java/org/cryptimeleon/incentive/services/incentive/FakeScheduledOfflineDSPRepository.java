@@ -27,6 +27,10 @@ public class FakeScheduledOfflineDSPRepository implements OfflineDSPRepository, 
     private boolean simulatedDosOngoing;
     private ArrayList<GroupElement> dsidList;
 
+    public FakeScheduledOfflineDSPRepository() {
+        this.dsidList = new ArrayList<GroupElement>();
+    }
+
     /*
     * OfflineDSPRepository methods
     */
