@@ -22,7 +22,7 @@ public class BasketService {
     private final Map<String, Item> itemMap;
 
     /**
-     * Initialize basket service with some shopping items
+     * Initialize basket service with empty shopping item list.
      */
     BasketService() {
         this.rewardItems = new ArrayList<>();
@@ -30,23 +30,40 @@ public class BasketService {
         itemMap = new HashMap<>();
     }
 
+    /**
+     * Returns a list of all shopping items that can be purchased.
+     */
     public Item[] getItems() {
         return itemMap.values().toArray(new Item[0]);
     }
 
+    /**
+     * Returns true if and only if the basket service has a purchasable item with the passed ID.
+     * @param itemId
+     * @return
+     */
     private boolean hasItem(String itemId) {
         return itemMap.containsKey(itemId);
     }
 
+    /**
+     * Returns the purchasable item with the passed ID.
+     */
     public Item getItem(String id) {
         return itemMap.get(id);
     }
 
+    /**
+     * Makes the passed item a new purchasable item (registered under its ID).
+     */
     public void save(Item item) {
         itemMap.put(item.getId(), item);
         System.out.println(itemMap.containsKey(item.getId()));
     }
 
+    /**
+     * Deletes all purchasable items.
+     */
     public void deleteAllItems() {
         itemMap.clear();
     }

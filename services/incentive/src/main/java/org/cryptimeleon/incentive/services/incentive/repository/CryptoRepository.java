@@ -18,7 +18,7 @@ import java.time.Duration;
 
 /**
  * This repository encapsulates the cryptographic assets/objects.
- * <p>
+ *
  * It connects to the info-service and queries the public parameters and provider keys using an authenticated request
  * and retries MAX_TRIES times, each time doubling the waiting time.
  */

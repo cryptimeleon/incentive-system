@@ -30,7 +30,7 @@ class TokenUpdateZkp extends DelegateProtocol {
     // Proof that lowerLimits[i] <= newPoints[i] <= upperLimits[i] for all i
     final Vector<BigInteger> lowerLimits; // null means no limit
     final Vector<BigInteger> upperLimits; // null means no limit
-    // Proof linear relation between new points and old points
+    // Prove linear relation between new points and old points
     // newPoints[i] = a[i]* oldPoints[i] + bVector[i]
     final Vector<BigInteger> aVector; // null means no statement
     final Vector<BigInteger> bVector; // null means no statement

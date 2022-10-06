@@ -19,7 +19,7 @@ import java.util.UUID;
 
 
 /**
- * A REST controller that defines and handles all requests of the basket server.
+ * A REST controller that defines and handles all requests to the basket server.
  */
 @Slf4j
 @RestController
@@ -62,22 +62,27 @@ public class BasketController {
     }
 
     /**
-     * Can be used for health checking.
+     * Can be used for heartbeat checks.
      */
     @GetMapping("/")
     String getHelloWorld() {
         return "Hello from Basket service!";
     }
 
-
     /**
-     * Query all shopping items that can be purchased
+     * Returns a list of all shopping items that can be purchased.
      */
     @GetMapping("/items")
     Item[] getAllBasketItems() {
         return basketService.getItems();
     }
 
+    /**
+     * Adds a new shopping item that can be purchased.
+     * @param providerSecretHeader password read from the request header (must match the provider secret for this method execution to work
+     *                             (otherwise: cancelled since action not authenticated))
+     * @param item item to be added
+     */
     @PostMapping("/items")
     ResponseEntity<Void> newItem(@RequestHeader("provider-secret") String providerSecretHeader, @RequestBody Item item) {
         if (providerSecretHeader == null || !providerSecretHeader.equals(providerSecret)) {

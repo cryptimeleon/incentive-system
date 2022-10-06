@@ -98,15 +98,24 @@ public class DsprotectionController {
 
     /**
      * Returns the transaction with the specified transaction identifier from the database if contained.
-     * @param serializedTaIdentifier serialized representation of a transaction identifier, consisting of a numerical ID and the challenge generator gamma
+     * @param serializedTaIdentifierRepr serialized representation of a transaction identifier, consisting of a numerical ID and the challenge generator gamma
      * @return response entity, containing a crypto transaction object
      */
     @GetMapping("/getta")
-    public ResponseEntity<String> getTransaction(@RequestHeader(value="taidentifier") String serializedTaIdentifier) {
+    public ResponseEntity<String> getTransaction(@RequestHeader(value="taidentifier") String serializedTaIdentifierRepr) {
         // get data from service
-        String serializedResultTaRepr = dsprotectionService.getTransaction(serializedTaIdentifier);
+        String serializedResultTaRepr = dsprotectionService.getTransaction(serializedTaIdentifierRepr);
 
         // send response
         return new ResponseEntity<>(serializedResultTaRepr, HttpStatus.OK);
+    }
+
+    @GetMapping("/containsdsid")
+    public ResponseEntity<Boolean> containsDsid(@RequestHeader(value="dsid") String serializedDsidRepr) {
+        // get answer from service
+        boolean dsidContained = dsprotectionService.containsDsid(serializedDsidRepr);
+
+        // send response
+        return new ResponseEntity<>(dsidContained, HttpStatus.OK);
     }
 }

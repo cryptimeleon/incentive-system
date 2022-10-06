@@ -13,6 +13,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.math.BigInteger;
+import java.time.Duration;
 
 
 /**
@@ -23,8 +24,13 @@ public class DSProtectionClient {
     private static final String DBSYNC_PATH = "/dbsync";
     private static final String CLEAR_DB_PATH = "/cleardb";
     private static final String GET_TRANSACTION_PATH = "/getta";
+    private static final String CONTAINS_DSID_PATH = "/containsdsid";
+    private static final String HEARTBEAT_PATH = "/";
+    private static final long HEARTBEAT_TIMEOUT = 3600; // how long to wait before considering the dsp service down
     private Logger logger = LoggerFactory.getLogger(DSProtectionClient.class);
     private WebClient dsProtectionClient; // the underlying web client making the requests
+
+
 
     public DSProtectionClient(String dsProtectionServiceURL) {
         logger.info("Creating a client that sends queries to " + dsProtectionServiceURL);
@@ -95,7 +101,52 @@ public class DSProtectionClient {
                 .block();
     }
 
+    /**
+     * Returns true if and only if token with the specified double-spending protection ID is already contained in the database.
+     */
+    public Boolean containsDsid(GroupElement dsid) {
+        // marshall data
+        String serializedDsidRepr = computeSerializedRepresentation(dsid);
 
+        /*
+         * Make request and return result if present.
+         */
+        return this.dsProtectionClient.get()
+                .uri(uriBuilder -> uriBuilder.path(CONTAINS_DSID_PATH).build())
+                .header("dsid", serializedDsidRepr)
+                .retrieve()
+                .bodyToMono(Boolean.class)
+                .block();
+    }
+
+    /**
+     * Performs a heartbeat check for the double-spending protection service.
+     * I.e. returns true if and only if the double-spending protection service is up and running.
+     */
+    public Boolean dspServiceIsAlive(){
+        String heartbeatResponse = null;
+
+        // make request to heartbeat endpoint, timeout leads to RuntimeException
+        try {
+            heartbeatResponse = this.dsProtectionClient.get()
+                    .uri(uriBuilder -> uriBuilder.path(HEARTBEAT_PATH).build())
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block(Duration.ofSeconds(HEARTBEAT_TIMEOUT));
+        }
+        catch (RuntimeException re) {
+            // if previous request times out: dsp service is down
+            return false;
+        }
+
+        // if received response: return true, else false
+        return heartbeatResponse != null;
+    }
+
+
+    /**
+     * Helper method that computes a serialized representation of the passed representable r.
+     */
     private static String computeSerializedRepresentation(Representable r) {
         JSONConverter jsonConverter = new JSONConverter();
         return jsonConverter.serialize(

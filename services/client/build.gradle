@@ -26,10 +26,16 @@ jar {
 test {
     useJUnitPlatform()
     exclude '**/integrationtest/**'
+    testLogging {
+        exceptionFormat = 'full'
+    }
 }
 
 task integrationTest(type: Test) {
     outputs.upToDateWhen { false } // Run this test always (no caching) since it depends on external services
     useJUnitPlatform()
     include '**/integrationtest/**'
+    testLogging {
+        exceptionFormat = 'full'
+    }
 }

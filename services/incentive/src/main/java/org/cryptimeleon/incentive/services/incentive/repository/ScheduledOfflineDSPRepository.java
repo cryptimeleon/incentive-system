@@ -2,9 +2,11 @@ package org.cryptimeleon.incentive.services.incentive.repository;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tomcat.jni.Local;
 import org.cryptimeleon.incentive.client.DSProtectionClient;
 import org.cryptimeleon.incentive.crypto.model.DeductOutput;
 import org.cryptimeleon.incentive.crypto.model.SpendRequest;
+import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -29,7 +31,7 @@ public class ScheduledOfflineDSPRepository implements OfflineDSPRepository, Cycl
     private final DSProtectionClient dsProtectionClient; // object handling the connectivity to the double-spending protection database
     private final List<DbSyncTask> taskQueue = Collections.synchronizedList(new ArrayList<>());
 
-    @Getter
+    @Getter // because of lomboks naming convention, this implements the method getWaitUntil of CyclingScheduler
     private LocalDateTime waitUntil = LocalDateTime.now().plus(Duration.ofSeconds(5));
 
     @Autowired
@@ -37,29 +39,88 @@ public class ScheduledOfflineDSPRepository implements OfflineDSPRepository, Cycl
         this.dsProtectionClient = dsProtectionClient;
     }
 
+
+
+    /*
+    * OfflineDSPRepository methods
+    */
+
+    /**
+     * Adds a new transaction with the passed information to the queue of transactions to be added to the double-spending database as soon as possible.
+     * Uses a List as the data structure to simulate the queue of transactions to be synced into the database.
+     *
+     * @param promotionId ID of the promotion that the transaction exploits
+     * @param tid ID of the transaction
+     * @param spendRequest object describing spend request that lead to the transaction
+     * @param deductOutput output (= spend response + double-spending tag) that the provider generated when processing the above spend request
+     */
     @Override
-    public void addToDbSyncQueue(BigInteger promotionId, Zn.ZnElement tid, SpendRequest spendRequest, DeductOutput spendProviderOutput) {
-        DbSyncTask dbSyncTask = new DbSyncTask(promotionId, tid, spendRequest, spendProviderOutput);
+    public void addToDbSyncQueue(BigInteger promotionId, Zn.ZnElement tid, SpendRequest spendRequest, DeductOutput deductOutput) {
+        DbSyncTask dbSyncTask = new DbSyncTask(promotionId, tid, spendRequest, deductOutput);
         synchronized (taskQueue) {
             taskQueue.add(dbSyncTask);
         }
     }
 
+    /**
+     * Returns true if and only if the double-spending database contains a node for the passed dsid.
+     */
+    @Override
+    public boolean containsDsid(GroupElement dsid) { return dsProtectionClient.containsDsid(dsid); }
+
+    /**
+     * Returns true if and only if a simulated DoS attack is currently ongoing.
+     */
+    @Override
+    public boolean simulatedDosAttackOngoing() {
+        return waitUntil.isAfter(LocalDateTime.now());
+    }
+
+    /*
+    * end of OfflineDSPRepository methods
+    */
+
+
+
+
+    /*
+    * CyclingScheduler methods
+    */
+
+    /**
+     * Blocks syncing of Spend transactions into the double-spending database for a short period of time.
+     */
     @Override
     public void addShortWaitPeriod() {
         waitUntil = LocalDateTime.now().plus(Duration.ofSeconds(SHORT_WAIT_PERIOD_SECONDS));
     }
 
+    /**
+     * Blocks syncing of Spend transactions into the double-spending database for a longer period of time.
+     */
     @Override
     public void addLongWaitPeriod() {
         waitUntil = LocalDateTime.now().plus(Duration.ofSeconds(LONG_WAIT_PERIOD_SECONDS));
     }
 
+    /**
+     * Immediately resumes periodic synchronization of Spend transactions.
+     */
     @Override
     public void removeAllWaitPeriod() {
         waitUntil = LocalDateTime.now().minus(Duration.ofSeconds(1));
     }
 
+    /*
+    * end of CyclingScheduler methods
+    */
+
+
+    /**
+     * Empties queue of waiting db sync tasks (i.e. transactions that need to be synchronized into the double-spending database) if possible
+     * by syncing them into the database via a REST endpoint of the double-spending protection service.
+     * Called periodically.
+     */
     @Scheduled(fixedDelay = DB_SYNC_QUEUE_CYCLE_DELAY)
     private void scheduleFixedDelayTask() {
         LocalDateTime now = LocalDateTime.now();
@@ -70,7 +131,7 @@ public class ScheduledOfflineDSPRepository implements OfflineDSPRepository, Cycl
                 Iterator<DbSyncTask> i = taskQueue.listIterator();
                 while (i.hasNext()) {
                     DbSyncTask task = i.next();
-                    triggerDbSync(task.getPromotionId(), task.getTid(), task.getSpendRequest(), task.getDeductOutput());
+                    triggerDbSync(task.getPromotionId(), task.getTid(), task.getSpendRequest(), task.getDeductOutput()); // internally makes a REST call
                     i.remove();
                 }
             }
@@ -79,6 +140,10 @@ public class ScheduledOfflineDSPRepository implements OfflineDSPRepository, Cycl
         }
     }
 
+    /**
+     * Synchronizes a single transaction into the double-spending database.
+     * All properties of the transaction are passed as individual parameters.
+     */
     private void triggerDbSync(BigInteger promotionId, Zn.ZnElement tid, SpendRequest spendRequest, DeductOutput spendProviderOutput) {
         dsProtectionClient.dbSync(
                 tid,

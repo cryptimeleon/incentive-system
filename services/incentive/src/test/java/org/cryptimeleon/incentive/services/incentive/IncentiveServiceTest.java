@@ -6,6 +6,7 @@ import org.cryptimeleon.incentive.client.dto.inc.SpendRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.TokenUpdateResultsDto;
 import org.cryptimeleon.incentive.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
+import org.cryptimeleon.incentive.crypto.Setup;
 import org.cryptimeleon.incentive.crypto.crypto.TestSuite;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.SpendRequest;
@@ -21,9 +22,11 @@ import org.cryptimeleon.incentive.promotion.model.BasketItem;
 import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect;
 import org.cryptimeleon.incentive.services.incentive.repository.BasketRepository;
 import org.cryptimeleon.incentive.services.incentive.repository.CryptoRepository;
+import org.cryptimeleon.incentive.services.incentive.repository.OfflineDSPRepository;
 import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.cartesian.Vector;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -45,16 +48,31 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.cryptimeleon.incentive.services.incentive.ClientHelper.*;
 import static org.mockito.Mockito.when;
 
+/**
+ * Tests all the functionality of the incentive service.
+ * This includes the server side of the crypto protocols (Issue-Join, Credit-Earn, Spend-Deduct)
+ * and the issuing of genesis tokens.
+ *
+ * Uses a WebTestClient object as the client for the crypto protocol tests.
+ * The servers that the incentive service communicates with
+ * (namely basket, info and double-spending protection service)
+ * are mocked using hard-coded answers to the test queries.
+ *
+ * The incentive system instance used for all tests is the hard-coded one from the crypto.testFixtures package.
+ */
 @TestInstance(TestInstance.Lifecycle.PER_METHOD)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class IncentiveServiceTest {
-
-
+    // public parameters, incentive system and key pairs from crypto.testFixtures
     private static final IncentivePublicParameters pp = TestSuite.pp;
     private static final IncentiveSystem incentiveSystem = TestSuite.incentiveSystem;
     private static final ProviderKeyPair pkp = TestSuite.providerKeyPair;
     private static final UserKeyPair ukp = TestSuite.userKeyPair;
+
+    // JSON converter for marshalling/de-marshalling of query data
     private static final JSONConverter jsonConverter = new JSONConverter();
+
+    // hard-coded baskets that the mock basket repo is set up with
     private final Basket testBasket = new Basket(
             UUID.randomUUID(),
             List.of(
@@ -66,6 +84,8 @@ public class IncentiveServiceTest {
             UUID.randomUUID(),
             List.of()
     );
+
+    // hard-coded token update
     private final HazelTokenUpdate testTokenUpdate = new HazelTokenUpdate(UUID.randomUUID(),
             "Reward",
             new RewardSideEffect("Yay"),
@@ -77,18 +97,26 @@ public class IncentiveServiceTest {
             List.of(testTokenUpdate),
             "Test");
 
+    // shared secret for authenticated queries
     @Value("${incentive-service.provider-secret}")
     private String providerSecret;
+
     // Use a MockBean to prevent the CryptoRepository from being created (and trying to connect to the info service)
     @MockBean
     private CryptoRepository cryptoRepository;
+
     // Mock basket repository to inject baskets
     @MockBean
     private BasketRepository basketRepository;
 
+    // @MockBean
+    // private OfflineDSPRepository offlineDspRepository;
+
+    // private FakeScheduledOfflineDSPRepository fakeOfflineDspRepository;
+
     @BeforeEach
     public void mock(@Autowired WebTestClient webTestClient) {
-        // Setup the mock to return the correct values
+        // program hard-coded return values for the crypto and basket repositories using mockito
         when(cryptoRepository.getPublicParameters()).thenReturn(pp);
         when(cryptoRepository.getIncentiveSystem()).thenReturn(incentiveSystem);
         when(cryptoRepository.getProviderPublicKey()).thenReturn(pkp.getPk());
@@ -98,50 +126,86 @@ public class IncentiveServiceTest {
         when(basketRepository.getBasket(emptyTestBasket.getBasketId())).thenReturn(emptyTestBasket);
         when(basketRepository.isBasketPaid(emptyTestBasket.getBasketId())).thenReturn(false);
 
+        // program the offline dsp repo to return fake offline dsp repo answers
+        // when(offlineDspRepository.simulatedDosAttackOngoing()).thenReturn(fakeOfflineDspRepository.simulatedDosAttackOngoing());
+        // when(offlineDspRepository.containsDsid())
+
+        // clear all promotions for clean test starting state
         deleteAllPromotions(webTestClient, providerSecret, HttpStatus.OK);
     }
 
+    /**
+     * Tests functionality for issuing genesis tokens to new users.
+     */
     @Test
     public void genesisTest(@Autowired WebTestClient webClient) {
+        // use hard-coded key pair (from crypto.testFixtures) of a user that is not yet in the system
         var userPreKeyPair = TestSuite.userPreKeyPair;
 
+        // issuing of genesis signature
         SPSEQSignature signature = retrieveGenesisSignature(webClient, userPreKeyPair);
 
+        // assert that signature verifies under the providers SPS-EQ key
         assertThat(pp.getSpsEq().verify(pkp.getPk().getGenesisSpsEqPk(), signature, userPreKeyPair.getPk().getUpk(), pp.getW()))
                 .isTrue();
     }
 
 
+    /**
+     * Tests implementation of the Issue algorithm (server side of the issue join protocol).
+     * @param webClient
+     */
     @Test
     public void joinTest(@Autowired WebTestClient webClient) {
+        // add the promotion used for tests to the system
         addPromotion(webClient, testPromotion, providerSecret, HttpStatus.OK);
 
+        // actual Issue execution
         Token token = joinPromotion(webClient, incentiveSystem, pkp, ukp, testPromotion, HttpStatus.OK);
 
+        // verify that a token was generated
         assertThat(token).isNotNull();
     }
 
+    /**
+     * Verifies that Issue algorithm does not work for a promotion that is not in the system.
+     */
     @Test
     public void joinNonExistingPromotionTest(@Autowired WebTestClient webClient) {
-        assertThatThrownBy(() -> joinPromotion(webClient, incentiveSystem, pkp, ukp, testPromotion, HttpStatus.BAD_REQUEST)).hasStackTraceContaining("Promotion");
+        assertThatThrownBy(
+                () -> joinPromotion(webClient, incentiveSystem, pkp, ukp, testPromotion, HttpStatus.BAD_REQUEST)
+        ).hasStackTraceContaining("Promotion");
     }
 
     @Test
     public void earnTest(@Autowired WebTestClient webClient) {
+        // add promotion that is used for tests to the system
         addPromotion(webClient, testPromotion, providerSecret, HttpStatus.OK);
+
+        // execute Issue to generate a token for the test promotion for the test user
         Token token = joinPromotion(webClient, incentiveSystem, pkp, ukp, testPromotion, HttpStatus.OK);
 
+        // evaluate test basket to determine how many points the user earns
         var pointsToEarn = testPromotion.computeEarningsForBasket(testBasket);
-        var earnRequest = generateAndSendEarnRequest(webClient,
+
+        // generate earn request and pretend like the test user sent it to you
+        var earnRequest = generateAndSendEarnRequest(
+                webClient,
                 incentiveSystem,
                 pkp,
                 ukp,
                 token,
                 testPromotion.getPromotionParameters().getPromotionId(),
                 testBasket.getBasketId(),
-                HttpStatus.OK);
+                HttpStatus.OK
+        );
+
+        // test basket is considered paid now (-> change this in hard-coded mock repo)
         when(basketRepository.isBasketPaid(testBasket.getBasketId())).thenReturn(true);
-        retrieveTokenAfterEarn(webClient,
+
+
+        retrieveTokenAfterEarn(
+                webClient,
                 incentiveSystem,
                 testPromotion,
                 pkp,
@@ -150,7 +214,8 @@ public class IncentiveServiceTest {
                 earnRequest,
                 testBasket.getBasketId(),
                 pointsToEarn,
-                HttpStatus.OK);
+                HttpStatus.OK
+        );
     }
 
     @Test
@@ -216,6 +281,7 @@ public class IncentiveServiceTest {
                 tokenPoints
         );
 
+        // transaction shall not be synced into db in this test case
         sendSingleSpendRequest(webTestClient, basketPoints, pointsAfterSpend, token, HttpStatus.OK);
 
         // Not paid yet
@@ -229,7 +295,7 @@ public class IncentiveServiceTest {
 
     @Test
     void emptyBulkRequestTest(@Autowired WebTestClient webTestClient) {
-        sendBulkRequests(webTestClient, new BulkRequestDto(List.of(), List.of()), emptyTestBasket, HttpStatus.OK);
+        sendBulkRequests(webTestClient, new BulkRequestDto(List.of(), List.of()), emptyTestBasket, HttpStatus.OK); // transaction shall not be synced into DB in this test case
     }
 
     private SPSEQSignature retrieveGenesisSignature(WebTestClient webClient, org.cryptimeleon.incentive.crypto.model.keys.user.UserPreKeyPair userPreKeyPair) {
@@ -243,11 +309,97 @@ public class IncentiveServiceTest {
         return pp.getSpsEq().restoreSignature(jsonConverter.deserialize(serializedSignature));
     }
 
+    /**
+     * Ensures that dbSync is not triggered (immediately) if a simulated DoS attack is ongoing.
+     */
+    // TODO: this test is incomplete since we could not figure out how to properly mock the offline dsp repo using mockito
+    // @Test
+    void dosAttackPreventsDbSyncTest(@Autowired WebTestClient webTestClient) {
+        // add test promotion to the promotion database
+        addPromotion(webTestClient, testPromotion, providerSecret, HttpStatus.OK);
+
+        // start DoS attack
+        // offlineDspRepository.addLongWaitPeriod();
+
+        // generate token
+        var tokenPoints1 = Vector.of(BigInteger.valueOf(35));
+        var basketPoints1 = Vector.of(BigInteger.valueOf(0));
+        var pointsAfterSpend1 = testTokenUpdate.computeSatisfyingNewPointsVector(tokenPoints1, basketPoints1).orElseThrow();
+        Token token1 = Helper.generateToken(
+                pp,
+                ukp,
+                pkp,
+                testPromotion.getPromotionParameters(),
+                tokenPoints1
+        );
+
+        // generate and let client make spend request
+        SpendRequest spendRequest1 = sendSingleSpendRequest(
+                webTestClient,
+                basketPoints1,
+                pointsAfterSpend1,
+                token1,
+                HttpStatus.OK
+        );
+
+        // ensure that dsid is recorded in waiting queue
+        // Assertions.assertEquals(1, offlineDspRepository.dsidCount());
+        // Assertions.assertTrue(offlineDspRepository.containsDsid(spendRequest1.getDsid()));
+
+        // stop DoS attack
+        // offlineDspRepository.removeAllWaitPeriod();
+
+        // generate token and spend request
+        var tokenPoints2 = Vector.of(BigInteger.valueOf(35));
+        var basketPoints2 = Vector.of(BigInteger.valueOf(0));
+        var pointsAfterSpend2 = testTokenUpdate.computeSatisfyingNewPointsVector(tokenPoints2, basketPoints2).orElseThrow();
+
+        Token token2 = Helper.generateToken(
+                pp,
+                ukp,
+                pkp,
+                testPromotion.getPromotionParameters(),
+                tokenPoints2
+        );
+
+        // let client make another request
+        SpendRequest spendRequest2 = sendSingleSpendRequest(
+                webTestClient,
+                basketPoints2,
+                pointsAfterSpend2,
+                token2,
+                HttpStatus.OK
+        );
+
+        /*
+        * Ensure that second dsid is not recorded in queue.
+        */
+        // Assertions.assertFalse(offlineDspRepository.containsDsid(spendRequest2.getDsid()));
+    }
+
+    /**
+     * Generates and returns a single spend request and sends it to the incentive service using the passed WebTestClient.
+     *
+     * @param webTestClient the client used for sending the request
+     * @param basketPoints vector representing the points that the user can earn for his basket
+     * @param pointsAfterSpend remaining points in the token after the spend transaction
+     * @param token spent token
+     * @param expectedStatus an exception is thrown if the HTTPResponse status code differs from this one
+     * @return spend request crypto object
+     */
     private SpendRequest sendSingleSpendRequest(WebTestClient webTestClient, Vector<BigInteger> basketPoints, Vector<BigInteger> pointsAfterSpend, Token token, HttpStatus expectedStatus) {
         var metadata = testPromotion.generateMetadataForUpdate();
         var spendDeductTree = testTokenUpdate.generateRelationTree(basketPoints, metadata);
         var tid = emptyTestBasket.getBasketId(pp.getBg().getZn());
-        SpendRequest spendRequest = incentiveSystem.generateSpendRequest(testPromotion.getPromotionParameters(), token, pkp.getPk(), pointsAfterSpend, ukp, tid, spendDeductTree);
+        SpendRequest spendRequest = incentiveSystem.generateSpendRequest(
+                testPromotion.getPromotionParameters(),
+                token,
+                pkp.getPk(),
+                pointsAfterSpend,
+                ukp,
+                tid,
+                spendDeductTree
+        );
         var bulkRequestDto = new BulkRequestDto(
                 Collections.emptyList(),
                 List.of(new SpendRequestDto(
@@ -260,10 +412,17 @@ public class IncentiveServiceTest {
         return spendRequest;
     }
 
-    private void sendBulkRequests(WebTestClient webTestClient, BulkRequestDto bulkRequestDto, Basket emptyTestBasket, HttpStatus expectedStatus) {
+    /**
+     * Sends a bulk of multiple earn and spend requests to the incentive server using the WebTestClient.
+     * @param webTestClient the client used to send the request bulk to the server
+     * @param bulkRequestDto bulk of Earn and Spend requests
+     * @param testBasket basket the user earns points for
+     * @param expectedStatus an exception if the HTTPResponse status code differs from this one
+     */
+    private void sendBulkRequests(WebTestClient webTestClient, BulkRequestDto bulkRequestDto, Basket testBasket, HttpStatus expectedStatus) {
         webTestClient.post()
                 .uri(uriBuilder -> uriBuilder.path("/bulk-token-updates").build())
-                .header("basket-id", String.valueOf(emptyTestBasket.getBasketId()))
+                .header("basket-id", String.valueOf(testBasket.getBasketId()))
                 .body(BodyInserters.fromValue(bulkRequestDto))
                 .exchange()
                 .expectStatus()
