@@ -28,9 +28,7 @@
             }
         },
         /*
-        * Fills transactions array with the dummy data for now.
-        * Later: connect to backend API (Spring Boot) to grab real transaction data.
-        * Endpoint for that already coded, see GitHub issue #105.
+        * Connects to backend to fill transactions array.
         */
         async created() {
             // display heartbeat message to show server status
