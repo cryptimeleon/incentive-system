@@ -1,5 +1,7 @@
 <template>
-
+    <div>
+        <h3>ID: {{basket.basketID}}</h3>
+    </div>
 </template>
 
 <script>

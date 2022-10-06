@@ -2,7 +2,7 @@
     <!-- Main component of the store frontend. 
         Displays a basket list. -->
     <p>Hello, this is a friendly store frontend!</p>
-    <BasketList/>
+    <BasketList :baskets="baskets"/>
 </template>
 
 <script>
@@ -25,6 +25,20 @@
                 */
                 baskets: []
             }
+        },
+        /*
+        * Fills baskets array with dummy data.
+        * Later: connects to backend to grab real data.
+        */
+        async created() {
+            this.baskets = [
+                {
+                    basketID: 426
+                },
+                {
+                    basketID: 808
+                }
+            ]
         }
     }
 </script>
