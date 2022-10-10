@@ -1,6 +1,6 @@
 <template>
     <div class="itemdiv">
-        <h3>{{item.name}} x{{item.count}}</h3>
+        <h3 class="itemh3">{{item.name}} x{{item.count}}</h3>
         <p>Price: {{item.price}}</p>
     </div>
 </template>
@@ -23,8 +23,12 @@
 
 <style>
     .itemdiv {
-        background: #d5f8ce;
+        background: #e6e6e6;
         margin: 5px;
         padding: 10px 20px;
+    }
+
+    .itemh3 {
+        font-weight: bold;
     }
 </style>
