@@ -1,6 +1,6 @@
 <template>
     <!-- CSS class depends on whether transaction is valid or not.
-    Property 'transaction' is used to determine this. -->
+    Property 'transaction.isValid' is used to determine this. -->
     <div :class="[transaction.isValid ? 'valid' : 'invalid', 'transaction']">
         <h3>ID: {{transaction.tid}}</h3>
         <p>Chosen reward: {{transaction.userChoice}}</p>

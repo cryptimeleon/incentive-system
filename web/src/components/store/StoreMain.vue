@@ -33,10 +33,29 @@
         async created() {
             this.baskets = [
                 {
-                    basketID: 426
+                    basketID: 426,
+                    items: [
+                        {
+                            name: "Awesome new flying toaster",
+                            price: 42.60,
+                            count: 426
+                        }
+                    ]
                 },
                 {
-                    basketID: 808
+                    basketID: 808,
+                    items: [
+                        {
+                            name: "Potato chips",
+                            price: 4.26,
+                            count: 426
+                        },
+                        {
+                            name: "Perfect apple",
+                            price: 4.26,
+                            count: 426
+                        }
+                    ]
                 }
             ]
         }

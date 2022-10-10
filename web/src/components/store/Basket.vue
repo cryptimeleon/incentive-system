@@ -1,7 +1,7 @@
 <template>
     <div>
         <h3>ID: {{basket.basketID}}</h3>
-        <ItemList/>
+        <ItemList :items="basket.items" />
     </div>
 </template>
 
@@ -9,8 +9,8 @@
     import ItemList from "./ItemList.vue"
 
     export default {
-    name: "BasketUI",
-    props: {
+        name: "BasketUI",
+        props: {
         /*
         * The object representing the actual basket data.
         * Consists of:
@@ -24,9 +24,12 @@
         * The paid/locked/redeemed flags alter the color of the div representing the Basket component.
         */
         basket: Object
-    },
-    components: { ItemList }
-}
+        },
+        components: { 
+            ItemList 
+        }
+
+    }
 </script>
 
 <style scoped>
@@ -46,6 +49,5 @@
         background: #f4f4f4;
         margin: 5px;
         padding: 10px 20px;
-        border-left: 15px solid black;
     }
 </style>
