@@ -58,6 +58,7 @@ android {
             java.srcDir sharedTestDir
         }
     }
+    namespace 'org.cryptimeleon.incentive.app'
 }
 
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all { kotlinOptions.freeCompilerArgs += ["-opt-in=kotlin.RequiresOptIn"] }
