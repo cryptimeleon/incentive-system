@@ -22,6 +22,9 @@ services:
       - INCENTIVE_SERVICE_PROVIDER_SECRET=${INCENTIVE_PROVIDER_SECRET}
       - SERVER_SERVLET_CONTEXT_PATH=${INCENTIVE_CONTEXT:-/incentive}
       - SPRINGFOX_HOST=${HOST:-incentives.cs.uni-paderborn.de}
+      - INFO_SERVICE_URL=http://infoservice:8000${INFO_CONTEXT:-/info}
+      - BASKET_SERVICE_URL=http://basketservice:8010${BASKET_CONTEXT:-/basket}
+      - DSPROTECTION_SERVICE_URL=http://dsprotectionservice:8004${INFO_CONTEXT:-/dsprotection}
     networks:
       - provider
     hostname: incentiveservice
@@ -48,6 +51,7 @@ services:
       - JAVA_TOOL_OPTIONS=-Xms512m -Xmx2048m
       - SERVER_SERVLET_CONTEXT_PATH=${DSPROTECTION_CONTEXT:-/dsprotection}
       - SPRINGFOX_HOST=${HOST:-incentives.cs.uni-paderborn.de}
+      - INFO_SERVICE_URL=http://infoservice:8000${INFO_CONTEXT:-/info}
     networks:
       - provider
     hostname: dsprotectionservice
@@ -57,6 +61,8 @@ services:
       - SPRING_PROFILES_ACTIVE=production
       - BASKET_SERVICE_PROVIDER_SECRET=${BASKET_PROVIDER_SECRET}
       - INCENTIVE_SERVICE_PROVIDER_SECRET=${INCENTIVE_PROVIDER_SECRET}
+      - INCENTIVE_SERVICE_URL=http://incentiveservice:8012${INCENTIVE_CONTEXT:-/incentive}
+      - BASKET_SERVICE_URL=http://basketservice:8010${BASKET_CONTEXT:-/basket}
     depends_on:
       - basketservice
       - incentiveservice
