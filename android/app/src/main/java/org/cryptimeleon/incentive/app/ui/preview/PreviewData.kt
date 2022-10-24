@@ -45,7 +45,7 @@ class PreviewData {
         )
 
         val hazelPromotionData = HazelPromotionData(
-            promotionName = "Hazelnut Spread Promotion",
+            promotionName = "Hazelspread Promotion",
             pid = BigInteger.valueOf(5345L),
             promotionDescription = "Earn points for buying Hazelnut Spread!",
             points = Vector.of(BigInteger.valueOf(6L)),

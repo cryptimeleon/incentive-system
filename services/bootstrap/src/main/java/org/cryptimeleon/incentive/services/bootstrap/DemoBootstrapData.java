@@ -51,7 +51,7 @@ public class DemoBootstrapData {
             List.of(
                     new HazelPromotion(
                             HazelPromotion.generatePromotionParameters(),
-                            "Hazelnut Spread Promotion",
+                            "Hazelspread Promotion",
                             "Earn one point for every jar of hazelnut spread purchased!",
                             List.of(
                                     new HazelTokenUpdate(
