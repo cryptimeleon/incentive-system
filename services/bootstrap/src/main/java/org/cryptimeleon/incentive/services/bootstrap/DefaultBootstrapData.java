@@ -22,7 +22,7 @@ public class DefaultBootstrapData {
     private static final BasketItemDto[] basketItems = {
             new BasketItemDto(
                     "3941288190038",
-                    "Sweetened hazelnut cocoa spread",
+                    "Sweetened Hazelnut Spread",
                     199),
             new BasketItemDto(
                     "1022525418053",
@@ -71,8 +71,8 @@ public class DefaultBootstrapData {
             List.of(
                     new HazelPromotion(
                             HazelPromotion.generatePromotionParameters(),
-                            "Nutella Promotion",
-                            "Earn one point for every jar of Nutella purchased!",
+                            "Hazelspread Promotion",
+                            "Earn one point for every jar of hazelnut spread purchased!",
                             List.of(
                                     new HazelTokenUpdate(
                                             UUID.randomUUID(),

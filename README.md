@@ -1,6 +1,6 @@
 # Cryptimeleon Incentive System
 
-![Develop](https://github.com/cryptimeleon/incentive-system/workflows/Default%20workflow/badge.svg?branch=develop) [![Docker](https://img.shields.io/docker/cloud/build/eaudeweb/scratch?label=dockerhub&style=flat)](https://hub.docker.com/repository/docker/cryptimeleon/incentive-service-issue/tags)
+![Develop](https://github.com/cryptimeleon/incentive-system/workflows/Default%20workflow/badge.svg?branch=develop)
 
 ## About
 
@@ -40,6 +40,13 @@ at `basepath/swagger-ui/index.html`.
 You can then use the `docker-compose.yaml` with the command `docker-compose -f deployment/docker-compose.yaml up`. You
 can then reach the services at the localhost ports described above. If you want to build docker images locally from your
 local code, you can use the command `./deployment/build-docker-images.sh`.
+
+### Creating promotions and choosing images
+
+You can create configure own promotion-sets in the bootstrap service.
+To add images, put the image in the `web/public/assets/` folder.
+Use the promotion_name in lower case with spaces replaced by underscores and choose the jpg format.
+For a promotion named `Christmas Promotion`, name the image `christmas_promotion.jpg`.
 
 ## License
 
