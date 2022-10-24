@@ -27,7 +27,7 @@ class PreviewData {
         val basket = Basket(
             basketId = UUID.randomUUID(),
             items = listOf(
-                BasketItem("ITEM1", "Nutella", 199, 3),
+                BasketItem("ITEM1", "Hazelnut Spread", 199, 3),
                 BasketItem("ITEM2", "Grapeseed Oil", 239, 1),
                 BasketItem("ITEM3", "Apple", 59, 2),
             ),
@@ -45,9 +45,9 @@ class PreviewData {
         )
 
         val hazelPromotionData = HazelPromotionData(
-            promotionName = "Nutella Promotion",
+            promotionName = "Hazelnut Spread Promotion",
             pid = BigInteger.valueOf(5345L),
-            promotionDescription = "Earn points for buying Nutella!",
+            promotionDescription = "Earn points for buying Hazelnut Spread!",
             points = Vector.of(BigInteger.valueOf(6L)),
             tokenUpdates = listOf(
                 NoTokenUpdate(),
@@ -60,8 +60,8 @@ class PreviewData {
                 ),
                 HazelTokenUpdateState(
                     zkpUpdateId = UUID.randomUUID(),
-                    description = "Get a free glass of Nutella",
-                    sideEffect = Optional.of("Free Nutella"),
+                    description = "Get a free glass of Hazelnut Spread",
+                    sideEffect = Optional.of("Free Hazelnut Spread"),
                     feasibility = PromotionUpdateFeasibility.SELECTED,
                     current = 6,
                     goal = 4,

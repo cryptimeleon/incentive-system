@@ -22,11 +22,11 @@ public class DemoBootstrapData {
     private static final BasketItemDto[] basketItems = {
             new BasketItemDto(
                     "4008400404127",
-                    "Nutella",
+                    "Hazelnut Spread",
                     239),
             new BasketItemDto(
                     "4001257000122",
-                    "Meßmer Grüner Tee Vanille",
+                    "Green Tea",
                     289),
             new BasketItemDto(
                     "8718951312432",
@@ -36,7 +36,7 @@ public class DemoBootstrapData {
 
     private static final RewardItemDto[] rewardItems = {
             // Hazelnut Spread Promotion
-            new RewardItemDto("160859564846", "Nutella"),
+            new RewardItemDto("160859564846", "Hazelnut Spread"),
             // VIP Promotion
             new RewardItemDto("957532923619", "2% Discount"), // Do not work yet (no effect), but for the sake of being a prototype let's call it discount
             new RewardItemDto("579999001166", "5% Discount"),
@@ -51,17 +51,17 @@ public class DemoBootstrapData {
             List.of(
                     new HazelPromotion(
                             HazelPromotion.generatePromotionParameters(),
-                            "Nutella Promotion",
-                            "Earn one point for every jar of Nutella purchased!",
+                            "Hazelnut Spread Promotion",
+                            "Earn one point for every jar of hazelnut spread purchased!",
                             List.of(
                                     new HazelTokenUpdate(
                                             UUID.randomUUID(),
-                                            "Get a free Nutella for 4 points!",
+                                            "Get a free hazelnut spread for 4 points!",
                                             new RewardSideEffect("160859564846"),
                                             4
                                     )
                             ),
-                            "Nutella"
+                            "hazelnut"
                     ),
                     new VipPromotion(
                             VipPromotion.generatePromotionParameters(),
