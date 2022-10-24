@@ -27,7 +27,6 @@ fun PromotionInfoSectionHeader(text: String) {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ZkpTokenUpdateCard(
     tokenUpdate: ZkpTokenUpdate,

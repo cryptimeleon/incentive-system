@@ -38,6 +38,7 @@ import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 import org.cryptimeleon.incentive.app.ui.preview.CryptimeleonPreviewContainer
 import org.cryptimeleon.incentive.app.ui.preview.PreviewData
+import org.cryptimeleon.incentive.app.ui.common.promotionImageUrl
 import java.math.BigInteger
 
 @Composable
@@ -105,7 +106,7 @@ fun TokenCard(
             .wrapContentHeight(),
         onClick = cardClicked,
     ) {
-        PromotionImage(promotionData.promotionImageUrl)
+        PromotionImage(promotionImageUrl(promotionData = promotionData))
         Column(
             modifier = Modifier
                 .padding(horizontal = 16.dp)

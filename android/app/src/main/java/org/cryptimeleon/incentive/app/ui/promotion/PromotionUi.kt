@@ -54,6 +54,7 @@ import org.cryptimeleon.incentive.app.domain.usecase.VipPromotionData
 import org.cryptimeleon.incentive.app.domain.usecase.VipStatus
 import org.cryptimeleon.incentive.app.ui.preview.CryptimeleonPreviewContainer
 import org.cryptimeleon.incentive.app.ui.preview.PreviewData
+import org.cryptimeleon.incentive.app.ui.common.promotionImageUrl
 import java.math.BigInteger
 
 val IMAGE_HEIGHT = 280.dp
@@ -100,7 +101,7 @@ private fun PromotionDetailUi(promotionData: PromotionData, back: () -> Unit) {
         modifier = Modifier.fillMaxSize()
     ) {
         val scroll = rememberScrollState()
-        TopImage(promotionData.promotionImageUrl)
+        TopImage(promotionImageUrl(promotionData = promotionData))
         Body(promotionData, scroll)
         Title(promotionData, scroll)
         FilledTonalIconButton(
