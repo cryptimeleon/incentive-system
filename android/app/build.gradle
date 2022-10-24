@@ -22,6 +22,9 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        resValue "string", "basket_service_url", "https://incentives.cs.upb.de/basket/"
+        resValue "string", "info_service_url", "https://incentives.cs.upb.de/info/"
+        resValue "string", "promotion_service_url", "https://incentives.cs.upb.de/incentive/"
     }
 
     buildFeatures {
