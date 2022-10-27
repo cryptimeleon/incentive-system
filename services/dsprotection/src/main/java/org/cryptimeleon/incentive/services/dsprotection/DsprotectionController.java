@@ -80,7 +80,7 @@ public class DsprotectionController {
     public ResponseEntity<List<TransactionDto>> getAllTransactions() {
         List<TransactionDto> resultList = dsprotectionService.getAllTransactions();
 
-        return new ResponseEntity<>(dsprotectionService.getAllTransactions(), HttpStatus.OK);
+        return new ResponseEntity<>(resultList, HttpStatus.OK);
     }
 
     /**
