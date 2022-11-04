@@ -1,6 +1,7 @@
 const { defineConfig } = require('@vue/cli-service')
 
 const DS_ENDPOINT_DEV = "http://localhost:8004"
+const BASKET_ENDPOINT_DEV = "http://localhost:8010"
 
 // Configure DS-Protection service endpoint
 // Production Server (nginx)
@@ -24,6 +25,12 @@ module.exports = defineConfig({
         changeOrigin: true,
         logLevel: 'debug',
         pathRewrite: { '^/dsprotection': '' }
+      },
+      '^/basket': {
+        target: BASKET_ENDPOINT_DEV,
+        changeOrigin: true,
+        logLevel: 'debug',
+        pathRewrite: { '^/basket': '' }
       }
     }
   }
