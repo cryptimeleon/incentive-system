@@ -6,9 +6,11 @@ const BASKET_ENDPOINT_DEV = "http://localhost:8010"
 // Configure DS-Protection service endpoint
 // Production Server (nginx)
 // DS-Prot.: https://incentives.cs.uni-paderborn.de/dsprotection/
+// Basket:   ???
 // Frontend: https://incentives.cs.uni-paderborn.de
 // DevServer
 // DS-Prot.: localhost:8004
+// Basket:   localhost:8010
 // Frontend: localhost:XXXX
 
 module.exports = defineConfig({
