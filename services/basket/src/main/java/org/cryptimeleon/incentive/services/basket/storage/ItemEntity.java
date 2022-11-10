@@ -2,16 +2,20 @@ package org.cryptimeleon.incentive.services.basket.storage;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
-@Table(name = "items")
 public class ItemEntity {
 
+    @Id
     private String id;
     private String title;
     private Long price;
+    @OneToMany
+    private Set<ItemInBasketEntity> basketItems;
 
     public String getTitle() {
         return title;
