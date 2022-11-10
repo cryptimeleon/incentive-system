@@ -5,10 +5,14 @@ import org.cryptimeleon.incentive.services.basket.model.Basket;
 import org.cryptimeleon.incentive.services.basket.model.BasketItem;
 import org.cryptimeleon.incentive.services.basket.model.Item;
 import org.cryptimeleon.incentive.services.basket.model.RewardItem;
+import org.cryptimeleon.incentive.services.basket.storage.ItemEntity;
+import org.cryptimeleon.incentive.services.basket.storage.ItemRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * Service containing the business logic of the basket server.
@@ -19,22 +23,23 @@ public class BasketService {
 
     private final HashMap<UUID, Basket> basketMap;
     private final List<RewardItem> rewardItems;
-    private final Map<String, Item> itemMap;
+
+    private ItemRepository itemRepository;
 
     /**
      * Initialize basket service with empty shopping item list.
      */
-    BasketService() {
+    BasketService(ItemRepository itemRepository) {
         this.rewardItems = new ArrayList<>();
         basketMap = new HashMap<>();
-        itemMap = new HashMap<>();
+        this.itemRepository = itemRepository;
     }
 
     /**
      * Returns a list of all shopping items that can be purchased.
      */
-    public Item[] getItems() {
-        return itemMap.values().toArray(new Item[0]);
+    public List<ItemEntity> getItems() {
+        return StreamSupport.stream(itemRepository.findAll().spliterator(), false).collect(Collectors.toList());
     }
 
     /**
@@ -43,29 +48,28 @@ public class BasketService {
      * @return
      */
     private boolean hasItem(String itemId) {
-        return itemMap.containsKey(itemId);
+        return itemRepository.existsById(itemId);
     }
 
     /**
      * Returns the purchasable item with the passed ID.
      */
-    public Item getItem(String id) {
-        return itemMap.get(id);
+    public Optional<ItemEntity> getItem(String id) {
+        return itemRepository.findById(id);
     }
 
     /**
      * Makes the passed item a new purchasable item (registered under its ID).
      */
-    public void save(Item item) {
-        itemMap.put(item.getId(), item);
-        System.out.println(itemMap.containsKey(item.getId()));
+    public void save(ItemEntity item) {
+        itemRepository.save(item);
     }
 
     /**
      * Deletes all purchasable items.
      */
     public void deleteAllItems() {
-        itemMap.clear();
+        itemRepository.deleteAll();
     }
 
     public RewardItem[] getRewardItems() {
@@ -170,7 +174,7 @@ public class BasketService {
                 .getItems()
                 .entrySet()
                 .stream()
-                .map((e) -> new BasketItem(itemMap.get(e.getKey()), e.getValue()));
+                .map((e) -> new BasketItem(itemRepository.findById(e.getKey()).orElseThrow(), e.getValue()));
     }
 }
 

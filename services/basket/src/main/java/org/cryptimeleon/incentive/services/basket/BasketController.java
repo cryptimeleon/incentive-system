@@ -7,6 +7,7 @@ import org.cryptimeleon.incentive.services.basket.model.Item;
 import org.cryptimeleon.incentive.services.basket.model.RewardItem;
 import org.cryptimeleon.incentive.services.basket.model.requests.PutItemRequest;
 import org.cryptimeleon.incentive.services.basket.model.requests.RedeemBasketRequest;
+import org.cryptimeleon.incentive.services.basket.storage.ItemEntity;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -73,7 +74,7 @@ public class BasketController {
      * Returns a list of all shopping items that can be purchased.
      */
     @GetMapping("/items")
-    Item[] getAllBasketItems() {
+    List<ItemEntity> getAllBasketItems() {
         return basketService.getItems();
     }
 
@@ -84,7 +85,7 @@ public class BasketController {
      * @param item item to be added
      */
     @PostMapping("/items")
-    ResponseEntity<Void> newItem(@RequestHeader("provider-secret") String providerSecretHeader, @RequestBody Item item) {
+    ResponseEntity<Void> newItem(@RequestHeader("provider-secret") String providerSecretHeader, @RequestBody ItemEntity item) {
         if (providerSecretHeader == null || !providerSecretHeader.equals(providerSecret)) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
@@ -105,12 +106,9 @@ public class BasketController {
      * Query shopping item by id, e.g. EAN13
      */
     @GetMapping("/items/{id}")
-    ResponseEntity<Item> getBasketItemById(@PathVariable String id) {
+    ResponseEntity<ItemEntity> getBasketItemById(@PathVariable String id) {
         var item = basketService.getItem(id);
-        if (item != null) {
-            return new ResponseEntity<>(item, HttpStatus.OK);
-        }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        return item.map(itemEntity -> new ResponseEntity<>(itemEntity, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     /**
