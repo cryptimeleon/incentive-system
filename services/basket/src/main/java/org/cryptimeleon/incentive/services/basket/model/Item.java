@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.cryptimeleon.incentive.services.basket.storage.ItemEntity;
 
 /**
  * Dataclass representing items that be purchased in a basket.
@@ -18,4 +19,10 @@ public class Item {
     String title;
     @ApiModelProperty(value = "${item.price}")
     long price;
+
+    public Item(ItemEntity itemEntity) {
+        this.id = itemEntity.getId();
+        this.title = itemEntity.getTitle();
+        this.price = itemEntity.getPrice();
+    }
 }

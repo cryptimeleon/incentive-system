@@ -18,14 +18,12 @@ import static org.cryptimeleon.incentive.services.basket.ClientHelper.*;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class PayBasketTest {
-    @Value("${basket-service.provider-secret}")
-    private String providerSecret;
-
-    @Value("${basket-service.pay-secret}")
-    private String paymentSecret;
-
     private final Item firstTestItem = new Item("23578", "First test item", 235);
     private final Item secondTestItem = new Item("1234554", "Second test item", 123);
+    @Value("${basket-service.provider-secret}")
+    private String providerSecret;
+    @Value("${basket-service.pay-secret}")
+    private String paymentSecret;
 
     @BeforeAll
     void addTestItems(@Autowired WebTestClient webTestClient) {

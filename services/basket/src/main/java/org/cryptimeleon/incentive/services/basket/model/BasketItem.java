@@ -3,6 +3,7 @@ package org.cryptimeleon.incentive.services.basket.model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.cryptimeleon.incentive.services.basket.storage.ItemEntity;
 
 /**
  * Utility dataclass for representing Items in a Basket.
@@ -11,6 +12,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BasketItem {
-    Item item;
+    ItemEntity item;
     int count;
 }
