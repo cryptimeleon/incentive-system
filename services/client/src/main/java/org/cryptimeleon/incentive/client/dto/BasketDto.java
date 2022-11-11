@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Data
@@ -13,9 +12,7 @@ import java.util.UUID;
 @NoArgsConstructor
 public class BasketDto {
     private UUID basketID;
-    @Deprecated
-    private Map<String, Integer> items;
-    private List<BasketItemNewDto> basketItems;
+    private List<BasketItemDto> basketItems;
     private List<String> rewardItems;
     private boolean paid;
     private boolean redeemed;

@@ -1,6 +1,6 @@
 package org.cryptimeleon.incentive.services.bootstrap;
 
-import org.cryptimeleon.incentive.client.dto.BasketItemDto;
+import org.cryptimeleon.incentive.client.dto.ItemDto;
 import org.cryptimeleon.incentive.client.dto.RewardItemDto;
 import org.cryptimeleon.incentive.promotion.Promotion;
 import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion;
@@ -19,32 +19,32 @@ import java.util.UUID;
 
 public class DefaultBootstrapData {
 
-    private static final BasketItemDto[] basketItems = {
-            new BasketItemDto(
+    private static final ItemDto[] basketItems = {
+            new ItemDto(
                     "3941288190038",
                     "Sweetened Hazelnut Spread",
                     199),
-            new BasketItemDto(
+            new ItemDto(
                     "1022525418053",
                     "Tomato",
                     29),
-            new BasketItemDto(
+            new ItemDto(
                     "4621006331880",
                     "Apple",
                     59),
-            new BasketItemDto(
+            new ItemDto(
                     "4536852654932",
                     "Peach",
                     99),
-            new BasketItemDto(
+            new ItemDto(
                     "2936746557615",
                     "Potatoes",
                     299),
-            new BasketItemDto(
+            new ItemDto(
                     "0680818152421",
                     "Mango",
                     119),
-            new BasketItemDto(
+            new ItemDto(
                     "0280818152421",
                     "Peanut Butter",
                     519)
