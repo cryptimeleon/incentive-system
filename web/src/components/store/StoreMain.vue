@@ -40,33 +40,8 @@
             this.helloMessage = await heartbeatRes.text()
 
             // create dummy basket list
-            this.baskets = [
-                {
-                    basketID: 426,
-                    items: [
-                        {
-                            name: "Awesome new flying toaster",
-                            price: 42.60,
-                            count: 426
-                        }
-                    ]
-                },
-                {
-                    basketID: 808,
-                    items: [
-                        {
-                            name: "Potato chips",
-                            price: 4.26,
-                            count: 426
-                        },
-                        {
-                            name: "Perfect apple",
-                            price: 4.26,
-                            count: 426
-                        }
-                    ]
-                }
-            ]
+            const basketRes = await fetch('basket/allbaskets')
+            this.baskets = await basketRes.json()
         }
     }
 </script>

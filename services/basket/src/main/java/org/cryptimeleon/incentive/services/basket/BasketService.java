@@ -17,9 +17,9 @@ import java.util.stream.Stream;
 @Service
 public class BasketService {
 
-    private final HashMap<UUID, Basket> basketMap;
-    private final List<RewardItem> rewardItems;
-    private final Map<String, Item> itemMap;
+    private final HashMap<UUID, Basket> basketMap; // stores all baskets, indexed by UUID
+    private final List<RewardItem> rewardItems; // list of all reward items that are in the system
+    private final Map<String, Item> itemMap; // list of all (purchasable) store items that are in the system
 
     /**
      * Initialize basket service with empty shopping item list.
@@ -92,6 +92,14 @@ public class BasketService {
         var basketOptional = Optional.ofNullable(basketMap.get(basketId));
         if (basketOptional.isEmpty()) throw new BasketNotFoundException();
         return basketOptional.get();
+    }
+
+    /**
+     * Returns a list of all baskets that are in the system.
+     * @return ArrayList
+     */
+    public List<Basket> getAllBaskets() {
+        return new ArrayList<Basket>(basketMap.values());
     }
 
     public void removeBasketWithId(UUID basketId) {
