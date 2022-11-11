@@ -7,6 +7,7 @@ import org.cryptimeleon.incentive.services.basket.model.Item;
 import org.cryptimeleon.incentive.services.basket.model.RewardItem;
 import org.cryptimeleon.incentive.services.basket.model.requests.PutItemRequest;
 import org.cryptimeleon.incentive.services.basket.model.requests.RedeemBasketRequest;
+import org.cryptimeleon.incentive.services.basket.storage.BasketEntity;
 import org.cryptimeleon.incentive.services.basket.storage.ItemEntity;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -178,10 +179,10 @@ public class BasketController {
      * @return
      */
     @GetMapping("/allbaskets")
-    ResponseEntity<List<Basket>> getAllBaskets() {
-        List<Basket> resultList = basketService.getAllBaskets();
+    ResponseEntity<List<BasketEntity>> getAllBaskets() {
+        List<BasketEntity> resultList = basketService.getAllBaskets();
 
-        return new ResponseEntity<List<Basket>>(resultList, HttpStatus.OK);
+        return new ResponseEntity<List<BasketEntity>>(resultList, HttpStatus.OK);
     }
 
     /**

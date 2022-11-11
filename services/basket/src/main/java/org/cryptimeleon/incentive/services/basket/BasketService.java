@@ -100,8 +100,8 @@ public class BasketService {
      * Returns a list of all baskets that are in the system.
      * @return ArrayList
      */
-    public List<Basket> getAllBaskets() {
-        return new ArrayList<Basket>(basketMap.values());
+    public List<BasketEntity> getAllBaskets() {
+        return (ArrayList<BasketEntity>) basketRepository.findAll();
     }
 
     public void removeBasketWithId(UUID basketId) {
