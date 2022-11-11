@@ -22,9 +22,6 @@ import java.util.stream.Collectors;
 public class Basket {
     @ApiModelProperty(value = "${basketModel.basketID}")
     private UUID basketID;
-    @Deprecated
-    @ApiModelProperty(value = "${basketModel.items}")
-    private Map<String, Integer> items;
     @ApiModelProperty(value = "${basketModel.basketItems}")
     private List<BasketItemNew> basketItems;
     @ApiModelProperty(value = "${basketModel.rewardItems}")
@@ -43,12 +40,6 @@ public class Basket {
 
     public Basket(BasketEntity basketEntity) {
         this.basketID = basketEntity.getBasketID();
-        this.items = basketEntity.getBasketItems().stream().collect(
-                Collectors.toMap(
-                        (ItemInBasketEntity i) -> i.getId().getItemId(),
-                        ItemInBasketEntity::getCount
-                )
-        );
         this.basketItems = basketEntity.getBasketItems().stream().map(e ->
                 new BasketItemNew(e.getItem(), e.getCount())
         ).collect(Collectors.toList());
