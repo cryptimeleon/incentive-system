@@ -1,5 +1,8 @@
 package org.cryptimeleon.incentive.services.basket.storage;
 
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
@@ -11,7 +14,6 @@ import java.util.Set;
 @Entity
 @Table(name = "items")
 public class ItemEntity {
-
     private String id;
     private String title;
     private Long price;
@@ -55,6 +57,4 @@ public class ItemEntity {
     public int hashCode() {
         return Objects.hash(id, title, price);
     }
-
-
 }

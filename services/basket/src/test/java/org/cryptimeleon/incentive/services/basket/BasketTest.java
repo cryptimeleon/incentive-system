@@ -1,7 +1,9 @@
 package org.cryptimeleon.incentive.services.basket;
 
 import lombok.extern.slf4j.Slf4j;
+import org.cryptimeleon.incentive.services.basket.model.BasketItemNew;
 import org.cryptimeleon.incentive.services.basket.model.Item;
+import org.cryptimeleon.incentive.services.basket.storage.ItemEntity;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -59,7 +61,7 @@ public class BasketTest {
         log.info("Basket response: " + basket);
 
         assert basket != null;
-        assertThat(basket.getItems()).isEmpty();
+        assertThat(basket.getBasketItems()).isEmpty();
         assertThat(basket.isPaid()).isFalse();
         assertThat(basket.isRedeemed()).isFalse();
         assertThat(basket.getBasketID()).isEqualByComparingTo(basketId);
@@ -83,7 +85,7 @@ public class BasketTest {
 
         var basket = queryBasket(webTestClient, basketId).getResponseBody();
         assert basket != null;
-        assertThat(basket.getItems()).isEmpty();
+        assertThat(basket.getBasketItems()).isEmpty();
     }
 
     @Test
@@ -94,7 +96,7 @@ public class BasketTest {
 
         var basket = queryBasket(webTestClient, basketId).getResponseBody();
         assert basket != null;
-        assertThat(basket.getItems()).isEmpty();
+        assertThat(basket.getBasketItems()).isEmpty();
     }
 
 
@@ -107,9 +109,9 @@ public class BasketTest {
 
         var basket = queryBasket(webTestClient, basketId).getResponseBody();
         assert basket != null;
-        assertThat(basket.getItems())
-                .containsEntry(firstTestItem.getId(), 5)
-                .containsEntry(secondTestItem.getId(), 1);
+        assertThat(basket.getBasketItems())
+                .contains(new BasketItemNew(firstTestItem, 5))
+                .contains(new BasketItemNew(secondTestItem, 1));
     }
 
     @Test
@@ -121,8 +123,8 @@ public class BasketTest {
 
         var basket = queryBasket(webTestClient, basketId).getResponseBody();
         assert basket != null;
-        assertThat(basket.getItems())
-                .containsEntry(firstTestItem.getId(), 3);
+        assertThat(basket.getBasketItems())
+                .contains(new BasketItemNew(firstTestItem, 3));
     }
 
     @Test
@@ -135,6 +137,6 @@ public class BasketTest {
         var basket = queryBasket(webTestClient, basketId).getResponseBody();
 
         assert basket != null;
-        assertThat(basket.getItems()).isEmpty();
+        assertThat(basket.getBasketItems()).isEmpty();
     }
 }
