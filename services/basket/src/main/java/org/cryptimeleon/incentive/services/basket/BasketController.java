@@ -7,7 +7,6 @@ import org.cryptimeleon.incentive.services.basket.model.Item;
 import org.cryptimeleon.incentive.services.basket.model.RewardItem;
 import org.cryptimeleon.incentive.services.basket.model.requests.PutItemRequest;
 import org.cryptimeleon.incentive.services.basket.model.requests.RedeemBasketRequest;
-import org.cryptimeleon.incentive.services.basket.storage.BasketEntity;
 import org.cryptimeleon.incentive.services.basket.storage.ItemEntity;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -28,7 +27,7 @@ import java.util.stream.Collectors;
 @RestController
 public class BasketController {
 
-    private BasketService basketService;  // Spring boot automatically injects a BasketService object
+    private final BasketService basketService;  // Spring boot automatically injects a BasketService object
 
     @Value("${basket-service.pay-secret}")
     private String paymentSecret;
@@ -82,9 +81,10 @@ public class BasketController {
 
     /**
      * Adds a new shopping item that can be purchased.
+     *
      * @param providerSecretHeader password read from the request header (must match the provider secret for this method execution to work
      *                             (otherwise: cancelled since action not authenticated))
-     * @param item item to be added
+     * @param item                 item to be added
      */
     @PostMapping("/items")
     ResponseEntity<Void> newItem(@RequestHeader("provider-secret") String providerSecretHeader, @RequestBody ItemEntity item) {

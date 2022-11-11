@@ -10,7 +10,7 @@ import java.util.UUID;
 public class BasketEntity {
     @Id
     private UUID basketID;
-    @OneToMany
+    @OneToMany(cascade = CascadeType.ALL) // Store children with this entity
     private Set<ItemInBasketEntity> basketItems = new HashSet<>();
     @ElementCollection
     private Set<String> rewardItems = new HashSet<>();
@@ -28,22 +28,28 @@ public class BasketEntity {
         return basketID;
     }
 
-    public void setBasketID(UUID basketID) {
-        this.basketID = basketID;
-    }
-
     public Set<ItemInBasketEntity> getBasketItems() {
         return basketItems;
     }
 
-    public void setBasketItems(Set<ItemInBasketEntity> basketItems) {
-        this.basketItems = basketItems;
+    public void addBasketItem(ItemEntity itemEntity, int count) {
+        var id = new ItemInBasketId(this.getBasketID(), itemEntity.getId());
+        var itemOptional = this.basketItems.stream().filter(e -> e.getId().equals(id)).findAny();
+
+        // Sets cannot overwrite elements.
+        if (itemOptional.isPresent()) {
+            itemOptional.get().setCount(count);
+        } else {
+            var basketItemEntity = new ItemInBasketEntity(this, itemEntity);
+            basketItemEntity.setCount(count);
+
+            var success = basketItems.add(basketItemEntity);
+            assert success;
+        }
     }
 
-    public void addBasketItem(ItemEntity itemEntity, int count) {
-        var basketItemEntity = new ItemInBasketEntity(this, itemEntity);
-        basketItemEntity.setCount(count);
-        this.basketItems.add(basketItemEntity);
+    public void removeBasketItem(ItemEntity itemEntity) {
+        basketItems.removeIf(e -> e.getItem().equals(itemEntity));
     }
 
     public Set<String> getRewardItems() {

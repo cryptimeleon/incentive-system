@@ -18,18 +18,17 @@ public class ItemInBasketEntity {
     @MapsId("itemId")
     @JoinColumn(name = "item_id")
     private ItemEntity item;
+    private int count;
 
     public ItemInBasketEntity() {
 
     }
+
     public ItemInBasketEntity(BasketEntity basketEntity, ItemEntity itemEntity) {
         this.item = itemEntity;
         this.basket = basketEntity;
         this.id = new ItemInBasketId(basketEntity.getBasketID(), itemEntity.getId());
     }
-
-    private int count;
-
 
     public int getCount() {
         return count;
@@ -42,10 +41,6 @@ public class ItemInBasketEntity {
 
     public ItemInBasketId getId() {
         return id;
-    }
-
-    public void setId(ItemInBasketId id) {
-        this.id = id;
     }
 
     public BasketEntity getBasket() {

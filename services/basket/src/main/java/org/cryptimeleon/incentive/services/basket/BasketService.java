@@ -1,15 +1,15 @@
 package org.cryptimeleon.incentive.services.basket;
 
 import org.cryptimeleon.incentive.services.basket.exceptions.*;
-import org.cryptimeleon.incentive.services.basket.model.Basket;
-import org.cryptimeleon.incentive.services.basket.model.BasketItem;
 import org.cryptimeleon.incentive.services.basket.model.RewardItem;
-import org.cryptimeleon.incentive.services.basket.storage.*;
+import org.cryptimeleon.incentive.services.basket.storage.BasketEntity;
+import org.cryptimeleon.incentive.services.basket.storage.BasketRepository;
+import org.cryptimeleon.incentive.services.basket.storage.ItemEntity;
+import org.cryptimeleon.incentive.services.basket.storage.ItemRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
@@ -21,8 +21,8 @@ public class BasketService {
 
     private final List<RewardItem> rewardItems;
 
-    private ItemRepository itemRepository;
-    private BasketRepository basketRepository;
+    private final ItemRepository itemRepository;
+    private final BasketRepository basketRepository;
 
     /**
      * Initialize basket service with empty shopping item list.
@@ -42,6 +42,7 @@ public class BasketService {
 
     /**
      * Returns true if and only if the basket service has a purchasable item with the passed ID.
+     *
      * @param itemId
      * @return
      */
@@ -106,18 +107,20 @@ public class BasketService {
         if (isBasketImmutable(basket)) throw new BasketPaidException();
 
         basket.setRewardItems(new HashSet<>(rewardItemIds));
+        basketRepository.save(basket);
     }
 
     public void setItemInBasket(UUID basketId, String itemId, int count) throws BasketServiceException {
         assert count > 0;
 
         var basket = getBasketById(basketId);
-        var item = getItem(itemId).orElseThrow();
+        var item = getItem(itemId).orElseThrow(ItemNotFoundException::new);
 
         if (isBasketImmutable(basket)) throw new BasketPaidException();
         if (!hasItem(itemId)) throw new ItemNotFoundException();
 
         basket.addBasketItem(item, count);
+        basketRepository.save(basket);
     }
 
     public void deleteItemFromBasket(UUID basketId, String itemId) throws BasketServiceException {
@@ -125,19 +128,23 @@ public class BasketService {
 
         if (isBasketImmutable(basket)) throw new BasketPaidException();
 
-        basket.getBasketItems().removeIf(i-> i.getId().getItemId().equals(itemId));
+        var item = getItem(itemId).orElseThrow();
+        basket.removeBasketItem(item);
+        basketRepository.save(basket);
     }
 
     public void payBasket(UUID basketId) throws BasketServiceException {
         var basket = getBasketById(basketId);
         if (basket.getBasketItems().isEmpty()) throw new BasketServiceException("Cannot pay empty baskets");
         basket.setPaid(true);
+        basketRepository.save(basket);
     }
 
     public void lockBasket(UUID basketId) throws BasketServiceException {
         var basket = getBasketById(basketId);
         if (basket.getBasketItems().isEmpty()) throw new BasketServiceException("Cannot pay empty baskets");
         basket.setLocked(true);
+        basketRepository.save(basket);
     }
 
     public void redeemBasket(UUID basketId, String redeemRequest, long value) throws BasketServiceException {
@@ -152,6 +159,7 @@ public class BasketService {
 
         basket.setRedeemed(true);
         basket.setRedeemRequest(redeemRequest);
+        basketRepository.save(basket);
     }
 
     /*
@@ -168,13 +176,4 @@ public class BasketService {
     private boolean isBasketImmutable(BasketEntity basket) {
         return basket.isPaid();
     }
-
-    private Stream<BasketItem> getBasketItemsInBasket(Basket basket) {
-        return basket
-                .getItems()
-                .entrySet()
-                .stream()
-                .map((e) -> new BasketItem(itemRepository.findById(e.getKey()).orElseThrow(), e.getValue()));
-    }
 }
-

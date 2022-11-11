@@ -35,23 +35,13 @@ public class Basket {
     @ApiModelProperty(value = "${basketModel.value}")
     private long value;
 
-    public Basket(UUID id) {
-        basketID = id;
-        items = new HashMap<>();
-        rewardItems = new ArrayList<>();
-        paid = false;
-        locked = false;
-        redeemed = false;
-        redeemRequest = "";
-    }
-
     public Basket(BasketEntity basketEntity) {
         this.basketID = basketEntity.getBasketID();
         this.items = basketEntity.getBasketItems().stream().collect(
                 Collectors.toMap(
                         (ItemInBasketEntity i) -> i.getId().getItemId(),
                         ItemInBasketEntity::getCount
-            )
+                )
         );
         this.rewardItems = new ArrayList<>(basketEntity.getRewardItems());
         this.paid = basketEntity.isPaid();
