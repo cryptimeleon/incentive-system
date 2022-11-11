@@ -29,7 +29,7 @@ class BasketRepositoryTest {
 
     private val testBasketEntity =
         BasketEntity(basketId = UUID.randomUUID(), paid = false, redeemed = false)
-    private val testBasketItemEntity = BasketItemEntity("some-item-id", 299, "some item", 5)
+    private val testBasketItemEntity = BasketItemEntity("some-item-id", "some item", 299, 5)
 
     /**
      * Test combination of flows from database to basket object

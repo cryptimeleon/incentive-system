@@ -13,6 +13,7 @@ import org.cryptimeleon.incentive.app.data.database.basket.RewardItemEntity
 import org.cryptimeleon.incentive.app.data.database.basket.ShoppingItemEntity
 import org.cryptimeleon.incentive.app.data.network.BasketApiService
 import org.cryptimeleon.incentive.app.data.network.NetworkBasketItem
+import org.cryptimeleon.incentive.app.data.network.NetworkBasketItemPutRequest
 import org.cryptimeleon.incentive.app.data.network.NetworkShoppingItem
 import org.cryptimeleon.incentive.app.domain.IBasketRepository
 import org.cryptimeleon.incentive.app.domain.model.Basket
@@ -61,27 +62,22 @@ class BasketRepository(
     // Load contents from basket into database
     override suspend fun refreshBasket() {
         val basket: Basket = basket.first()!!
-        val shoppingItems: List<ShoppingItem> = shoppingItems.first()
-
         val networkBasket = basketApiService.getBasketContent(basket.basketId).body()!!
 
-        val basketItems = networkBasket.items.mapNotNull { entry ->
-            val foundItem =
-                shoppingItems.find { shoppingItem: ShoppingItem -> shoppingItem.id == entry.key }
-            return@mapNotNull if (foundItem != null) shoppingItemToBasketItemEntity(
-                foundItem,
-                entry.value
-            ) else null
-        }
         val updatedBasket = BasketEntity(
             basketId = networkBasket.basketId,
             paid = networkBasket.paid,
             redeemed = networkBasket.redeemed,
         )
         basketDao.setBasketEntity(updatedBasket)
+
+        val basketItems = networkBasket.basketItems.map { networkBasketItemToBasketItemEntity(it) }
         basketDao.deleteAllBasketItems()
         basketDao.insertBasketItems(basketItems)
     }
+
+    private fun networkBasketItemToBasketItemEntity(it: NetworkBasketItem) =
+        BasketItemEntity(it.id, it.title, it.price, it.count)
 
     override suspend fun ensureActiveBasket() {
         if (needNewBasket()) {
@@ -112,7 +108,7 @@ class BasketRepository(
         }
 
         // Trigger request
-        val networkBasketItem = NetworkBasketItem(
+        val networkBasketItem = NetworkBasketItemPutRequest(
             basketId = basket.basketId,
             count = amount,
             itemId = shoppingItem.id
@@ -172,8 +168,8 @@ class BasketRepository(
         fun basketItemToEntity(basketItem: BasketItem): BasketItemEntity =
             BasketItemEntity(
                 itemId = basketItem.itemId,
-                price = basketItem.price,
                 title = basketItem.title,
+                price = basketItem.price,
                 count = basketItem.count
             )
 
@@ -183,17 +179,6 @@ class BasketRepository(
                 price = basketItemEntity.price,
                 title = basketItemEntity.title,
                 count = basketItemEntity.count
-            )
-
-        fun shoppingItemToBasketItemEntity(
-            shoppingItem: ShoppingItem,
-            count: Int
-        ): BasketItemEntity =
-            BasketItemEntity(
-                title = shoppingItem.title,
-                itemId = shoppingItem.id,
-                price = shoppingItem.price,
-                count = count
             )
 
         fun basketToEntity(basket: Basket): BasketEntity =

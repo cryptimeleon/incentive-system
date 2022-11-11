@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey
 @Entity(tableName = "basket-items")
 data class BasketItemEntity(
     @PrimaryKey val itemId: String,
-    val price: Int,
     val title: String,
+    val price: Int,
     val count: Int
 )
