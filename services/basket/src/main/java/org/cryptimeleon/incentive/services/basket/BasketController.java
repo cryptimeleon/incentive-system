@@ -7,6 +7,7 @@ import org.cryptimeleon.incentive.services.basket.model.Item;
 import org.cryptimeleon.incentive.services.basket.model.RewardItem;
 import org.cryptimeleon.incentive.services.basket.model.requests.PutItemRequest;
 import org.cryptimeleon.incentive.services.basket.model.requests.RedeemBasketRequest;
+import org.cryptimeleon.incentive.services.basket.storage.ItemEntity;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 
 /**
@@ -25,7 +27,7 @@ import java.util.UUID;
 @RestController
 public class BasketController {
 
-    private BasketService basketService;  // Spring boot automatically injects a BasketService object
+    private final BasketService basketService;  // Spring boot automatically injects a BasketService object
 
     @Value("${basket-service.pay-secret}")
     private String paymentSecret;
@@ -73,18 +75,19 @@ public class BasketController {
      * Returns a list of all shopping items that can be purchased.
      */
     @GetMapping("/items")
-    Item[] getAllBasketItems() {
-        return basketService.getItems();
+    List<Item> getAllBasketItems() {
+        return basketService.getItems().stream().map(Item::new).collect(Collectors.toList());
     }
 
     /**
      * Adds a new shopping item that can be purchased.
+     *
      * @param providerSecretHeader password read from the request header (must match the provider secret for this method execution to work
      *                             (otherwise: cancelled since action not authenticated))
-     * @param item item to be added
+     * @param item                 item to be added
      */
     @PostMapping("/items")
-    ResponseEntity<Void> newItem(@RequestHeader("provider-secret") String providerSecretHeader, @RequestBody Item item) {
+    ResponseEntity<Void> newItem(@RequestHeader("provider-secret") String providerSecretHeader, @RequestBody ItemEntity item) {
         if (providerSecretHeader == null || !providerSecretHeader.equals(providerSecret)) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
@@ -107,10 +110,7 @@ public class BasketController {
     @GetMapping("/items/{id}")
     ResponseEntity<Item> getBasketItemById(@PathVariable String id) {
         var item = basketService.getItem(id);
-        if (item != null) {
-            return new ResponseEntity<>(item, HttpStatus.OK);
-        }
-        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        return item.map(itemEntity -> new ResponseEntity<>(new Item(itemEntity), HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
     /**
@@ -167,11 +167,9 @@ public class BasketController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
 
-        var basket = basketService.getBasketById(basketId);
-        var basketValue = basketService.getBasketValue(basket);
-        basket.setValue(basketValue);
+        var basketEntity = basketService.getBasketById(basketId);
 
-        return new ResponseEntity<>(basket, HttpStatus.OK);
+        return new ResponseEntity<>(new Basket(basketEntity), HttpStatus.OK);
     }
 
     /**

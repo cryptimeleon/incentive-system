@@ -21,11 +21,10 @@ import static org.cryptimeleon.incentive.services.basket.ClientHelper.*;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class BasketTest {
 
-    @Value("${basket-service.provider-secret}")
-    private String providerSecret;
-
     private final Item firstTestItem = new Item("23578", "First test item", 235);
     private final Item secondTestItem = new Item("1234554", "Second test item", 123);
+    @Value("${basket-service.provider-secret}")
+    private String providerSecret;
 
     @BeforeAll
     void addTestItems(@Autowired WebTestClient webTestClient) {
@@ -104,14 +103,26 @@ public class BasketTest {
         UUID basketId = createBasket(webTestClient).getResponseBody();
 
         putItem(webTestClient, basketId, firstTestItem.getId(), 5, HttpStatus.OK);
-        putItem(webTestClient, basketId, firstTestItem.getId(), 3, HttpStatus.OK); // Test updating works as expected
         putItem(webTestClient, basketId, secondTestItem.getId(), 1, HttpStatus.OK);
 
         var basket = queryBasket(webTestClient, basketId).getResponseBody();
         assert basket != null;
         assertThat(basket.getItems())
-                .containsEntry(firstTestItem.getId(), 3)
+                .containsEntry(firstTestItem.getId(), 5)
                 .containsEntry(secondTestItem.getId(), 1);
+    }
+
+    @Test
+    void basketOverwriteItemsTest(@Autowired WebTestClient webTestClient) {
+        UUID basketId = createBasket(webTestClient).getResponseBody();
+
+        putItem(webTestClient, basketId, firstTestItem.getId(), 5, HttpStatus.OK);
+        putItem(webTestClient, basketId, firstTestItem.getId(), 3, HttpStatus.OK); // Test updating works as expected
+
+        var basket = queryBasket(webTestClient, basketId).getResponseBody();
+        assert basket != null;
+        assertThat(basket.getItems())
+                .containsEntry(firstTestItem.getId(), 3);
     }
 
     @Test
