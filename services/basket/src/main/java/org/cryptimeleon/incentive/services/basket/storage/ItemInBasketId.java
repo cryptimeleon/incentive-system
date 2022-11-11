@@ -7,13 +7,21 @@ import java.util.Objects;
 import java.util.UUID;
 
 @Embeddable
-class ItemInBasketId implements Serializable {
+public class ItemInBasketId implements Serializable {
 
     @Column(name = "basket_id")
     private UUID basketId;
 
     @Column(name = "item_id")
     private String itemId;
+
+    public ItemInBasketId(UUID basketID, String itemId) {
+        this.basketId = basketID;
+        this.itemId = itemId;
+    }
+
+    public ItemInBasketId() {
+    }
 
     public UUID getBasketId() {
         return basketId;

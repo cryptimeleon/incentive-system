@@ -3,10 +3,8 @@ package org.cryptimeleon.incentive.services.basket;
 import org.cryptimeleon.incentive.services.basket.exceptions.*;
 import org.cryptimeleon.incentive.services.basket.model.Basket;
 import org.cryptimeleon.incentive.services.basket.model.BasketItem;
-import org.cryptimeleon.incentive.services.basket.model.Item;
 import org.cryptimeleon.incentive.services.basket.model.RewardItem;
-import org.cryptimeleon.incentive.services.basket.storage.ItemEntity;
-import org.cryptimeleon.incentive.services.basket.storage.ItemRepository;
+import org.cryptimeleon.incentive.services.basket.storage.*;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -21,18 +19,18 @@ import java.util.stream.StreamSupport;
 @Service
 public class BasketService {
 
-    private final HashMap<UUID, Basket> basketMap;
     private final List<RewardItem> rewardItems;
 
     private ItemRepository itemRepository;
+    private BasketRepository basketRepository;
 
     /**
      * Initialize basket service with empty shopping item list.
      */
-    BasketService(ItemRepository itemRepository) {
+    BasketService(ItemRepository itemRepository, BasketRepository basketRepository) {
         this.rewardItems = new ArrayList<>();
-        basketMap = new HashMap<>();
         this.itemRepository = itemRepository;
+        this.basketRepository = basketRepository;
     }
 
     /**
@@ -87,19 +85,19 @@ public class BasketService {
     }
 
     public UUID createNewBasket() {
-        var id = UUID.randomUUID();
-        basketMap.put(id, new Basket(id));  // probability of same id negligible
-        return id;
+        BasketEntity basketEntity = new BasketEntity();
+        basketRepository.save(basketEntity);
+        return basketEntity.getBasketID();
     }
 
-    public Basket getBasketById(UUID basketId) throws BasketNotFoundException {
-        var basketOptional = Optional.ofNullable(basketMap.get(basketId));
+    public BasketEntity getBasketById(UUID basketId) throws BasketNotFoundException {
+        var basketOptional = basketRepository.findById(basketId);
         if (basketOptional.isEmpty()) throw new BasketNotFoundException();
         return basketOptional.get();
     }
 
     public void removeBasketWithId(UUID basketId) {
-        basketMap.remove(basketId);
+        basketRepository.deleteById(basketId);
     }
 
     public void addRewardsToBasket(UUID basketId, List<String> rewardItemIds) throws BasketServiceException {
@@ -107,18 +105,19 @@ public class BasketService {
 
         if (isBasketImmutable(basket)) throw new BasketPaidException();
 
-        basket.setRewardItems(rewardItemIds);
+        basket.setRewardItems(new HashSet<>(rewardItemIds));
     }
 
     public void setItemInBasket(UUID basketId, String itemId, int count) throws BasketServiceException {
         assert count > 0;
 
         var basket = getBasketById(basketId);
+        var item = getItem(itemId).orElseThrow();
 
         if (isBasketImmutable(basket)) throw new BasketPaidException();
         if (!hasItem(itemId)) throw new ItemNotFoundException();
 
-        basket.getItems().put(itemId, count);
+        basket.addBasketItem(item, count);
     }
 
     public void deleteItemFromBasket(UUID basketId, String itemId) throws BasketServiceException {
@@ -126,18 +125,18 @@ public class BasketService {
 
         if (isBasketImmutable(basket)) throw new BasketPaidException();
 
-        basket.getItems().remove(itemId);
+        basket.getBasketItems().removeIf(i-> i.getId().getItemId().equals(itemId));
     }
 
     public void payBasket(UUID basketId) throws BasketServiceException {
         var basket = getBasketById(basketId);
-        if (basket.getItems().isEmpty()) throw new BasketServiceException("Cannot pay empty baskets");
+        if (basket.getBasketItems().isEmpty()) throw new BasketServiceException("Cannot pay empty baskets");
         basket.setPaid(true);
     }
 
     public void lockBasket(UUID basketId) throws BasketServiceException {
         var basket = getBasketById(basketId);
-        if (basket.getItems().isEmpty()) throw new BasketServiceException("Cannot pay empty baskets");
+        if (basket.getBasketItems().isEmpty()) throw new BasketServiceException("Cannot pay empty baskets");
         basket.setLocked(true);
     }
 
@@ -159,13 +158,14 @@ public class BasketService {
      * Function for computing the value of a basket.
      * Basket does not know its value to prevent redundant data / weird data ownership.
      */
-    public long getBasketValue(Basket basket) {
-        return getBasketItemsInBasket(basket)
+    public long getBasketValue(BasketEntity basket) {
+        return basket.getBasketItems()
+                .stream()
                 .mapToLong((basketItem) -> basketItem.getItem().getPrice() * basketItem.getCount())
                 .sum();
     }
 
-    private boolean isBasketImmutable(Basket basket) {
+    private boolean isBasketImmutable(BasketEntity basket) {
         return basket.isPaid();
     }
 

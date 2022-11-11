@@ -12,6 +12,9 @@ dependencies {
     // Database
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     runtimeOnly 'com.h2database:h2'
+    // M1 mac fix
+    implementation 'io.netty:netty-all'
+    implementation(group: "io.netty", name: "netty-resolver-dns-native-macos", version: "4.1.72.Final", classifier: "osx-aarch_64")
 
     // https://mvnrepository.com/artifact/org.assertj/assertj-core
     testImplementation group: 'org.assertj', name: 'assertj-core', version: '3.19.0'
