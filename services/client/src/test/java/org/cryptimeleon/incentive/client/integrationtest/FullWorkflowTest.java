@@ -83,12 +83,7 @@ public class FullWorkflowTest extends TransactionTestPreparation {
         assertThat(basketDto).isNotNull();
         return new Basket(
                 basketDto.getBasketID(),
-                basketDto.getItems().entrySet().stream()
-                        .map(stringIntegerEntry -> {
-                            var basketItem = testBasketItems.stream().filter(item -> item.getId().equals(stringIntegerEntry.getKey())).findAny().orElseThrow();
-                            return new BasketItem(basketItem.getId(), basketItem.getTitle(), basketItem.getPrice(), stringIntegerEntry.getValue());
-                        })
-                        .collect(Collectors.toList())
+                basketDto.getBasketItems().stream().map(i -> new BasketItem(i.getId(), i.getTitle(), i.getPrice(), i.getCount())).collect(Collectors.toList())
         );
     }
 

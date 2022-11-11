@@ -13,7 +13,9 @@ import java.util.UUID;
 @NoArgsConstructor
 public class BasketDto {
     private UUID basketID;
+    @Deprecated
     private Map<String, Integer> items;
+    private List<BasketItemNewDto> basketItems;
     private List<String> rewardItems;
     private boolean paid;
     private boolean redeemed;

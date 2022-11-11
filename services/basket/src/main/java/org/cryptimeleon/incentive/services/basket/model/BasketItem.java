@@ -8,6 +8,7 @@ import org.cryptimeleon.incentive.services.basket.storage.ItemEntity;
 /**
  * Utility dataclass for representing Items in a Basket.
  */
+@Deprecated
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
