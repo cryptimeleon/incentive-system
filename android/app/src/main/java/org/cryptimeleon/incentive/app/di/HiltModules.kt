@@ -1,7 +1,10 @@
 package org.cryptimeleon.incentive.app.di
 
 import android.content.Context
+import android.content.res.Resources
 import android.net.ConnectivityManager
+import android.provider.Settings.Global.getString
+import androidx.compose.ui.res.stringResource
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
@@ -13,6 +16,8 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
+import org.cryptimeleon.incentive.app.MainApplication
+import org.cryptimeleon.incentive.app.R
 import org.cryptimeleon.incentive.app.data.BasketRepository
 import org.cryptimeleon.incentive.app.data.CryptoRepository
 import org.cryptimeleon.incentive.app.data.PreferencesRepository
@@ -36,15 +41,27 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
 
-private const val BASKET_BASE_URL = "https://incentives.cs.upb.de/basket/"
-private const val INFO_BASE_URL = "https://incentives.cs.upb.de/info/"
-private const val PROMOTION_BASE_URL = "https://incentives.cs.upb.de/incentive/"
 
 private const val USER_PREFERENCES = "user_preferences"
+
+data class UrlConfig(
+    val basket_url: String,
+    val info_url: String,
+    val promotion_url: String
+)
+
 
 @Module
 @InstallIn(SingletonComponent::class)
 class HiltApiModule {
+
+    @Provides
+    fun provideUrls(@ApplicationContext context: Context): UrlConfig =
+        UrlConfig(
+            basket_url = context.getString(R.string.basket_service_url),
+            info_url = context.getString(R.string.info_service_url),
+            promotion_url = context.getString(R.string.promotion_service_url),
+        )
 
     @Provides
     fun provideConnectivityManager(@ApplicationContext context: Context): ConnectivityManager =
@@ -52,43 +69,44 @@ class HiltApiModule {
 
     @Singleton
     @Provides
-    fun provideBasketApiService(): BasketApiService =
-        Retrofit.Builder()
+    fun provideBasketApiService(urlConfig: UrlConfig): BasketApiService {
+        return Retrofit.Builder()
             .addConverterFactory(GsonConverterFactory.create())
-            .baseUrl(BASKET_BASE_URL)
+            .baseUrl(urlConfig.basket_url)
             .build()
             .create(BasketApiService::class.java)
+    }
 
     @Singleton
     @Provides
-    fun provideInfoApiService(): InfoApiService =
+    fun provideInfoApiService(urlConfig: UrlConfig): InfoApiService =
         Retrofit.Builder()
             .addConverterFactory(ScalarsConverterFactory.create())
-            .baseUrl(INFO_BASE_URL)
+            .baseUrl(urlConfig.info_url)
             .build()
             .create(InfoApiService::class.java)
 
     @Singleton
     @Provides
-    fun providePromotionApiService(): PromotionApiService =
+    fun providePromotionApiService(urlConfig: UrlConfig): PromotionApiService =
         Retrofit.Builder()
             .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(GsonConverterFactory.create())
-            .baseUrl(PROMOTION_BASE_URL)
+            .baseUrl(urlConfig.promotion_url)
             .build()
             .create(PromotionApiService::class.java)
 
     @Singleton
     @Provides
-    fun provideDosApiService(): DosApiService =
+    fun provideDosApiService(urlConfig: UrlConfig): DosApiService =
         Retrofit.Builder()
-            .baseUrl(PROMOTION_BASE_URL)
+            .baseUrl(urlConfig.promotion_url)
             .build()
             .create(DosApiService::class.java)
 
     @Singleton
     @Provides
-    fun provideCryptoApiService(): CryptoApiService {
+    fun provideCryptoApiService(urlConfig: UrlConfig): CryptoApiService {
         val okHttpClient =
             OkHttpClient.Builder() // Increase timeouts for batch proofs during development
                 .connectTimeout(1, TimeUnit.MINUTES)
@@ -99,7 +117,7 @@ class HiltApiModule {
             .client(okHttpClient)
             .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(GsonConverterFactory.create())
-            .baseUrl(PROMOTION_BASE_URL)
+            .baseUrl(urlConfig.promotion_url)
             .build()
             .create(CryptoApiService::class.java)
     }

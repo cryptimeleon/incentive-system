@@ -18,11 +18,10 @@ import static org.cryptimeleon.incentive.services.basket.ClientHelper.getItems;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ItemsTest {
-    @Value("${basket-service.provider-secret}")
-    private String providerSecret;
-
     private final Item firstTestItem = new Item("23578", "First test item", 235);
     private final Item secondTestItem = new Item("1234554", "Second test item", 123);
+    @Value("${basket-service.provider-secret}")
+    private String providerSecret;
 
     @BeforeEach
     void removeAllItems(@Autowired WebTestClient webTestClient) {

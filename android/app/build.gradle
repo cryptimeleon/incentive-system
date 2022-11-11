@@ -22,6 +22,11 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        resValue "string", "image_url_basepath", "https://incentives.cs.upb.de/assets/"
+        resValue "string", "basket_service_url", "https://incentives.cs.upb.de/basket/"
+        resValue "string", "info_service_url", "https://incentives.cs.upb.de/info/"
+        resValue "string", "promotion_service_url", "https://incentives.cs.upb.de/incentive/"
     }
 
     buildFeatures {
@@ -58,6 +63,7 @@ android {
             java.srcDir sharedTestDir
         }
     }
+    namespace 'org.cryptimeleon.incentive.app'
 }
 
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all { kotlinOptions.freeCompilerArgs += ["-opt-in=kotlin.RequiresOptIn"] }

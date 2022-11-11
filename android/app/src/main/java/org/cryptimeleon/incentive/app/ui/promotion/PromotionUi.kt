@@ -39,7 +39,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -47,6 +49,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import org.cryptimeleon.incentive.app.R
 import org.cryptimeleon.incentive.app.domain.usecase.HazelPromotionData
 import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
 import org.cryptimeleon.incentive.app.domain.usecase.StreakPromotionData
@@ -54,6 +57,7 @@ import org.cryptimeleon.incentive.app.domain.usecase.VipPromotionData
 import org.cryptimeleon.incentive.app.domain.usecase.VipStatus
 import org.cryptimeleon.incentive.app.ui.preview.CryptimeleonPreviewContainer
 import org.cryptimeleon.incentive.app.ui.preview.PreviewData
+import org.cryptimeleon.incentive.app.ui.common.promotionImageUrl
 import java.math.BigInteger
 
 val IMAGE_HEIGHT = 280.dp
@@ -100,7 +104,7 @@ private fun PromotionDetailUi(promotionData: PromotionData, back: () -> Unit) {
         modifier = Modifier.fillMaxSize()
     ) {
         val scroll = rememberScrollState()
-        TopImage(promotionData.promotionImageUrl)
+        TopImage(promotionImageUrl(promotionData = promotionData))
         Body(promotionData, scroll)
         Title(promotionData, scroll)
         FilledTonalIconButton(
@@ -162,16 +166,18 @@ fun PromotionTitle(
                     .fillMaxWidth()
                     .background(color = MaterialTheme.colorScheme.background)
             ) {
-                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                Column(modifier = Modifier.padding(horizontal = 16.dp).weight(1f)) {
                     Spacer(modifier = Modifier.size(8.dp))
                     Text(
                         promotionData.promotionName,
                         style = MaterialTheme.typography.headlineLarge,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                     Text(
                         "TokenId: ${promotionData.shortTokenHash}",
                         style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.secondary
+                        color = MaterialTheme.colorScheme.secondary,
                     )
                     Spacer(modifier = Modifier.size(16.dp))
                 }
@@ -259,7 +265,8 @@ private fun TopImage(imageUrl: String) {
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(IMAGE_HEIGHT)
+                .height(IMAGE_HEIGHT),
+            error = painterResource(id = R.drawable.falllback)
         )
         Box(
             modifier = Modifier

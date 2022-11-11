@@ -20,13 +20,12 @@ import static org.cryptimeleon.incentive.services.basket.ClientHelper.newRewardI
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class RewardItemsTest {
 
-    @Value("${basket-service.provider-secret}")
-    private String providerSecret;
-
     private final RewardItem firstTestItem =
             new RewardItem("0580082614202", "Hazelnut Spread");
     private final RewardItem secondTestItem =
             new RewardItem("4499722672546", "Large Hazelnut Spread");
+    @Value("${basket-service.provider-secret}")
+    private String providerSecret;
 
     @BeforeEach
     void removeAllRewardItems(@Autowired WebTestClient webTestClient) {
