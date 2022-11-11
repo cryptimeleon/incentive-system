@@ -28,8 +28,8 @@ public class RepresentationTests {
     @Test
     public void hazelPromotionRepresentationTest() {
         PromotionParameters promotionParameters = HazelPromotion.generatePromotionParameters();
-        List<ZkpTokenUpdate> zkpTokenUpdateList = List.of(new HazelTokenUpdate(UUID.randomUUID(), "Some reward", new RewardSideEffect("Free Nutella"), 4));
-        HazelPromotion hazelPromotion = new HazelPromotion(promotionParameters, "Test Promotion", "This is some Test Promotion", zkpTokenUpdateList, "nutella");
+        List<ZkpTokenUpdate> zkpTokenUpdateList = List.of(new HazelTokenUpdate(UUID.randomUUID(), "Some reward", new RewardSideEffect("Free Hazelnut Spread"), 4));
+        HazelPromotion hazelPromotion = new HazelPromotion(promotionParameters, "Test Promotion", "This is some Test Promotion", zkpTokenUpdateList, "hazelnut");
         HazelPromotion deserializedHazelPromotion = new HazelPromotion(hazelPromotion.getRepresentation());
 
         assertEquals(hazelPromotion, deserializedHazelPromotion);
@@ -37,7 +37,7 @@ public class RepresentationTests {
 
     @Test
     void hazelRewardRepresentationTest() {
-        HazelTokenUpdate hazelReward = new HazelTokenUpdate(UUID.randomUUID(), "", new RewardSideEffect("Free Nutella"), 8);
+        HazelTokenUpdate hazelReward = new HazelTokenUpdate(UUID.randomUUID(), "", new RewardSideEffect("Free Hazelnut Spread"), 8);
         HazelTokenUpdate deserializedHazelReward = new HazelTokenUpdate(hazelReward.getRepresentation());
 
         assertEquals(hazelReward, deserializedHazelReward);
@@ -72,7 +72,6 @@ public class RepresentationTests {
                 ),
                 7
         );
-        String jsonRep = jsonConverter.serialize(streakPromotion.getRepresentation());
         StreakPromotion deserializedStreakPromotion = new StreakPromotion(jsonConverter.deserialize(jsonConverter.serialize(streakPromotion.getRepresentation())));
 
         assertEquals(streakPromotion, deserializedStreakPromotion);

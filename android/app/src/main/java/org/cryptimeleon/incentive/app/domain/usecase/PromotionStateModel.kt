@@ -30,7 +30,6 @@ private fun tokenToJsonString(token: Token) =
  */
 interface PromotionData {
     val tokenUpdates: List<TokenUpdate>
-    val promotionImageUrl: String
     val pid: BigInteger
     val promotionName: String
     val promotionDescription: String
@@ -74,13 +73,6 @@ data class HazelPromotionData(
         tokenJson = tokenToJsonString(token)
     )
 
-    override val promotionImageUrl: String
-        get() =
-            if (promotionName.contains("Nutella", ignoreCase = true)) {
-                "https://cdn.pixabay.com/photo/2022/01/16/09/58/chocolate-spread-6941622_960_720.jpg"
-            } else {
-                "https://cdn.pixabay.com/photo/2019/06/16/21/48/cups-4278774_960_720.jpg"
-            }
     val score = points.get(0).toInt()
 }
 
@@ -124,8 +116,6 @@ data class StreakPromotionData(
     val streakStillValid = (todayEpochDay - lastEpochDay <= 7)
     val deadline: StreakDate =
         StreakDate.fromLong(if (lastEpochDay == 0L) 0 else lastEpochDay.plus(streakInterval))
-    override val promotionImageUrl: String
-        get() = "https://cdn.pixabay.com/photo/2015/05/31/14/23/organizer-791939_960_720.jpg"
 }
 
 sealed class StreakDate {
@@ -202,8 +192,6 @@ data class VipPromotionData(
 
     override val points: Vector<BigInteger> =
         Vector.of(score.toBigInteger(), vipLevel.statusValue.toBigInteger())
-    override val promotionImageUrl: String
-        get() = "https://cdn.pixabay.com/photo/2017/10/11/07/18/eat-2840156_960_720.jpg"
 }
 
 

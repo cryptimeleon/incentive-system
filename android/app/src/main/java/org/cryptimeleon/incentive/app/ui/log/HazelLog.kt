@@ -46,7 +46,7 @@ fun HazelTokenUpdateLog(tokenUpdate: HazelTokenUpdateState) {
             ) {
                 storesView()
                 append("Choice: \"${tokenUpdate.sideEffect.get()}\"\n")
-                append("${tokenUpdate.basketPoints} Nutella in basket. ")
+                append("${tokenUpdate.basketPoints} jars of hazelnut spread in basket. ")
                 append(
                     "${tokenUpdate.basketPoints} point${pluralS(tokenUpdate.basketPoints)} will be added. "
                 )
