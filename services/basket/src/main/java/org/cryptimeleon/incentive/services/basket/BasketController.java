@@ -7,6 +7,7 @@ import org.cryptimeleon.incentive.services.basket.model.Item;
 import org.cryptimeleon.incentive.services.basket.model.RewardItem;
 import org.cryptimeleon.incentive.services.basket.model.requests.PutItemRequest;
 import org.cryptimeleon.incentive.services.basket.model.requests.RedeemBasketRequest;
+import org.cryptimeleon.incentive.services.basket.storage.BasketEntity;
 import org.cryptimeleon.incentive.services.basket.storage.ItemEntity;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.annotation.PostConstruct;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -173,6 +175,17 @@ public class BasketController {
     }
 
     /**
+     * Endpoint that returns JSON list of all baskets that are in the system.
+     * @return
+     */
+    @GetMapping("/allbaskets")
+    ResponseEntity<List<BasketEntity>> getAllBaskets() {
+        List<BasketEntity> resultList = basketService.getAllBaskets();
+
+        return new ResponseEntity<List<BasketEntity>>(resultList, HttpStatus.OK);
+    }
+
+    /**
      * Delete a basket using its id
      */
     @DeleteMapping("/basket")
@@ -255,9 +268,13 @@ public class BasketController {
         basketService.addRewardsToBasket(basketId, rewardIds);
     }
 
+
+
     /*
-     * Some default error handlers
+     * exception handling
      */
+
+
 
     @ResponseStatus(value = HttpStatus.NOT_FOUND,
             reason = "Basket not found!")

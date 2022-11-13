@@ -18,7 +18,6 @@ import java.util.stream.StreamSupport;
  */
 @Service
 public class BasketService {
-
     private final List<RewardItem> rewardItems;
 
     private final ItemRepository itemRepository;
@@ -95,6 +94,14 @@ public class BasketService {
         var basketOptional = basketRepository.findById(basketId);
         if (basketOptional.isEmpty()) throw new BasketNotFoundException();
         return basketOptional.get();
+    }
+
+    /**
+     * Returns a list of all baskets that are in the system.
+     * @return ArrayList
+     */
+    public List<BasketEntity> getAllBaskets() {
+        return (ArrayList<BasketEntity>) basketRepository.findAll();
     }
 
     public void removeBasketWithId(UUID basketId) {

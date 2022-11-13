@@ -4,11 +4,13 @@ import {createRouter, createWebHashHistory} from 'vue-router';
 const LandingPage = () => import("@/components/LandingPage.vue")
 const PrivacyPolicy = () => import("@/components/PrivacyPolicy.vue")
 const DsProtMain = () => import("@/components/dsprot/DsProtMain.vue")
+const StoreMain = () => import("@/components/store/StoreMain.vue")
 
 const routes = [
     {path: '/', component: LandingPage},
     {path: '/privacy-policy', component: PrivacyPolicy},
-    {path: '/ds-protection', component: DsProtMain}
+    {path: '/ds-protection', component: DsProtMain},
+    {path: '/store-frontend', component: StoreMain}
 ]
 
 const router = createRouter({
