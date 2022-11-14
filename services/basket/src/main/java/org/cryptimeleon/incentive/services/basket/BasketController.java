@@ -171,6 +171,17 @@ public class BasketController {
     }
 
     /**
+     * Endpoint that returns JSON list of all baskets that are in the system.
+     * @return
+     */
+    @GetMapping("/allbaskets")
+    ResponseEntity<List<BasketEntity>> getAllBaskets() {
+        List<BasketEntity> resultList = basketService.getAllBaskets();
+
+        return new ResponseEntity<List<BasketEntity>>(resultList, HttpStatus.OK);
+    }
+
+    /**
      * Delete a basket using its id
      */
     @DeleteMapping("/basket")
@@ -254,7 +265,7 @@ public class BasketController {
     }
 
     /*
-     * Some default error handlers
+     * exception handling
      */
 
     @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "Basket not found!")

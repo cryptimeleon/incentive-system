@@ -30,6 +30,13 @@
           </router-link>
         </li>
         <li>
+          <router-link to="/store-frontend">
+            <span class="text-white hover:text-gray-200">
+              Store Frontend
+            </span>
+          </router-link>
+        </li>
+        <li>
           <router-link to="/ds-protection">
             <span class="text-white hover:text-gray-200">
               Double-Spending Protection

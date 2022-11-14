@@ -93,6 +93,14 @@ public class BasketService {
         return basketOptional.get();
     }
 
+    /**
+     * Returns a list of all baskets that are in the system.
+     * @return ArrayList
+     */
+    public List<BasketEntity> getAllBaskets() {
+        return (ArrayList<BasketEntity>) basketRepository.findAll();
+    }
+
     public void removeBasketWithId(UUID basketId) {
         basketRepository.deleteById(basketId);
     }

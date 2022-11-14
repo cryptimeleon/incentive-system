@@ -72,7 +72,9 @@ public class DsprotectionController {
      * Endpoint for obtaining all transactions as a single JSON string that are currently contained in the database.
      * Transaction DTOs are stored as JSON objects in a JSON array automatically.
      *
-     * Transaction DTOs are reduced versions of the crypto transaction object, containing only the data that needs to be displayed in the front end.
+     * Transaction DTOs are reduced versions of the crypto transaction object, containing only the data that needs to be displayed in the frontend.
+     * More precisely, this means that the ctrace arrays, which are just large collections of large numbers, are not sent to the frontend
+     * since displaying them would only obfuscate the frontend view without giving any useful information to the user.
      *
      * @return response entity containing JSON object string of transaction DTOs
      */
@@ -80,7 +82,7 @@ public class DsprotectionController {
     public ResponseEntity<List<TransactionDto>> getAllTransactions() {
         List<TransactionDto> resultList = dsprotectionService.getAllTransactions();
 
-        return new ResponseEntity<>(dsprotectionService.getAllTransactions(), HttpStatus.OK);
+        return new ResponseEntity<>(resultList, HttpStatus.OK);
     }
 
     /**
