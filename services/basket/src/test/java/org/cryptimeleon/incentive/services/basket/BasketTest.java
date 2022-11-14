@@ -1,8 +1,8 @@
 package org.cryptimeleon.incentive.services.basket;
 
 import lombok.extern.slf4j.Slf4j;
-import org.cryptimeleon.incentive.services.basket.model.BasketItem;
-import org.cryptimeleon.incentive.services.basket.model.Item;
+import org.cryptimeleon.incentive.services.basket.api.BasketItem;
+import org.cryptimeleon.incentive.services.basket.api.Item;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -37,7 +37,8 @@ public class BasketTest {
     void queryBasketQueryParamTest(@Autowired WebTestClient webTestClient) {
         UUID basketId = createBasket(webTestClient).getResponseBody();
 
-        queryBasketUrlParam(webTestClient, basketId, HttpStatus.OK);
+        var result = queryBasketUrlParam(webTestClient, basketId, HttpStatus.OK);
+        assertThat(result.getResponseBody()).isNotNull();
     }
 
     @Test

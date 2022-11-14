@@ -1,4 +1,4 @@
-package org.cryptimeleon.incentive.services.basket.model;
+package org.cryptimeleon.incentive.services.basket.api;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.AllArgsConstructor;

@@ -1,10 +1,10 @@
 package org.cryptimeleon.incentive.services.basket;
 
-import org.cryptimeleon.incentive.services.basket.model.Basket;
-import org.cryptimeleon.incentive.services.basket.model.Item;
-import org.cryptimeleon.incentive.services.basket.model.RewardItem;
-import org.cryptimeleon.incentive.services.basket.model.requests.PutItemRequest;
-import org.cryptimeleon.incentive.services.basket.model.requests.RedeemBasketRequest;
+import org.cryptimeleon.incentive.services.basket.api.Basket;
+import org.cryptimeleon.incentive.services.basket.api.Item;
+import org.cryptimeleon.incentive.services.basket.api.RewardItem;
+import org.cryptimeleon.incentive.services.basket.api.PutItemRequest;
+import org.cryptimeleon.incentive.services.basket.api.RedeemBasketRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.web.reactive.server.EntityExchangeResult;
 import org.springframework.test.web.reactive.server.WebTestClient;
