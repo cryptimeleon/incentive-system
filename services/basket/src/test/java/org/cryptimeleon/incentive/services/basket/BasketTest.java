@@ -1,9 +1,8 @@
 package org.cryptimeleon.incentive.services.basket;
 
 import lombok.extern.slf4j.Slf4j;
-import org.cryptimeleon.incentive.services.basket.model.BasketItemNew;
+import org.cryptimeleon.incentive.services.basket.model.BasketItem;
 import org.cryptimeleon.incentive.services.basket.model.Item;
-import org.cryptimeleon.incentive.services.basket.storage.ItemEntity;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -110,8 +109,8 @@ public class BasketTest {
         var basket = queryBasket(webTestClient, basketId).getResponseBody();
         assert basket != null;
         assertThat(basket.getBasketItems())
-                .contains(new BasketItemNew(firstTestItem, 5))
-                .contains(new BasketItemNew(secondTestItem, 1));
+                .contains(new BasketItem(firstTestItem, 5))
+                .contains(new BasketItem(secondTestItem, 1));
     }
 
     @Test
@@ -124,7 +123,7 @@ public class BasketTest {
         var basket = queryBasket(webTestClient, basketId).getResponseBody();
         assert basket != null;
         assertThat(basket.getBasketItems())
-                .contains(new BasketItemNew(firstTestItem, 3));
+                .contains(new BasketItem(firstTestItem, 3));
     }
 
     @Test

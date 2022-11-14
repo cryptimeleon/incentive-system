@@ -5,11 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.cryptimeleon.incentive.services.basket.storage.BasketEntity;
-import org.cryptimeleon.incentive.services.basket.storage.ItemInBasketEntity;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -23,7 +21,7 @@ public class Basket {
     @ApiModelProperty(value = "${basketModel.basketID}")
     private UUID basketID;
     @ApiModelProperty(value = "${basketModel.basketItems}")
-    private List<BasketItemNew> basketItems;
+    private List<BasketItem> basketItems;
     @ApiModelProperty(value = "${basketModel.rewardItems}")
     private List<String> rewardItems;
     @ApiModelProperty(value = "${basketModel.paid}")
@@ -41,7 +39,7 @@ public class Basket {
     public Basket(BasketEntity basketEntity) {
         this.basketID = basketEntity.getBasketID();
         this.basketItems = basketEntity.getBasketItems().stream().map(e ->
-                new BasketItemNew(e.getItem(), e.getCount())
+                new BasketItem(e.getItem(), e.getCount())
         ).collect(Collectors.toList());
         this.rewardItems = new ArrayList<>(basketEntity.getRewardItems());
         this.paid = basketEntity.isPaid();

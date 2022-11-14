@@ -9,7 +9,7 @@ import org.cryptimeleon.incentive.services.basket.storage.ItemEntity;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class BasketItemNew {
+public class BasketItem {
     @ApiModelProperty(value = "${item.id}")
     String id;
     @ApiModelProperty(value = "${item.title}")
@@ -19,14 +19,14 @@ public class BasketItemNew {
     @ApiModelProperty(value = "${item.count}")
     int count;
 
-    public BasketItemNew(ItemEntity itemEntity, int count) {
+    public BasketItem(ItemEntity itemEntity, int count) {
         this.id = itemEntity.getId();
         this.title = itemEntity.getTitle();
         this.price = itemEntity.getPrice();
         this.count = count;
     }
 
-    public BasketItemNew(Item item, int count) {
+    public BasketItem(Item item, int count) {
         this.id = item.getId();
         this.title = item.getTitle();
         this.price = item.getPrice();
