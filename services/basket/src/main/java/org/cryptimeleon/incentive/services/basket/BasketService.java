@@ -99,10 +99,11 @@ public class BasketService {
 
     public void addRewardsToBasket(UUID basketId, List<String> rewardItemIds) throws BasketServiceException {
         var basket = getBasketById(basketId);
+        var rewardItemsToAdd = rewardItemIds.stream().map(rewardItemRepository::findById).map(Optional::orElseThrow).collect(Collectors.toList());
 
         if (isBasketImmutable(basket)) throw new BasketPaidException();
 
-        basket.setRewardItems(new HashSet<>(rewardItemIds));
+        basket.getRewardItems().addAll(rewardItemsToAdd);
         basketRepository.save(basket);
     }
 
