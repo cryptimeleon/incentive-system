@@ -13,7 +13,7 @@ import java.util.UUID;
 public class BasketDto {
     private UUID basketID;
     private List<BasketItemDto> basketItems;
-    private List<String> rewardItems;
+    private List<RewardItemDto> rewardItems;
     private boolean paid;
     private boolean redeemed;
     private String redeemRequest;

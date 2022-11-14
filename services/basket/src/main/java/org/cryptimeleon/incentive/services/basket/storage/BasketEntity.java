@@ -12,7 +12,7 @@ public class BasketEntity {
     private UUID basketID;
     @OneToMany(cascade = CascadeType.ALL) // Store children with this entity
     private Set<ItemInBasketEntity> basketItems = new HashSet<>();
-    @OneToMany
+    @ManyToMany
     private Set<RewardItemEntity> rewardItems = new HashSet<>();
     private boolean paid;
     private boolean redeemed;
