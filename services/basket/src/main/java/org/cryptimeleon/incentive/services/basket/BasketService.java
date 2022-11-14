@@ -4,7 +4,10 @@ import org.cryptimeleon.incentive.services.basket.exceptions.*;
 import org.cryptimeleon.incentive.services.basket.storage.*;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -95,6 +98,7 @@ public class BasketService {
 
     /**
      * Returns a list of all baskets that are in the system.
+     *
      * @return ArrayList
      */
     public List<BasketEntity> getAllBaskets() {

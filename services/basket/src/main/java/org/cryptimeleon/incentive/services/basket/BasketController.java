@@ -1,12 +1,8 @@
 package org.cryptimeleon.incentive.services.basket;
 
 import lombok.extern.slf4j.Slf4j;
+import org.cryptimeleon.incentive.services.basket.api.*;
 import org.cryptimeleon.incentive.services.basket.exceptions.*;
-import org.cryptimeleon.incentive.services.basket.api.Basket;
-import org.cryptimeleon.incentive.services.basket.api.Item;
-import org.cryptimeleon.incentive.services.basket.api.RewardItem;
-import org.cryptimeleon.incentive.services.basket.api.PutItemRequest;
-import org.cryptimeleon.incentive.services.basket.api.RedeemBasketRequest;
 import org.cryptimeleon.incentive.services.basket.storage.ItemEntity;
 import org.cryptimeleon.incentive.services.basket.storage.RewardItemEntity;
 import org.springframework.beans.factory.annotation.Value;
@@ -172,13 +168,14 @@ public class BasketController {
 
     /**
      * Endpoint that returns JSON list of all baskets that are in the system.
-     * @return
+     *
+     * @return list of baskets
      */
     @GetMapping("/allbaskets")
-    ResponseEntity<List<BasketEntity>> getAllBaskets() {
-        List<BasketEntity> resultList = basketService.getAllBaskets();
+    ResponseEntity<List<Basket>> getAllBaskets() {
+        List<Basket> resultList = basketService.getAllBaskets().stream().map(Basket::new).collect(Collectors.toList());
 
-        return new ResponseEntity<List<BasketEntity>>(resultList, HttpStatus.OK);
+        return new ResponseEntity<>(resultList, HttpStatus.OK);
     }
 
     /**
