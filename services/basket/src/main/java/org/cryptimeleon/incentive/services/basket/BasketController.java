@@ -8,6 +8,7 @@ import org.cryptimeleon.incentive.services.basket.model.RewardItem;
 import org.cryptimeleon.incentive.services.basket.model.requests.PutItemRequest;
 import org.cryptimeleon.incentive.services.basket.model.requests.RedeemBasketRequest;
 import org.cryptimeleon.incentive.services.basket.storage.ItemEntity;
+import org.cryptimeleon.incentive.services.basket.storage.RewardItemEntity;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -117,8 +118,8 @@ public class BasketController {
      * Query all shopping items that can be purchased
      */
     @GetMapping("/reward-items")
-    RewardItem[] getAllRewardItems() {
-        return basketService.getRewardItems();
+    List<RewardItem> getAllRewardItems() {
+        return basketService.getRewardItems().stream().map(e -> new RewardItem(e.getId(), e.getTitle())).collect(Collectors.toList());
     }
 
     @PostMapping("/reward-items")
@@ -126,7 +127,7 @@ public class BasketController {
         if (providerSecretHeader == null || !providerSecretHeader.equals(providerSecret)) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
-        basketService.save(rewardItem);
+        basketService.save(new RewardItemEntity(rewardItem.getId(), rewardItem.getTitle()));
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -154,10 +155,7 @@ public class BasketController {
      * TODO normally, the request header version of this request would be used in some provider side app
      */
     @GetMapping("/basket")
-    ResponseEntity<Basket> getBasket(
-            @RequestHeader(required = false, name = "basketId") UUID basketIdHeader,
-            @RequestParam(required = false, name = "basketId") UUID basketIdParam
-    ) throws BasketServiceException {
+    ResponseEntity<Basket> getBasket(@RequestHeader(required = false, name = "basketId") UUID basketIdHeader, @RequestParam(required = false, name = "basketId") UUID basketIdParam) throws BasketServiceException {
         UUID basketId;
         if (basketIdHeader != null) {
             basketId = basketIdHeader;
@@ -259,29 +257,25 @@ public class BasketController {
      * Some default error handlers
      */
 
-    @ResponseStatus(value = HttpStatus.NOT_FOUND,
-            reason = "Basket not found!")
+    @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "Basket not found!")
     @ExceptionHandler(BasketNotFoundException.class)
     public void handleBasketNotFoundException() {
 
     }
 
-    @ResponseStatus(value = HttpStatus.BAD_REQUEST,
-            reason = "Basket is paid and hence cannot be altered!")
+    @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Basket is paid and hence cannot be altered!")
     @ExceptionHandler(BasketPaidException.class)
     public void handleBasketPaidException() {
 
     }
 
-    @ResponseStatus(value = HttpStatus.NOT_FOUND,
-            reason = "Shopping item not found!")
+    @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "Shopping item not found!")
     @ExceptionHandler(ItemNotFoundException.class)
     public void handleItemNotFoundException() {
 
     }
 
-    @ResponseStatus(value = HttpStatus.BAD_REQUEST,
-            reason = "The sent basket value does math its actual value.")
+    @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "The sent basket value does math its actual value.")
     @ExceptionHandler(WrongBasketValueException.class)
     public void handleWrongBasketValueException() {
 
