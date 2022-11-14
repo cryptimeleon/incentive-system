@@ -1,7 +1,7 @@
 package org.cryptimeleon.incentive.services.basket;
 
 import lombok.extern.slf4j.Slf4j;
-import org.cryptimeleon.incentive.services.basket.model.RewardItem;
+import org.cryptimeleon.incentive.services.basket.api.RewardItem;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;

@@ -12,8 +12,8 @@ public class BasketEntity {
     private UUID basketID;
     @OneToMany(cascade = CascadeType.ALL) // Store children with this entity
     private Set<ItemInBasketEntity> basketItems = new HashSet<>();
-    @ElementCollection
-    private Set<String> rewardItems = new HashSet<>();
+    @ManyToMany
+    private Set<RewardItemEntity> rewardItems = new HashSet<>();
     private boolean paid;
     private boolean redeemed;
     private boolean locked;
@@ -52,12 +52,8 @@ public class BasketEntity {
         basketItems.removeIf(e -> e.getItem().equals(itemEntity));
     }
 
-    public Set<String> getRewardItems() {
+    public Set<RewardItemEntity> getRewardItems() {
         return rewardItems;
-    }
-
-    public void setRewardItems(Set<String> rewardItems) {
-        this.rewardItems = rewardItems;
     }
 
     public boolean isPaid() {

@@ -1,14 +1,13 @@
 package org.cryptimeleon.incentive.services.basket;
 
 import org.cryptimeleon.incentive.services.basket.exceptions.*;
-import org.cryptimeleon.incentive.services.basket.model.RewardItem;
-import org.cryptimeleon.incentive.services.basket.storage.BasketEntity;
-import org.cryptimeleon.incentive.services.basket.storage.BasketRepository;
-import org.cryptimeleon.incentive.services.basket.storage.ItemEntity;
-import org.cryptimeleon.incentive.services.basket.storage.ItemRepository;
+import org.cryptimeleon.incentive.services.basket.storage.*;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -18,16 +17,16 @@ import java.util.stream.StreamSupport;
  */
 @Service
 public class BasketService {
-    private final List<RewardItem> rewardItems;
 
+    private final RewardItemRepository rewardItemRepository;
     private final ItemRepository itemRepository;
     private final BasketRepository basketRepository;
 
     /**
      * Initialize basket service with empty shopping item list.
      */
-    BasketService(ItemRepository itemRepository, BasketRepository basketRepository) {
-        this.rewardItems = new ArrayList<>();
+    BasketService(ItemRepository itemRepository, BasketRepository basketRepository, RewardItemRepository rewardItemRepository) {
+        this.rewardItemRepository = rewardItemRepository;
         this.itemRepository = itemRepository;
         this.basketRepository = basketRepository;
     }
@@ -42,8 +41,8 @@ public class BasketService {
     /**
      * Returns true if and only if the basket service has a purchasable item with the passed ID.
      *
-     * @param itemId
-     * @return
+     * @param itemId id of the item to search for
+     * @return true if item exists
      */
     private boolean hasItem(String itemId) {
         return itemRepository.existsById(itemId);
@@ -70,17 +69,18 @@ public class BasketService {
         itemRepository.deleteAll();
     }
 
-    public RewardItem[] getRewardItems() {
-        return rewardItems.toArray(new RewardItem[0]);
+    public List<RewardItemEntity> getRewardItems() {
+        return StreamSupport.stream(rewardItemRepository.findAll().spliterator(), false).collect(Collectors.toList());
     }
 
     public void deleteAllRewardItems() {
-        rewardItems.clear();
+        rewardItemRepository.deleteAll();
     }
 
-    public void save(RewardItem rewardItem) {
-        if (!rewardItems.contains(rewardItem)) {
-            rewardItems.add(rewardItem);
+    public void save(RewardItemEntity rewardItemEntity) {
+        var itemOptional = rewardItemRepository.findById(rewardItemEntity.getId());
+        if (itemOptional.isEmpty()) {
+            rewardItemRepository.save(rewardItemEntity);
         }
     }
 
@@ -98,6 +98,7 @@ public class BasketService {
 
     /**
      * Returns a list of all baskets that are in the system.
+     *
      * @return ArrayList
      */
     public List<BasketEntity> getAllBaskets() {
@@ -110,10 +111,11 @@ public class BasketService {
 
     public void addRewardsToBasket(UUID basketId, List<String> rewardItemIds) throws BasketServiceException {
         var basket = getBasketById(basketId);
+        var rewardItemsToAdd = rewardItemIds.stream().map(rewardItemRepository::findById).map(Optional::orElseThrow).collect(Collectors.toList());
 
         if (isBasketImmutable(basket)) throw new BasketPaidException();
 
-        basket.setRewardItems(new HashSet<>(rewardItemIds));
+        basket.getRewardItems().addAll(rewardItemsToAdd);
         basketRepository.save(basket);
     }
 

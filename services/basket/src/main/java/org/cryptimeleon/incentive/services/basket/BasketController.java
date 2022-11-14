@@ -1,14 +1,10 @@
 package org.cryptimeleon.incentive.services.basket;
 
 import lombok.extern.slf4j.Slf4j;
+import org.cryptimeleon.incentive.services.basket.api.*;
 import org.cryptimeleon.incentive.services.basket.exceptions.*;
-import org.cryptimeleon.incentive.services.basket.model.Basket;
-import org.cryptimeleon.incentive.services.basket.model.Item;
-import org.cryptimeleon.incentive.services.basket.model.RewardItem;
-import org.cryptimeleon.incentive.services.basket.model.requests.PutItemRequest;
-import org.cryptimeleon.incentive.services.basket.model.requests.RedeemBasketRequest;
-import org.cryptimeleon.incentive.services.basket.storage.BasketEntity;
 import org.cryptimeleon.incentive.services.basket.storage.ItemEntity;
+import org.cryptimeleon.incentive.services.basket.storage.RewardItemEntity;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -119,8 +114,8 @@ public class BasketController {
      * Query all shopping items that can be purchased
      */
     @GetMapping("/reward-items")
-    RewardItem[] getAllRewardItems() {
-        return basketService.getRewardItems();
+    List<RewardItem> getAllRewardItems() {
+        return basketService.getRewardItems().stream().map(e -> new RewardItem(e.getId(), e.getTitle())).collect(Collectors.toList());
     }
 
     @PostMapping("/reward-items")
@@ -128,7 +123,7 @@ public class BasketController {
         if (providerSecretHeader == null || !providerSecretHeader.equals(providerSecret)) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
-        basketService.save(rewardItem);
+        basketService.save(new RewardItemEntity(rewardItem.getId(), rewardItem.getTitle()));
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
@@ -156,10 +151,7 @@ public class BasketController {
      * TODO normally, the request header version of this request would be used in some provider side app
      */
     @GetMapping("/basket")
-    ResponseEntity<Basket> getBasket(
-            @RequestHeader(required = false, name = "basketId") UUID basketIdHeader,
-            @RequestParam(required = false, name = "basketId") UUID basketIdParam
-    ) throws BasketServiceException {
+    ResponseEntity<Basket> getBasket(@RequestHeader(required = false, name = "basketId") UUID basketIdHeader, @RequestParam(required = false, name = "basketId") UUID basketIdParam) throws BasketServiceException {
         UUID basketId;
         if (basketIdHeader != null) {
             basketId = basketIdHeader;
@@ -176,13 +168,14 @@ public class BasketController {
 
     /**
      * Endpoint that returns JSON list of all baskets that are in the system.
-     * @return
+     *
+     * @return list of baskets
      */
     @GetMapping("/allbaskets")
-    ResponseEntity<List<BasketEntity>> getAllBaskets() {
-        List<BasketEntity> resultList = basketService.getAllBaskets();
+    ResponseEntity<List<Basket>> getAllBaskets() {
+        List<Basket> resultList = basketService.getAllBaskets().stream().map(Basket::new).collect(Collectors.toList());
 
-        return new ResponseEntity<List<BasketEntity>>(resultList, HttpStatus.OK);
+        return new ResponseEntity<>(resultList, HttpStatus.OK);
     }
 
     /**
@@ -268,37 +261,29 @@ public class BasketController {
         basketService.addRewardsToBasket(basketId, rewardIds);
     }
 
-
-
     /*
      * exception handling
      */
 
-
-
-    @ResponseStatus(value = HttpStatus.NOT_FOUND,
-            reason = "Basket not found!")
+    @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "Basket not found!")
     @ExceptionHandler(BasketNotFoundException.class)
     public void handleBasketNotFoundException() {
 
     }
 
-    @ResponseStatus(value = HttpStatus.BAD_REQUEST,
-            reason = "Basket is paid and hence cannot be altered!")
+    @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Basket is paid and hence cannot be altered!")
     @ExceptionHandler(BasketPaidException.class)
     public void handleBasketPaidException() {
 
     }
 
-    @ResponseStatus(value = HttpStatus.NOT_FOUND,
-            reason = "Shopping item not found!")
+    @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "Shopping item not found!")
     @ExceptionHandler(ItemNotFoundException.class)
     public void handleItemNotFoundException() {
 
     }
 
-    @ResponseStatus(value = HttpStatus.BAD_REQUEST,
-            reason = "The sent basket value does math its actual value.")
+    @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "The sent basket value does math its actual value.")
     @ExceptionHandler(WrongBasketValueException.class)
     public void handleWrongBasketValueException() {
 

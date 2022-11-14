@@ -65,13 +65,13 @@ public class FullWorkflowTest extends TransactionTestPreparation {
         Token token = generateToken(testPromotion.getPromotionParameters(), Vector.of(BigInteger.valueOf(20)));
         var basketId = createBasket();
         assert basketId != null;
-        log.info("BasketId: " + basketId.toString());
+        log.info("BasketId: " + basketId);
 
         runSpendDeductWorkflow(token, basketId);
         var basketAfterSpend = basketClient.getBasket(basketId).block();
 
         assert basketAfterSpend != null;
-        org.assertj.core.api.Assertions.assertThat(basketAfterSpend.getRewardItems()).containsExactly(REWARD_ID);
+        org.assertj.core.api.Assertions.assertThat(basketAfterSpend.getRewardItems()).hasSize(1).allMatch(rewardItemDto -> rewardItemDto.getId().equals(REWARD_ID));
     }
 
     private Basket createBasketWithItems() {
@@ -83,12 +83,7 @@ public class FullWorkflowTest extends TransactionTestPreparation {
         assertThat(basketDto).isNotNull();
         return new Basket(
                 basketDto.getBasketID(),
-                basketDto.getItems().entrySet().stream()
-                        .map(stringIntegerEntry -> {
-                            var basketItem = testBasketItems.stream().filter(item -> item.getId().equals(stringIntegerEntry.getKey())).findAny().orElseThrow();
-                            return new BasketItem(basketItem.getId(), basketItem.getTitle(), basketItem.getPrice(), stringIntegerEntry.getValue());
-                        })
-                        .collect(Collectors.toList())
+                basketDto.getBasketItems().stream().map(i -> new BasketItem(i.getId(), i.getTitle(), i.getPrice(), i.getCount())).collect(Collectors.toList())
         );
     }
 

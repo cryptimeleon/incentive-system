@@ -49,15 +49,15 @@ class BasketDatabaseTest {
 
     private val firstBasketItemEntity = BasketItemEntity(
         "first-item",
-        199,
         "Chocolate",
+        199,
         4
     )
 
     private val secondBasketItemEntity = BasketItemEntity(
         "second-item",
-        99,
         "Banana",
+        99,
         2
     )
 

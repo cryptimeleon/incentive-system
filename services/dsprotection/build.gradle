@@ -23,6 +23,10 @@ dependencies {
 	implementation 'org.cryptimeleon.incentive:crypto'
 	testImplementation(testFixtures('org.cryptimeleon.incentive:crypto'))
 
+	// M1 mac fix
+	implementation 'io.netty:netty-all'
+	implementation(group: "io.netty", name: "netty-resolver-dns-native-macos", version: "4.1.72.Final", classifier: "osx-aarch_64")
+
 	implementation project(":client") // needed to query public parameters from info service
 }
 

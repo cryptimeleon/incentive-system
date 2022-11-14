@@ -3,7 +3,7 @@ package org.cryptimeleon.incentive.client.integrationtest;
 import org.cryptimeleon.incentive.client.BasketClient;
 import org.cryptimeleon.incentive.client.IncentiveClient;
 import org.cryptimeleon.incentive.client.InfoClient;
-import org.cryptimeleon.incentive.client.dto.BasketItemDto;
+import org.cryptimeleon.incentive.client.dto.ItemDto;
 import org.cryptimeleon.incentive.client.dto.RewardItemDto;
 import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.SpendRequestDto;
@@ -48,11 +48,11 @@ public class TransactionTestPreparation extends IncentiveSystemIntegrationTest {
             "Some Test Promotion",
             List.of(testTokenUpdate),
             "Apple");
-    protected final BasketItemDto firstTestItem = new BasketItemDto("1", "First Test Item", 100);
-    protected final BasketItemDto secondTestItem = new BasketItemDto("1", "First Test Item", 100);
-    protected final List<BasketItemDto> testBasketItems = List.of(firstTestItem, secondTestItem);
+    protected final ItemDto firstTestItem = new ItemDto("1", "First Test Item", 100);
+    protected final ItemDto secondTestItem = new ItemDto("1", "First Test Item", 100);
+    protected final List<ItemDto> testBasketItems = List.of(firstTestItem, secondTestItem);
 
-    protected final BasketItemDto basketItemDto = new BasketItemDto("Some ID", "Apple", 1);
+    protected final ItemDto basketItemDto = new ItemDto("Some ID", "Apple", 1);
     protected final RewardItemDto rewardItemDto = new RewardItemDto(REWARD_ID, "Test Reward Item");
 
     protected InfoClient infoClient;

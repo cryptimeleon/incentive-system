@@ -3,7 +3,7 @@ package org.cryptimeleon.incentive.services.bootstrap;
 import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.incentive.client.BasketClient;
 import org.cryptimeleon.incentive.client.IncentiveClient;
-import org.cryptimeleon.incentive.client.dto.BasketItemDto;
+import org.cryptimeleon.incentive.client.dto.ItemDto;
 import org.cryptimeleon.incentive.client.dto.RewardItemDto;
 import org.cryptimeleon.incentive.promotion.Promotion;
 
@@ -42,8 +42,8 @@ public class BootstrapClient {
         }
     }
 
-    private void publishBasketItems(BasketItemDto[] basketItems) {
-        for (BasketItemDto item : basketItems) {
+    private void publishBasketItems(ItemDto[] basketItems) {
+        for (ItemDto item : basketItems) {
             log.info("adding " + item);
             basketClient.newBasketItem(item, basketServiceProviderSecret).block();
         }

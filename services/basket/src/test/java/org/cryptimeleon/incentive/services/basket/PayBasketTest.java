@@ -1,6 +1,7 @@
 package org.cryptimeleon.incentive.services.basket;
 
-import org.cryptimeleon.incentive.services.basket.model.Item;
+import org.cryptimeleon.incentive.services.basket.api.BasketItem;
+import org.cryptimeleon.incentive.services.basket.api.Item;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -77,8 +78,8 @@ public class PayBasketTest {
 
         var basket = queryBasket(webTestClient, basketId).getResponseBody();
         assert basket != null;
-        assertThat(basket.getItems())
-                .containsEntry(firstTestItem.getId(), 3)
-                .containsEntry(secondTestItem.getId(), 1);
+        assertThat(basket.getBasketItems())
+                .contains(new BasketItem(firstTestItem, 3))
+                .contains(new BasketItem(secondTestItem, 1));
     }
 }

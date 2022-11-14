@@ -50,14 +50,14 @@ public class BasketClient implements AliveEndpoint {
                 .bodyToMono(UUID.class);
     }
 
-    public Mono<BasketItemDto[]> getItems() {
+    public Mono<ItemDto[]> getItems() {
         return basketClient.get()
                 .uri("/items")
                 .retrieve()
-                .bodyToMono(BasketItemDto[].class);
+                .bodyToMono(ItemDto[].class);
     }
 
-    public Mono<Void> newBasketItem(BasketItemDto item, String providerSecret) {
+    public Mono<Void> newBasketItem(ItemDto item, String providerSecret) {
         return basketClient.post()
                 .uri("/items")
                 .header("provider-secret", providerSecret)
@@ -135,7 +135,7 @@ public class BasketClient implements AliveEndpoint {
                 .bodyToMono(Void.class);
     }
 
-    public void addShoppingItems(List<BasketItemDto> testBasketItems, String providerSecret) {
+    public void addShoppingItems(List<ItemDto> testBasketItems, String providerSecret) {
         testBasketItems.forEach(item ->
                 basketClient.post()
                         .uri("/items")

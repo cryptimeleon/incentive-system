@@ -5,14 +5,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * A basket item represents an item that is in a basket and hence has a count field.
+ * An item represents an item that can be added to a basket.
+ * Hence, it does not have a count field as in the BasketItemDto.
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class BasketItemDto {
+public class ItemDto {
     String id;
     String title;
     int price;
-    int count;
 }

@@ -1,7 +1,9 @@
 package org.cryptimeleon.incentive.services.basket;
 
 import lombok.extern.slf4j.Slf4j;
-import org.cryptimeleon.incentive.services.basket.model.Item;
+import org.cryptimeleon.incentive.services.basket.api.BasketItem;
+import org.cryptimeleon.incentive.services.basket.api.Item;
+import org.cryptimeleon.incentive.services.basket.api.RewardItem;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -12,6 +14,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cryptimeleon.incentive.services.basket.ClientHelper.*;
@@ -23,20 +27,29 @@ public class BasketTest {
 
     private final Item firstTestItem = new Item("23578", "First test item", 235);
     private final Item secondTestItem = new Item("1234554", "Second test item", 123);
+    private final RewardItem firstRewardItem = new RewardItem("1234", "First Reward Item");
+    private final RewardItem secondRewardItem = new RewardItem("1235", "Second Reward Item");
+
     @Value("${basket-service.provider-secret}")
     private String providerSecret;
+
+    @Value("${basket-service.redeem-secret}")
+    private String redeemSecret;
 
     @BeforeAll
     void addTestItems(@Autowired WebTestClient webTestClient) {
         ClientHelper.newItem(webTestClient, firstTestItem, providerSecret, HttpStatus.OK);
         ClientHelper.newItem(webTestClient, secondTestItem, providerSecret, HttpStatus.OK);
+        ClientHelper.newRewardItem(webTestClient, firstRewardItem, providerSecret, HttpStatus.OK);
+        ClientHelper.newRewardItem(webTestClient, secondRewardItem, providerSecret, HttpStatus.OK);
     }
 
     @Test
     void queryBasketQueryParamTest(@Autowired WebTestClient webTestClient) {
         UUID basketId = createBasket(webTestClient).getResponseBody();
 
-        queryBasketUrlParam(webTestClient, basketId, HttpStatus.OK);
+        var result = queryBasketUrlParam(webTestClient, basketId, HttpStatus.OK);
+        assertThat(result.getResponseBody()).isNotNull();
     }
 
     @Test
@@ -59,7 +72,7 @@ public class BasketTest {
         log.info("Basket response: " + basket);
 
         assert basket != null;
-        assertThat(basket.getItems()).isEmpty();
+        assertThat(basket.getBasketItems()).isEmpty();
         assertThat(basket.isPaid()).isFalse();
         assertThat(basket.isRedeemed()).isFalse();
         assertThat(basket.getBasketID()).isEqualByComparingTo(basketId);
@@ -83,7 +96,7 @@ public class BasketTest {
 
         var basket = queryBasket(webTestClient, basketId).getResponseBody();
         assert basket != null;
-        assertThat(basket.getItems()).isEmpty();
+        assertThat(basket.getBasketItems()).isEmpty();
     }
 
     @Test
@@ -94,7 +107,7 @@ public class BasketTest {
 
         var basket = queryBasket(webTestClient, basketId).getResponseBody();
         assert basket != null;
-        assertThat(basket.getItems()).isEmpty();
+        assertThat(basket.getBasketItems()).isEmpty();
     }
 
 
@@ -107,9 +120,9 @@ public class BasketTest {
 
         var basket = queryBasket(webTestClient, basketId).getResponseBody();
         assert basket != null;
-        assertThat(basket.getItems())
-                .containsEntry(firstTestItem.getId(), 5)
-                .containsEntry(secondTestItem.getId(), 1);
+        assertThat(basket.getBasketItems())
+                .contains(new BasketItem(firstTestItem, 5))
+                .contains(new BasketItem(secondTestItem, 1));
     }
 
     @Test
@@ -121,8 +134,8 @@ public class BasketTest {
 
         var basket = queryBasket(webTestClient, basketId).getResponseBody();
         assert basket != null;
-        assertThat(basket.getItems())
-                .containsEntry(firstTestItem.getId(), 3);
+        assertThat(basket.getBasketItems())
+                .contains(new BasketItem(firstTestItem, 3));
     }
 
     @Test
@@ -135,6 +148,17 @@ public class BasketTest {
         var basket = queryBasket(webTestClient, basketId).getResponseBody();
 
         assert basket != null;
-        assertThat(basket.getItems()).isEmpty();
+        assertThat(basket.getBasketItems()).isEmpty();
+    }
+
+    @Test
+    void basketAddRewardItemsTest(@Autowired WebTestClient webTestClient) {
+        UUID basketId = createBasket(webTestClient).getResponseBody();
+
+        postRewards(webTestClient, redeemSecret, basketId, Stream.of(firstRewardItem, secondRewardItem).map(RewardItem::getId).collect(Collectors.toList()), HttpStatus.OK);
+        var basket = queryBasket(webTestClient, basketId).getResponseBody();
+
+        assert basket != null;
+        assertThat(basket.getRewardItems()).containsExactlyInAnyOrder(firstRewardItem, secondRewardItem);
     }
 }

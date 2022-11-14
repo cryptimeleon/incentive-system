@@ -11,7 +11,12 @@ dependencies {
 
     implementation 'org.cryptimeleon.incentive:promotion'
     testImplementation(testFixtures('org.cryptimeleon.incentive:crypto'))
+
     implementation project(":client")
+
+    // M1 mac fix
+    implementation 'io.netty:netty-all'
+    implementation(group: "io.netty", name: "netty-resolver-dns-native-macos", version: "4.1.72.Final", classifier: "osx-aarch_64")
 }
 
 test {

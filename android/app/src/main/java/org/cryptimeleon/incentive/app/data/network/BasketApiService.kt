@@ -20,7 +20,7 @@ interface BasketApiService {
     suspend fun getAllRewardItems(): Response<List<NetworkRewardItem>>
 
     @PUT("basket/items")
-    suspend fun putItemToBasket(@Body networkBasketItem: NetworkBasketItem): Response<Unit>
+    suspend fun putItemToBasket(@Body networkBasketItemPutRequest: NetworkBasketItemPutRequest): Response<Unit>
 
     @GET("basket/new")
     suspend fun getNewBasket(): Response<UUID>
@@ -43,13 +43,20 @@ data class NetworkRewardItem(val id: String, val title: String) : Parcelable
 data class NetworkShoppingItem(val id: String, val price: Int, val title: String) : Parcelable
 
 @Parcelize
-data class NetworkBasketItem(val basketId: UUID, val count: Int, val itemId: String) : Parcelable
+data class NetworkBasketItemPutRequest(val basketId: UUID, val count: Int, val itemId: String) : Parcelable
 
 data class NetworkBasket(
     @SerializedName("basketID") val basketId: UUID,
-    @SerializedName("items") val items: Map<String, Int>,
+    @SerializedName("basketItems") val basketItems: List<NetworkBasketItem>,
     @SerializedName("paid") val paid: Boolean,
     @SerializedName("redeemRequest") val redeemRequest: String,
     @SerializedName("redeemed") val redeemed: Boolean,
     @SerializedName("value") val value: Int,
+)
+
+data class NetworkBasketItem(
+    @SerializedName("id") val id: String,
+    @SerializedName("title") val title: String,
+    @SerializedName("price") val price: Int,
+    @SerializedName("count") val count: Int,
 )
