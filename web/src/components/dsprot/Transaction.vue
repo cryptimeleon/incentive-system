@@ -4,6 +4,7 @@
     <div :class="[transaction.valid ? '' : 'invalid', 'transaction']">
         <h3>ID: {{transaction.tid}}</h3>
         <p>Chosen reward: {{transaction.userChoice}}</p>
+        <p>Promotion ID: {{transaction.pid}}</p>
     </div>
 </template>
 
