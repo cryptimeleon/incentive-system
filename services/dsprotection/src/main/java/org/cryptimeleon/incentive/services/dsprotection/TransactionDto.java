@@ -4,6 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.cryptimeleon.incentive.crypto.model.Transaction;
 
+/**
+ * A data transfer object representing a transaction as it is treated in the frontend.
+ * So a transaction DTO consists of a validity flag, a transaction ID
+ * and a string representing the reward that the user wants to claim with this transaction.
+ *
+ * 
+ */
 @Data
 @AllArgsConstructor
 public class TransactionDto {

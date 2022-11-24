@@ -1,6 +1,7 @@
 package org.cryptimeleon.incentive.services.dsprotection;
 
 
+import org.cryptimeleon.incentive.crypto.model.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -83,6 +85,28 @@ public class DsprotectionController {
         List<TransactionDto> resultList = dsprotectionService.getAllTransactions();
 
         return new ResponseEntity<>(resultList, HttpStatus.OK);
+    }
+
+    @GetMapping("/dummytas")
+    public ResponseEntity<List<TransactionDto>> getDummyTransactions() {
+        ArrayList<TransactionDto> dummyList = new ArrayList<>();
+
+        TransactionDto validTransaction = new TransactionDto(
+                true,
+                "426426",
+                "Teddy Bear"
+        );
+
+        TransactionDto invalidTransaction = new TransactionDto(
+                false,
+                "425426",
+                "Squirrel with frying pan"
+        );
+
+        dummyList.add(validTransaction);
+        dummyList.add(invalidTransaction);
+
+        return new ResponseEntity<List<TransactionDto>>(dummyList, HttpStatus.OK);
     }
 
     /**
