@@ -87,28 +87,6 @@ public class DsprotectionController {
         return new ResponseEntity<>(resultList, HttpStatus.OK);
     }
 
-    @GetMapping("/dummytas")
-    public ResponseEntity<List<TransactionDto>> getDummyTransactions() {
-        ArrayList<TransactionDto> dummyList = new ArrayList<>();
-
-        TransactionDto validTransaction = new TransactionDto(
-                true,
-                "426426",
-                "Teddy Bear"
-        );
-
-        TransactionDto invalidTransaction = new TransactionDto(
-                false,
-                "425426",
-                "Squirrel with frying pan"
-        );
-
-        dummyList.add(validTransaction);
-        dummyList.add(invalidTransaction);
-
-        return new ResponseEntity<List<TransactionDto>>(dummyList, HttpStatus.OK);
-    }
-
     /**
      * Clears all tables of the database.
      * @return
