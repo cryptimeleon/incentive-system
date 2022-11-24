@@ -1,7 +1,8 @@
 <template>
     <div>
         <h3>ID: {{basket.basketID}}</h3>
-        <ItemList :items="basket.items" />
+        <ItemList :items="basket.basketItems" />
+        <p>Sum total: {{basket.value}}</p>
     </div>
 </template>
 

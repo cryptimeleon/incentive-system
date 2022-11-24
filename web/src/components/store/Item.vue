@@ -1,6 +1,6 @@
 <template>
     <div class="itemdiv">
-        <h3 class="itemh3">{{item.name}} x{{item.count}}</h3>
+        <h3 class="itemh3">{{item.title}} x{{item.count}}</h3>
         <p>Price: {{item.price}}</p>
     </div>
 </template>

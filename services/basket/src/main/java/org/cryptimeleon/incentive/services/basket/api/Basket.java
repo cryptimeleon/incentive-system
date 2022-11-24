@@ -53,6 +53,10 @@ public class Basket {
     @ApiModelProperty(value = "${basketModel.redeemRequest}")
     private String redeemRequest;
 
+    /*
+    * Total price of the basket,
+    * i.e. sum of all item prices.
+    */
     @ApiModelProperty(value = "${basketModel.value}")
     private long value;
 
