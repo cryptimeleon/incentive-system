@@ -6,6 +6,8 @@ import org.cryptimeleon.incentive.services.incentive.repository.CyclingScheduler
 import org.cryptimeleon.incentive.services.incentive.repository.OfflineDSPRepository;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Repository;
 
 import java.math.BigInteger;
 import java.time.LocalDateTime;
@@ -23,12 +25,14 @@ import java.util.ArrayList;
  * For simplicity, it does not distinguish between short and long DoS periods
  * but just keeps a DoS ongoing until it is manually withdrawn.
  */
+@Repository
+@Profile("test")
 public class FakeScheduledOfflineDSPRepository implements OfflineDSPRepository, CyclingScheduler {
     private boolean simulatedDosOngoing;
     private ArrayList<GroupElement> dsidList;
 
     public FakeScheduledOfflineDSPRepository() {
-        this.dsidList = new ArrayList<GroupElement>();
+        this.dsidList = new ArrayList<>();
     }
 
     /*
