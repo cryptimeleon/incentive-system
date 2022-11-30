@@ -19,6 +19,7 @@ import org.cryptimeleon.incentive.promotion.sideeffect.SideEffect;
 import org.cryptimeleon.incentive.services.incentive.error.BasketAlreadyPaidException;
 import org.cryptimeleon.incentive.services.incentive.error.BasketNotPaidException;
 import org.cryptimeleon.incentive.services.incentive.error.IncentiveServiceException;
+import org.cryptimeleon.incentive.services.incentive.error.OnlineDoubleSpendingException;
 import org.cryptimeleon.incentive.services.incentive.repository.*;
 import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
@@ -241,18 +242,11 @@ public class IncentiveService {
         * no matter whether dsid was already known.
         */
         GroupElement usedTokenDsid = spendRequest.getDsid();
-        try {
+        if(!offlineDspRepository.simulatedDosAttackOngoing() && offlineDspRepository.containsDsid(usedTokenDsid)) {
             // immediately reject transaction if no simulated DoS attack ongoing and spent token already contained
-            if(!offlineDspRepository.simulatedDosAttackOngoing() && offlineDspRepository.containsDsid(usedTokenDsid)) {
-                return new CaughtDoubleSpendingSideEffect("Double-spending attempt detected: Token " + usedTokenDsid + " has already been spent!");
-            }
+            throw new OnlineDoubleSpendingException();
+        } else {
             // otherwise: record transaction in database as soon as possible
-            else {
-                offlineDspRepository.addToDbSyncQueue(promotionId, tid, spendRequest, deductOutput);
-            }
-        }
-        // runtime exception is thrown if the dsp service is offline
-        catch (RuntimeException re) {
             offlineDspRepository.addToDbSyncQueue(promotionId, tid, spendRequest, deductOutput);
         }
 

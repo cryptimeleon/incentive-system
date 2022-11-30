@@ -2,13 +2,13 @@ package org.cryptimeleon.incentive.services.incentive.repository;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tomcat.jni.Local;
 import org.cryptimeleon.incentive.client.DSProtectionClient;
 import org.cryptimeleon.incentive.crypto.model.DeductOutput;
 import org.cryptimeleon.incentive.crypto.model.SpendRequest;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Repository;
 
@@ -23,7 +23,8 @@ import java.util.List;
 
 @Slf4j
 @Repository
-public class ScheduledOfflineDSPRepository implements OfflineDSPRepository, CyclingScheduler {
+@Profile("!test")
+public class ScheduledOfflineDSPRepository implements OfflineDSPRepository {
     private static final int DB_SYNC_QUEUE_CYCLE_DELAY = 2000;
     private static final int SHORT_WAIT_PERIOD_SECONDS = 30;
     private static final int LONG_WAIT_PERIOD_SECONDS = 3600;

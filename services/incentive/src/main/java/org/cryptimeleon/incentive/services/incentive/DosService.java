@@ -1,6 +1,6 @@
 package org.cryptimeleon.incentive.services.incentive;
 
-import org.cryptimeleon.incentive.services.incentive.repository.ScheduledOfflineDSPRepository;
+import org.cryptimeleon.incentive.services.incentive.repository.OfflineDSPRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,10 +15,10 @@ import java.time.LocalDateTime;
 @Service
 public class DosService {
 
-    private final ScheduledOfflineDSPRepository offlineDSPRepository;
+    private final OfflineDSPRepository offlineDSPRepository;
 
     @Autowired
-    public DosService(ScheduledOfflineDSPRepository offlineDSPRepository) {
+    public DosService(OfflineDSPRepository offlineDSPRepository) {
         this.offlineDSPRepository = offlineDSPRepository;
     }
 

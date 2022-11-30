@@ -6,6 +6,7 @@ import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 import java.math.BigInteger;
+import java.time.LocalDateTime;
 
 /**
  * Repository that maintains a queue of Spend transactions that still need to be synced into the double-spending protection database.
@@ -33,4 +34,12 @@ public interface OfflineDSPRepository {
      * Returns true if and only if the double-spending database contains a node for the passed dsid.
      */
     boolean containsDsid(GroupElement dsid);
+
+    void addShortWaitPeriod();
+
+    void addLongWaitPeriod();
+
+    void removeAllWaitPeriod();
+
+    LocalDateTime getWaitUntil();
 }
