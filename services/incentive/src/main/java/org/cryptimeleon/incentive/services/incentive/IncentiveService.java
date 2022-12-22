@@ -13,7 +13,6 @@ import org.cryptimeleon.incentive.promotion.Promotion;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdate;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
 import org.cryptimeleon.incentive.promotion.model.Basket;
-import org.cryptimeleon.incentive.promotion.sideeffect.CaughtDoubleSpendingSideEffect;
 import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect;
 import org.cryptimeleon.incentive.promotion.sideeffect.SideEffect;
 import org.cryptimeleon.incentive.services.incentive.error.BasketAlreadyPaidException;
@@ -31,6 +30,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -38,10 +38,10 @@ import java.util.stream.Collectors;
 /**
  * Main service of the system that handles client requests for
  * joining an incentive system, earning points and spending tokens.
- *
+ * <p>
  * More precisely, this service runs the server side of the crypto protocols with clients
  * (i.e. Issue in Issue-Join, Credit in Credit-Earn and Deduct in Spend-Deduct).
- *
+ * <p>
  * Furthermore, this service also issues genesis tokens.
  */
 @Slf4j
@@ -73,7 +73,7 @@ public class IncentiveService {
 
     /**
      * Returns a list of all promotions in the system.
-     * @return list of strings (string representations of promotions)
+     * @return array of strings (string representations of promotions)
      */
     public String[] getPromotions() {
         return promotionRepository.getPromotions().stream()
@@ -127,12 +127,12 @@ public class IncentiveService {
         log.info("EarnRequest:" + serializedEarnRequest);
 
         // find promotion by ID, throw exception if doesn't exist
-        Promotion promotion = promotionRepository.getPromotion(promotionId).orElseThrow(() -> new IncentiveServiceException(String.format("promotionId %d not found", promotionId)));
+        Promotion promotion = promotionRepository.getPromotion(promotionId).orElseThrow(() -> new IncentiveServiceException(String.format(Locale.getDefault(), "promotionId %d not found", promotionId)));
 
         // retrieve basket (ensure != null)
         Basket basket = basketRepository.getBasket(basketId);
         if (basket == null) throw new IncentiveServiceException("Basket not found!");
-        log.info("Queried user basket " + basket.toString());
+        log.info("Queried user basket " + basket);
 
         // TODO this basket api will change, how about storing a hash of the request only?
         // TODO sanity checks on basket, wait for new api
@@ -162,14 +162,14 @@ public class IncentiveService {
      * @param basketId identifier for the basket the user used
      * @param rewardId identifier for the reward the user wants to claim with this spend transaction
      * @param serializedSpendRequest serialized representation of the spend request
-     * @param serializedMetadata
+     * @param serializedMetadata serialized metadata of this request
      * @return side effect description (SideEffect object)
      */
     private SideEffect handleSpendRequest(BigInteger promotionId, UUID basketId, UUID rewardId, String serializedSpendRequest, String serializedMetadata) {
         log.info("SpendRequest:" + serializedSpendRequest);
 
         // find promotion by ID, throw exception if doesn't exist
-        Promotion promotion = promotionRepository.getPromotion(promotionId).orElseThrow(() -> new IncentiveServiceException(String.format("promotionId %d not found", promotionId)));
+        Promotion promotion = promotionRepository.getPromotion(promotionId).orElseThrow(() -> new IncentiveServiceException(String.format(Locale.getDefault(), "promotionId %d not found", promotionId)));
         ZkpTokenUpdate zkpTokenUpdate = promotion.getZkpTokenUpdates().stream().filter(reward1 -> reward1.getTokenUpdateId().equals(rewardId)).findAny().orElseThrow(() -> new IncentiveServiceException("Reward id not found"));
 
         // retrieve public params, keys and incentive system instance
@@ -181,7 +181,7 @@ public class IncentiveService {
         // retrieve basket (ensure != null)
         Basket basket = basketRepository.getBasket(basketId);
         if (basket == null) throw new IncentiveServiceException("Basket not found!");
-        log.info("Queried user basket " + basket.toString());
+        log.info("Queried user basket " + basket);
         // TODO some sanity checks on basket, wait for new basket service api
 
         // prepare zkp that proves that user is eligible for the intended spend transaction

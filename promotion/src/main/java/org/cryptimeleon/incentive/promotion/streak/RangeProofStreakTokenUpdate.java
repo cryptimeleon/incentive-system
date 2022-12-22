@@ -1,7 +1,5 @@
 package org.cryptimeleon.incentive.promotion.streak;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
 import org.cryptimeleon.incentive.promotion.sideeffect.SideEffect;
@@ -10,6 +8,7 @@ import org.cryptimeleon.math.serialization.annotations.Represented;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 
 import java.math.BigInteger;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -17,8 +16,6 @@ import java.util.UUID;
  * Update for which only strike updates to a value larger than or equal to lower limit are valid.
  * Can be used for VIP like promotions where all users that have a large enough streak get a reward while on that streak.
  */
-@Getter
-@EqualsAndHashCode(callSuper = true)
 public class RangeProofStreakTokenUpdate extends StreakZkpTokenUpdate {
 
     // Lower limit for getting reward for this streak
@@ -74,5 +71,23 @@ public class RangeProofStreakTokenUpdate extends StreakZkpTokenUpdate {
         }
 
         return Optional.empty();
+    }
+
+    public Integer getLowerLimit() {
+        return this.lowerLimit;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        RangeProofStreakTokenUpdate that = (RangeProofStreakTokenUpdate) o;
+        return Objects.equals(lowerLimit, that.lowerLimit);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), lowerLimit);
     }
 }

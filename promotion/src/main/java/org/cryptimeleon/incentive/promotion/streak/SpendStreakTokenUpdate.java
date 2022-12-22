@@ -1,7 +1,5 @@
 package org.cryptimeleon.incentive.promotion.streak;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
 import org.cryptimeleon.incentive.promotion.sideeffect.SideEffect;
@@ -10,6 +8,7 @@ import org.cryptimeleon.math.serialization.annotations.Represented;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 
 import java.math.BigInteger;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -17,8 +16,6 @@ import java.util.UUID;
  * Token updates that in addition to maintaining a streak spend some of the streak points to get some reward.
  * This update does not allow streak resets as {@link StandardStreakTokenUpdate}.
  */
-@Getter
-@EqualsAndHashCode(callSuper = true)
 public class SpendStreakTokenUpdate extends StreakZkpTokenUpdate {
 
     // A reward is traded for some streak points
@@ -75,5 +72,23 @@ public class SpendStreakTokenUpdate extends StreakZkpTokenUpdate {
         }
 
         return Optional.empty();
+    }
+
+    public Integer getCost() {
+        return this.cost;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        SpendStreakTokenUpdate that = (SpendStreakTokenUpdate) o;
+        return Objects.equals(cost, that.cost);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), cost);
     }
 }

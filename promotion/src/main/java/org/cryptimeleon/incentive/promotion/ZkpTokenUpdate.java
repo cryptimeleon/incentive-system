@@ -1,7 +1,5 @@
 package org.cryptimeleon.incentive.promotion;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.incentive.promotion.sideeffect.SideEffect;
 import org.cryptimeleon.math.serialization.Representation;
@@ -11,6 +9,7 @@ import org.cryptimeleon.math.serialization.annotations.Represented;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 
 import java.math.BigInteger;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -24,8 +23,6 @@ import java.util.UUID;
  * These ZKP  updates can be seen as the expressive and slow counterpart to the earn protocol. Furthermore, updates of
  * this kind will be registered in the double-spending protection database.
  */
-@Getter
-@EqualsAndHashCode
 public abstract class ZkpTokenUpdate implements StandaloneRepresentable {
 
     @Represented
@@ -104,5 +101,30 @@ public abstract class ZkpTokenUpdate implements StandaloneRepresentable {
     @Override
     public Representation getRepresentation() {
         return ReprUtil.serialize(this);
+    }
+
+    public UUID getTokenUpdateId() {
+        return this.tokenUpdateId;
+    }
+
+    public String getRewardDescription() {
+        return this.rewardDescription;
+    }
+
+    public SideEffect getSideEffect() {
+        return this.sideEffect;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ZkpTokenUpdate that = (ZkpTokenUpdate) o;
+        return Objects.equals(tokenUpdateId, that.tokenUpdateId) && Objects.equals(rewardDescription, that.rewardDescription) && Objects.equals(sideEffect, that.sideEffect);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(tokenUpdateId, rewardDescription, sideEffect);
     }
 }

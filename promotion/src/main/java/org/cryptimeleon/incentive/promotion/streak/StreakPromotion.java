@@ -1,7 +1,5 @@
 package org.cryptimeleon.incentive.promotion.streak;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.promotion.Promotion;
@@ -15,6 +13,7 @@ import org.cryptimeleon.math.structures.cartesian.Vector;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Promotion that counts the number of cumulative n-day intervals in which the user bought something. This incentives
@@ -25,8 +24,6 @@ import java.util.List;
  * Token format: (streak-count, last-visited-epoch)
  * The promotion does not support the fast earn protocol since we always need a ZKP to check the last timestamp.
  */
-@Getter
-@EqualsAndHashCode(callSuper = true)
 public class StreakPromotion extends Promotion {
 
     // Number of days until streak ends
@@ -80,5 +77,23 @@ public class StreakPromotion extends Promotion {
     @Override
     public Representation getRepresentation() {
         return ReprUtil.serialize(this);
+    }
+
+    public Integer getInterval() {
+        return this.interval;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        StreakPromotion that = (StreakPromotion) o;
+        return Objects.equals(interval, that.interval);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), interval);
     }
 }

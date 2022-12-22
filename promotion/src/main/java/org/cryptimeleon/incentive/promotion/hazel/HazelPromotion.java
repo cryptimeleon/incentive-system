@@ -1,6 +1,5 @@
 package org.cryptimeleon.incentive.promotion.hazel;
 
-import lombok.EqualsAndHashCode;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.promotion.Promotion;
@@ -14,12 +13,12 @@ import org.cryptimeleon.math.structures.cartesian.Vector;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * This promotion is a classic promotion from the paper:
  * The point vector has only one entry, and users earn one point per item that matches a selector (i.e. contain a string).
  */
-@EqualsAndHashCode(callSuper = true)
 public class HazelPromotion extends Promotion {
 
     @Represented
@@ -66,5 +65,19 @@ public class HazelPromotion extends Promotion {
 
     public Representation getRepresentation() {
         return ReprUtil.serialize(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        HazelPromotion that = (HazelPromotion) o;
+        return Objects.equals(selector, that.selector);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), selector);
     }
 }

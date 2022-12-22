@@ -1,7 +1,5 @@
 package org.cryptimeleon.incentive.promotion.streak;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.annotations.ReprUtil;
@@ -9,6 +7,7 @@ import org.cryptimeleon.math.serialization.annotations.Represented;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.Objects;
 
 /**
  * User metadata for timestamps. This ensures that the user's public input is known to the verifier and avoids errors
@@ -16,8 +15,6 @@ import java.time.temporal.ChronoUnit;
  * <p>
  * We use an epoch day timestamp, but for other implementations minutes or seconds might be required.
  */
-@EqualsAndHashCode(callSuper = false)
-@Getter
 public class StreakTokenUpdateTimestamp extends ZkpTokenUpdateMetadata {
 
     @Represented
@@ -45,5 +42,22 @@ public class StreakTokenUpdateTimestamp extends ZkpTokenUpdateMetadata {
     @Override
     public Representation getRepresentation() {
         return ReprUtil.serialize(this);
+    }
+
+    public Long getTimestamp() {
+        return this.timestamp;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        StreakTokenUpdateTimestamp that = (StreakTokenUpdateTimestamp) o;
+        return Objects.equals(timestamp, that.timestamp);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(timestamp);
     }
 }
