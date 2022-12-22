@@ -1,8 +1,5 @@
 package org.cryptimeleon.incentive.crypto.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Value;
-import lombok.experimental.NonFinal;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.math.hash.ByteAccumulator;
 import org.cryptimeleon.math.hash.UniqueByteRepresentable;
@@ -15,53 +12,42 @@ import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
 import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
 
 import java.math.BigInteger;
+import java.util.Objects;
 
 /**
  * Data holding class representing a token from a mathematical point of view (meaning: as a bunch of group elements and exponents).
  */
-@Value
-@AllArgsConstructor
 public class Token implements Representable, UniqueByteRepresentable {
 
-    @NonFinal
     @Represented(restorer = "G1")
-    GroupElement commitment0; // the first part of the Pedersen commitment computed from the bases and the exponents, representing the actual token
+    private GroupElement commitment0; // the first part of the Pedersen commitment computed from the bases and the exponents, representing the actual token
 
-    @NonFinal
     @Represented(restorer = "G1")
-    GroupElement commitment1; // the second part of the Pedersen commitment computed from the bases and the exponents, representing the actual token
+    private GroupElement commitment1; // the second part of the Pedersen commitment computed from the bases and the exponents, representing the actual token
 
-    @NonFinal
     @Represented(restorer = "Zn")
-    ZnElement encryptionSecretKey; // secret key used for the ElGamal encryption in the Spend algorithm
+    private ZnElement encryptionSecretKey; // secret key used for the ElGamal encryption in the Spend algorithm
 
-    @NonFinal
     @Represented(restorer = "Zn")
-    ZnElement doubleSpendRandomness0; // randomness used for the first challenge generation in double spending protection
+    private ZnElement doubleSpendRandomness0; // randomness used for the first challenge generation in double spending protection
 
-    @NonFinal
     @Represented(restorer = "Zn")
-    ZnElement doubleSpendRandomness1; // randomness used for the second challenge generation in double spending protection
+    private ZnElement doubleSpendRandomness1; // randomness used for the second challenge generation in double spending protection
 
-    @NonFinal
     @Represented(restorer = "Zn")
-    ZnElement z; // first value for blinding the token group element
+    private ZnElement z; // first value for blinding the token group element
 
-    @NonFinal
     @Represented(restorer = "Zn")
-    ZnElement t; // second value for blinding the token group element (needed for sophisticated proof reasons)
+    private ZnElement t; // second value for blinding the token group element (needed for sophisticated proof reasons)
 
-    @NonFinal
     @Represented
-    BigInteger promotionId;
+    private BigInteger promotionId;
 
-    @NonFinal
     @Represented(restorer = "Zn")
-    RingElementVector points; // number of points that the token currently stores (initially 0), v in the 2020 paper
+    private RingElementVector points; // number of points that the token currently stores (initially 0), v in the 2020 paper
 
-    @NonFinal
     @Represented(restorer = "SPSEQ")
-    SPSEQSignature signature; // the SPS-EQ certifying the commitment as well-formed and valid
+    private SPSEQSignature signature; // the SPS-EQ certifying the commitment as well-formed and valid
 
     public Token(Representation repr, IncentivePublicParameters pp) {
         new ReprUtil(this)
@@ -69,6 +55,19 @@ public class Token implements Representable, UniqueByteRepresentable {
                 .register(pp.getBg().getG1(), "G1")
                 .register(pp.getSpsEq(), "SPSEQ")
                 .deserialize(repr);
+    }
+
+    public Token(GroupElement commitment0, GroupElement commitment1, ZnElement encryptionSecretKey, ZnElement doubleSpendRandomness0, ZnElement doubleSpendRandomness1, ZnElement z, ZnElement t, BigInteger promotionId, RingElementVector points, SPSEQSignature signature) {
+        this.commitment0 = commitment0;
+        this.commitment1 = commitment1;
+        this.encryptionSecretKey = encryptionSecretKey;
+        this.doubleSpendRandomness0 = doubleSpendRandomness0;
+        this.doubleSpendRandomness1 = doubleSpendRandomness1;
+        this.z = z;
+        this.t = t;
+        this.promotionId = promotionId;
+        this.points = points;
+        this.signature = signature;
     }
 
     @Override
@@ -99,5 +98,62 @@ public class Token implements Representable, UniqueByteRepresentable {
      */
     public GroupElement computeDsid(IncentivePublicParameters pp) {
         return pp.getW().pow(encryptionSecretKey);
+    }
+
+    public GroupElement getCommitment0() {
+        return this.commitment0;
+    }
+
+    public GroupElement getCommitment1() {
+        return this.commitment1;
+    }
+
+    public ZnElement getEncryptionSecretKey() {
+        return this.encryptionSecretKey;
+    }
+
+    public ZnElement getDoubleSpendRandomness0() {
+        return this.doubleSpendRandomness0;
+    }
+
+    public ZnElement getDoubleSpendRandomness1() {
+        return this.doubleSpendRandomness1;
+    }
+
+    public ZnElement getZ() {
+        return this.z;
+    }
+
+    public ZnElement getT() {
+        return this.t;
+    }
+
+    public BigInteger getPromotionId() {
+        return this.promotionId;
+    }
+
+    public RingElementVector getPoints() {
+        return this.points;
+    }
+
+    public SPSEQSignature getSignature() {
+        return this.signature;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Token token = (Token) o;
+        return Objects.equals(commitment0, token.commitment0) && Objects.equals(commitment1, token.commitment1) && Objects.equals(encryptionSecretKey, token.encryptionSecretKey) && Objects.equals(doubleSpendRandomness0, token.doubleSpendRandomness0) && Objects.equals(doubleSpendRandomness1, token.doubleSpendRandomness1) && Objects.equals(z, token.z) && Objects.equals(t, token.t) && Objects.equals(promotionId, token.promotionId) && Objects.equals(points, token.points) && Objects.equals(signature, token.signature);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(commitment0, commitment1, encryptionSecretKey, doubleSpendRandomness0, doubleSpendRandomness1, z, t, promotionId, points, signature);
+    }
+
+    public String toString() {
+        return "Token(commitment0=" + this.getCommitment0() + ", commitment1=" + this.getCommitment1() + ", encryptionSecretKey=" + this.getEncryptionSecretKey() + ", doubleSpendRandomness0=" + this.getDoubleSpendRandomness0() + ", doubleSpendRandomness1=" + this.getDoubleSpendRandomness1() + ", z=" + this.getZ() + ", t=" + this.getT() + ", promotionId=" + this.getPromotionId() + ", points=" + this.getPoints() + ", signature=" + this.getSignature() + ")";
     }
 }

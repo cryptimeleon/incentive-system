@@ -1,8 +1,5 @@
 package org.cryptimeleon.incentive.crypto.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Value;
-import lombok.experimental.NonFinal;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProof;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
@@ -16,41 +13,31 @@ import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.groups.cartesian.GroupElementVector;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
+import java.util.Objects;
+
 /**
  * Data class for the request sent by a user in spend-deduct.
  */
-@Value
-@AllArgsConstructor
 public class SpendRequest implements Representable {
-    @NonFinal
-    GroupElement dsid;
+    private final GroupElement dsid;
 
-    @NonFinal
-    FiatShamirProof spendDeductZkp;
+    private final FiatShamirProof spendDeductZkp;
 
-    @NonFinal
-    Zn.ZnElement c0;
+    private final Zn.ZnElement c0;
 
-    @NonFinal
-    Zn.ZnElement c1;
+    private final Zn.ZnElement c1;
 
-    @NonFinal
-    GroupElement cPre0;
+    private final GroupElement cPre0;
 
-    @NonFinal
-    GroupElement cPre1;
+    private final GroupElement cPre1;
 
-    @NonFinal
-    GroupElementVector cTrace0;
+    private final GroupElementVector cTrace0;
 
-    @NonFinal
-    GroupElementVector cTrace1;
+    private final GroupElementVector cTrace1;
 
-    @NonFinal
-    GroupElement commitmentC0; // do not send C_1 since it should be equal to g_1 anyways
+    private final GroupElement commitmentC0; // do not send C_1 since it should be equal to g_1 anyways
 
-    @NonFinal
-    SPSEQSignature sigma;
+    private final SPSEQSignature sigma;
 
 
     /**
@@ -83,6 +70,19 @@ public class SpendRequest implements Representable {
         this.sigma = new SPSEQSignature(listRepr.get(9), groupG1, groupG2);
     }
 
+    public SpendRequest(GroupElement dsid, FiatShamirProof spendDeductZkp, Zn.ZnElement c0, Zn.ZnElement c1, GroupElement cPre0, GroupElement cPre1, GroupElementVector cTrace0, GroupElementVector cTrace1, GroupElement commitmentC0, SPSEQSignature sigma) {
+        this.dsid = dsid;
+        this.spendDeductZkp = spendDeductZkp;
+        this.c0 = c0;
+        this.c1 = c1;
+        this.cPre0 = cPre0;
+        this.cPre1 = cPre1;
+        this.cTrace0 = cTrace0;
+        this.cTrace1 = cTrace1;
+        this.commitmentC0 = commitmentC0;
+        this.sigma = sigma;
+    }
+
     @Override
     public Representation getRepresentation() {
         return new ListRepresentation(
@@ -97,5 +97,62 @@ public class SpendRequest implements Representable {
                 spendDeductZkp.getRepresentation(),
                 sigma.getRepresentation()
         );
+    }
+
+    public GroupElement getDsid() {
+        return this.dsid;
+    }
+
+    public FiatShamirProof getSpendDeductZkp() {
+        return this.spendDeductZkp;
+    }
+
+    public Zn.ZnElement getC0() {
+        return this.c0;
+    }
+
+    public Zn.ZnElement getC1() {
+        return this.c1;
+    }
+
+    public GroupElement getCPre0() {
+        return this.cPre0;
+    }
+
+    public GroupElement getCPre1() {
+        return this.cPre1;
+    }
+
+    public GroupElementVector getCTrace0() {
+        return this.cTrace0;
+    }
+
+    public GroupElementVector getCTrace1() {
+        return this.cTrace1;
+    }
+
+    public GroupElement getCommitmentC0() {
+        return this.commitmentC0;
+    }
+
+    public SPSEQSignature getSigma() {
+        return this.sigma;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        SpendRequest that = (SpendRequest) o;
+        return Objects.equals(dsid, that.dsid) && Objects.equals(spendDeductZkp, that.spendDeductZkp) && Objects.equals(c0, that.c0) && Objects.equals(c1, that.c1) && Objects.equals(cPre0, that.cPre0) && Objects.equals(cPre1, that.cPre1) && Objects.equals(cTrace0, that.cTrace0) && Objects.equals(cTrace1, that.cTrace1) && Objects.equals(commitmentC0, that.commitmentC0) && Objects.equals(sigma, that.sigma);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(dsid, spendDeductZkp, c0, c1, cPre0, cPre1, cTrace0, cTrace1, commitmentC0, sigma);
+    }
+
+    public String toString() {
+        return "SpendRequest(dsid=" + this.getDsid() + ", spendDeductZkp=" + this.getSpendDeductZkp() + ", c0=" + this.getC0() + ", c1=" + this.getC1() + ", cPre0=" + this.getCPre0() + ", cPre1=" + this.getCPre1() + ", cTrace0=" + this.getCTrace0() + ", cTrace1=" + this.getCTrace1() + ", commitmentC0=" + this.getCommitmentC0() + ", sigma=" + this.getSigma() + ")";
     }
 }

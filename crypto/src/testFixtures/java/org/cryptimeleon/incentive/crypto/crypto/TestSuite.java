@@ -8,12 +8,8 @@ import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.crypto.model.Token;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
-import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
-import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderSecretKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPreKeyPair;
-import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
-import org.cryptimeleon.incentive.crypto.model.keys.user.UserSecretKey;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 
 import java.math.BigInteger;
@@ -24,10 +20,6 @@ public class TestSuite {
     static public final ProviderKeyPair providerKeyPair = incentiveSystem.generateProviderKeyPair();
     static public final UserPreKeyPair userPreKeyPair = incentiveSystem.generateUserPreKeyPair();
     static public final UserKeyPair userKeyPair = Util.addGenesisSignatureToUserKeys(userPreKeyPair, providerKeyPair, pp);
-    static public final ProviderSecretKey providerSecretKey = providerKeyPair.getSk();
-    static public final ProviderPublicKey providerPublicKey = providerKeyPair.getPk();
-    static public final UserSecretKey userSecretKey = userKeyPair.getSk();
-    static public final UserPublicKey userPublicKey = userKeyPair.getPk();
 
     /**
      * Generates a sound empty (i.e. no points) user token as output by a sound execution of the Issue-Join protocol.

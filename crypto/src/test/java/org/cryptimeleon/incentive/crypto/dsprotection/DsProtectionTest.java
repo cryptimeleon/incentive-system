@@ -1,7 +1,5 @@
 package org.cryptimeleon.incentive.crypto.dsprotection;
 
-import lombok.AllArgsConstructor;
-import lombok.Value;
 import org.cryptimeleon.incentive.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.crypto.TestSuite;
@@ -16,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
+import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -31,7 +30,7 @@ public class DsProtectionTest {
 
     @Test
     void singleSpendOperation() {
-        Token token = genToken(promotionParameters);
+        Token token = genToken();
 
         spendTokenUniformTidAndDbSync(token);
 
@@ -41,7 +40,7 @@ public class DsProtectionTest {
 
     @Test
     void doubleSpend() {
-        Token token = genToken(promotionParameters);
+        Token token = genToken();
 
         spendTokenUniformTidAndDbSync(token);
         spendTokenUniformTidAndDbSync(token);
@@ -52,7 +51,7 @@ public class DsProtectionTest {
 
     @Test
     void tripleSpend() {
-        Token token = genToken(promotionParameters);
+        Token token = genToken();
 
         spendTokenUniformTidAndDbSync(token);
         spendTokenUniformTidAndDbSync(token);
@@ -65,7 +64,7 @@ public class DsProtectionTest {
     @Test
     void doubleSpendAfterValidChain() {
         int VALID_SPEND_CHAIN_LENGTH = 5;
-        Token tokenToDoubleSpend = genToken(promotionParameters);
+        Token tokenToDoubleSpend = genToken();
         spendAndDbSyncChain(VALID_SPEND_CHAIN_LENGTH, tokenToDoubleSpend);
 
         spendTokenUniformTidAndDbSync(tokenToDoubleSpend);
@@ -77,7 +76,7 @@ public class DsProtectionTest {
     @Test
     void doubleSpendWithInvalidChain() {
         int INVALID_SPEND_CHAIN_LENGTH = 5;
-        Token tokenToDoubleSpend = genToken(promotionParameters);
+        Token tokenToDoubleSpend = genToken();
         spendTokenUniformTidAndDbSync(tokenToDoubleSpend);
         spendAndDbSyncChain(INVALID_SPEND_CHAIN_LENGTH, tokenToDoubleSpend);
 
@@ -88,12 +87,12 @@ public class DsProtectionTest {
 
     @Test
     void doubleSpendingTransactionAfterSuccessors() {
-        Token tokenToDoubleSpend = genToken(promotionParameters);
+        Token tokenToDoubleSpend = genToken();
         spendTokenUniformTidAndDbSync(tokenToDoubleSpend);
 
         // Double spending with dbsync executed later
         Zn.ZnElement tidDss = TestSuite.pp.getBg().getZn().getUniformlyRandomElement();
-        SpendResult spendResultDss = simulateSpendDeduct(promotionParameters, tokenToDoubleSpend, tidDss);
+        SpendResult spendResultDss = simulateSpendDeduct(tokenToDoubleSpend, tidDss);
         // Continue with double spending token, should be invalidated later
         spendTokenUniformTidAndDbSync(spendResultDss.tokenAfterSpend);
         // DBSync asynchronous for double spending
@@ -112,33 +111,66 @@ public class DsProtectionTest {
 
     private Token spendTokenUniformTidAndDbSync(Token token) {
         Zn.ZnElement tidDss = TestSuite.pp.getBg().getZn().getUniformlyRandomElement();
-        SpendResult spendResultDss = simulateSpendDeduct(promotionParameters, token, tidDss);
+        SpendResult spendResultDss = simulateSpendDeduct(token, tidDss);
         TestSuite.incentiveSystem.dbSync(tidDss, spendResultDss.getDsid(), spendResultDss.doubleSpendingTag, "teddy bear", promotionParameters.getPromotionId(), dbHandler);
         return spendResultDss.tokenAfterSpend;
     }
 
-    private Token genToken(PromotionParameters promotionParameters) {
+    private Token genToken() {
         BigInteger TOKEN_INITIAL_VALUE = BigInteger.valueOf(1000); // Large enough to allow all spend transactions
-        return Helper.generateToken(TestSuite.pp, TestSuite.userKeyPair, TestSuite.providerKeyPair, promotionParameters, Vector.of(TOKEN_INITIAL_VALUE));
+        return Helper.generateToken(TestSuite.pp, TestSuite.userKeyPair, TestSuite.providerKeyPair, DsProtectionTest.promotionParameters, Vector.of(TOKEN_INITIAL_VALUE));
     }
 
-    private SpendResult simulateSpendDeduct(PromotionParameters promotionParameters, Token token, Zn.ZnElement tid) {
+    private SpendResult simulateSpendDeduct(Token token, Zn.ZnElement tid) {
         BigInteger SPEND_COST = BigInteger.ONE;
         Vector<BigInteger> pointsAfterSpend = token.getPoints().map(RingElement::asInteger).map(p -> p.subtract(SPEND_COST));
-        SpendDeductTree testSpendDeductTree = SpendHelper.generateSimpleTestSpendDeductTree(TestSuite.pp, promotionParameters, TestSuite.providerKeyPair.getPk(), Vector.of(SPEND_COST));
-        SpendRequest spendRequest = TestSuite.incentiveSystem.generateSpendRequest(promotionParameters, token, TestSuite.providerKeyPair.getPk(), pointsAfterSpend, TestSuite.userKeyPair, tid, testSpendDeductTree);
-        DeductOutput deductOutput = TestSuite.incentiveSystem.generateSpendRequestResponse(promotionParameters, spendRequest, TestSuite.providerKeyPair, tid, testSpendDeductTree, tid);
-        Token tokenAfterSpend = TestSuite.incentiveSystem.handleSpendRequestResponse(promotionParameters, deductOutput.getSpendResponse(), spendRequest, token, pointsAfterSpend, TestSuite.providerKeyPair.getPk(), TestSuite.userKeyPair);
+        SpendDeductTree testSpendDeductTree = SpendHelper.generateSimpleTestSpendDeductTree(TestSuite.pp, DsProtectionTest.promotionParameters, TestSuite.providerKeyPair.getPk(), Vector.of(SPEND_COST));
+        SpendRequest spendRequest = TestSuite.incentiveSystem.generateSpendRequest(DsProtectionTest.promotionParameters, token, TestSuite.providerKeyPair.getPk(), pointsAfterSpend, TestSuite.userKeyPair, tid, testSpendDeductTree);
+        DeductOutput deductOutput = TestSuite.incentiveSystem.generateSpendRequestResponse(DsProtectionTest.promotionParameters, spendRequest, TestSuite.providerKeyPair, tid, testSpendDeductTree, tid);
+        Token tokenAfterSpend = TestSuite.incentiveSystem.handleSpendRequestResponse(DsProtectionTest.promotionParameters, deductOutput.getSpendResponse(), spendRequest, token, pointsAfterSpend, TestSuite.providerKeyPair.getPk(), TestSuite.userKeyPair);
         return new SpendResult(deductOutput.getDstag(), tokenAfterSpend, spendRequest.getDsid());
     }
 
-    @Value
-    @AllArgsConstructor
-    static
+    static final
     class SpendResult {
-        DoubleSpendingTag doubleSpendingTag;
-        Token tokenAfterSpend;
-        GroupElement dsid;
+        private final DoubleSpendingTag doubleSpendingTag;
+        private final Token tokenAfterSpend;
+        private final GroupElement dsid;
+
+        public SpendResult(DoubleSpendingTag doubleSpendingTag, Token tokenAfterSpend, GroupElement dsid) {
+            this.doubleSpendingTag = doubleSpendingTag;
+            this.tokenAfterSpend = tokenAfterSpend;
+            this.dsid = dsid;
+        }
+
+        public DoubleSpendingTag getDoubleSpendingTag() {
+            return this.doubleSpendingTag;
+        }
+
+        public Token getTokenAfterSpend() {
+            return this.tokenAfterSpend;
+        }
+
+        public GroupElement getDsid() {
+            return this.dsid;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            SpendResult that = (SpendResult) o;
+            return Objects.equals(doubleSpendingTag, that.doubleSpendingTag) && Objects.equals(tokenAfterSpend, that.tokenAfterSpend) && Objects.equals(dsid, that.dsid);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(doubleSpendingTag, tokenAfterSpend, dsid);
+        }
+
+        public String toString() {
+            return "DsProtectionTest.SpendResult(doubleSpendingTag=" + this.getDoubleSpendingTag() + ", tokenAfterSpend=" + this.getTokenAfterSpend() + ", dsid=" + this.getDsid() + ")";
+        }
     }
 }
 

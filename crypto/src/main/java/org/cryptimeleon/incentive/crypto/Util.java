@@ -2,7 +2,6 @@ package org.cryptimeleon.incentive.crypto;
 
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
-import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPreKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserSecretKey;
@@ -20,7 +19,6 @@ import java.math.BigInteger;
  * Collection of utility functions
  */
 public class Util {
-
     public static UserKeyPair addGenesisSignatureToUserKeys(UserPreKeyPair userPreKeyPair, ProviderKeyPair providerKeyPair, IncentivePublicParameters pp) {
         return new UserKeyPair(
                 userPreKeyPair.getPk(),

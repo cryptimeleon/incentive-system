@@ -1,6 +1,5 @@
 package org.cryptimeleon.incentive.crypto.proof.wellformedness;
 
-import lombok.AllArgsConstructor;
 import org.cryptimeleon.craco.protocols.CommonInput;
 import org.cryptimeleon.craco.protocols.SecretInput;
 import org.cryptimeleon.craco.protocols.arguments.sigma.ZnChallengeSpace;
@@ -32,10 +31,14 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
  * On the other hand, there is the non-static part of the common input which comprises
  * upk, c0Pre, c1Pre
  */
-@AllArgsConstructor
 public class CommitmentWellformednessProtocol extends DelegateProtocol {
     IncentivePublicParameters pp; // public parameters of the respective incentive system
     ProviderPublicKey pk; // provider public key used for in an instance of the protocol
+
+    public CommitmentWellformednessProtocol(IncentivePublicParameters pp, ProviderPublicKey pk) {
+        this.pp = pp;
+        this.pk = pk;
+    }
 
     /**
      * specifies verifier side of the protocol (i.e. what verifiers with what properties shall a prover interacting with that verifier prove knowledge of).
@@ -47,7 +50,6 @@ public class CommitmentWellformednessProtocol extends DelegateProtocol {
     @Override
     protected SendThenDelegateFragment.SubprotocolSpec provideSubprotocolSpec(CommonInput commonInput, SendThenDelegateFragment.SubprotocolSpecBuilder builder) {
         // read out all values from provider public key and public parameters that are used in the statements to prove
-        var w = this.pp.getW();
         var H = new GroupElementExpressionVector(pk.getTokenMetadataH(pp).map(GroupElement::expr));
         var g1 = this.pp.getG1Generator();
 
@@ -97,11 +99,6 @@ public class CommitmentWellformednessProtocol extends DelegateProtocol {
     /**
      * specifies prover side of the protocol (i.e. which witnesses it shall use).
      * Specified witnesses must match variables added when defining verifier side of protocol.
-     *
-     * @param commonInput (non-static) part of common input
-     * @param secretInput
-     * @param builder
-     * @return
      */
     @Override
     protected SendThenDelegateFragment.ProverSpec provideProverSpecWithNoSendFirst(CommonInput commonInput, SecretInput secretInput, SendThenDelegateFragment.ProverSpecBuilder builder) {

@@ -1,8 +1,5 @@
 package org.cryptimeleon.incentive.crypto.model.keys.provider;
 
-import lombok.AllArgsConstructor;
-import lombok.Value;
-import lombok.experimental.NonFinal;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQVerificationKey;
 import org.cryptimeleon.incentive.crypto.Setup;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
@@ -13,26 +10,29 @@ import org.cryptimeleon.math.serialization.annotations.ReprUtil;
 import org.cryptimeleon.math.serialization.annotations.Represented;
 import org.cryptimeleon.math.structures.groups.cartesian.GroupElementVector;
 
-@Value
-@AllArgsConstructor
+import java.util.Objects;
+
 public class ProviderPublicKey implements Representable {
-    @NonFinal
     @Represented(restorer = "SPSEQScheme")
-    SPSEQVerificationKey pkSpsEq;
+    private SPSEQVerificationKey pkSpsEq;
 
-    @NonFinal
     @Represented(restorer = "SPSEQScheme")
-    SPSEQVerificationKey genesisSpsEqPk;
+    private SPSEQVerificationKey genesisSpsEqPk;
 
-    @NonFinal
     @Represented(restorer = "G1")
-    GroupElementVector h; // first six bases for the Pedersen commitment in the tokens
+    private GroupElementVector h; // first six bases for the Pedersen commitment in the tokens
 
     public ProviderPublicKey(Representation repr, IncentivePublicParameters pp) {
         new ReprUtil(this)
                 .register(pp.getSpsEq(), "SPSEQScheme")
                 .register(pp.getBg().getG1(), "G1")
                 .deserialize(repr);
+    }
+
+    public ProviderPublicKey(SPSEQVerificationKey pkSpsEq, SPSEQVerificationKey genesisSpsEqPk, GroupElementVector h) {
+        this.pkSpsEq = pkSpsEq;
+        this.genesisSpsEqPk = genesisSpsEqPk;
+        this.h = h;
     }
 
     /**
@@ -73,5 +73,34 @@ public class ProviderPublicKey implements Representable {
     @Override
     public Representation getRepresentation() {
         return ReprUtil.serialize(this);
+    }
+
+    public SPSEQVerificationKey getPkSpsEq() {
+        return this.pkSpsEq;
+    }
+
+    public SPSEQVerificationKey getGenesisSpsEqPk() {
+        return this.genesisSpsEqPk;
+    }
+
+    public GroupElementVector getH() {
+        return this.h;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ProviderPublicKey that = (ProviderPublicKey) o;
+        return Objects.equals(pkSpsEq, that.pkSpsEq) && Objects.equals(genesisSpsEqPk, that.genesisSpsEqPk) && Objects.equals(h, that.h);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(pkSpsEq, genesisSpsEqPk, h);
+    }
+
+    public String toString() {
+        return "ProviderPublicKey(pkSpsEq=" + this.getPkSpsEq() + ", genesisSpsEqPk=" + this.getGenesisSpsEqPk() + ", h=" + this.getH() + ")";
     }
 }

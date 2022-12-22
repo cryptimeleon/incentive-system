@@ -1,6 +1,5 @@
 package org.cryptimeleon.incentive.crypto;
 
-import lombok.Value;
 import org.cryptimeleon.craco.common.ByteArrayImplementation;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProof;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
@@ -15,8 +14,6 @@ import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPreKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserSecretKey;
-import org.cryptimeleon.incentive.crypto.model.JoinRequest;
-import org.cryptimeleon.incentive.crypto.model.JoinResponse;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkpCommonInput;
@@ -45,11 +42,10 @@ import java.util.stream.Collectors;
 /**
  * Contains all main algorithms of the incentive system according to 2020 incentive systems paper.
  */
-@Value
 public class IncentiveSystem {
 
     // public parameters
-    public IncentivePublicParameters pp;
+    public final IncentivePublicParameters pp;
 
     public IncentiveSystem(IncentivePublicParameters pp) {
         this.pp = pp;
@@ -98,12 +94,12 @@ public class IncentiveSystem {
      * Sign a verified (userPublicKey, w) tuple for the genesis process:
      * We can force users to such a signed public key in all their tokens.
      */
-   public SPSEQSignature signVerifiedUserPublicKey(ProviderKeyPair providerKeyPair, UserPublicKey userPublicKey) {
-       return (SPSEQSignature) pp.getSpsEq().sign(
-               providerKeyPair.getSk().getGenesisSpsEqSk(),
-               userPublicKey.getUpk(),
-               pp.getW()
-       );
+    public SPSEQSignature signVerifiedUserPublicKey(ProviderKeyPair providerKeyPair, UserPublicKey userPublicKey) {
+        return (SPSEQSignature) pp.getSpsEq().sign(
+                providerKeyPair.getSk().getGenesisSpsEqSk(),
+                userPublicKey.getUpk(),
+                pp.getW()
+        );
     }
 
 
@@ -130,10 +126,10 @@ public class IncentiveSystem {
         GroupElement blindedUpk = upk.getUpk().pow(R.blindGenesisR);
         GroupElement blindedW = pp.getW().pow(R.blindGenesisR);
         SPSEQSignature blindedGenesisSignature = (SPSEQSignature) pp.getSpsEq().chgRep(
-                        ukp.getSk().getGenesisSignature(),
-                        R.blindGenesisR,
-                        pk.getGenesisSpsEqPk()
-                );
+                ukp.getSk().getGenesisSignature(),
+                R.blindGenesisR,
+                pk.getGenesisSpsEqPk()
+        );
         assert pp.getSpsEq().verify(pk.getGenesisSpsEqPk(), blindedGenesisSignature, blindedUpk, blindedW);
 
 
@@ -213,9 +209,9 @@ public class IncentiveSystem {
      * Implements the second part of the functionality of the Issue algorithm from the Cryptimeleon incentive system, i.e. computes the final user data
      * (token and corresponding certificate) from the signed preliminary token from the passed join request and response.
      *
-     * @param pk   public key of the provider the user interacted with
+     * @param pk                  public key of the provider the user interacted with
      * @param joinFirstStepOutput the initial join output containing the internal randomness and the request sent to the provider
-     * @param jRes join response to be handled
+     * @param jRes                join response to be handled
      * @return token containing 0 points
      */
     public Token handleJoinRequestResponse(PromotionParameters promotionParameters, ProviderPublicKey pk, JoinFirstStepOutput joinFirstStepOutput, JoinResponse jRes) {
@@ -477,13 +473,13 @@ public class IncentiveSystem {
      * React to a legitimate spend request to allow the user retrieving an updated token with the value decreased by k.
      * Returns additional data for double-spending protection.
      *
-     * @param spendRequest          the user's request
-     * @param promotionParameters   specifying the promotion that the user wants to spend his points on (i.e. her claim)
-     * @param providerKeyPair       keypair of the provider
-     * @param tid                   transaction id, should be verified by the provider
-     * @param spendDeductTree       the zero knowledge proof to verify for this promotion
-     * @param userChoice            byte representation of the user choice,
-     *                              influences the computation of challenge generator gamma and provider share esk_prov
+     * @param spendRequest        the user's request
+     * @param promotionParameters specifying the promotion that the user wants to spend his points on (i.e. her claim)
+     * @param providerKeyPair     keypair of the provider
+     * @param tid                 transaction id, should be verified by the provider
+     * @param spendDeductTree     the zero knowledge proof to verify for this promotion
+     * @param userChoice          byte representation of the user choice,
+     *                            influences the computation of challenge generator gamma and provider share esk_prov
      * @return tuple of response to send to the user and information required for double-spending protection
      */
     public DeductOutput generateSpendRequestResponse(PromotionParameters promotionParameters,
@@ -518,14 +514,14 @@ public class IncentiveSystem {
         }
 
         /* Request is valid. Compute new blinded token and signature
-        *
-        * Retrieve esk*_prov via PRF.
-        * Need to use double-spending ID of the spent token as well as the transaction ID in addition to preliminary commitment as input for the PRF
-        * to ensure that different spendings of the same token lead to different esk_prov.
-        *
-        * Also need to include object modelling the reward that the user chose to claim.
-        * This is done by including a PRFtoZn image hashedClaim of the hashed spend-deduct tree in the spend request.
-        */
+         *
+         * Retrieve esk*_prov via PRF.
+         * Need to use double-spending ID of the spent token as well as the transaction ID in addition to preliminary commitment as input for the PRF
+         * to ensure that different spendings of the same token lead to different esk_prov.
+         *
+         * Also need to include object modelling the reward that the user chose to claim.
+         * This is done by including a PRFtoZn image hashedClaim of the hashed spend-deduct tree in the spend request.
+         */
         var preimage = new ByteArrayAccumulator();
         preimage.escapeAndSeparate(commonInput.c0Pre);
         preimage.escapeAndSeparate(commonInput.c1Pre);
@@ -649,18 +645,6 @@ public class IncentiveSystem {
     }
 
     /**
-     * Determines whether the user with public key upk was really found guilty of double spending or whether he was wrongly accused.
-     *
-     * @param pp      public parameters of the respective incentive system instance
-     * @param dsBlame used to verify/falsify that accused user indeed double-spended
-     * @param upk     public key of user accused of double-spending
-     * @return true if and only if user is found guilty of double-spending
-     */
-    public boolean verifyDs(IncentivePublicParameters pp, ZnElement dsBlame, UserPublicKey upk) {
-        return pp.getW().pow(dsBlame).equals(upk.getUpk());
-    }
-
-    /**
      * Computes remainder token dsids for some double-spending transaction T (remainder token of a transaction: token that resulted from that transaction)
      * and at the same time retrieves the next ElGamal encryption key (i.e. the one for the transaction T' after T) from the chain of keys.
      *
@@ -719,11 +703,11 @@ public class IncentiveSystem {
      * Adds a transaction's data (i.e. ID, challenge generator gamma, used token's dsid, ...) to the double-spending database.
      * Triggers further DB-side actions for tracing tokens and transactions resulting from a double-spending attempt if necessary.
      *
-     * @param tid         transaction ID
-     * @param dsid        double-spending ID of used token
-     * @param dsTag       double-spending tag of used token (contains challenge generator gamma)
-     * @param userChoice  string representing the reward that the user chose
-     * @param dbHandler   reference to the object handling the database connectivity
+     * @param tid        transaction ID
+     * @param dsid       double-spending ID of used token
+     * @param dsTag      double-spending tag of used token (contains challenge generator gamma)
+     * @param userChoice string representing the reward that the user chose
+     * @param dbHandler  reference to the object handling the database connectivity
      */
     public void dbSync(ZnElement tid, GroupElement dsid, DoubleSpendingTag dsTag, String userChoice, BigInteger promotionId, DatabaseHandler dbHandler) {
         System.out.println("Started database synchronization process.");
@@ -806,7 +790,7 @@ public class IncentiveSystem {
             TransactionIdentifier currentTaId = invalidatedTasIdentifiers.remove(0);
             System.out.println("Invalidated transaction " + currentTaId.toString() + " found.");
 
-            System.out.println("Retrieving transaction data for " + currentTaId.toString() + " .");
+            System.out.println("Retrieving transaction data for " + currentTaId + " .");
 
             // retrieve transaction
             Transaction ta = dbHandler.getTransactionNode(currentTaId);
@@ -846,12 +830,12 @@ public class IncentiveSystem {
                     dsidStar
             );
 
-            System.out.println("Making edge from " + currentTaId.toString() + " to traced remainder token.");
+            System.out.println("Making edge from " + currentTaId + " to traced remainder token.");
 
             // link current transaction with remainder token in database
             dbHandler.addTransactionTokenEdge(currentTaId, dsidStar);
 
-            System.out.println("Invalidating all transactions that (directly or indirectly) consumed the traced remainder token of " + currentTaId.toString() + ".");
+            System.out.println("Invalidating all transactions that (directly or indirectly) consumed the traced remainder token of " + currentTaId + ".");
 
             // invalidate all transactions that consumed the remainder token or followed from a transaction consuming it
             ArrayList<Transaction> followingTransactions = dbHandler.getConsumingTransactions(dsidStar);
@@ -888,6 +872,14 @@ public class IncentiveSystem {
                 "SpendDeduct"
         ).stream().map(ringElement -> (ZnElement) ringElement).collect(Collectors.toList());
         return new SpendDeductRandomness(prv.get(0), prv.get(1), prv.get(2), prv.get(3), prv.get(4), prv.get(5));
+    }
+
+    public IncentivePublicParameters getPp() {
+        return this.pp;
+    }
+
+    public String toString() {
+        return "IncentiveSystem(pp=" + this.getPp() + ")";
     }
 }
 
