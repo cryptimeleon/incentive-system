@@ -1,8 +1,10 @@
 package org.cryptimeleon.incentive.services.basket;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.Response;
 import org.cryptimeleon.incentive.services.basket.api.*;
 import org.cryptimeleon.incentive.services.basket.exceptions.*;
+import org.cryptimeleon.incentive.services.basket.storage.BasketEntity;
 import org.cryptimeleon.incentive.services.basket.storage.ItemEntity;
 import org.cryptimeleon.incentive.services.basket.storage.RewardItemEntity;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.annotation.PostConstruct;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
