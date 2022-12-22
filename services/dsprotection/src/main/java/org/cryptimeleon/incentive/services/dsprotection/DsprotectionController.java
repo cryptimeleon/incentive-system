@@ -1,7 +1,6 @@
 package org.cryptimeleon.incentive.services.dsprotection;
 
 
-import org.cryptimeleon.incentive.crypto.model.Transaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
