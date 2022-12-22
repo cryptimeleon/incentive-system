@@ -47,26 +47,17 @@ public class UserPreSecretKey implements Representable {
         return this.prfKey;
     }
 
-    public boolean equals(final Object o) {
-        if (o == this) return true;
-        if (!(o instanceof UserPreSecretKey)) return false;
-        final UserPreSecretKey other = (UserPreSecretKey) o;
-        final Object this$usk = this.getUsk();
-        final Object other$usk = other.getUsk();
-        if (!Objects.equals(this$usk, other$usk)) return false;
-        final Object this$prfKey = this.getPrfKey();
-        final Object other$prfKey = other.getPrfKey();
-        return Objects.equals(this$prfKey, other$prfKey);
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        UserPreSecretKey that = (UserPreSecretKey) o;
+        return Objects.equals(usk, that.usk) && Objects.equals(prfKey, that.prfKey);
     }
 
+    @Override
     public int hashCode() {
-        final int PRIME = 59;
-        int result = 1;
-        final Object $usk = this.getUsk();
-        result = result * PRIME + ($usk == null ? 43 : $usk.hashCode());
-        final Object $prfKey = this.getPrfKey();
-        result = result * PRIME + ($prfKey == null ? 43 : $prfKey.hashCode());
-        return result;
+        return Objects.hash(usk, prfKey);
     }
 
     public String toString() {

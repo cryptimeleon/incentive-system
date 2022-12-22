@@ -37,38 +37,17 @@ public class CommitmentWellformednessCommonInput implements CommonInput {
         return this.blindedW;
     }
 
-    public boolean equals(final Object o) {
-        if (o == this) return true;
-        if (!(o instanceof CommitmentWellformednessCommonInput))
-            return false;
-        final CommitmentWellformednessCommonInput other = (CommitmentWellformednessCommonInput) o;
-        final Object this$c0Pre = this.getC0Pre();
-        final Object other$c0Pre = other.getC0Pre();
-        if (!Objects.equals(this$c0Pre, other$c0Pre)) return false;
-        final Object this$c1Pre = this.getC1Pre();
-        final Object other$c1Pre = other.getC1Pre();
-        if (!Objects.equals(this$c1Pre, other$c1Pre)) return false;
-        final Object this$blindedUpk = this.getBlindedUpk();
-        final Object other$blindedUpk = other.getBlindedUpk();
-        if (!Objects.equals(this$blindedUpk, other$blindedUpk))
-            return false;
-        final Object this$blindedW = this.getBlindedW();
-        final Object other$blindedW = other.getBlindedW();
-        return Objects.equals(this$blindedW, other$blindedW);
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CommitmentWellformednessCommonInput that = (CommitmentWellformednessCommonInput) o;
+        return Objects.equals(c0Pre, that.c0Pre) && Objects.equals(c1Pre, that.c1Pre) && Objects.equals(blindedUpk, that.blindedUpk) && Objects.equals(blindedW, that.blindedW);
     }
 
+    @Override
     public int hashCode() {
-        final int PRIME = 59;
-        int result = 1;
-        final Object $c0Pre = this.getC0Pre();
-        result = result * PRIME + ($c0Pre == null ? 43 : $c0Pre.hashCode());
-        final Object $c1Pre = this.getC1Pre();
-        result = result * PRIME + ($c1Pre == null ? 43 : $c1Pre.hashCode());
-        final Object $blindedUpk = this.getBlindedUpk();
-        result = result * PRIME + ($blindedUpk == null ? 43 : $blindedUpk.hashCode());
-        final Object $blindedW = this.getBlindedW();
-        result = result * PRIME + ($blindedW == null ? 43 : $blindedW.hashCode());
-        return result;
+        return Objects.hash(c0Pre, c1Pre, blindedUpk, blindedW);
     }
 
     public String toString() {
