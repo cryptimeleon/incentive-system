@@ -1,7 +1,5 @@
 package org.cryptimeleon.incentive.services.incentive.repository;
 
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.incentive.client.DSProtectionClient;
 import org.cryptimeleon.incentive.crypto.model.DeductOutput;
 import org.cryptimeleon.incentive.crypto.model.SpendRequest;
@@ -21,18 +19,15 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-@Slf4j
 @Repository
 @Profile("!test")
 public class ScheduledOfflineDSPRepository implements OfflineDSPRepository {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ScheduledOfflineDSPRepository.class);
     private static final int DB_SYNC_QUEUE_CYCLE_DELAY = 2000;
     private static final int SHORT_WAIT_PERIOD_SECONDS = 30;
     private static final int LONG_WAIT_PERIOD_SECONDS = 3600;
-
     private final DSProtectionClient dsProtectionClient; // object handling the connectivity to the double-spending protection database
     private final List<DbSyncTask> taskQueue = Collections.synchronizedList(new ArrayList<>());
-
-    @Getter // because of lomboks naming convention, this implements the method getWaitUntil of CyclingScheduler
     private LocalDateTime waitUntil = LocalDateTime.now().plus(Duration.ofSeconds(5));
 
     @Autowired
@@ -40,12 +35,9 @@ public class ScheduledOfflineDSPRepository implements OfflineDSPRepository {
         this.dsProtectionClient = dsProtectionClient;
     }
 
-
-
     /*
     * OfflineDSPRepository methods
     */
-
     /**
      * Adds a new transaction with the passed information to the queue of transactions to be added to the double-spending database as soon as possible.
      * Uses a List as the data structure to simulate the queue of transactions to be synced into the database.
@@ -67,7 +59,9 @@ public class ScheduledOfflineDSPRepository implements OfflineDSPRepository {
      * Returns true if and only if the double-spending database contains a node for the passed dsid.
      */
     @Override
-    public boolean containsDsid(GroupElement dsid) { return dsProtectionClient.containsDsid(dsid); }
+    public boolean containsDsid(GroupElement dsid) {
+        return dsProtectionClient.containsDsid(dsid);
+    }
 
     /**
      * Returns true if and only if a simulated DoS attack is currently ongoing.
@@ -80,14 +74,9 @@ public class ScheduledOfflineDSPRepository implements OfflineDSPRepository {
     /*
     * end of OfflineDSPRepository methods
     */
-
-
-
-
     /*
     * CyclingScheduler methods
     */
-
     /**
      * Blocks syncing of Spend transactions into the double-spending database for a short period of time.
      */
@@ -115,8 +104,6 @@ public class ScheduledOfflineDSPRepository implements OfflineDSPRepository {
     /*
     * end of CyclingScheduler methods
     */
-
-
     /**
      * Empties queue of waiting db sync tasks (i.e. transactions that need to be synchronized into the double-spending database) if possible
      * by syncing them into the database via a REST endpoint of the double-spending protection service.
@@ -146,12 +133,11 @@ public class ScheduledOfflineDSPRepository implements OfflineDSPRepository {
      * All properties of the transaction are passed as individual parameters.
      */
     private void triggerDbSync(BigInteger promotionId, Zn.ZnElement tid, SpendRequest spendRequest, DeductOutput spendProviderOutput) {
-        dsProtectionClient.dbSync(
-                tid,
-                spendRequest.getDsid(),
-                spendProviderOutput.getDstag(),
-                promotionId,
-                tid.toString() // TODO change this once user choice generation is properly implemented
+        dsProtectionClient.dbSync(tid, spendRequest.getDsid(), spendProviderOutput.getDstag(), promotionId, tid.toString() // TODO change this once user choice generation is properly implemented
         );
+    }
+
+    public LocalDateTime getWaitUntil() {
+        return this.waitUntil;
     }
 }

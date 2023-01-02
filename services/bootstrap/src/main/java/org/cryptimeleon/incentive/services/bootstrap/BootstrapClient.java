@@ -1,6 +1,5 @@
 package org.cryptimeleon.incentive.services.bootstrap;
 
-import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.incentive.client.BasketClient;
 import org.cryptimeleon.incentive.client.IncentiveClient;
 import org.cryptimeleon.incentive.client.dto.ItemDto;
@@ -9,9 +8,8 @@ import org.cryptimeleon.incentive.promotion.Promotion;
 
 import java.util.List;
 
-@Slf4j
 public class BootstrapClient {
-
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BootstrapClient.class);
     String basketServiceProviderSecret;
     String promotionServiceProviderSecret;
     BasketClient basketClient;

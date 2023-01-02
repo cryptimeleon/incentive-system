@@ -1,6 +1,5 @@
 package org.cryptimeleon.incentive.services.basket;
 
-import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.incentive.services.basket.api.Item;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,7 +13,6 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cryptimeleon.incentive.services.basket.ClientHelper.getItems;
 
-@Slf4j
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ItemsTest {
@@ -32,33 +30,23 @@ public class ItemsTest {
     void addItemsTest(@Autowired WebTestClient webTestClient) {
         ClientHelper.newItem(webTestClient, firstTestItem, providerSecret, HttpStatus.OK);
         ClientHelper.newItem(webTestClient, secondTestItem, providerSecret, HttpStatus.OK);
-
         var itemsResponse = getItems(webTestClient).getResponseBody();
-
-        assertThat(itemsResponse).
-                contains(firstTestItem, secondTestItem).
-                hasSize(2);
+        assertThat(itemsResponse).contains(firstTestItem, secondTestItem).hasSize(2);
     }
 
     @Test
     void addItemsNoDuplicateTest(@Autowired WebTestClient webTestClient) {
         ClientHelper.newItem(webTestClient, firstTestItem, providerSecret, HttpStatus.OK);
         ClientHelper.newItem(webTestClient, firstTestItem, providerSecret, HttpStatus.OK);
-
         var itemsResponse = getItems(webTestClient).getResponseBody();
-
-        assertThat(itemsResponse).
-                contains(firstTestItem).
-                hasSize(1);
+        assertThat(itemsResponse).contains(firstTestItem).hasSize(1);
     }
 
     @Test
     void deleteAllItemsTest(@Autowired WebTestClient webTestClient) {
         ClientHelper.newItem(webTestClient, firstTestItem, providerSecret, HttpStatus.OK);
-
         ClientHelper.deleteAllItems(webTestClient, providerSecret, HttpStatus.OK);
         var itemsResponse = getItems(webTestClient).getResponseBody();
-
         assertThat(itemsResponse).hasSize(0);
     }
 
@@ -66,7 +54,6 @@ public class ItemsTest {
     void addItemsAuthorizationTest(@Autowired WebTestClient webTestClient) {
         ClientHelper.newItem(webTestClient, firstTestItem, "", HttpStatus.UNAUTHORIZED);
         var itemsResponse = getItems(webTestClient).getResponseBody();
-
         assertThat(itemsResponse).hasSize(0);
     }
 
@@ -74,16 +61,11 @@ public class ItemsTest {
     void deleteAllItemsAuthorizationTest(@Autowired WebTestClient webTestClient) {
         ClientHelper.deleteAllItems(webTestClient, "", HttpStatus.UNAUTHORIZED);
         var itemsResponse = getItems(webTestClient).getResponseBody();
-
         assertThat(itemsResponse).hasSize(0);
     }
 
     @Test
     void getItemNonexistentIdTest(@Autowired WebTestClient webTestClient) {
-        webTestClient.get()
-                .uri(uriBuilder -> uriBuilder.path("/items/{id}").build("12341234123"))
-                .exchange()
-                .expectStatus()
-                .isEqualTo(HttpStatus.NOT_FOUND);
+        webTestClient.get().uri(uriBuilder -> uriBuilder.path("/items/{id}").build("12341234123")).exchange().expectStatus().isEqualTo(HttpStatus.NOT_FOUND);
     }
 }

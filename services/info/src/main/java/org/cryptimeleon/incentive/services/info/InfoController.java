@@ -1,19 +1,14 @@
 package org.cryptimeleon.incentive.services.info;
 
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
-@AllArgsConstructor
 @RestController
-@Slf4j
 public class InfoController {
-
-    private InfoService infoService;  // Automatically injects an instance of the service
+    private final InfoService infoService; // Automatically injects an instance of the service
 
     /*
      * Endpoint for alive testing etc.
@@ -39,5 +34,9 @@ public class InfoController {
             return new ResponseEntity<>(infoService.getSerializedProviderSecretKey(), HttpStatus.OK);
         }
         return new ResponseEntity<>("", HttpStatus.UNAUTHORIZED);
+    }
+
+    public InfoController(final InfoService infoService) {
+        this.infoService = infoService;
     }
 }

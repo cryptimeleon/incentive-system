@@ -1,6 +1,5 @@
 package org.cryptimeleon.incentive.services.incentive.repository;
 
-import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.incentive.client.BasketClient;
 import org.cryptimeleon.incentive.client.dto.BasketDto;
 import org.cryptimeleon.incentive.promotion.model.Basket;
@@ -20,12 +19,11 @@ import java.util.stream.Collectors;
  * Repository that is a wrapper around the basket client.
  * Used for communication with the basket service to verify basket of earn request.
  */
-@Slf4j
 @Repository
 public class BasketRepository {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BasketRepository.class);
     @Value("${basket-service.redeem-secret}")
     private String redeemSecret;
-
     private final BasketClient basketClient;
 
     @Autowired
@@ -41,11 +39,6 @@ public class BasketRepository {
         log.info("redeem secret: {}", redeemSecret);
     }
 
-    public BasketDto getBasketDto(UUID basketId) {
-        return basketClient.getBasket(basketId)
-                .block(Duration.ofSeconds(1));
-    }
-
     /**
      * Returns true if and only if the basket with the passed basket ID is paid.
      */
@@ -59,15 +52,8 @@ public class BasketRepository {
      */
     public Basket getBasket(UUID basketId) {
         BasketDto basketDto = basketClient.getBasket(basketId).block(Duration.ofSeconds(1));
-
         assert basketDto != null;
-
-        return new Basket(
-                basketId,
-                basketDto.getBasketItems().stream()
-                        .map(i -> new BasketItem(i.getId(), i.getTitle(), i.getPrice(), i.getCount()))
-                        .collect(Collectors.toList())
-        );
+        return new Basket(basketId, basketDto.getBasketItems().stream().map(i -> new BasketItem(i.getId(), i.getTitle(), i.getPrice(), i.getCount())).collect(Collectors.toList()));
     }
 
     /**

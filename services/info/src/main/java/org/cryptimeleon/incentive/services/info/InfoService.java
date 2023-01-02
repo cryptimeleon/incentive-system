@@ -1,8 +1,5 @@
 package org.cryptimeleon.incentive.services.info;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.incentive.crypto.BilinearGroupChoice;
 import org.cryptimeleon.incentive.crypto.Setup;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
@@ -13,26 +10,23 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 
-@Slf4j
-@RequiredArgsConstructor
 @Service
 public class InfoService {
-
-    @Getter
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(InfoService.class);
     private String serializedPublicParameters;
-    @Getter
     private String serializedProviderPublicKey;
-    @Getter
     private String serializedProviderSecretKey;
-
-    private IncentivePublicParameters pp;
-    private ProviderKeyPair providerKeyPair;
-
     @Value("${provider.shared-secret}")
     private String sharedSecret;
-
     @Value("${info.use-mcl}")
     private boolean useMcl;
+
+    public InfoService() {
+    }
+
+    public boolean verifyProviderSharedSecret(String providerSharedSecret) {
+        return providerSharedSecret.equals(sharedSecret);
+    }
 
     @PostConstruct
     public void init() {
@@ -41,17 +35,17 @@ public class InfoService {
             throw new IllegalArgumentException("Shared secret is not set.");
         }
         log.info("Shared secret: {}", sharedSecret);
-
         log.info("Setting up a new incentive-system");
+        IncentivePublicParameters pp;
         if (useMcl) {
             log.info("Generate pp using mcl");
-            this.pp = Setup.trustedSetup(128, BilinearGroupChoice.Herumi_MCL);
+            pp = Setup.trustedSetup(128, BilinearGroupChoice.Herumi_MCL);
         } else {
             log.info("Generate pp using debug group");
-            this.pp = Setup.trustedSetup(128, BilinearGroupChoice.Debug);
+            pp = Setup.trustedSetup(128, BilinearGroupChoice.Debug);
         }
         log.info("Generate provider keypair");
-        this.providerKeyPair = Setup.providerKeyGen(pp);
+        ProviderKeyPair providerKeyPair = Setup.providerKeyGen(pp);
         log.info("Serializing pp and keypair");
         JSONConverter jsonConverter = new JSONConverter();
         serializedPublicParameters = jsonConverter.serialize(pp.getRepresentation());
@@ -60,7 +54,15 @@ public class InfoService {
         log.info("Setup finished");
     }
 
-    public boolean verifyProviderSharedSecret(String providerSharedSecret) {
-        return providerSharedSecret.equals(sharedSecret);
+    public String getSerializedPublicParameters() {
+        return this.serializedPublicParameters;
+    }
+
+    public String getSerializedProviderPublicKey() {
+        return this.serializedProviderPublicKey;
+    }
+
+    public String getSerializedProviderSecretKey() {
+        return this.serializedProviderSecretKey;
     }
 }

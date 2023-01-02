@@ -1,7 +1,5 @@
 package org.cryptimeleon.incentive.services.bootstrap;
 
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.incentive.client.AliveEndpoint;
 import org.cryptimeleon.incentive.client.BasketClient;
 import org.cryptimeleon.incentive.client.IncentiveClient;
@@ -14,22 +12,17 @@ import org.springframework.web.reactive.function.client.WebClientRequestExceptio
 
 import java.time.Duration;
 
-@Slf4j
 @SpringBootApplication
 public class BootstrapApplication {
-
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BootstrapApplication.class);
     @Value("${basket-service.url}")
     private String basketServiceUrl = "";
-
     @Value("${incentive-service.url}")
     private String incentiveServiceUrl = "";
-
     @Value("${basket-service.provider-secret}")
     private String basketServiceProviderSecret = "";
-
     @Value("${incentive-service.provider-secret}")
     private String promotionServiceProviderSecret = "";
-
 
     public static void main(String[] args) {
         SpringApplication.run(BootstrapApplication.class, args);
@@ -52,30 +45,24 @@ public class BootstrapApplication {
                 log.error("basketServiceProviderSecret is empty!");
                 throw new RuntimeException();
             }
-
             if (promotionServiceProviderSecret.equals("")) {
                 log.error("promotionServiceProviderSecret is empty!");
                 throw new RuntimeException();
             }
-
             log.info("Basket service provider secret: {}", basketServiceProviderSecret);
             log.info("Promotion service provider secret: {}", promotionServiceProviderSecret);
-
             waitForBasketServiceOrThrow(basketClient);
             waitForIncentiveServiceOrThrow(incentiveClient);
-
             BootstrapClient bootstrapClient = new BootstrapClient(basketServiceProviderSecret, promotionServiceProviderSecret, basketClient, incentiveClient);
             bootstrapClient.publishBootstrapData(BootstrapDataChoice.DEMO);
         };
     }
 
-    @SneakyThrows
-    private void waitForBasketServiceOrThrow(BasketClient basketClient) {
+    private void waitForBasketServiceOrThrow(BasketClient basketClient) throws InterruptedException {
         waitForServiceOrThrow(basketClient, "basket");
     }
 
-    @SneakyThrows
-    private void waitForIncentiveServiceOrThrow(IncentiveClient incentiveClient) {
+    private void waitForIncentiveServiceOrThrow(IncentiveClient incentiveClient) throws InterruptedException {
         waitForServiceOrThrow(incentiveClient, "incentive");
     }
 

@@ -1,6 +1,5 @@
 package org.cryptimeleon.incentive.services.incentive;
 
-import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSigningKey;
@@ -34,7 +33,6 @@ import java.util.Locale;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-
 /**
  * Main service of the system that handles client requests for
  * joining an incentive system, earning points and spending tokens.
@@ -44,11 +42,10 @@ import java.util.stream.Collectors;
  * <p>
  * Furthermore, this service also issues genesis tokens.
  */
-@Slf4j
 @Service
 public class IncentiveService {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(IncentiveService.class);
     private final JSONConverter jsonConverter = new JSONConverter();
-
     private final CryptoRepository cryptoRepository;
     private final PromotionRepository promotionRepository;
     private final BasketRepository basketRepository;
@@ -56,13 +53,7 @@ public class IncentiveService {
     private final OfflineDSPRepository offlineDspRepository;
 
     @Autowired
-    private IncentiveService(
-            CryptoRepository cryptoRepository,
-            PromotionRepository promotionRepository,
-            BasketRepository basketRepository,
-            TokenUpdateResultRepository tokenUpdateResultRepository,
-            OfflineDSPRepository offlineDspRepository
-    ) {
+    private IncentiveService(CryptoRepository cryptoRepository, PromotionRepository promotionRepository, BasketRepository basketRepository, TokenUpdateResultRepository tokenUpdateResultRepository, OfflineDSPRepository offlineDspRepository) {
         this.cryptoRepository = cryptoRepository;
         this.promotionRepository = promotionRepository;
         this.basketRepository = basketRepository;
@@ -70,16 +61,12 @@ public class IncentiveService {
         this.offlineDspRepository = offlineDspRepository;
     }
 
-
     /**
      * Returns a list of all promotions in the system.
      * @return array of strings (string representations of promotions)
      */
     public String[] getPromotions() {
-        return promotionRepository.getPromotions().stream()
-                .map(RepresentableRepresentation::new)
-                .map(jsonConverter::serialize)
-                .toArray(String[]::new);
+        return promotionRepository.getPromotions().stream().map(RepresentableRepresentation::new).map(jsonConverter::serialize).toArray(String[]::new);
     }
 
     /**
@@ -94,25 +81,20 @@ public class IncentiveService {
     public String joinPromotion(BigInteger promotionId, String serializedJoinRequest) {
         // find promotion by ID, throw exception if doesn't exist
         Promotion promotion = promotionRepository.getPromotion(promotionId).orElseThrow(() -> new IncentiveServiceException("Promotion to join not found!"));
-
         // retrieve public params, keys and incentive system instance
         var pp = cryptoRepository.getPublicParameters();
         var providerPublicKey = cryptoRepository.getProviderPublicKey();
         var providerSecretKey = cryptoRepository.getProviderSecretKey();
         var incentiveSystem = cryptoRepository.getIncentiveSystem();
-
         // generate a join request
         FiatShamirProofSystem cwfProofSystem = new FiatShamirProofSystem(new CommitmentWellformednessProtocol(pp, providerPublicKey));
         JoinRequest joinRequest = new JoinRequest(jsonConverter.deserialize(serializedJoinRequest), pp, cwfProofSystem);
-
         // run Issue algorithm to obtain a join response
         ProviderKeyPair providerKeyPair = new ProviderKeyPair(providerSecretKey, providerPublicKey);
         JoinResponse joinResponse = incentiveSystem.generateJoinRequestResponse(promotion.getPromotionParameters(), providerKeyPair, joinRequest);
-
         // compute and return serialized representation of join response
         return jsonConverter.serialize(joinResponse.getRepresentation());
     }
-
 
     /**
      * Executes Earn algorithm for the passed promotion, earn request and basket
@@ -125,32 +107,25 @@ public class IncentiveService {
      */
     private String handleEarnRequest(BigInteger promotionId, String serializedEarnRequest, UUID basketId) {
         log.info("EarnRequest:" + serializedEarnRequest);
-
         // find promotion by ID, throw exception if doesn't exist
         Promotion promotion = promotionRepository.getPromotion(promotionId).orElseThrow(() -> new IncentiveServiceException(String.format(Locale.getDefault(), "promotionId %d not found", promotionId)));
-
         // retrieve basket (ensure != null)
         Basket basket = basketRepository.getBasket(basketId);
         if (basket == null) throw new IncentiveServiceException("Basket not found!");
         log.info("Queried user basket " + basket);
-
         // TODO this basket api will change, how about storing a hash of the request only?
         // TODO sanity checks on basket, wait for new api
-
         // compute vector of points that user will earn for her basket
         Vector<BigInteger> pointsToEarn = promotion.computeEarningsForBasket(basket);
-
         // retrieve public params, keys and incentive system instance
         var pp = cryptoRepository.getPublicParameters();
         var providerPublicKey = cryptoRepository.getProviderPublicKey();
         var providerSecretKey = cryptoRepository.getProviderSecretKey();
         var incentiveSystem = cryptoRepository.getIncentiveSystem();
-
         // run Credit algorithm to process earn request and compute+serialize earn response
         var earnRequest = new EarnRequest(jsonConverter.deserialize(serializedEarnRequest), pp);
         var providerKeyPair = new ProviderKeyPair(providerSecretKey, providerPublicKey);
         var signature = incentiveSystem.generateEarnRequestResponse(promotion.getPromotionParameters(), earnRequest, pointsToEarn, providerKeyPair);
-
         // compute and return serialized representation of earn response
         return jsonConverter.serialize(signature.getRepresentation());
     }
@@ -167,57 +142,39 @@ public class IncentiveService {
      */
     private SideEffect handleSpendRequest(BigInteger promotionId, UUID basketId, UUID rewardId, String serializedSpendRequest, String serializedMetadata) {
         log.info("SpendRequest:" + serializedSpendRequest);
-
         // find promotion by ID, throw exception if doesn't exist
         Promotion promotion = promotionRepository.getPromotion(promotionId).orElseThrow(() -> new IncentiveServiceException(String.format(Locale.getDefault(), "promotionId %d not found", promotionId)));
         ZkpTokenUpdate zkpTokenUpdate = promotion.getZkpTokenUpdates().stream().filter(reward1 -> reward1.getTokenUpdateId().equals(rewardId)).findAny().orElseThrow(() -> new IncentiveServiceException("Reward id not found"));
-
         // retrieve public params, keys and incentive system instance
         var pp = cryptoRepository.getPublicParameters();
         var providerPublicKey = cryptoRepository.getProviderPublicKey();
         var providerSecretKey = cryptoRepository.getProviderSecretKey();
         var incentiveSystem = cryptoRepository.getIncentiveSystem();
-
         // retrieve basket (ensure != null)
         Basket basket = basketRepository.getBasket(basketId);
         if (basket == null) throw new IncentiveServiceException("Basket not found!");
         log.info("Queried user basket " + basket);
         // TODO some sanity checks on basket, wait for new basket service api
-
         // prepare zkp that proves that user is eligible for the intended spend transaction
         var metadata = (ZkpTokenUpdateMetadata) ((RepresentableRepresentation) jsonConverter.deserialize(serializedMetadata)).recreateRepresentable();
         if (!zkpTokenUpdate.validateTokenUpdateMetadata(metadata)) {
             throw new RuntimeException("Metadata is invalid for zkpTokenUpdate!");
         }
-
         // compute point vector that user earns for her basket
         var basketPoints = promotion.computeEarningsForBasket(basket);
-
         // generate tree that represents boolean formula that user token needs to fulfill for this spend transaction to work
         var spendDeductTree = zkpTokenUpdate.generateRelationTree(basketPoints, metadata);
-
         // transaction ID = basket ID
         var tid = basket.getBasketId(pp.getBg().getZn());
-
         // deserialize and restore spend request from representation
-        FiatShamirProofSystem spendDeductProofSystem = new FiatShamirProofSystem(
-                new SpendDeductBooleanZkp(spendDeductTree, pp, promotion.getPromotionParameters(), providerPublicKey)
-        );
+        FiatShamirProofSystem spendDeductProofSystem = new FiatShamirProofSystem(new SpendDeductBooleanZkp(spendDeductTree, pp, promotion.getPromotionParameters(), providerPublicKey));
         var spendRequest = new SpendRequest(jsonConverter.deserialize(serializedSpendRequest), pp, spendDeductProofSystem, tid, tid);
-
         /*
         * run Deduct
         * using tid as user choice TODO change this once user choice generation is properly implemented, see issue 75
         */
-        DeductOutput deductOutput = incentiveSystem.generateSpendRequestResponse(
-                promotion.getPromotionParameters(),
-                spendRequest,
-                new ProviderKeyPair(providerSecretKey, providerPublicKey),
-                tid,
-                spendDeductTree,
-                tid // user choice
+        DeductOutput deductOutput = incentiveSystem.generateSpendRequestResponse(promotion.getPromotionParameters(), spendRequest, new ProviderKeyPair(providerSecretKey, providerPublicKey), tid, spendDeductTree, tid // user choice
         );
-
         /*
         * Incentive service queries double-spending protection service for whether dsid of spent token is already contained.
         * If yes: abort transaction (since trivially identified as double-spending) and return dedicated caught-double-spending side effect.
@@ -242,26 +199,24 @@ public class IncentiveService {
         * no matter whether dsid was already known.
         */
         GroupElement usedTokenDsid = spendRequest.getDsid();
-        if(!offlineDspRepository.simulatedDosAttackOngoing() && offlineDspRepository.containsDsid(usedTokenDsid)) {
+        if (!offlineDspRepository.simulatedDosAttackOngoing() && offlineDspRepository.containsDsid(usedTokenDsid)) {
             // immediately reject transaction if no simulated DoS attack ongoing and spent token already contained
             throw new OnlineDoubleSpendingException();
         } else {
             // otherwise: record transaction in database as soon as possible
             offlineDspRepository.addToDbSyncQueue(promotionId, tid, spendRequest, deductOutput);
         }
-
         // compute and store serialized representation of the spend response
         var result = jsonConverter.serialize(deductOutput.getSpendResponse().getRepresentation());
         log.info("SpendResult: " + result);
         tokenUpdateResultRepository.insertZkpTokenUpdateResponse(basketId, promotionId, zkpTokenUpdate.getTokenUpdateId(), result);
-
         // return the side effect of the transaction ("what user actually achieved with it", i.e. got a frying pan, ...)
         return zkpTokenUpdate.getSideEffect();
     }
 
     /**
-    * Adds promotions to the system (specified by a list of serialized representations).
-    */
+     * Adds promotions to the system (specified by a list of serialized representations).
+     */
     public void addPromotions(List<String> serializedPromotions) {
         for (String serializedPromotion : serializedPromotions) {
             Promotion promotion = recreatePromotionFromRepresentation(serializedPromotion);
@@ -296,54 +251,37 @@ public class IncentiveService {
         if (basketRepository.isBasketPaid(basketId)) {
             throw new BasketAlreadyPaidException();
         }
-
         log.info("Start bulk proofs");
-
         /*
         * Initialize empty list of granted rewards.
         * Rewards are only granted to user after basket is paid, so they need to be saved for later.
         */
         var rewardIds = new ArrayList<String>();
-
         // process spend requests
         for (SpendRequestDto spendRequestDto : bulkRequestDto.getSpendRequestDtoList()) {
             /*
             * Handles spend request and synchronizes occured transaction into double-spending database.
             * Computes effect of spend transaction.
             */
-            var sideEffect = handleSpendRequest(
-                    spendRequestDto.getPromotionId(),
-                    basketId,
-                    spendRequestDto.getTokenUpdateId(),
-                    spendRequestDto.getSerializedSpendRequest(),
-                    spendRequestDto.getSerializedMetadata()
-            );
-
+            var sideEffect = handleSpendRequest(spendRequestDto.getPromotionId(), basketId, spendRequestDto.getTokenUpdateId(), spendRequestDto.getSerializedSpendRequest(), spendRequestDto.getSerializedMetadata());
             // if side effect is granting some reward: add respective reward ID to list
             if (sideEffect instanceof RewardSideEffect) {
                 rewardIds.add(((RewardSideEffect) sideEffect).getRewardId());
             }
         }
-
         log.info("All spend requests processed.");
-
         // add rewards to basket
         basketRepository.setRewardsOfBasket(basketId, rewardIds);
-
         log.info("Added rewards to basket.");
-
         // handle earn requests
         for (EarnRequestDto earnRequestDto : bulkRequestDto.getEarnRequestDtoList()) {
             // handle a single earn request
             var result = handleEarnRequest(earnRequestDto.getPromotionId(), earnRequestDto.getSerializedEarnRequest(), basketId);
             log.info("EarnResult: " + result);
-
             // remember earn responses for later (earned points only granted after basket paid)
             tokenUpdateResultRepository.insertEarnResponse(basketId, earnRequestDto.getPromotionId(), result);
         }
-
         log.info("Processed earn requests.");
-
         log.info("Bulk proofs for basket " + basketId.toString() + " finished!");
     }
 
@@ -357,14 +295,10 @@ public class IncentiveService {
         if (!basketRepository.isBasketPaid(basketId)) {
             throw new BasketNotPaidException();
         }
-
         // create and return DTO
         var results = tokenUpdateResultRepository.getUpdateResults(basketId).values();
         log.info(String.valueOf(results));
-        return new TokenUpdateResultsDto(
-                results.stream().filter(tokenUpdateResult -> tokenUpdateResult instanceof ZkpTokenUpdateResultDto).map(i -> (ZkpTokenUpdateResultDto) i).collect(Collectors.toList()),
-                results.stream().filter(tokenUpdateResult -> tokenUpdateResult instanceof EarnTokenUpdateResultDto).map(i -> (EarnTokenUpdateResultDto) i).collect(Collectors.toList())
-        );
+        return new TokenUpdateResultsDto(results.stream().filter(tokenUpdateResult -> tokenUpdateResult instanceof ZkpTokenUpdateResultDto).map(i -> (ZkpTokenUpdateResultDto) i).collect(Collectors.toList()), results.stream().filter(tokenUpdateResult -> tokenUpdateResult instanceof EarnTokenUpdateResultDto).map(i -> (EarnTokenUpdateResultDto) i).collect(Collectors.toList()));
     }
 
     /**
@@ -373,11 +307,8 @@ public class IncentiveService {
     public String generateGenesisSignature(String serializedUserPublicKey) {
         var pp = cryptoRepository.getPublicParameters();
         var sk = cryptoRepository.getProviderSecretKey().getGenesisSpsEqSk();
-
         var upk = pp.getBg().getG1().restoreElement(jsonConverter.deserialize(serializedUserPublicKey));
-
         SPSEQSignature signature = generateGenesisSignature(pp, sk, upk);
-
         return jsonConverter.serialize(signature.getRepresentation());
     }
 
@@ -386,10 +317,6 @@ public class IncentiveService {
      * A genesis signature for a user is a signature on this user's public key together with the common base w of all users' public keys.
      */
     private SPSEQSignature generateGenesisSignature(IncentivePublicParameters pp, SPSEQSigningKey skSpsEq, GroupElement upk) {
-        return (SPSEQSignature) pp.getSpsEq().sign(
-                skSpsEq,
-                upk,
-                pp.getW()
-        );
+        return (SPSEQSignature) pp.getSpsEq().sign(skSpsEq, upk, pp.getW());
     }
 }

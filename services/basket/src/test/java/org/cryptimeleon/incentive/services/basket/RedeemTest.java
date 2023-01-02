@@ -1,6 +1,5 @@
 package org.cryptimeleon.incentive.services.basket;
 
-import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.incentive.services.basket.api.Item;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,11 +15,9 @@ import java.util.UUID;
 
 import static org.cryptimeleon.incentive.services.basket.ClientHelper.*;
 
-@Slf4j
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class RedeemTest {
-
     private final Item firstTestItem = new Item("23578", "First test item", 10);
     private final Item secondTestItem = new Item("1234554", "Second test item", 20);
     @Value("${basket-service.pay-secret}")
@@ -76,7 +73,6 @@ public class RedeemTest {
     void reRedeemTest(@Autowired WebTestClient webTestClient) {
         payBasket(webTestClient, basketId, paymentSecret, HttpStatus.OK);
         redeemBasket(webTestClient, basketId, "Some Request", 20, redeemSecret, HttpStatus.OK);
-
         redeemBasket(webTestClient, basketId, "Some Request", 20, redeemSecret, HttpStatus.OK);
     }
 
@@ -84,7 +80,6 @@ public class RedeemTest {
     void reRedeemChangedRequestTest(@Autowired WebTestClient webTestClient) {
         payBasket(webTestClient, basketId, paymentSecret, HttpStatus.OK);
         redeemBasket(webTestClient, basketId, "Some Request", 20, redeemSecret, HttpStatus.OK);
-
         redeemBasket(webTestClient, basketId, "Another Request", 20, redeemSecret, HttpStatus.BAD_REQUEST);
     }
 }

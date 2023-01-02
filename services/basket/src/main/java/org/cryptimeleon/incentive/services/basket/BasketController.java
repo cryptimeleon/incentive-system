@@ -1,10 +1,7 @@
 package org.cryptimeleon.incentive.services.basket;
 
-import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.Response;
 import org.cryptimeleon.incentive.services.basket.api.*;
 import org.cryptimeleon.incentive.services.basket.exceptions.*;
-import org.cryptimeleon.incentive.services.basket.storage.BasketEntity;
 import org.cryptimeleon.incentive.services.basket.storage.ItemEntity;
 import org.cryptimeleon.incentive.services.basket.storage.RewardItemEntity;
 import org.springframework.beans.factory.annotation.Value;
@@ -14,30 +11,23 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-
 /**
  * A REST controller that defines and handles all requests to the basket server.
  */
-@Slf4j
 @RestController
 public class BasketController {
-
-    private final BasketService basketService;  // Spring boot automatically injects a BasketService object
-
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BasketController.class);
+    private final BasketService basketService; // Spring boot automatically injects a BasketService object
     @Value("${basket-service.pay-secret}")
     private String paymentSecret;
-
     @Value("${basket-service.redeem-secret}")
     private String redeemSecret;
-
     @Value("${basket-service.provider-secret}")
     private String providerSecret;
-
 
     public BasketController(BasketService basketService) {
         this.basketService = basketService;
@@ -57,7 +47,6 @@ public class BasketController {
         if (providerSecret.equals("")) {
             throw new IllegalArgumentException("Basket provider secret is not set!");
         }
-
         log.info("Payment secret: {}", paymentSecret);
         log.info("Redeem secret: {}", redeemSecret);
         log.info("Provider secret: {}", providerSecret);
@@ -163,9 +152,7 @@ public class BasketController {
         } else {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-
         var basketEntity = basketService.getBasketById(basketId);
-
         return new ResponseEntity<>(new Basket(basketEntity), HttpStatus.OK);
     }
 
@@ -177,7 +164,6 @@ public class BasketController {
     @GetMapping("/allbaskets")
     ResponseEntity<List<Basket>> getAllBaskets() {
         List<Basket> resultList = basketService.getAllBaskets().stream().map(Basket::new).collect(Collectors.toList());
-
         return new ResponseEntity<>(resultList, HttpStatus.OK);
     }
 
@@ -198,7 +184,6 @@ public class BasketController {
         if (putItemRequest.getCount() <= 0) {
             throw new ResponseStatusException(HttpStatus.UNPROCESSABLE_ENTITY, "Count must be positive.");
         }
-
         basketService.setItemInBasket(putItemRequest.getBasketId(), putItemRequest.getItemId(), putItemRequest.getCount());
     }
 
@@ -217,7 +202,7 @@ public class BasketController {
     @PostMapping("/basket/pay")
     void payBasket(@RequestHeader("pay-secret") String clientPaySecret, @RequestHeader("basket-id") UUID basketId) throws BasketServiceException {
         if (!clientPaySecret.equals(paymentSecret)) {
-            throw new BasketUnauthorizedException("You are not authorized to access '/basket/pay'!");
+            throw new BasketUnauthorizedException("You are not authorized to access /basket/pay!");
         }
         basketService.payBasket(basketId);
     }
@@ -245,7 +230,7 @@ public class BasketController {
     @PostMapping("/basket/redeem")
     void redeemBasket(@RequestHeader("redeem-secret") String clientRedeemSecret, @RequestBody RedeemBasketRequest redeemRequest) throws BasketServiceException {
         if (!clientRedeemSecret.equals(redeemSecret)) {
-            throw new BasketUnauthorizedException("You are not authorized to access '/basket/redeem'!");
+            throw new BasketUnauthorizedException("You are not authorized to access /basket/redeem!");
         }
         basketService.redeemBasket(redeemRequest.getBasketId(), redeemRequest.getRedeemRequest(), redeemRequest.getValue());
     }
@@ -259,7 +244,7 @@ public class BasketController {
     @PostMapping("/basket/rewards")
     void addRewardsToBasket(@RequestHeader("redeem-secret") String clientRedeemSecret, @RequestHeader("basket-id") UUID basketId, @RequestBody List<String> rewardIds) throws BasketServiceException {
         if (!clientRedeemSecret.equals(redeemSecret)) {
-            throw new BasketUnauthorizedException("You are not authorized to access '/basket/redeem'!");
+            throw new BasketUnauthorizedException("You are not authorized to access /basket/redeem!");
         }
         basketService.addRewardsToBasket(basketId, rewardIds);
     }
@@ -267,29 +252,24 @@ public class BasketController {
     /*
      * exception handling
      */
-
     @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "Basket not found!")
     @ExceptionHandler(BasketNotFoundException.class)
     public void handleBasketNotFoundException() {
-
     }
 
     @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Basket is paid and hence cannot be altered!")
     @ExceptionHandler(BasketPaidException.class)
     public void handleBasketPaidException() {
-
     }
 
     @ResponseStatus(value = HttpStatus.NOT_FOUND, reason = "Shopping item not found!")
     @ExceptionHandler(ItemNotFoundException.class)
     public void handleItemNotFoundException() {
-
     }
 
     @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "The sent basket value does math its actual value.")
     @ExceptionHandler(WrongBasketValueException.class)
     public void handleWrongBasketValueException() {
-
     }
 
     @ExceptionHandler(BasketUnauthorizedException.class)
