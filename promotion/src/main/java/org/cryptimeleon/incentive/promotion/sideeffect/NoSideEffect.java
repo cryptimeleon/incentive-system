@@ -8,7 +8,13 @@ import org.cryptimeleon.math.serialization.annotations.ReprUtil;
  * vector.
  */
 public final class NoSideEffect extends SideEffect {
+
     public NoSideEffect() {
+    }
+
+    @SuppressWarnings("unused")
+    public NoSideEffect(Representation representation) {
+        ReprUtil.deserialize(this, representation);
     }
 
     @Override
@@ -25,6 +31,9 @@ public final class NoSideEffect extends SideEffect {
         return 935728995;
     }
 
+    /**
+     * All instances of NoSideEffect are equal, it can be seen as a constant class.
+     */
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
