@@ -5,22 +5,16 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class BasketDto {
-    private final UUID basketID;
-    private final List<BasketItemDto> basketItems;
-    private final List<RewardItemDto> rewardItems;
-    private final boolean paid;
-    private final boolean redeemed;
-    private final String redeemRequest;
+    private UUID basketID;
+    private List<BasketItemDto> basketItems;
+    private List<RewardItemDto> rewardItems;
+    private boolean paid;
+    private boolean redeemed;
+    private String redeemRequest;
     private long value;
 
-    public BasketDto(final UUID basketID, final List<BasketItemDto> basketItems, final List<RewardItemDto> rewardItems, final boolean paid, final boolean redeemed, final String redeemRequest, final long value) {
-        this.basketID = basketID;
-        this.basketItems = basketItems;
-        this.rewardItems = rewardItems;
-        this.paid = paid;
-        this.redeemed = redeemed;
-        this.redeemRequest = redeemRequest;
-        this.value = value;
+    @SuppressWarnings("unused")
+    public BasketDto() {
     }
 
     public UUID getBasketID() {

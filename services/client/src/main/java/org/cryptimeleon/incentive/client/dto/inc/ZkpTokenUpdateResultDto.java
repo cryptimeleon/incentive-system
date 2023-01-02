@@ -5,9 +5,13 @@ import java.util.Objects;
 import java.util.UUID;
 
 public final class ZkpTokenUpdateResultDto implements TokenUpdateResult {
-    private final BigInteger promotionId;
-    private final UUID tokenUpdateId;
-    private final String serializedResponse;
+    private BigInteger promotionId;
+    private UUID tokenUpdateId;
+    private String serializedResponse;
+
+    @SuppressWarnings("unused")
+    public ZkpTokenUpdateResultDto() {
+    }
 
     public ZkpTokenUpdateResultDto(final BigInteger promotionId, final UUID tokenUpdateId, final String serializedResponse) {
         this.promotionId = promotionId;

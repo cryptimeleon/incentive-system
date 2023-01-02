@@ -4,8 +4,12 @@ import java.util.List;
 import java.util.Objects;
 
 public final class BulkRequestDto {
-    private final List<EarnRequestDto> earnRequestDtoList;
-    private final List<SpendRequestDto> spendRequestDtoList;
+    private List<EarnRequestDto> earnRequestDtoList;
+    private List<SpendRequestDto> spendRequestDtoList;
+
+    @SuppressWarnings("unused")
+    public BulkRequestDto() {
+    }
 
     public BulkRequestDto(final List<EarnRequestDto> earnRequestDtoList, final List<SpendRequestDto> spendRequestDtoList) {
         this.earnRequestDtoList = earnRequestDtoList;

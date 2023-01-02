@@ -4,8 +4,12 @@ import java.math.BigInteger;
 import java.util.Objects;
 
 public final class EarnRequestDto {
-    private final BigInteger promotionId;
-    private final String serializedEarnRequest;
+    private BigInteger promotionId;
+    private String serializedEarnRequest;
+
+    @SuppressWarnings("unused")
+    public EarnRequestDto() {
+    }
 
     public EarnRequestDto(final BigInteger promotionId, final String serializedEarnRequest) {
         this.promotionId = promotionId;

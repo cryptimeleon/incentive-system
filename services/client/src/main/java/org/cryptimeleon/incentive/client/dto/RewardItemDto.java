@@ -3,8 +3,12 @@ package org.cryptimeleon.incentive.client.dto;
 import java.util.Objects;
 
 public class RewardItemDto {
-    String id;
-    String title;
+    private String id;
+    private String title;
+
+    @SuppressWarnings("unused")
+    public RewardItemDto() {
+    }
 
     public RewardItemDto(final String id, final String title) {
         this.id = id;

@@ -4,8 +4,12 @@ import java.math.BigInteger;
 import java.util.Objects;
 
 public final class EarnTokenUpdateResultDto implements TokenUpdateResult {
-    private final BigInteger promotionId;
-    private final String serializedEarnResponse;
+    private BigInteger promotionId;
+    private String serializedEarnResponse;
+
+    @SuppressWarnings("unused")
+    public EarnTokenUpdateResultDto() {
+    }
 
     public EarnTokenUpdateResultDto(final BigInteger promotionId, final String serializedEarnResponse) {
         this.promotionId = promotionId;

@@ -4,8 +4,12 @@ import java.util.List;
 import java.util.Objects;
 
 public final class TokenUpdateResultsDto {
-    private final List<ZkpTokenUpdateResultDto> zkpTokenUpdateResultDtoList;
-    private final List<EarnTokenUpdateResultDto> earnTokenUpdateResultDtoList;
+    private List<ZkpTokenUpdateResultDto> zkpTokenUpdateResultDtoList;
+    private List<EarnTokenUpdateResultDto> earnTokenUpdateResultDtoList;
+
+    @SuppressWarnings("unused")
+    public TokenUpdateResultsDto() {
+    }
 
     public TokenUpdateResultsDto(final List<ZkpTokenUpdateResultDto> zkpTokenUpdateResultDtoList, final List<EarnTokenUpdateResultDto> earnTokenUpdateResultDtoList) {
         this.zkpTokenUpdateResultDtoList = zkpTokenUpdateResultDtoList;

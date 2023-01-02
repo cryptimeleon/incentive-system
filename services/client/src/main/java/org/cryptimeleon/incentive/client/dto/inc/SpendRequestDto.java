@@ -5,10 +5,14 @@ import java.util.Objects;
 import java.util.UUID;
 
 public final class SpendRequestDto {
-    private final BigInteger promotionId;
-    private final UUID tokenUpdateId;
-    private final String serializedSpendRequest;
-    private final String serializedMetadata;
+    private BigInteger promotionId;
+    private UUID tokenUpdateId;
+    private String serializedSpendRequest;
+    private String serializedMetadata;
+
+    @SuppressWarnings("unused")
+    public SpendRequestDto() {
+    }
 
     public SpendRequestDto(final BigInteger promotionId, final UUID tokenUpdateId, final String serializedSpendRequest, final String serializedMetadata) {
         this.promotionId = promotionId;
