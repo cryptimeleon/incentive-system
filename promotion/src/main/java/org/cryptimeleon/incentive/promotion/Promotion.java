@@ -1,7 +1,5 @@
 package org.cryptimeleon.incentive.promotion;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.promotion.model.Basket;
 import org.cryptimeleon.math.serialization.StandaloneRepresentable;
@@ -10,6 +8,7 @@ import org.cryptimeleon.math.structures.cartesian.Vector;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -19,8 +18,6 @@ import java.util.stream.Collectors;
  * This class is abstract, concrete behaviour must be implemented in a subclass and its parameters.
  * Promotions are StandaloneRepresentable which allows wrapping them into a RepresentableRepresentation.
  */
-@Getter
-@EqualsAndHashCode
 public abstract class Promotion implements StandaloneRepresentable {
 
     @Represented
@@ -100,5 +97,38 @@ public abstract class Promotion implements StandaloneRepresentable {
      */
     public ZkpTokenUpdateMetadata generateMetadataForUpdate() {
         return new EmptyTokenUpdateMetadata();
+    }
+
+    public PromotionParameters getPromotionParameters() {
+        return this.promotionParameters;
+    }
+
+    public List<ZkpTokenUpdate> getZkpTokenUpdates() {
+        return this.zkpTokenUpdates;
+    }
+
+    public String getPromotionName() {
+        return this.promotionName;
+    }
+
+    public String getPromotionDescription() {
+        return this.promotionDescription;
+    }
+
+    public Boolean getFastEarnSupported() {
+        return this.fastEarnSupported;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Promotion promotion = (Promotion) o;
+        return Objects.equals(promotionParameters, promotion.promotionParameters) && Objects.equals(zkpTokenUpdates, promotion.zkpTokenUpdates) && Objects.equals(promotionName, promotion.promotionName) && Objects.equals(promotionDescription, promotion.promotionDescription) && Objects.equals(fastEarnSupported, promotion.fastEarnSupported);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(promotionParameters, zkpTokenUpdates, promotionName, promotionDescription, fastEarnSupported);
     }
 }

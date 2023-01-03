@@ -1,6 +1,5 @@
 package org.cryptimeleon.incentive.promotion.vip;
 
-import lombok.EqualsAndHashCode;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.promotion.Promotion;
@@ -24,13 +23,11 @@ import java.util.UUID;
  * This promotion does support the fast earn protocol, but users cannot prove their VIP level when doing this (works
  * well for level NONE).
  */
-@EqualsAndHashCode(callSuper = true)
 public class VipPromotion extends Promotion {
 
     public static final int GOLD = 3;
     public static final int SILVER = 2;
     public static final int BRONZE = 1;
-    public static final int NONE = 0;
 
     public VipPromotion(Representation representation) {
         ReprUtil.deserialize(this, representation);
@@ -123,5 +120,15 @@ public class VipPromotion extends Promotion {
     @Override
     public Representation getRepresentation() {
         return ReprUtil.serialize(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return super.equals(o);
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
     }
 }

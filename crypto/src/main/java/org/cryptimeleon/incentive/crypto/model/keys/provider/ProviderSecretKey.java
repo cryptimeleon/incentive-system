@@ -1,8 +1,5 @@
 package org.cryptimeleon.incentive.crypto.model.keys.provider;
 
-import lombok.AllArgsConstructor;
-import lombok.Value;
-import lombok.experimental.NonFinal;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSigningKey;
 import org.cryptimeleon.incentive.crypto.Setup;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
@@ -14,24 +11,20 @@ import org.cryptimeleon.math.serialization.annotations.ReprUtil;
 import org.cryptimeleon.math.serialization.annotations.Represented;
 import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
 
-@Value
-@AllArgsConstructor
+import java.util.Objects;
+
 public class ProviderSecretKey implements Representable {
-    @NonFinal
     @Represented(restorer = "SPSEQ")
-    SPSEQSigningKey skSpsEq;
+    private SPSEQSigningKey skSpsEq;
 
-    @NonFinal
     @Represented(restorer = "SPSEQ")
-    SPSEQSigningKey genesisSpsEqSk;
+    private SPSEQSigningKey genesisSpsEqSk;
 
-    @NonFinal
     @Represented(restorer = "Zn")
-    RingElementVector q; // dlogs of the first six bases used in the Pedersen commitment in the token
+    private RingElementVector q; // dlogs of the first six bases used in the Pedersen commitment in the token
 
-    @NonFinal
     @Represented(restorer = "longAes")
-    PrfKey betaProv; // Prf Key for PrfToZn
+    private PrfKey betaProv; // Prf Key for PrfToZn
 
     public ProviderSecretKey(Representation repr, IncentivePublicParameters pp) {
         new ReprUtil(this)
@@ -39,6 +32,13 @@ public class ProviderSecretKey implements Representable {
                 .register(pp.getBg().getZn(), "Zn")
                 .register(pp.getPrfToZn().getLongAesPseudoRandomFunction()::restoreKey, "longAes")
                 .deserialize(repr);
+    }
+
+    public ProviderSecretKey(SPSEQSigningKey skSpsEq, SPSEQSigningKey genesisSpsEqSk, RingElementVector q, PrfKey betaProv) {
+        this.skSpsEq = skSpsEq;
+        this.genesisSpsEqSk = genesisSpsEqSk;
+        this.q = q;
+        this.betaProv = betaProv;
     }
 
     /**
@@ -56,5 +56,38 @@ public class ProviderSecretKey implements Representable {
     @Override
     public Representation getRepresentation() {
         return ReprUtil.serialize(this);
+    }
+
+    public SPSEQSigningKey getSkSpsEq() {
+        return this.skSpsEq;
+    }
+
+    public SPSEQSigningKey getGenesisSpsEqSk() {
+        return this.genesisSpsEqSk;
+    }
+
+    public RingElementVector getQ() {
+        return this.q;
+    }
+
+    public PrfKey getBetaProv() {
+        return this.betaProv;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ProviderSecretKey that = (ProviderSecretKey) o;
+        return Objects.equals(skSpsEq, that.skSpsEq) && Objects.equals(genesisSpsEqSk, that.genesisSpsEqSk) && Objects.equals(q, that.q) && Objects.equals(betaProv, that.betaProv);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(skSpsEq, genesisSpsEqSk, q, betaProv);
+    }
+
+    public String toString() {
+        return "ProviderSecretKey(skSpsEq=" + this.getSkSpsEq() + ", genesisSpsEqSk=" + this.getGenesisSpsEqSk() + ", q=" + this.getQ() + ", betaProv=" + this.getBetaProv() + ")";
     }
 }

@@ -100,7 +100,7 @@ public interface DatabaseHandler {
     /**
      * Retrieves the double-spending ID of the token that was consumed in the transaction with the passed identifier.
      *
-     * @return
+     * @return the double-spending id
      */
     GroupElement getConsumedTokenDsid(TransactionIdentifier taId);
 
@@ -117,7 +117,7 @@ public interface DatabaseHandler {
     long getTransactionCount();
 
     long getTokenCount();
-    
+
     long getDsTagCount();
 
     long getUserInfoCount();

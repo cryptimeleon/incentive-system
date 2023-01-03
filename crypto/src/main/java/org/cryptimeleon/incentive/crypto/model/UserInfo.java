@@ -1,8 +1,5 @@
 package org.cryptimeleon.incentive.crypto.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Value;
-import lombok.experimental.NonFinal;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.math.serialization.ListRepresentation;
 import org.cryptimeleon.math.serialization.Representable;
@@ -11,27 +8,30 @@ import org.cryptimeleon.math.serialization.annotations.ReprUtil;
 import org.cryptimeleon.math.serialization.annotations.Represented;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
+import java.util.Objects;
+
 /**
  * Data class storing info about a user that spent a specific token in a specific transaction.
  * This info is associated with a token (represented by a dsid).
  **/
-@Value
-@AllArgsConstructor
 public class UserInfo implements Representable {
-    @NonFinal
-    UserPublicKey upk;
+    private final UserPublicKey upk;
 
-    @NonFinal
     @Represented(restorer = "Zn")
-    Zn.ZnElement dsBlame;
+    private Zn.ZnElement dsBlame;
 
-    @NonFinal
     @Represented(restorer = "Zn")
-    Zn.ZnElement dsTrace;
+    private Zn.ZnElement dsTrace;
 
     public UserInfo(Representation repr, IncentivePublicParameters pp) {
         new ReprUtil(this).register(pp.getBg().getZn(), "Zn").deserialize(repr.list().get(0));
         this.upk = new UserPublicKey(repr.list().get(1), pp);
+    }
+
+    public UserInfo(UserPublicKey upk, Zn.ZnElement dsBlame, Zn.ZnElement dsTrace) {
+        this.upk = upk;
+        this.dsBlame = dsBlame;
+        this.dsTrace = dsTrace;
     }
 
     @Override
@@ -49,5 +49,30 @@ public class UserInfo implements Representable {
         return this.upk.toString() + " "
                 + this.dsBlame.toString() + " "
                 + this.dsTrace.toString();
+    }
+
+    public UserPublicKey getUpk() {
+        return this.upk;
+    }
+
+    public Zn.ZnElement getDsBlame() {
+        return this.dsBlame;
+    }
+
+    public Zn.ZnElement getDsTrace() {
+        return this.dsTrace;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        UserInfo userInfo = (UserInfo) o;
+        return Objects.equals(upk, userInfo.upk) && Objects.equals(dsBlame, userInfo.dsBlame) && Objects.equals(dsTrace, userInfo.dsTrace);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(upk, dsBlame, dsTrace);
     }
 }

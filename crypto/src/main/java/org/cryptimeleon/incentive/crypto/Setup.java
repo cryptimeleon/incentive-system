@@ -11,7 +11,9 @@ import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderSecretKey;
-import org.cryptimeleon.incentive.crypto.model.keys.user.*;
+import org.cryptimeleon.incentive.crypto.model.keys.user.UserPreKeyPair;
+import org.cryptimeleon.incentive.crypto.model.keys.user.UserPreSecretKey;
+import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.math.hash.impl.SHA256HashFunction;
 import org.cryptimeleon.math.prf.PrfKey;
 import org.cryptimeleon.math.prf.zn.HashThenPrfToZn;
@@ -38,11 +40,11 @@ public class Setup {
     public static final int HASH_THEN_PRF_AES_KEY_LENGTH = 256;
     // The size of the metadata base vector of a token
     public static final int H_SIZE_WITHOUT_POINTS = 6;
-    // (1/2)^OVERSUBSCRIPTION is a lower bound for probability of the PRF failing
-    private static final int HASH_THEN_PRF_OVERSUBSCRIPTION = 128;
     // Base for esk decomposition. Requires as many signed digits in the provider's public key, but reduces digits and
     // hence verifications required in the Spend-Deduct protocol for the encryption secret key
     public static final long ESK_DEC_BASE = 256;
+    // (1/2)^OVERSUBSCRIPTION is a lower bound for probability of the PRF failing
+    private static final int HASH_THEN_PRF_OVERSUBSCRIPTION = 128;
     // ESK_DEC_BASE^MAX_POINTS_BASE_POWER determines the maximum number of points a user can have.
     // This is due to the CCS range proof used for v>=k in Spend-Deduct
     private static final int MAX_POINTS_BASE_POWER = 6;

@@ -18,7 +18,7 @@ public class BasketClient implements AliveEndpoint {
     /**
      * Webclient configured with the url of the basket service
      */
-    private WebClient basketClient;
+    private final WebClient basketClient;
 
     public BasketClient(String basketUrl) {
         this.basketClient = WebClientHelper.buildWebClient(basketUrl);
@@ -48,13 +48,6 @@ public class BasketClient implements AliveEndpoint {
                 .uri("/basket/new")
                 .retrieve()
                 .bodyToMono(UUID.class);
-    }
-
-    public Mono<ItemDto[]> getItems() {
-        return basketClient.get()
-                .uri("/items")
-                .retrieve()
-                .bodyToMono(ItemDto[].class);
     }
 
     public Mono<Void> newBasketItem(ItemDto item, String providerSecret) {
@@ -100,11 +93,6 @@ public class BasketClient implements AliveEndpoint {
                 .header("basket-id", String.valueOf(basketId))
                 .retrieve()
                 .bodyToMono(Void.class);
-    }
-
-    @Deprecated
-    public Mono<Void> payBasket(PostPayBasketDto postPayBasketDto, String paymentSecret) {
-        return payBasket(postPayBasketDto.getBasketId(), paymentSecret);
     }
 
     public Mono<Void> redeemBasket(PostRedeemBasketDto postRedeemBasketDto, String redeemSecret) {

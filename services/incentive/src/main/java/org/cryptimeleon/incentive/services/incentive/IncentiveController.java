@@ -1,8 +1,6 @@
 package org.cryptimeleon.incentive.services.incentive;
 
 import io.swagger.annotations.ApiOperation;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.TokenUpdateResultsDto;
 import org.cryptimeleon.incentive.services.incentive.error.BasketAlreadyPaidException;
@@ -22,24 +20,20 @@ import java.util.UUID;
 /**
  * The controller of the incentive service that defines all REST endpoints.
  * Maps GET and POST requests to the respective actions to be executed.
- *
+ * </br>
  * Provides endpoints to
  * - manage promotions in the system
  * - interact with a provider of the incentive system to join promotions, earn points and claim rewards
  * - take the double-spending database down for a short time
- *   (for demonstration purposes only; the outgoing queue of spend transactions will be stopped to be fed into the double-spending database)
+ * (for demonstration purposes only; the outgoing queue of spend transactions will be stopped to be fed into the double-spending database)
  */
-@Slf4j
 @RestController
-@RequiredArgsConstructor
 public class IncentiveController {
-
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(IncentiveController.class);
     // ref to service that handles server side of crypto protocols + genesis token issuing
     private final IncentiveService incentiveService;
-
     // ref to service that handles temporary DoS of double-spending protection service
     private final DosService dosService;
-
     // shared secret, required to perform privileged actions
     @Value("${incentive-service.provider-secret}")
     private String providerSecret;
@@ -53,7 +47,6 @@ public class IncentiveController {
         if (providerSecret.equals("")) {
             throw new IllegalArgumentException("Basket provider secret is not set!");
         }
-
         log.info("Provider secret: {}", providerSecret);
     }
 
@@ -65,12 +58,13 @@ public class IncentiveController {
         return new ResponseEntity<>("Hello from incentive service!", HttpStatus.OK);
     }
 
-
-
-
     /*
-    * endpoints for managing promotions in the system
-    */
+     * endpoints for managing promotions in the system
+     */
+    public IncentiveController(final IncentiveService incentiveService, final DosService dosService) {
+        this.incentiveService = incentiveService;
+        this.dosService = dosService;
+    }
 
     /**
      * HTTP endpoint for obtaining list of all promotions in the system.
@@ -79,10 +73,7 @@ public class IncentiveController {
     @GetMapping("/promotions")
     @ApiOperation(value = "Query all Promotion", response = String.class)
     public ResponseEntity<String[]> getPromotions() {
-        return new ResponseEntity<>(
-                incentiveService.getPromotions(),
-                HttpStatus.OK
-        );
+        return new ResponseEntity<>(incentiveService.getPromotions(), HttpStatus.OK);
     }
 
     /**
@@ -93,7 +84,7 @@ public class IncentiveController {
      * @return void response entity
      */
     @PostMapping("/promotions")
-    @ApiOperation(value = "Add new Promotions")
+    @ApiOperation("Add new Promotions")
     public ResponseEntity<Void> addPromotions(@RequestHeader("provider-secret") String providerSecretHeader, @RequestBody List<String> serializedPromotions) {
         if (providerSecretHeader == null || !providerSecretHeader.equals(providerSecret)) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
@@ -102,14 +93,22 @@ public class IncentiveController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    /*
+     * end of endpoints for managing promotions in the system
+     */
+    /*
+     * endpoints for the user to interact with a provider of the incentive system
+     */
+
     /**
      * HTTP endpoint for deleting all promotions from the system.
      * Authorized action, requires passing the provider secret via a header in the HTTP request.
+     *
      * @param providerSecretHeader password sent via a header (is compared to provider secret)
      * @return void response entity
      */
     @DeleteMapping("/promotions")
-    @ApiOperation(value = "Delete all existing Promotions")
+    @ApiOperation("Delete all existing Promotions")
     public ResponseEntity<Void> deleteAllPromotions(@RequestHeader("provider-secret") String providerSecretHeader) {
         if (providerSecretHeader == null || !providerSecretHeader.equals(providerSecret)) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
@@ -118,25 +117,14 @@ public class IncentiveController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    /*
-    * end of endpoints for managing promotions in the system
-    */
-
-
-
-    /*
-    * endpoints for the user to interact with a provider of the incentive system
-    */
-
     /**
      * HTTP endpoint for joining the system by obtaining a genesis token.
+     *
      * @param serializedUserPublicKey serialized representation of the public key of the user joining the system
      * @return serialized representation of a genesis signature for this user
      */
     @PostMapping("/genesis")
-    public ResponseEntity<String> joinSystem(
-            @RequestHeader(name = "user-public-key") String serializedUserPublicKey
-    ) {
+    public ResponseEntity<String> joinSystem(@RequestHeader(name = "user-public-key") String serializedUserPublicKey) {
         return new ResponseEntity<>(incentiveService.generateGenesisSignature(serializedUserPublicKey), HttpStatus.OK);
     }
 
@@ -144,15 +132,13 @@ public class IncentiveController {
      * HTTP endpoint for joining the promotion that is identified by the passed promotion ID.
      * Joining a promotion means obtaining an empty token (i.e. with 0 points) for this promotion by executing the Issue-Join protocol with the server.
      * This is done by sending a join request to this endpoint.
-     * @param promotionId ID of the promotion that the user wants to join
+     *
+     * @param promotionId           ID of the promotion that the user wants to join
      * @param serializedJoinRequest serialized representation of a join request
      * @return response entity object containing a serialized representation of a join response
      */
     @PostMapping("/join-promotion")
-    public ResponseEntity<String> joinPromotion(
-            @RequestHeader(name = "promotion-id") BigInteger promotionId,
-            @RequestHeader(name = "join-request") String serializedJoinRequest
-    ) {
+    public ResponseEntity<String> joinPromotion(@RequestHeader(name = "promotion-id") BigInteger promotionId, @RequestHeader(name = "join-request") String serializedJoinRequest) {
         return new ResponseEntity<>(incentiveService.joinPromotion(promotionId, serializedJoinRequest), HttpStatus.OK);
     }
 
@@ -161,39 +147,21 @@ public class IncentiveController {
      * Server will apply the updates to the basket identified by the passed basket ID
      * and store the results (i.e. granted rewards and earned points) for later
      * (since points and rewards can only be obtained after basket is paid).
-     * @param basketId ID of the basket to apply the updates to
+     *
+     * @param basketId       ID of the basket to apply the updates to
      * @param bulkRequestDto data transfer object (DTO) containing spend and earn requests
      */
     @PostMapping("/bulk-token-updates")
-    public void bulkUpdates(
-            @RequestHeader(name = "basket-id") UUID basketId,
-            @RequestBody BulkRequestDto bulkRequestDto
-    ) {
+    public void bulkUpdates(@RequestHeader(name = "basket-id") UUID basketId, @RequestBody BulkRequestDto bulkRequestDto) {
         incentiveService.handleBulk(basketId, bulkRequestDto);
-    }
-
-    /**
-     * HTTP endpoint for obtaining all points and rewards for a paid basket identified by the passed ID.
-     *
-     * @return data transfer object (DTO) with all the updates
-     */
-    @PostMapping("/bulk-token-update-results")
-    public TokenUpdateResultsDto bulkResults(
-            @RequestHeader(name = "basket-id") UUID basketId
-    ) {
-        return incentiveService.retrieveBulkResults(basketId);
     }
 
     /*
     * end of endpoints for user to interact with provider of incentive system
     */
-
-
-
     /*
     * endpoints for simulating denial-of-service attacks on the double-spending database.
     */
-
     /**
      * HTTP endpoint to start a short simulated DoS attack on the double-spending protection database.
      */
@@ -221,24 +189,19 @@ public class IncentiveController {
 
     /**
      * HTTP endpoint to query the remaining time that the double-spending protection service will be down due to demo denial-of-service attacks.
-     * @return
+     * @return time in seconds
      */
     @GetMapping("/dos/remaining-offline-time")
     public long remainingOfflineTimeSeconds() {
         return dosService.getRemainingOfflineTimeSeconds();
     }
 
-
     /*
     * end of endpoints for simulating denial-of-service attacks on the double-spending database
     */
-
-
     /*
     * Exception handling
     */
-
-
     @ResponseStatus(HttpStatus.I_AM_A_TEAPOT)
     @ExceptionHandler(OnlineDoubleSpendingException.class)
     public String handleOnlineDSPException() {
@@ -262,5 +225,15 @@ public class IncentiveController {
     public String handleException(IncentiveServiceException ex) {
         // For debugging causes send the exception string
         return "An exception occurred!\n" + ex.getMessage();
+    }
+
+    /**
+     * HTTP endpoint for obtaining all points and rewards for a paid basket identified by the passed ID.
+     *
+     * @return data transfer object (DTO) with all the updates
+     */
+    @PostMapping("/bulk-token-update-results")
+    public TokenUpdateResultsDto bulkResults(@RequestHeader(name = "basket-id") UUID basketId) {
+        return incentiveService.retrieveBulkResults(basketId);
     }
 }

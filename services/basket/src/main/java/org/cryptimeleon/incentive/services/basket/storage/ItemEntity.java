@@ -1,8 +1,5 @@
 package org.cryptimeleon.incentive.services.basket.storage;
 
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
@@ -24,6 +21,7 @@ public class ItemEntity {
         return title;
     }
 
+    @SuppressWarnings("unused")
     public void setTitle(String title) {
         this.title = title;
     }
@@ -32,6 +30,7 @@ public class ItemEntity {
         return price;
     }
 
+    @SuppressWarnings("unused")
     public void setPrice(Long price) {
         this.price = price;
     }

@@ -1,6 +1,5 @@
 package org.cryptimeleon.incentive.crypto.benchmark;
 
-import lombok.AllArgsConstructor;
 import org.cryptimeleon.incentive.crypto.BilinearGroupChoice;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.Setup;
@@ -14,11 +13,7 @@ import org.cryptimeleon.incentive.crypto.model.keys.user.UserSecretKey;
 /**
  * A simple data class for a benchmark configuration with different constructors.
  */
-@AllArgsConstructor
 public class BenchmarkConfig {
-    private static final BilinearGroupChoice DEFAULT_GROUP = BilinearGroupChoice.Herumi_MCL;
-    private static final int DEFAULT_SECURITY_PARAMETER = 128;
-
     int iterations;
     IncentiveSystem incentiveSystem;
     IncentivePublicParameters pp;
@@ -26,17 +21,6 @@ public class BenchmarkConfig {
     ProviderSecretKey psk;
     UserPublicKey upk;
     UserSecretKey usk;
-
-    /**
-     * Create benchmark config with default configuration (see constant fields) with defined number of iterations.
-     * Generates fresh incentive system parameters and keys.
-     *
-     * @param iterations number of iterations for each protocol.
-     */
-    public BenchmarkConfig(int iterations) {
-        this.iterations = iterations;
-        manualSetup(DEFAULT_SECURITY_PARAMETER, DEFAULT_GROUP);
-    }
 
     /**
      * Create benchmark config with with defined number of iterations, security parameters and group.
@@ -49,6 +33,16 @@ public class BenchmarkConfig {
     public BenchmarkConfig(int iterations, int securityParameter, BilinearGroupChoice bilinearGroupChoice) {
         this.iterations = iterations;
         this.manualSetup(securityParameter, bilinearGroupChoice);
+    }
+
+    public BenchmarkConfig(int iterations, IncentiveSystem incentiveSystem, IncentivePublicParameters pp, ProviderPublicKey ppk, ProviderSecretKey psk, UserPublicKey upk, UserSecretKey usk) {
+        this.iterations = iterations;
+        this.incentiveSystem = incentiveSystem;
+        this.pp = pp;
+        this.ppk = ppk;
+        this.psk = psk;
+        this.upk = upk;
+        this.usk = usk;
     }
 
     /**

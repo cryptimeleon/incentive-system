@@ -1,7 +1,5 @@
 package org.cryptimeleon.incentive.promotion.streak;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenPointsLeaf;
 import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenUpdateLeaf;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductAndNode;
@@ -17,6 +15,7 @@ import java.math.BigInteger;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -25,8 +24,6 @@ import java.util.UUID;
  * <p>
  * Time unit is days since this is probably most natural to users, but could be extended to e.g. seconds.
  */
-@Getter
-@EqualsAndHashCode(callSuper = true)
 abstract class StreakZkpTokenUpdate extends ZkpTokenUpdate {
 
     // User public input metadata timestamps may be off by this threshold
@@ -181,5 +178,23 @@ abstract class StreakZkpTokenUpdate extends ZkpTokenUpdate {
         return epochDays() == userEpochDay
                 || epochDaysOf(LocalDateTime.now().minusMinutes(USER_TIMESTAMP_THRESHOLD_MINUTES).toLocalDate()) == userEpochDay
                 || epochDaysOf(LocalDateTime.now().plusMinutes(USER_TIMESTAMP_THRESHOLD_MINUTES).toLocalDate()) == userEpochDay;
+    }
+
+    public Integer getIntervalDays() {
+        return this.intervalDays;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        StreakZkpTokenUpdate that = (StreakZkpTokenUpdate) o;
+        return Objects.equals(intervalDays, that.intervalDays);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), intervalDays);
     }
 }

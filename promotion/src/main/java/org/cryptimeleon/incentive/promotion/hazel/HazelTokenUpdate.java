@@ -1,7 +1,5 @@
 package org.cryptimeleon.incentive.promotion.hazel;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenUpdateLeaf;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.incentive.promotion.EmptyTokenUpdateMetadata;
@@ -13,6 +11,7 @@ import org.cryptimeleon.math.serialization.annotations.Represented;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 
 import java.math.BigInteger;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -23,8 +22,6 @@ import java.util.UUID;
  * This corresponds to the example from the IncentiveSystem paper, with the addition of including the points to earn to
  * avoid needing earn and spend at the same checkout.
  */
-@Getter
-@EqualsAndHashCode(callSuper = true)
 public class HazelTokenUpdate extends ZkpTokenUpdate {
 
     @Represented
@@ -92,5 +89,23 @@ public class HazelTokenUpdate extends ZkpTokenUpdate {
     @Override
     public boolean validateTokenUpdateMetadata(ZkpTokenUpdateMetadata zkpTokenUpdateMetadata) {
         return zkpTokenUpdateMetadata instanceof EmptyTokenUpdateMetadata;
+    }
+
+    public Integer getRewardCost() {
+        return this.rewardCost;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        HazelTokenUpdate that = (HazelTokenUpdate) o;
+        return Objects.equals(rewardCost, that.rewardCost);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), rewardCost);
     }
 }

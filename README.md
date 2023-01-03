@@ -28,7 +28,6 @@ run `./gradlew :crypto:benchmark`.
 
 If you check out the math and craco repositories to the parent directory, the composite build will automatically use
 these local versions instead of the maven releases. This comes in handy for development and avoids using snapshots.
-Furthermore, we recommend enabling annotation processing in your IDE for better lombok support.
 
 ### Swagger API
 

@@ -1,8 +1,5 @@
 package org.cryptimeleon.incentive.crypto.model.keys.user;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.experimental.NonFinal;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.math.serialization.Representable;
 import org.cryptimeleon.math.serialization.Representation;
@@ -10,11 +7,10 @@ import org.cryptimeleon.math.serialization.annotations.ReprUtil;
 import org.cryptimeleon.math.serialization.annotations.Represented;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 
-@Getter
-@EqualsAndHashCode
+import java.util.Objects;
+
 public class UserPublicKey implements Representable {
 
-    @NonFinal
     @Represented(restorer = "G1")
     GroupElement upk;
 
@@ -36,5 +32,22 @@ public class UserPublicKey implements Representable {
     @Override
     public String toString() {
         return this.upk.toString();
+    }
+
+    public GroupElement getUpk() {
+        return this.upk;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        UserPublicKey that = (UserPublicKey) o;
+        return Objects.equals(upk, that.upk);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(upk);
     }
 }

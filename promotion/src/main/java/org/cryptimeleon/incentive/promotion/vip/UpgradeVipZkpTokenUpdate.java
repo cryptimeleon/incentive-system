@@ -1,7 +1,5 @@
 package org.cryptimeleon.incentive.promotion.vip;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenPointsLeaf;
 import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenUpdateLeaf;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductAndNode;
@@ -15,14 +13,13 @@ import org.cryptimeleon.math.serialization.annotations.Represented;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 
 import java.math.BigInteger;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
 /**
  * Token update for the VIP promotion in which the VIP status is upgraded to the next level.
  */
-@Getter
-@EqualsAndHashCode(callSuper = true)
 public class UpgradeVipZkpTokenUpdate extends ZkpTokenUpdate {
 
     @Represented
@@ -112,5 +109,27 @@ public class UpgradeVipZkpTokenUpdate extends ZkpTokenUpdate {
     @Override
     public boolean validateTokenUpdateMetadata(ZkpTokenUpdateMetadata zkpTokenUpdateMetadata) {
         return zkpTokenUpdateMetadata instanceof EmptyTokenUpdateMetadata;
+    }
+
+    public Integer getToVipStatus() {
+        return this.toVipStatus;
+    }
+
+    public Integer getAccumulatedCost() {
+        return this.accumulatedCost;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        UpgradeVipZkpTokenUpdate that = (UpgradeVipZkpTokenUpdate) o;
+        return Objects.equals(toVipStatus, that.toVipStatus) && Objects.equals(accumulatedCost, that.accumulatedCost);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), toVipStatus, accumulatedCost);
     }
 }

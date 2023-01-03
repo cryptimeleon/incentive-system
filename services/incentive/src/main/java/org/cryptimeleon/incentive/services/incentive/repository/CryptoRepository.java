@@ -1,7 +1,5 @@
 package org.cryptimeleon.incentive.services.incentive.repository;
 
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.incentive.client.InfoClient;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
@@ -18,31 +16,20 @@ import java.time.Duration;
 
 /**
  * This repository encapsulates the cryptographic assets/objects.
- *
+ * </br>
  * It connects to the info-service and queries the public parameters and provider keys using an authenticated request
  * and retries MAX_TRIES times, each time doubling the waiting time.
  */
-@Slf4j
 @Repository
 public class CryptoRepository {
-
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CryptoRepository.class);
     private static final int MAX_TRIES = 5;
-
-    @Getter
     private IncentiveSystem incentiveSystem;
-
-    @Getter
     private IncentivePublicParameters publicParameters;
-
-    @Getter
     private ProviderSecretKey providerSecretKey;
-
-    @Getter
     private ProviderPublicKey providerPublicKey;
-
     @Value("${provider.shared-secret}")
     private String sharedSecret; // used to authenticate the request for the provider secret key (set via environment variable)
-
     // Will be set via dependency injection
     private final InfoClient infoClient;
 
@@ -71,7 +58,6 @@ public class CryptoRepository {
     private void init() {
         log.info("Querying configuration from info service");
         JSONConverter jsonConverter = new JSONConverter();
-
         // Try several times, each time waiting for 2^i seconds before retrying.
         for (int i = 0; i < MAX_TRIES; i++) {
             try {
@@ -95,5 +81,21 @@ public class CryptoRepository {
                 e.printStackTrace();
             }
         }
+    }
+
+    public IncentiveSystem getIncentiveSystem() {
+        return this.incentiveSystem;
+    }
+
+    public IncentivePublicParameters getPublicParameters() {
+        return this.publicParameters;
+    }
+
+    public ProviderSecretKey getProviderSecretKey() {
+        return this.providerSecretKey;
+    }
+
+    public ProviderPublicKey getProviderPublicKey() {
+        return this.providerPublicKey;
     }
 }

@@ -1,6 +1,5 @@
 package org.cryptimeleon.incentive.services.basket;
 
-import lombok.extern.slf4j.Slf4j;
 import org.cryptimeleon.incentive.services.basket.api.RewardItem;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,15 +14,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.cryptimeleon.incentive.services.basket.ClientHelper.getRewards;
 import static org.cryptimeleon.incentive.services.basket.ClientHelper.newRewardItem;
 
-@Slf4j
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class RewardItemsTest {
-
-    private final RewardItem firstTestItem =
-            new RewardItem("0580082614202", "Hazelnut Spread");
-    private final RewardItem secondTestItem =
-            new RewardItem("4499722672546", "Large Hazelnut Spread");
+    private final RewardItem firstTestItem = new RewardItem("0580082614202", "Hazelnut Spread");
+    private final RewardItem secondTestItem = new RewardItem("4499722672546", "Large Hazelnut Spread");
     @Value("${basket-service.provider-secret}")
     private String providerSecret;
 
@@ -36,33 +31,23 @@ public class RewardItemsTest {
     void addItemsTest(@Autowired WebTestClient webTestClient) {
         newRewardItem(webTestClient, firstTestItem, providerSecret, HttpStatus.OK);
         newRewardItem(webTestClient, secondTestItem, providerSecret, HttpStatus.OK);
-
         var itemsResponse = getRewards(webTestClient).getResponseBody();
-
-        assertThat(itemsResponse).
-                contains(firstTestItem, secondTestItem).
-                hasSize(2);
+        assertThat(itemsResponse).contains(firstTestItem, secondTestItem).hasSize(2);
     }
 
     @Test
     void addItemsNoDuplicateTest(@Autowired WebTestClient webTestClient) {
         ClientHelper.newRewardItem(webTestClient, firstTestItem, providerSecret, HttpStatus.OK);
         ClientHelper.newRewardItem(webTestClient, firstTestItem, providerSecret, HttpStatus.OK);
-
         var itemsResponse = getRewards(webTestClient).getResponseBody();
-
-        assertThat(itemsResponse).
-                contains(firstTestItem).
-                hasSize(1);
+        assertThat(itemsResponse).contains(firstTestItem).hasSize(1);
     }
 
     @Test
     void deleteAllItemsTest(@Autowired WebTestClient webTestClient) {
         ClientHelper.newRewardItem(webTestClient, firstTestItem, providerSecret, HttpStatus.OK);
-
         ClientHelper.deleteAllRewardItems(webTestClient, providerSecret, HttpStatus.OK);
         var itemsResponse = getRewards(webTestClient).getResponseBody();
-
         assertThat(itemsResponse).hasSize(0);
     }
 
@@ -70,7 +55,6 @@ public class RewardItemsTest {
     void addItemsAuthorizationTest(@Autowired WebTestClient webTestClient) {
         ClientHelper.newRewardItem(webTestClient, firstTestItem, "", HttpStatus.UNAUTHORIZED);
         var itemsResponse = getRewards(webTestClient).getResponseBody();
-
         assertThat(itemsResponse).hasSize(0);
     }
 
@@ -78,7 +62,6 @@ public class RewardItemsTest {
     void deleteAllItemsAuthorizationTest(@Autowired WebTestClient webTestClient) {
         ClientHelper.deleteAllItems(webTestClient, "", HttpStatus.UNAUTHORIZED);
         var itemsResponse = getRewards(webTestClient).getResponseBody();
-
         assertThat(itemsResponse).hasSize(0);
     }
 }

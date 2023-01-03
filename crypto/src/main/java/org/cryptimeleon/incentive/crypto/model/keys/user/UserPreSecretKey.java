@@ -1,7 +1,5 @@
 package org.cryptimeleon.incentive.crypto.model.keys.user;
 
-import lombok.Value;
-import lombok.experimental.NonFinal;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.math.hash.annotations.UniqueByteRepresented;
 import org.cryptimeleon.math.prf.PrfKey;
@@ -11,16 +9,17 @@ import org.cryptimeleon.math.serialization.annotations.ReprUtil;
 import org.cryptimeleon.math.serialization.annotations.Represented;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
-@Value
+import java.util.Objects;
+
 public class UserPreSecretKey implements Representable {
-    @NonFinal
     @Represented(restorer = "Zn")
     @UniqueByteRepresented
+    private
     Zn.ZnElement usk;
 
-    @NonFinal
     @Represented(restorer = "longAes")
     @UniqueByteRepresented
+    private
     PrfKey prfKey; // user's key for generating pseudorandom ZnElements using the PRF
 
     public UserPreSecretKey(Zn.ZnElement usk, PrfKey prfKey) {
@@ -38,5 +37,30 @@ public class UserPreSecretKey implements Representable {
     @Override
     public Representation getRepresentation() {
         return ReprUtil.serialize(this);
+    }
+
+    public Zn.ZnElement getUsk() {
+        return this.usk;
+    }
+
+    public PrfKey getPrfKey() {
+        return this.prfKey;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        UserPreSecretKey that = (UserPreSecretKey) o;
+        return Objects.equals(usk, that.usk) && Objects.equals(prfKey, that.prfKey);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(usk, prfKey);
+    }
+
+    public String toString() {
+        return "UserPreSecretKey(usk=" + this.getUsk() + ", prfKey=" + this.getPrfKey() + ")";
     }
 }

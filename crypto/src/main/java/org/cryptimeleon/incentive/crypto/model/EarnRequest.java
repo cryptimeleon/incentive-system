@@ -1,8 +1,5 @@
 package org.cryptimeleon.incentive.crypto.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Value;
-import lombok.experimental.NonFinal;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.math.serialization.Representable;
 import org.cryptimeleon.math.serialization.Representation;
@@ -10,23 +7,20 @@ import org.cryptimeleon.math.serialization.annotations.ReprUtil;
 import org.cryptimeleon.math.serialization.annotations.Represented;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 
+import java.util.Objects;
+
 /**
  * Data class for the request sent in the credit-earn protocol.
  */
-@Value
-@AllArgsConstructor
 public class EarnRequest implements Representable {
-    @NonFinal
     @Represented(restorer = "SPSEQ")
-    SPSEQSignature blindedSignature;
+    private SPSEQSignature blindedSignature;
 
-    @NonFinal
     @Represented(restorer = "G1")
-    GroupElement c0; // first element of the tuple C
+    private GroupElement c0; // first element of the tuple C
 
-    @NonFinal
     @Represented(restorer = "G1")
-    GroupElement c1; // second element of the tuple C
+    private GroupElement c1; // second element of the tuple C
 
     public EarnRequest(Representation repr, IncentivePublicParameters pp) {
         new ReprUtil(this)
@@ -35,8 +29,43 @@ public class EarnRequest implements Representable {
                 .deserialize(repr);
     }
 
+    public EarnRequest(SPSEQSignature blindedSignature, GroupElement c0, GroupElement c1) {
+        this.blindedSignature = blindedSignature;
+        this.c0 = c0;
+        this.c1 = c1;
+    }
+
     @Override
     public Representation getRepresentation() {
         return ReprUtil.serialize(this);
+    }
+
+    public SPSEQSignature getBlindedSignature() {
+        return this.blindedSignature;
+    }
+
+    public GroupElement getC0() {
+        return this.c0;
+    }
+
+    public GroupElement getC1() {
+        return this.c1;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EarnRequest that = (EarnRequest) o;
+        return Objects.equals(blindedSignature, that.blindedSignature) && Objects.equals(c0, that.c0) && Objects.equals(c1, that.c1);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(blindedSignature, c0, c1);
+    }
+
+    public String toString() {
+        return "EarnRequest(blindedSignature=" + this.getBlindedSignature() + ", c0=" + this.getC0() + ", c1=" + this.getC1() + ")";
     }
 }

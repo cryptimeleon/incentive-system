@@ -1,6 +1,5 @@
 package org.cryptimeleon.incentive.promotion.streak;
 
-import lombok.EqualsAndHashCode;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductOrNode;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
@@ -16,7 +15,6 @@ import java.util.UUID;
  * Streak update that allows the user to anonymously update tokens if they are within the streak, and reset it if not within the range.
  * It is kept secret which of the two updates is performed.
  */
-@EqualsAndHashCode(callSuper = true)
 public class StandardStreakTokenUpdate extends StreakZkpTokenUpdate {
 
     public StandardStreakTokenUpdate(Representation representation) {
@@ -61,5 +59,15 @@ public class StandardStreakTokenUpdate extends StreakZkpTokenUpdate {
         } else {
             return Optional.of(Vector.of(tokenPoints.get(0).add(BigInteger.ONE), BigInteger.valueOf(now)));
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        return super.equals(o);
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
     }
 }
