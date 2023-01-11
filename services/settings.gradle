@@ -8,4 +8,5 @@ include ':info'
 include ':incentive'
 include ':dsprotection'
 include ':bootstrap'
+include ':store'
 

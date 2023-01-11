@@ -1,0 +1,35 @@
+plugins {
+    id 'org.springframework.boot'
+    id 'io.spring.dependency-management'
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation "io.springfox:springfox-boot-starter:3.0.0"
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    implementation 'org.cryptimeleon.incentive:promotion'
+    testImplementation(testFixtures('org.cryptimeleon.incentive:crypto'))
+
+    implementation project(":client")
+
+    // M1 mac fix
+    implementation 'io.netty:netty-all'
+    implementation(group: "io.netty", name: "netty-resolver-dns-native-macos", version: "4.1.72.Final", classifier: "osx-aarch_64")
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        exceptionFormat = 'full'
+    }
+}
+
+bootBuildImage {
+    if (System.getenv('VERSION') == null || System.getenv('VERSION') == '') {
+        imageName = "cryptimeleon/incentive-service-store:" + file("../version").text.trim()
+    } else {
+        imageName = "cryptimeleon/incentive-service-store:" + System.getenv('VERSION')
+    }
+}
