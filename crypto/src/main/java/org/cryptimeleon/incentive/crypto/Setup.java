@@ -3,6 +3,9 @@ package org.cryptimeleon.incentive.crypto;
 
 import org.cryptimeleon.craco.protocols.arguments.sigma.schnorr.setmembership.SetMembershipPublicParameters;
 import org.cryptimeleon.craco.sig.SignatureKeyPair;
+import org.cryptimeleon.craco.sig.ecdsa.ECDSASignatureScheme;
+import org.cryptimeleon.craco.sig.ecdsa.ECDSASigningKey;
+import org.cryptimeleon.craco.sig.ecdsa.ECDSAVerificationKey;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQPublicParameters;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignatureScheme;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSigningKey;
@@ -11,6 +14,9 @@ import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderSecretKey;
+import org.cryptimeleon.incentive.crypto.model.keys.store.StoreKeyPair;
+import org.cryptimeleon.incentive.crypto.model.keys.store.StorePublicKey;
+import org.cryptimeleon.incentive.crypto.model.keys.store.StoreSecretKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPreKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPreSecretKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
@@ -151,5 +157,14 @@ public class Setup {
         ProviderPublicKey pk = new ProviderPublicKey(tokenSpsEqKeyPair.getVerificationKey(), genesisSpsEqKeyPair.getVerificationKey(), h);
         ProviderSecretKey sk = new ProviderSecretKey(tokenSpsEqKeyPair.getSigningKey(), genesisSpsEqKeyPair.getSigningKey(), q, betaProv);
         return new ProviderKeyPair(sk, pk);
+    }
+
+    public static StoreKeyPair storeKeyGen() {
+        ECDSASignatureScheme ecdsaSignatureScheme = new ECDSASignatureScheme();
+        SignatureKeyPair<ECDSAVerificationKey, ECDSASigningKey> keyPair = ecdsaSignatureScheme.generateKeyPair();
+
+        StorePublicKey pk = new StorePublicKey(keyPair.getVerificationKey());
+        StoreSecretKey sk = new StoreSecretKey(keyPair.getSigningKey());
+        return new StoreKeyPair(sk, pk);
     }
 }

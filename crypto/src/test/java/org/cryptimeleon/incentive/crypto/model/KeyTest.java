@@ -4,6 +4,8 @@ import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.crypto.TestSuite;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderSecretKey;
+import org.cryptimeleon.incentive.crypto.model.keys.store.StorePublicKey;
+import org.cryptimeleon.incentive.crypto.model.keys.store.StoreSecretKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPreSecretKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserSecretKey;
@@ -21,6 +23,21 @@ public class KeyTest {
     IncentivePublicParameters pp = TestSuite.pp;
     IncentiveSystem incentiveSystem = TestSuite.incentiveSystem;
     Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
+
+    @Test
+    void testStoreKeyPair() {
+        var storeKeyPair = incentiveSystem.generateStoreKeyPair();
+
+        logger.info("Store Secret Key representation");
+        var storeSecretKey = storeKeyPair.getSk();
+        var deserializedStoreSecretKey = new StoreSecretKey(storeSecretKey.getRepresentation());
+        assertEquals(storeSecretKey, deserializedStoreSecretKey);
+
+        logger.info("Store Public Key representation");
+        var storePublicKey = storeKeyPair.getPk();
+        var deserializedStorePublicKey = new StorePublicKey(storePublicKey.getRepresentation());
+        assertEquals(storePublicKey, deserializedStorePublicKey);
+    }
 
     @Test
     void testProviderKeyPair() {

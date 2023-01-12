@@ -10,6 +10,7 @@ import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderSecretKey;
+import org.cryptimeleon.incentive.crypto.model.keys.store.StoreKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPreKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
@@ -82,6 +83,10 @@ public class IncentiveSystem {
      */
     public UserPreKeyPair generateUserPreKeyPair() {
         return Setup.userPreKeyGen(this.pp);
+    }
+
+    public StoreKeyPair generateStoreKeyPair() {
+        return Setup.storeKeyGen();
     }
 
     @Deprecated
