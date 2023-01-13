@@ -1,10 +1,15 @@
 package org.cryptimeleon.incentive.crypto;
 
 import org.cryptimeleon.craco.common.ByteArrayImplementation;
+import org.cryptimeleon.craco.common.plaintexts.MessageBlock;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProof;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
+import org.cryptimeleon.craco.sig.ecdsa.ECDSASignature;
+import org.cryptimeleon.craco.sig.ecdsa.ECDSASignatureScheme;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignatureScheme;
+import org.cryptimeleon.incentive.crypto.callback.IRegistrationCouponDBHandler;
+import org.cryptimeleon.incentive.crypto.callback.IStorePublicKeyVerificationHandler;
 import org.cryptimeleon.incentive.crypto.dsprotectionlogic.DatabaseHandler;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
@@ -94,11 +99,93 @@ public class IncentiveSystem {
         return new PromotionParameters(BigInteger.ONE, 1);
     }
 
+    /*
+     * Registration
+     */
+
+    /**
+     * Issue a ECDSA signature on a {@code (upk, id-info)} tuple and return an object containing all data, the signature
+     * und the verification key.
+     * <p>
+     * It should be verified somehow that the id-info belong user who request a signature to such a tuple, since it will
+     * be used to identify and penalize maliciously acting users.
+     *
+     * @param storeKeyPair  the keypair is used to 1. sign he tuple and 2. attach the verification key to the data
+     * @param userPublicKey a userPublicKey that will be encoded in the user's tokens
+     * @param userInfo      some data that identifies the user as a person, e.g. the ID number, its name and address, ...
+     * @return the signed tuple with signature
+     */
+    public RegistrationCoupon signRegistrationCoupon(StoreKeyPair storeKeyPair, UserPublicKey userPublicKey, String userInfo) {
+        ECDSASignatureScheme ecdsaSignatureScheme = new ECDSASignatureScheme();
+        MessageBlock msg = constructRegistrationCouponMessageBlock(userPublicKey, userInfo);
+        ECDSASignature internalSignature = (ECDSASignature) ecdsaSignatureScheme.sign(msg, storeKeyPair.getSk().getEcdsaSigningKey());
+        return new RegistrationCoupon(userPublicKey, userInfo, storeKeyPair.getPk(), internalSignature);
+    }
+
+    /**
+     * Issue a registration token i.e., a signature of the user public key under the providers registration SPSEQ keys,
+     * for a valid, signed registrationCoupon,
+     * <p>
+     * Verifies that the user data is signed under a valid and trusted public key.
+     * Allows storing the user data using a callback.
+     *
+     * @param providerKeyPair     The keypair of the provider used to issue the SPSEQ signature
+     * @param registrationCoupon  the coupon holds the user data, store public key, and signature under that key
+     * @param verificationHandler an object that provides a function to verify the store public key
+     * @param dbAccess            an object that provides a function to store the {@code registrationCoupon} to identify users and/or
+     *                            hold stores accountable for registering fake users
+     * @return a SPSEQSignature on the users public key under the registration SPSEQ keys
+     */
+    public SPSEQSignature verifyRegistrationCouponAndIssueRegistrationToken(ProviderKeyPair providerKeyPair,
+                                                                            RegistrationCoupon registrationCoupon,
+                                                                            IStorePublicKeyVerificationHandler verificationHandler,
+                                                                            IRegistrationCouponDBHandler dbAccess) {
+        // 1. Verify verification key, e.g. with a CA hierarchy or whitelist
+        if (!verificationHandler.isStorePublicKeyTrusted(registrationCoupon.getStorePublicKey())) {
+            throw new RuntimeException("Store Public Key is not Trusted");
+        }
+
+        // 2. Verify Signature on User Data
+        ECDSASignatureScheme ecdsaSignatureScheme = new ECDSASignatureScheme();
+        MessageBlock msg = constructRegistrationCouponMessageBlock(registrationCoupon.getUserPublicKey(), registrationCoupon.getUserInfo());
+        if (!ecdsaSignatureScheme.verify(msg, registrationCoupon.getSignature(), registrationCoupon.getStorePublicKey().getEcdsaVerificationKey())) {
+            throw new RuntimeException("Registration Coupon Invalid");
+        }
+
+        // 3. Store user info
+        dbAccess.storeUserData(registrationCoupon);
+
+        // 4. Sign userPublicKey under registration (genesis) keys
+        return (SPSEQSignature) pp.getSpsEq().sign(
+                providerKeyPair.getSk().getGenesisSpsEqSk(),
+                registrationCoupon.getUserPublicKey().getUpk(),
+                pp.getW());
+    }
+
+    /**
+     * Verify the registration token signature.
+     *
+     * @param providerPublicKey          the public key of the provider used for verification
+     * @param registrationTokenSignature the registration token signature
+     * @param registrationCoupon         the registration token containing the signed data
+     * @return whether the signature is valid
+     */
+    public boolean verifyRegistrationToken(ProviderPublicKey providerPublicKey,
+                                           SPSEQSignature registrationTokenSignature,
+                                           RegistrationCoupon registrationCoupon) {
+        return pp.getSpsEq().verify(
+                providerPublicKey.getGenesisSpsEqPk(),
+                registrationTokenSignature,
+                registrationCoupon.getUserPublicKey().getUpk(),
+                pp.getW()
+        );
+    }
 
     /**
      * Sign a verified (userPublicKey, w) tuple for the genesis process:
      * We can force users to such a signed public key in all their tokens.
      */
+    @Deprecated
     public SPSEQSignature signVerifiedUserPublicKey(ProviderKeyPair providerKeyPair, UserPublicKey userPublicKey) {
         return (SPSEQSignature) pp.getSpsEq().sign(
                 providerKeyPair.getSk().getGenesisSpsEqSk(),
@@ -877,6 +964,13 @@ public class IncentiveSystem {
                 "SpendDeduct"
         ).stream().map(ringElement -> (ZnElement) ringElement).collect(Collectors.toList());
         return new SpendDeductRandomness(prv.get(0), prv.get(1), prv.get(2), prv.get(3), prv.get(4), prv.get(5));
+    }
+
+    private MessageBlock constructRegistrationCouponMessageBlock(UserPublicKey userPublicKey, String userInfo) {
+        return new MessageBlock(
+                new ByteArrayImplementation(userPublicKey.getUniqueByteRepresentation()),
+                new ByteArrayImplementation(userInfo.getBytes())
+        );
     }
 
     public IncentivePublicParameters getPp() {
