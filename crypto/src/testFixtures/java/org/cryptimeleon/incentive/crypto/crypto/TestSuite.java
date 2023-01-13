@@ -1,13 +1,11 @@
 package org.cryptimeleon.incentive.crypto.crypto;
 
-import org.cryptimeleon.incentive.crypto.BilinearGroupChoice;
-import org.cryptimeleon.incentive.crypto.Helper;
-import org.cryptimeleon.incentive.crypto.IncentiveSystem;
-import org.cryptimeleon.incentive.crypto.Util;
+import org.cryptimeleon.incentive.crypto.*;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.crypto.model.Token;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
+import org.cryptimeleon.incentive.crypto.model.keys.store.StoreKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPreKeyPair;
 import org.cryptimeleon.math.structures.cartesian.Vector;
@@ -17,6 +15,8 @@ import java.math.BigInteger;
 public class TestSuite {
     static public final IncentivePublicParameters pp = IncentiveSystem.setup(128, BilinearGroupChoice.Debug);
     static public final IncentiveSystem incentiveSystem = new IncentiveSystem(pp);
+    static public final IncentiveSystemRestorer incentiveSystemRestorer = new IncentiveSystemRestorer(pp);
+    static public final StoreKeyPair storeKeyPair = incentiveSystem.generateStoreKeyPair();
     static public final ProviderKeyPair providerKeyPair = incentiveSystem.generateProviderKeyPair();
     static public final UserPreKeyPair userPreKeyPair = incentiveSystem.generateUserPreKeyPair();
     static public final UserKeyPair userKeyPair = Util.addGenesisSignatureToUserKeys(userPreKeyPair, providerKeyPair, pp);
