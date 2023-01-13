@@ -21,6 +21,10 @@ public class StoreSecretKey implements Representable {
         this.ecdsaSigningKey = ecdsaSigningKey;
     }
 
+    public ECDSASigningKey getEcdsaSigningKey() {
+        return ecdsaSigningKey;
+    }
+
     @Override
     public Representation getRepresentation() {
         return ReprUtil.serialize(this);

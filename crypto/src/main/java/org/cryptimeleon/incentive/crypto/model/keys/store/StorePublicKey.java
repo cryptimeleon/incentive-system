@@ -21,6 +21,10 @@ public class StorePublicKey implements StandaloneRepresentable {
         this.ecdsaVerificationKey = ecdsaVerificationKey;
     }
 
+    public ECDSAVerificationKey getEcdsaVerificationKey() {
+        return ecdsaVerificationKey;
+    }
+
     @Override
     public Representation getRepresentation() {
         return ReprUtil.serialize(this);
