@@ -62,6 +62,7 @@ public class IncentiveSystemTest {
                 iRegistrationCouponDBHandler
         );
 
+        assertThat(incSys.verifyRegistrationCoupon(registrationCoupon, (s)-> true)).isTrue();
         assertThat(registrationCouponList).hasSize(1);
         assertThat(incSys.verifyRegistrationToken(pkp.getPk(), registrationToken, registrationCoupon)).isTrue();
 

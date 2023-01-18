@@ -123,6 +123,23 @@ public class IncentiveSystem {
     }
 
     /**
+     * Verify the registration coupon signature and its public key
+     *
+     * @param registrationCoupon the registration coupon to verify
+     * @param verificationHandler some callback method to verify the public key
+     * @return whether the signature is valid and trusted
+     */
+    public boolean verifyRegistrationCoupon(RegistrationCoupon registrationCoupon, IStorePublicKeyVerificationHandler verificationHandler) {
+        if (!verificationHandler.isStorePublicKeyTrusted(registrationCoupon.getStorePublicKey())) {
+            throw new RuntimeException("Store Public Key is not Trusted");
+        }
+
+        ECDSASignatureScheme ecdsaSignatureScheme = new ECDSASignatureScheme();
+        MessageBlock msg = constructRegistrationCouponMessageBlock(registrationCoupon.getUserPublicKey(), registrationCoupon.getUserInfo());
+        return ecdsaSignatureScheme.verify(msg, registrationCoupon.getSignature(), registrationCoupon.getStorePublicKey().getEcdsaVerificationKey());
+    }
+
+    /**
      * Issue a registration token i.e., a signature of the user public key under the providers registration SPSEQ keys,
      * for a valid, signed registrationCoupon,
      * <p>
@@ -177,19 +194,6 @@ public class IncentiveSystem {
                 providerPublicKey.getGenesisSpsEqPk(),
                 registrationTokenSignature,
                 registrationCoupon.getUserPublicKey().getUpk(),
-                pp.getW()
-        );
-    }
-
-    /**
-     * Sign a verified (userPublicKey, w) tuple for the genesis process:
-     * We can force users to such a signed public key in all their tokens.
-     */
-    @Deprecated
-    public SPSEQSignature signVerifiedUserPublicKey(ProviderKeyPair providerKeyPair, UserPublicKey userPublicKey) {
-        return (SPSEQSignature) pp.getSpsEq().sign(
-                providerKeyPair.getSk().getGenesisSpsEqSk(),
-                userPublicKey.getUpk(),
                 pp.getW()
         );
     }

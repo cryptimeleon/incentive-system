@@ -1,5 +1,6 @@
 package org.cryptimeleon.incentive.crypto;
 
+import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
@@ -25,7 +26,11 @@ public class Util {
                 new UserSecretKey(
                         userPreKeyPair.getPsk().getUsk(),
                         userPreKeyPair.getPsk().getPrfKey(),
-                        (new IncentiveSystem(pp)).signVerifiedUserPublicKey(providerKeyPair, userPreKeyPair.getPk())
+                        (SPSEQSignature) pp.getSpsEq().sign(
+                            providerKeyPair.getSk().getGenesisSpsEqSk(),
+                            userPreKeyPair.getPk().getUpk(),
+                            pp.getW()
+                        )
                 )
         );
     }
