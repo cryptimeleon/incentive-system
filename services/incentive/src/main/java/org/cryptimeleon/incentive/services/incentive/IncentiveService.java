@@ -4,6 +4,9 @@ import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSyst
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSigningKey;
 import org.cryptimeleon.incentive.client.dto.inc.*;
+import org.cryptimeleon.incentive.crypto.IncentiveSystemRestorer;
+import org.cryptimeleon.incentive.crypto.callback.IRegistrationCouponDBHandler;
+import org.cryptimeleon.incentive.crypto.callback.IStorePublicKeyVerificationHandler;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
@@ -318,5 +321,26 @@ public class IncentiveService {
      */
     private SPSEQSignature generateGenesisSignature(IncentivePublicParameters pp, SPSEQSigningKey skSpsEq, GroupElement upk) {
         return (SPSEQSignature) pp.getSpsEq().sign(skSpsEq, upk, pp.getW());
+    }
+
+
+    public String registerUser(String serializedRegistrationCoupon) {
+        var pp = cryptoRepository.getPublicParameters();
+        var providerKeyPair = new ProviderKeyPair(cryptoRepository.getProviderSecretKey(), cryptoRepository.getProviderPublicKey());
+        var registrationCoupon = new RegistrationCoupon(jsonConverter.deserialize(serializedRegistrationCoupon), new IncentiveSystemRestorer(pp));
+
+        // Callbacks for crypto implementation.
+        // TODO: Currently, we allow the message to be signed under any store public key and we do not persist requests.
+        IStorePublicKeyVerificationHandler verificationHandler = (storePublicKey) -> true;
+        IRegistrationCouponDBHandler registrationCouponDBHandler = (registrationCoupon1) -> {};
+
+        var registrationToken = cryptoRepository.getIncentiveSystem().verifyRegistrationCouponAndIssueRegistrationToken(
+                providerKeyPair,
+                registrationCoupon,
+                verificationHandler,
+                registrationCouponDBHandler
+        );
+
+        return jsonConverter.serialize(registrationToken.getRepresentation());
     }
 }
