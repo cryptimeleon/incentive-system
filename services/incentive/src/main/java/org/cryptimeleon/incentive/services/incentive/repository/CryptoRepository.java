@@ -8,7 +8,6 @@ import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderSecretKey;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
@@ -31,6 +30,10 @@ public class CryptoRepository {
     @Value("${provider.shared-secret}")
     private String sharedSecret; // used to authenticate the request for the provider secret key (set via environment variable)
     // Will be set via dependency injection
+
+    @Value("${spring.profiles.active}")
+    private String activeProfiles;
+
     private final InfoClient infoClient;
 
     @Autowired
@@ -41,9 +44,11 @@ public class CryptoRepository {
     /**
      * Make sure that the shared secret is set.
      */
-    @Profile("!test")
     @PostConstruct
     public void validateValue() {
+        // Do not run this in unit-tests
+        if (activeProfiles.contains("test")) return;
+
         log.info("PostConstruct");
         if (sharedSecret.equals("")) {
             throw new IllegalArgumentException("Provider shared secret is not set!");
@@ -73,6 +78,7 @@ public class CryptoRepository {
             } catch (RuntimeException e) {
                 if (i + 1 == MAX_TRIES) {
                     e.printStackTrace();
+                    throw new RuntimeException("Could not query data from info service!");
                 }
             }
             try {

@@ -6,7 +6,6 @@ import org.cryptimeleon.incentive.crypto.model.SpendRequest;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Repository;
 
@@ -20,7 +19,6 @@ import java.util.Iterator;
 import java.util.List;
 
 @Repository
-@Profile("!test")
 public class ScheduledOfflineDSPRepository implements OfflineDSPRepository {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ScheduledOfflineDSPRepository.class);
     private static final int DB_SYNC_QUEUE_CYCLE_DELAY = 2000;

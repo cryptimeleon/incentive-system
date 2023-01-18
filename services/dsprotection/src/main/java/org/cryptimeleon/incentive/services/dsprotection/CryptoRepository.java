@@ -7,6 +7,7 @@ import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
@@ -24,6 +25,10 @@ public class CryptoRepository {
     private IncentivePublicParameters pp;
     private IncentiveSystem incSys;
 
+    @Value("${spring.profiles.active}")
+    private String activeProfiles;
+
+
     /**
      * Default constructor to be executed when an object of this class is used as a Spring Bean.
      *
@@ -39,6 +44,9 @@ public class CryptoRepository {
      */
     @PostConstruct
     private void init() {
+        // Do not run this in unit-tests
+        if (activeProfiles.contains("test")) return;
+
         logger.info("Querying info service for cryptographic assets for provider.");
         JSONConverter jsonConverter = new JSONConverter(); // info service provides assets as JSON objects => converter needed to obtain java objects
         // several connection attempts, wait 2^i seconds before retrying
@@ -58,6 +66,7 @@ public class CryptoRepository {
                 // exceptions are caught and ignored until the final connection attempt has failed
                 if (i + 1 >= MAX_TRIES) {
                     e.printStackTrace();
+                    throw new RuntimeException("Could not query data from info service!");
                 }
             }
             // waiting
