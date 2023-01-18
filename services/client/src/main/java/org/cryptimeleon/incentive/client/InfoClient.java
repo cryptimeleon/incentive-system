@@ -12,7 +12,7 @@ public class InfoClient implements AliveEndpoint {
     /**
      * Webclient configured with the url of the info service
      */
-    private WebClient infoClient;
+    private final WebClient infoClient;
 
 
     public InfoClient(String infoServiceUrl) {
@@ -68,6 +68,22 @@ public class InfoClient implements AliveEndpoint {
                 .uri(uriBuilder -> uriBuilder.path("/provider-secret-key")
                         .build())
                 .header("shared-secret", providerSharedSecret)
+                .retrieve()
+                .bodyToMono(String.class);
+    }
+
+    public Mono<String> querySerializedStorePublicKey() {
+        return infoClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/store-public-key")
+                        .build())
+                .retrieve()
+                .bodyToMono(String.class);
+    }
+    public Mono<String> querySerializedStoreSecretKey(String storeSharedSecret) {
+        return infoClient.get()
+                .uri(uriBuilder -> uriBuilder.path("/store-secret-key")
+                        .build())
+                .header("shared-secret", storeSharedSecret)
                 .retrieve()
                 .bodyToMono(String.class);
     }
