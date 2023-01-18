@@ -470,7 +470,7 @@ public class IncentiveServiceTest {
     }
 
     private SPSEQSignature retrieveRegistrationSignatureForCoupon(WebTestClient webClient, RegistrationCoupon registrationCoupon) {
-        var serializedSignature = webClient.post()
+        var serializedSignature = webClient.get()
                 .uri("/register-with-coupon")
                 .header("registration-coupon", jsonConverter.serialize(registrationCoupon.getRepresentation()))
                 .exchange()
