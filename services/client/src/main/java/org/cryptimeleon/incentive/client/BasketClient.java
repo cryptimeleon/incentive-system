@@ -124,14 +124,16 @@ public class BasketClient implements AliveEndpoint {
     }
 
     public void addShoppingItems(List<ItemDto> testBasketItems, String providerSecret) {
-        testBasketItems.forEach(item ->
-                basketClient.post()
-                        .uri("/items")
-                        .header("provider-secret", providerSecret)
-                        .body(BodyInserters.fromValue(item))
-                        .retrieve()
-                        .bodyToMono(Void.class)
-                        .block()
-        );
+        testBasketItems.forEach(item -> basketClient.post().uri("/items").header("provider-secret", providerSecret).body(BodyInserters.fromValue(item)).retrieve().bodyToMono(Void.class).block());
+    }
+
+    public String registerUser(String userPublicKey, String userInfo) {
+        return basketClient
+                .get()
+                .uri("/register-user-and-obtain-serialized-registration-coupon")
+                .header("user-public-key", userPublicKey)
+                .header("user-info", userInfo)
+                .retrieve()
+                .bodyToMono(String.class).block();
     }
 }
