@@ -136,8 +136,7 @@ public class IncentiveController {
      * @param serializedRegistrationCoupon the registration coupon
      * @return serialized representation of a registration signature for this user
      */
-    @PostMapping("/register-with-coupon")
-    @Deprecated
+    @GetMapping("/register-with-coupon")
     public ResponseEntity<String> registerAsUser(@RequestHeader(name = "registration-coupon") String serializedRegistrationCoupon) {
         return new ResponseEntity<>(incentiveService.registerUser(serializedRegistrationCoupon), HttpStatus.OK);
     }

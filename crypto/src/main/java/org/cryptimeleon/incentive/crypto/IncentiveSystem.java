@@ -184,18 +184,32 @@ public class IncentiveSystem {
      *
      * @param providerPublicKey          the public key of the provider used for verification
      * @param registrationTokenSignature the registration token signature
+     * @param userPublicKey the user public key that is signed in this registration token
+     * @return whether the signature is valid
+     */
+    public boolean verifyRegistrationToken(ProviderPublicKey providerPublicKey,
+                                           SPSEQSignature registrationTokenSignature,
+                                           UserPublicKey userPublicKey) {
+        return pp.getSpsEq().verify(
+                providerPublicKey.getGenesisSpsEqPk(),
+                registrationTokenSignature,
+                userPublicKey.getUpk(),
+                pp.getW()
+        );
+    }
+
+    /**
+     * Verify the registration token signature.
+     *
+     * @param providerPublicKey          the public key of the provider used for verification
+     * @param registrationTokenSignature the registration token signature
      * @param registrationCoupon         the registration token containing the signed data
      * @return whether the signature is valid
      */
     public boolean verifyRegistrationToken(ProviderPublicKey providerPublicKey,
                                            SPSEQSignature registrationTokenSignature,
                                            RegistrationCoupon registrationCoupon) {
-        return pp.getSpsEq().verify(
-                providerPublicKey.getGenesisSpsEqPk(),
-                registrationTokenSignature,
-                registrationCoupon.getUserPublicKey().getUpk(),
-                pp.getW()
-        );
+        return verifyRegistrationToken(providerPublicKey, registrationTokenSignature, registrationCoupon.getUserPublicKey());
     }
 
 

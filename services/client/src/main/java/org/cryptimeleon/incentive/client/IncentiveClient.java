@@ -2,7 +2,7 @@ package org.cryptimeleon.incentive.client;
 
 import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.TokenUpdateResultsDto;
-import org.cryptimeleon.incentive.crypto.model.keys.user.UserPreKeyPair;
+import org.cryptimeleon.incentive.crypto.model.RegistrationCoupon;
 import org.cryptimeleon.incentive.promotion.Promotion;
 import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
@@ -26,8 +26,8 @@ public class IncentiveClient implements AliveEndpoint {
     /**
      * Webclient configured with the url of the issue service
      */
-    private WebClient incentiveClient;
-    private JSONConverter jsonConverter = new JSONConverter();
+    private final WebClient incentiveClient;
+    private final JSONConverter jsonConverter = new JSONConverter();
 
     public IncentiveClient(String incentiveServiceUrl) {
         this.incentiveClient = WebClientHelper.buildWebClient(incentiveServiceUrl);
@@ -89,11 +89,12 @@ public class IncentiveClient implements AliveEndpoint {
         return promotions.stream().map(p -> jsonConverter.serialize(new RepresentableRepresentation(p))).collect(Collectors.toList());
     }
 
-    public Mono<ResponseEntity<String>> genesis(UserPreKeyPair userPreKeyPair) {
-        return incentiveClient.post()
-                .uri("/genesis")
-                .header("user-public-key", jsonConverter.serialize(userPreKeyPair.getPk().getRepresentation()))
+    public String registerUserWithCoupon(RegistrationCoupon registrationCoupon) {
+        return incentiveClient.get()
+                .uri("/register-with-coupon")
+                .header("registration-coupon", jsonConverter.serialize(registrationCoupon.getRepresentation()))
                 .retrieve()
-                .bodyToMono((new ParameterizedTypeReference<ResponseEntity<String>>() {}));
+                .bodyToMono((new ParameterizedTypeReference<String>() {}))
+                .block();
     }
 }
