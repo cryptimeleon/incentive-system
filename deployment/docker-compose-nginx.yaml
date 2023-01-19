@@ -41,6 +41,7 @@ services:
       - STORE_SHARED_SECRET=${STORE_SHARED_SECRET}
       - SERVER_SERVLET_CONTEXT_PATH=${BASKET_CONTEXT:-/basket}
       - SPRINGFOX_HOST=${HOST:-incentives.cs.uni-paderborn.de}
+      - INFO_SERVICE_URL=http://infoservice:8000${INFO_CONTEXT:-/info}
     networks:
       - provider
     hostname: basketservice
