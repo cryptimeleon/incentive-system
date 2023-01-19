@@ -43,6 +43,8 @@ public class InfoController {
 
     @GetMapping("/store-secret-key")
     public ResponseEntity<String> queryStoreSecretKey(@RequestHeader(name = "shared-secret") String storeSharedSecret) {
+        System.out.println("storeSharedSecret = " + storeSharedSecret);
+
         if (infoService.verifyStoreSharedSecret(storeSharedSecret)) {
             return new ResponseEntity<>(infoService.getSerializedStoreSecretKey(), HttpStatus.OK);
         }
