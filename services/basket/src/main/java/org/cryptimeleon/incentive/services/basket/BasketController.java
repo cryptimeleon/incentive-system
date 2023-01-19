@@ -28,6 +28,8 @@ public class BasketController {
     private String redeemSecret;
     @Value("${basket-service.provider-secret}")
     private String providerSecret;
+    @Value("${store.shared-secret}")
+    private String storeSharedSecret;
 
     public BasketController(BasketService basketService) {
         this.basketService = basketService;
@@ -47,9 +49,13 @@ public class BasketController {
         if (providerSecret.equals("")) {
             throw new IllegalArgumentException("Basket provider secret is not set!");
         }
+        if (storeSharedSecret.equals("")) {
+            throw new IllegalArgumentException("Store shared secret is not set!");
+        }
         log.info("Payment secret: {}", paymentSecret);
         log.info("Redeem secret: {}", redeemSecret);
         log.info("Provider secret: {}", providerSecret);
+        log.info("Store shared secret: {}", storeSharedSecret);
     }
 
     /**
