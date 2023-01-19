@@ -44,9 +44,14 @@ public class InfoService {
     public void init() {
         // Make sure shared secret is set
         if (providerSharedSecret.equals("")) {
-            throw new IllegalArgumentException("Shared secret is not set.");
+            throw new IllegalArgumentException("Provider's shared secret is not set.");
+        }
+        if (storeSharedSecret.equals("")) {
+            throw new IllegalArgumentException("Store's shared secret is not set.");
         }
         log.info("Shared secret: {}", providerSharedSecret);
+        log.info("Shared secret: {}", storeSharedSecret);
+
         log.info("Setting up a new incentive-system");
         IncentivePublicParameters pp;
         if (useMcl) {
