@@ -1,8 +1,6 @@
 package org.cryptimeleon.incentive.services.incentive;
 
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
-import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
-import org.cryptimeleon.craco.sig.sps.eq.SPSEQSigningKey;
 import org.cryptimeleon.incentive.client.dto.inc.*;
 import org.cryptimeleon.incentive.crypto.IncentiveSystemRestorer;
 import org.cryptimeleon.incentive.crypto.callback.IRegistrationCouponDBHandler;
@@ -312,33 +310,13 @@ public class IncentiveService {
         return new TokenUpdateResultsDto(results.stream().filter(tokenUpdateResult -> tokenUpdateResult instanceof ZkpTokenUpdateResultDto).map(i -> (ZkpTokenUpdateResultDto) i).collect(Collectors.toList()), results.stream().filter(tokenUpdateResult -> tokenUpdateResult instanceof EarnTokenUpdateResultDto).map(i -> (EarnTokenUpdateResultDto) i).collect(Collectors.toList()));
     }
 
-    /**
-     * Computes a serialized representation of a genesis signature on the passed user public key.
-     */
-    public String generateGenesisSignature(String serializedUserPublicKey) {
-        var pp = cryptoRepository.getPublicParameters();
-        var sk = cryptoRepository.getProviderSecretKey().getGenesisSpsEqSk();
-        var upk = pp.getBg().getG1().restoreElement(jsonConverter.deserialize(serializedUserPublicKey));
-        SPSEQSignature signature = generateGenesisSignature(pp, sk, upk);
-        return jsonConverter.serialize(signature.getRepresentation());
-    }
-
-    /**
-     * Computes a genesis signature on the passed user public key using the passed SPS-EQ signing key in the SPS-EQ contained in the passed public parameters.
-     * A genesis signature for a user is a signature on this user's public key together with the common base w of all users' public keys.
-     */
-    private SPSEQSignature generateGenesisSignature(IncentivePublicParameters pp, SPSEQSigningKey skSpsEq, GroupElement upk) {
-        return (SPSEQSignature) pp.getSpsEq().sign(skSpsEq, upk, pp.getW());
-    }
-
-
     public String registerUser(String serializedRegistrationCoupon) {
         var pp = cryptoRepository.getPublicParameters();
         var providerKeyPair = new ProviderKeyPair(cryptoRepository.getProviderSecretKey(), cryptoRepository.getProviderPublicKey());
         var registrationCoupon = new RegistrationCoupon(jsonConverter.deserialize(serializedRegistrationCoupon), new IncentiveSystemRestorer(pp));
 
         // Callbacks for crypto implementation.
-        // TODO: Currently, we allow the message to be signed under any store public key and we do not persist requests.
+        // TODO: Currently, we allow the message to be signed under any store public key
         // TODO: Do we need some kind of check whether users are already part of the system
         IStorePublicKeyVerificationHandler verificationHandler = (storePublicKey) -> true;
         IRegistrationCouponDBHandler registrationCouponDBHandler = registrationCouponRepository::addCoupon;

@@ -157,23 +157,6 @@ public class IncentiveServiceTest {
      * Tests functionality for issuing genesis tokens to new users.
      */
     @Test
-    @Deprecated
-    public void genesisTestOld(@Autowired WebTestClient webClient) {
-        // use hard-coded key pair (from crypto.testFixtures) of a user that is not yet in the system
-        var userPreKeyPair = TestSuite.userPreKeyPair;
-
-        // issuing of genesis signature
-        SPSEQSignature signature = retrieveGenesisSignature(webClient, userPreKeyPair);
-
-        // assert that signature verifies under the providers SPS-EQ key
-        assertThat(pp.getSpsEq().verify(pkp.getPk().getGenesisSpsEqPk(), signature, userPreKeyPair.getPk().getUpk(), pp.getW()))
-                .isTrue();
-    }
-
-    /**
-     * Tests functionality for issuing genesis tokens to new users.
-     */
-    @Test
     public void registrationTest(@Autowired WebTestClient webClient) {
         // use hard-coded key pair (from crypto.testFixtures) of a user that is not yet in the system
         var userPreKeyPair = TestSuite.userPreKeyPair;
@@ -463,17 +446,6 @@ public class IncentiveServiceTest {
         var serializedSpendResponse = resultsDto.getZkpTokenUpdateResultDtoList().get(0).getSerializedResponse();
         SpendResponse spendResponse = new SpendResponse(jsonConverter.deserialize(serializedSpendResponse), pp.getBg().getZn(), pp.getSpsEq());
         return incentiveSystem.handleSpendRequestResponse(testPromotion.getPromotionParameters(), spendResponse, spendRequest, token, pointsAfterSpend, pkp.getPk(), ukp);
-    }
-
-    private SPSEQSignature retrieveGenesisSignature(WebTestClient webClient, org.cryptimeleon.incentive.crypto.model.keys.user.UserPreKeyPair userPreKeyPair) {
-        var serializedSignature = webClient.post()
-                .uri("/genesis")
-                .header("user-public-key", jsonConverter.serialize(userPreKeyPair.getPk().getUpk().getRepresentation()))
-                .exchange()
-                .expectBody(String.class)
-                .returnResult()
-                .getResponseBody();
-        return pp.getSpsEq().restoreSignature(jsonConverter.deserialize(serializedSignature));
     }
 
     private SPSEQSignature retrieveRegistrationSignatureForCoupon(WebTestClient webClient, RegistrationCoupon registrationCoupon) {

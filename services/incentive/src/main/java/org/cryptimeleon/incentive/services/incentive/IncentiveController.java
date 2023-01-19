@@ -119,18 +119,6 @@ public class IncentiveController {
     }
 
     /**
-     * HTTP endpoint for joining the system by obtaining a genesis token.
-     *
-     * @param serializedUserPublicKey serialized representation of the public key of the user joining the system
-     * @return serialized representation of a genesis signature for this user
-     */
-    @PostMapping("/genesis")
-    @Deprecated
-    public ResponseEntity<String> joinSystem(@RequestHeader(name = "user-public-key") String serializedUserPublicKey) {
-        return new ResponseEntity<>(incentiveService.generateGenesisSignature(serializedUserPublicKey), HttpStatus.OK);
-    }
-
-    /**
      * HTTP endpoint for joining the system by obtaining a registration token by showing a valid registration coupon
      * signed by a trusted store.
      *

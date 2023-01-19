@@ -13,10 +13,6 @@ interface CryptoApiService {
     @GET("register-with-coupon")
     suspend fun retrieveRegistrationSignatureFor(@Header("registration-coupon") serializedRegistrationCoupon: String): Response<String>
 
-    @POST("genesis")
-    @Deprecated("This will be remove in the near future")
-    suspend fun retrieveGenesisSignatureFor(@Header("user-public-key") serializedPublicKey: String): Response<String>
-
     @POST("join-promotion")
     suspend fun runIssueJoin(
         @Header("join-request") joinRequest: String,
