@@ -32,7 +32,7 @@ public class CryptoRepository {
     private StorePublicKey storePublicKey;
 
     @Value("${store.shared-secret}")
-    private String sharedSecret; // used to authenticate the request for the store secret key (set via environment variable)
+    private String storeSharedSecret; // used to authenticate the request for the store secret key (set via environment variable)
     // Will be set via dependency injection
 
     @Value("${spring.profiles.active}")
@@ -54,10 +54,10 @@ public class CryptoRepository {
         if (activeProfiles.contains("test")) return;
 
         log.info("PostConstruct");
-        if (sharedSecret.equals("")) {
-            throw new IllegalArgumentException("Provider shared secret is not set!");
+        if (storeSharedSecret.equals("")) {
+            throw new IllegalArgumentException("Store's shared secret is not set!");
         }
-        log.info("shared secret: {}", sharedSecret);
+        log.info("shared secret: {}", storeSharedSecret);
         init();
     }
 
@@ -74,7 +74,7 @@ public class CryptoRepository {
                 String serializedPublicParameters = infoClient.querySerializedPublicParameters().block(Duration.ofSeconds(1));
                 String serializedProviderPublicKey = infoClient.querySerializedProviderPublicKey().block(Duration.ofSeconds(1));
                 String serializedStorePublicKey = infoClient.querySerializedStorePublicKey().block(Duration.ofSeconds(1));
-                String serializedStoreSecretKey = infoClient.querySerializedStoreSecretKey(sharedSecret).block(Duration.ofSeconds(1));
+                String serializedStoreSecretKey = infoClient.querySerializedStoreSecretKey(storeSharedSecret).log().block(Duration.ofSeconds(1));
 
                 this.publicParameters = new IncentivePublicParameters(jsonConverter.deserialize(serializedPublicParameters));
                 this.providerPublicKey = new ProviderPublicKey(jsonConverter.deserialize(serializedProviderPublicKey), publicParameters);
