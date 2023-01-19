@@ -17,6 +17,7 @@ import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
 import org.cryptimeleon.incentive.promotion.model.Basket;
 import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect;
 import org.cryptimeleon.incentive.promotion.sideeffect.SideEffect;
+import org.cryptimeleon.incentive.services.incentive.api.RegistrationCouponJSON;
 import org.cryptimeleon.incentive.services.incentive.error.BasketAlreadyPaidException;
 import org.cryptimeleon.incentive.services.incentive.error.BasketNotPaidException;
 import org.cryptimeleon.incentive.services.incentive.error.IncentiveServiceException;
@@ -54,14 +55,21 @@ public class IncentiveService {
     private final BasketRepository basketRepository;
     private final TokenUpdateResultRepository tokenUpdateResultRepository;
     private final OfflineDSPRepository offlineDspRepository;
+    private final RegistrationCouponRepository registrationCouponRepository;
 
     @Autowired
-    private IncentiveService(CryptoRepository cryptoRepository, PromotionRepository promotionRepository, BasketRepository basketRepository, TokenUpdateResultRepository tokenUpdateResultRepository, OfflineDSPRepository offlineDspRepository) {
+    private IncentiveService(CryptoRepository cryptoRepository,
+                             PromotionRepository promotionRepository,
+                             BasketRepository basketRepository,
+                             TokenUpdateResultRepository tokenUpdateResultRepository,
+                             OfflineDSPRepository offlineDspRepository,
+                             RegistrationCouponRepository registrationCouponRepository) {
         this.cryptoRepository = cryptoRepository;
         this.promotionRepository = promotionRepository;
         this.basketRepository = basketRepository;
         this.tokenUpdateResultRepository = tokenUpdateResultRepository;
         this.offlineDspRepository = offlineDspRepository;
+        this.registrationCouponRepository = registrationCouponRepository;
     }
 
     /**
@@ -331,8 +339,9 @@ public class IncentiveService {
 
         // Callbacks for crypto implementation.
         // TODO: Currently, we allow the message to be signed under any store public key and we do not persist requests.
+        // TODO: Do we need some kind of check whether users are already part of the system
         IStorePublicKeyVerificationHandler verificationHandler = (storePublicKey) -> true;
-        IRegistrationCouponDBHandler registrationCouponDBHandler = (registrationCoupon1) -> {};
+        IRegistrationCouponDBHandler registrationCouponDBHandler = registrationCouponRepository::addCoupon;
 
         var registrationToken = cryptoRepository.getIncentiveSystem().verifyRegistrationCouponAndIssueRegistrationToken(
                 providerKeyPair,
@@ -342,5 +351,16 @@ public class IncentiveService {
         );
 
         return jsonConverter.serialize(registrationToken.getRepresentation());
+    }
+
+    public List<RegistrationCouponJSON> getRegistrationCoupons() {
+        return registrationCouponRepository.getAllCoupons().stream().map((coupon) ->
+            new RegistrationCouponJSON(
+                    coupon.getUserInfo(),
+                    jsonConverter.serialize(coupon.getUserPublicKey().getRepresentation()),
+                    jsonConverter.serialize(coupon.getSignature().getRepresentation()),
+                    jsonConverter.serialize(coupon.getStorePublicKey().getRepresentation())
+            )
+        ).collect(Collectors.toList());
     }
 }

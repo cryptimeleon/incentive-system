@@ -3,6 +3,7 @@ package org.cryptimeleon.incentive.services.incentive;
 import io.swagger.annotations.ApiOperation;
 import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.TokenUpdateResultsDto;
+import org.cryptimeleon.incentive.services.incentive.api.RegistrationCouponJSON;
 import org.cryptimeleon.incentive.services.incentive.error.BasketAlreadyPaidException;
 import org.cryptimeleon.incentive.services.incentive.error.BasketNotPaidException;
 import org.cryptimeleon.incentive.services.incentive.error.IncentiveServiceException;
@@ -209,12 +210,29 @@ public class IncentiveController {
         return dosService.getRemainingOfflineTimeSeconds();
     }
 
+    /**
+     * HTTP endpoint for obtaining all points and rewards for a paid basket identified by the passed ID.
+     *
+     * @return data transfer object (DTO) with all the updates
+     */
+    @PostMapping("/bulk-token-update-results")
+    public TokenUpdateResultsDto bulkResults(@RequestHeader(name = "basket-id") UUID basketId) {
+        return incentiveService.retrieveBulkResults(basketId);
+    }
+
+    /**
+     * Query all registration user data.
+     *
+     * @return json list of user data objects
+     */
+    @GetMapping("/registration-coupons")
+    public List<RegistrationCouponJSON> getRegistrationCoupons() {
+        return incentiveService.getRegistrationCoupons();
+    }
+
     /*
-    * end of endpoints for simulating denial-of-service attacks on the double-spending database
-    */
-    /*
-    * Exception handling
-    */
+     * Exception handling
+     */
     @ResponseStatus(HttpStatus.I_AM_A_TEAPOT)
     @ExceptionHandler(OnlineDoubleSpendingException.class)
     public String handleOnlineDSPException() {
@@ -240,13 +258,4 @@ public class IncentiveController {
         return "An exception occurred!\n" + ex.getMessage();
     }
 
-    /**
-     * HTTP endpoint for obtaining all points and rewards for a paid basket identified by the passed ID.
-     *
-     * @return data transfer object (DTO) with all the updates
-     */
-    @PostMapping("/bulk-token-update-results")
-    public TokenUpdateResultsDto bulkResults(@RequestHeader(name = "basket-id") UUID basketId) {
-        return incentiveService.retrieveBulkResults(basketId);
-    }
 }
