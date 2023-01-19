@@ -74,7 +74,7 @@ public class CryptoRepository {
                 String serializedPublicParameters = infoClient.querySerializedPublicParameters().block(Duration.ofSeconds(1));
                 String serializedProviderPublicKey = infoClient.querySerializedProviderPublicKey().block(Duration.ofSeconds(1));
                 String serializedStorePublicKey = infoClient.querySerializedStorePublicKey().block(Duration.ofSeconds(1));
-                String serializedStoreSecretKey = infoClient.querySerializedStoreSecretKey(storeSharedSecret).log().block(Duration.ofSeconds(1));
+                String serializedStoreSecretKey = infoClient.querySerializedStoreSecretKey(storeSharedSecret).block(Duration.ofSeconds(1));
 
                 this.publicParameters = new IncentivePublicParameters(jsonConverter.deserialize(serializedPublicParameters));
                 this.providerPublicKey = new ProviderPublicKey(jsonConverter.deserialize(serializedProviderPublicKey), publicParameters);

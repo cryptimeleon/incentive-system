@@ -36,10 +36,6 @@ public class InfoService {
     }
 
     public boolean verifyStoreSharedSecret(String storeSharedSecret) {
-        // TODO only for debugging
-        System.out.println("info service storeSharedSecret: " + this.storeSharedSecret);
-        System.out.println("store's storeSharedSecret: " + storeSharedSecret);
-
         return this.storeSharedSecret.equals(storeSharedSecret);
     }
 
