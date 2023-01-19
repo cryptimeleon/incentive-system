@@ -16,6 +16,7 @@ import org.cryptimeleon.incentive.promotion.hazel.HazelTokenUpdate;
 import org.cryptimeleon.incentive.promotion.model.Basket;
 import org.cryptimeleon.incentive.promotion.model.BasketItem;
 import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect;
+import org.cryptimeleon.incentive.services.incentive.api.RegistrationCouponJSON;
 import org.cryptimeleon.incentive.services.incentive.repository.BasketRepository;
 import org.cryptimeleon.incentive.services.incentive.repository.CryptoRepository;
 import org.cryptimeleon.incentive.services.incentive.repository.OfflineDSPRepository;
@@ -35,10 +36,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.cryptimeleon.incentive.services.incentive.ClientHelper.*;
@@ -189,6 +187,15 @@ public class IncentiveServiceTest {
                 .isTrue();
     }
 
+    @Test
+    public void registrationCouponStorageTest(@Autowired WebTestClient webClient) {
+        var registrationCoupon = TestSuite.incentiveSystem.signRegistrationCoupon(TestSuite.storeKeyPair, TestSuite.userKeyPair.getPk(), "Some User Name");
+        retrieveRegistrationSignatureForCoupon(webClient, registrationCoupon);
+
+        var registrationCoupons = getAllRegistrationCoupons(webClient);
+
+        assertThat(registrationCoupons).hasSize(1).anyMatch((coupon) -> registrationCoupon.getUserInfo().equals(coupon.getUserInfo()));
+    }
 
     /**
      * Tests implementation of the Issue algorithm (server side of the issue join protocol).
@@ -478,5 +485,14 @@ public class IncentiveServiceTest {
                 .returnResult()
                 .getResponseBody();
         return pp.getSpsEq().restoreSignature(jsonConverter.deserialize(serializedSignature));
+    }
+
+    private RegistrationCouponJSON[] getAllRegistrationCoupons(WebTestClient webClient) {
+        return webClient.get()
+                .uri("/registration-coupons")
+                .exchange()
+                .expectBody(RegistrationCouponJSON[].class)
+                .returnResult()
+                .getResponseBody();
     }
 }
