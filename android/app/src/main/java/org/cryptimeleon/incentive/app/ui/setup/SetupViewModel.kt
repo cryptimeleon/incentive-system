@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.cryptimeleon.incentive.app.domain.IBasketRepository
 import org.cryptimeleon.incentive.app.domain.ICryptoRepository
+import org.cryptimeleon.incentive.app.domain.IPreferencesRepository
 import org.cryptimeleon.incentive.app.domain.IPromotionRepository
 import org.cryptimeleon.incentive.app.domain.usecase.RefreshCryptoDataUseCase
 import timber.log.Timber
@@ -22,13 +23,14 @@ class SetupViewModel @Inject constructor(
     cryptoRepository: ICryptoRepository,
     private val basketRepository: IBasketRepository,
     promotionRepository: IPromotionRepository,
+    preferencesRepository: IPreferencesRepository,
     application: Application,
 ) : AndroidViewModel(application) {
     private val viewModelJob = Job()
     private val uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
 
     private val refreshCryptoDataUseCase =
-        RefreshCryptoDataUseCase(cryptoRepository, promotionRepository, basketRepository)
+        RefreshCryptoDataUseCase(cryptoRepository, promotionRepository, basketRepository, preferencesRepository)
 
     private val _navigateToInfo = MutableLiveData(false)
     val navigateToInfo: LiveData<Boolean>

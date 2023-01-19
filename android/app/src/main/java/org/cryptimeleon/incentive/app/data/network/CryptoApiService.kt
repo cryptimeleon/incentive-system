@@ -4,12 +4,17 @@ import org.cryptimeleon.incentive.app.domain.model.BulkRequestDto
 import org.cryptimeleon.incentive.app.domain.model.BulkResponseDto
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
 import java.util.*
 
 interface CryptoApiService {
+    @GET("register-with-coupon")
+    suspend fun retrieveRegistrationSignatureFor(@Header("registration-coupon") serializedRegistrationCoupon: String): Response<String>
+
     @POST("genesis")
+    @Deprecated("This will be remove in the near future")
     suspend fun retrieveGenesisSignatureFor(@Header("user-public-key") serializedPublicKey: String): Response<String>
 
     @POST("join-promotion")

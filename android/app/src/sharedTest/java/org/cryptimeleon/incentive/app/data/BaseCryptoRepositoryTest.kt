@@ -22,6 +22,7 @@ abstract class BaseCryptoRepositoryTest {
     val pkp: ProviderKeyPair = incentiveSystem.generateProviderKeyPair()
     val upkp = incentiveSystem.generateUserPreKeyPair()
     val ukp: UserKeyPair = Util.addGenesisSignatureToUserKeys(upkp, pkp, pp)
+    val userName = "TestUser"
 
     lateinit var cryptoRepository: ICryptoRepository
 
@@ -47,13 +48,13 @@ abstract class BaseCryptoRepositoryTest {
     @Test
     fun testCryptoAssets() = runBlocking {
         assertThat(cryptoRepository.cryptoMaterial.first()).isNull()
-        cryptoRepository.refreshCryptoMaterial()
+        cryptoRepository.refreshCryptoMaterial(userName)
         assertThat(cryptoRepository.cryptoMaterial.first()).isNotNull()
     }
 
     @Test
     fun testTokensAndIssueJoin() = runBlocking {
-        cryptoRepository.refreshCryptoMaterial()
+        cryptoRepository.refreshCryptoMaterial(userName)
 
         assertThat(cryptoRepository.tokens.first()).isEmpty()
         cryptoRepository.runIssueJoin(firstPromotionParameters)
@@ -63,7 +64,7 @@ abstract class BaseCryptoRepositoryTest {
 
     @Test
     fun testTokensAndIssueJoinReplaceIfPresent() = runBlocking {
-        cryptoRepository.refreshCryptoMaterial()
+        cryptoRepository.refreshCryptoMaterial(userName)
 
         cryptoRepository.runIssueJoin(firstPromotionParameters)
         val tokensAfterInsert = cryptoRepository.tokens.first()
@@ -75,7 +76,7 @@ abstract class BaseCryptoRepositoryTest {
 
     @Test
     fun testTokensAndIssueJoinDoNotReplaceIfPresent(): Unit = runBlocking {
-        cryptoRepository.refreshCryptoMaterial()
+        cryptoRepository.refreshCryptoMaterial(userName)
 
         cryptoRepository.runIssueJoin(firstPromotionParameters)
         val tokensAfterInsert = cryptoRepository.tokens.first()
@@ -87,7 +88,7 @@ abstract class BaseCryptoRepositoryTest {
 
     @Test
     fun testMultiplePromotionsAreKeptSeparately() = runBlocking {
-        cryptoRepository.refreshCryptoMaterial()
+        cryptoRepository.refreshCryptoMaterial(userName)
 
         cryptoRepository.runIssueJoin(firstPromotionParameters)
         cryptoRepository.runIssueJoin(secondPromotionParameters)

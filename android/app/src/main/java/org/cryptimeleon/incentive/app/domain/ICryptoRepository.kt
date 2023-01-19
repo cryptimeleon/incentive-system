@@ -21,7 +21,7 @@ interface ICryptoRepository {
      * @return true if crypto material has changed
      */
     @Throws(RefreshCryptoMaterialException::class)
-    suspend fun refreshCryptoMaterial()
+    suspend fun refreshCryptoMaterial(userDataForRegistration: String)
     suspend fun runIssueJoin(
         promotionParameters: PromotionParameters,
         replaceIfPresent: Boolean = true
