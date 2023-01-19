@@ -22,6 +22,10 @@ class FakeCryptoApiService(
     private val incentiveSystem = IncentiveSystem(pp)
     private val jsonConverter = JSONConverter()
 
+    override suspend fun retrieveRegistrationSignatureFor(serializedRegistrationCoupon: String): Response<String> {
+        TODO("Not yet implemented")
+    }
+
     override suspend fun retrieveGenesisSignatureFor(serializedPublicKey: String): Response<String> {
         val publicKey: GroupElement =
             pp.bg.g1.restoreElement(jsonConverter.deserialize(serializedPublicKey))

@@ -1,6 +1,7 @@
 <template>
   <div>
-    <div v-for="registrationCoupon in registrationCoupons">
+    <div class="text-xl">Provider View - Registration Coupons</div>
+    <div v-for="registrationCoupon in registrationCoupons" :key="registrationCoupon.userPublicKey" >
       <p>{{registrationCoupon.userInfo}}</p>
       <p>{{registrationCoupon.userPublicKey}}</p>
       <p>{{registrationCoupon.userSignature}}</p>
@@ -11,7 +12,7 @@
 
 <script>
 export default {
-  name: "ProviderRegistrationTokens",
+  name: "ProviderRegistrationCoupons",
   data() {
     return {
       registrationCoupons: []
