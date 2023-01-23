@@ -15,7 +15,7 @@ repositories {
 }
 
 dependencies {
-    api 'org.cryptimeleon:craco:4.0.0'
+    api 'org.cryptimeleon:craco:4.0.1'
     api 'org.cryptimeleon:math:3.1.1'
     implementation 'org.cryptimeleon:mclwrap:3.2.0'
 
