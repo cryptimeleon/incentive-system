@@ -12,7 +12,7 @@ const routes = [
     {path: '/privacy-policy', component: PrivacyPolicy},
     {path: '/ds-protection', component: DsProtMain},
     {path: '/store-frontend', component: StoreMain},
-    {path: '/provider-registration-coupons', component: ProviderRegistrationCoupons}
+    {path: '/provider-frontend', component: ProviderRegistrationCoupons}
 ]
 
 const router = createRouter({
