@@ -16,7 +16,7 @@ class OnboardingViewModel @Inject constructor(
 
     fun setUserData(name: String) {
         viewModelScope.launch {
-            preferencesRepository.setUserData(name)
+            preferencesRepository.setUserData(if (name != "") name else "Cryptimeleon User")
         }
     }
 }
