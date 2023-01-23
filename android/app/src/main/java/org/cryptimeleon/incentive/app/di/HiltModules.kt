@@ -63,7 +63,7 @@ class HiltApiModule {
     @Provides
     fun provideStoreApiService(urlConfig: UrlConfig): StoreApiService {
         return Retrofit.Builder()
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(ScalarsConverterFactory.create())
             .baseUrl(urlConfig.basket_url)
             .build()
             .create(StoreApiService::class.java)
