@@ -24,39 +24,19 @@
 </template>
 
 <script>
-import {toArray} from "uri-js/dist/esnext/util";
 
 export default {
   name: "ProviderRegistrationCoupons",
-  methods: {toArray},
+  methods: {},
   data() {
     return {
-      registrationCoupons: [
-        {
-          "userInfo": "Paul",
-          "userPublicKey": "{\"__type\":\"OBJ\",\"upk\":[\"INT:1\",\"INT:10650384e65637a687a3275ca12b687f02f30779b85eb83ff8bd305803ab32a\",\"INT:1b510b46309b18fcc52afa35172635f90693400a48feff9e82c9147cab6d1911\"]}",
-          "signature": "\"BYTES:MEYCIQCFMBzjzpkqWkqb7B2cZ84yDZvt+t297cmeFA5joq5swwIhAL5p40+B3YGYM01UPA06zsMS39I0beyLN39cF0MmREpY\"",
-          "storePublicKey": "{\"__type\":\"OBJ\",\"ecdsaVerificationKey\":{\"__type\":\"REPR\",\"class\":\"org.cryptimeleon.craco.sig.ecdsa.ECDSAVerificationKey\",\"repr\":\"STRING:MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAErmHZzoN2G0YDdncQzBjIF9LgkLGKgzu6ftyYau4TQubiOFz2VJ2kzDyQuP3FXvE1rGIFDoNaVM\\/mhyLIdZ0oJA==\"}}"
-        },
-        {
-          "userInfo": "Paul",
-          "userPublicKey": "{\"__type\":\"OBJ\",\"upk\":[\"INT:1\",\"INT:10650384e65637a687a3275ca12b687f02f30779b85eb83ff8bd305803ab32a\",\"INT:1b510b46309b18fcc52afa35172635f90693400a48feff9e82c9147cab6d1911\"]}1",
-          "signature": "\"BYTES:MEYCIQCFMBzjzpkqWkqb7B2cZ84yDZvt+t297cmeFA5joq5swwIhAL5p40+B3YGYM01UPA06zsMS39I0beyLN39cF0MmREpY\"",
-          "storePublicKey": "{\"__type\":\"OBJ\",\"ecdsaVerificationKey\":{\"__type\":\"REPR\",\"class\":\"org.cryptimeleon.craco.sig.ecdsa.ECDSAVerificationKey\",\"repr\":\"STRING:MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAErmHZzoN2G0YDdncQzBjIF9LgkLGKgzu6ftyYau4TQubiOFz2VJ2kzDyQuP3FXvE1rGIFDoNaVM\\/mhyLIdZ0oJA==\"}}"
-        },
-        {
-          "userInfo": "Paul",
-          "userPublicKey": "{\"__type\":\"OBJ\",\"upk\":[\"INT:1\",\"INT:10650384e65637a687a3275ca12b687f02f30779b85eb83ff8bd305803ab32a\",\"INT:1b510b46309b18fcc52afa35172635f90693400a48feff9e82c9147cab6d1911\"]}2",
-          "signature": "\"BYTES:MEYCIQCFMBzjzpkqWkqb7B2cZ84yDZvt+t297cmeFA5joq5swwIhAL5p40+B3YGYM01UPA06zsMS39I0beyLN39cF0MmREpY\"",
-          "storePublicKey": "{\"__type\":\"OBJ\",\"ecdsaVerificationKey\":{\"__type\":\"REPR\",\"class\":\"org.cryptimeleon.craco.sig.ecdsa.ECDSAVerificationKey\",\"repr\":\"STRING:MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAErmHZzoN2G0YDdncQzBjIF9LgkLGKgzu6ftyYau4TQubiOFz2VJ2kzDyQuP3FXvE1rGIFDoNaVM\\/mhyLIdZ0oJA==\"}}"
-        }
-      ]
+      registrationCoupons: []
     };
   },
   async created() {
     fetch("/incentive/registration-coupons")
         .then(response => response.json())
-        //.then(data => (this.registrationCoupons = data));
+        .then(data => (this.registrationCoupons = data));
   }
 }
 </script>
