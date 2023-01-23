@@ -21,7 +21,7 @@ abstract class BaseCryptoRepositoryTest {
     val incentiveSystem = IncentiveSystem(pp)
     val pkp: ProviderKeyPair = incentiveSystem.generateProviderKeyPair()
     val upkp = incentiveSystem.generateUserPreKeyPair()
-    val ukp: UserKeyPair = Util.addGenesisSignatureToUserKeys(upkp, pkp, pp)
+    val ukp: UserKeyPair = Util.addRegistrationSignatureToUserPreKeys(upkp, pkp, pp)
     val userName = "TestUser"
 
     lateinit var cryptoRepository: ICryptoRepository

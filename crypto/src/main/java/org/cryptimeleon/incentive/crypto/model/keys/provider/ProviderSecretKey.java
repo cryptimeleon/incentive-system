@@ -18,7 +18,7 @@ public class ProviderSecretKey implements Representable {
     private SPSEQSigningKey skSpsEq;
 
     @Represented(restorer = "SPSEQ")
-    private SPSEQSigningKey genesisSpsEqSk;
+    private SPSEQSigningKey registrationSpsEqSk;
 
     @Represented(restorer = "Zn")
     private RingElementVector q; // dlogs of the first six bases used in the Pedersen commitment in the token
@@ -34,9 +34,9 @@ public class ProviderSecretKey implements Representable {
                 .deserialize(repr);
     }
 
-    public ProviderSecretKey(SPSEQSigningKey skSpsEq, SPSEQSigningKey genesisSpsEqSk, RingElementVector q, PrfKey betaProv) {
+    public ProviderSecretKey(SPSEQSigningKey skSpsEq, SPSEQSigningKey registrationSpsEqSk, RingElementVector q, PrfKey betaProv) {
         this.skSpsEq = skSpsEq;
-        this.genesisSpsEqSk = genesisSpsEqSk;
+        this.registrationSpsEqSk = registrationSpsEqSk;
         this.q = q;
         this.betaProv = betaProv;
     }
@@ -62,8 +62,8 @@ public class ProviderSecretKey implements Representable {
         return this.skSpsEq;
     }
 
-    public SPSEQSigningKey getGenesisSpsEqSk() {
-        return this.genesisSpsEqSk;
+    public SPSEQSigningKey getRegistrationSpsEqSk() {
+        return this.registrationSpsEqSk;
     }
 
     public RingElementVector getQ() {
@@ -79,15 +79,15 @@ public class ProviderSecretKey implements Representable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ProviderSecretKey that = (ProviderSecretKey) o;
-        return Objects.equals(skSpsEq, that.skSpsEq) && Objects.equals(genesisSpsEqSk, that.genesisSpsEqSk) && Objects.equals(q, that.q) && Objects.equals(betaProv, that.betaProv);
+        return Objects.equals(skSpsEq, that.skSpsEq) && Objects.equals(registrationSpsEqSk, that.registrationSpsEqSk) && Objects.equals(q, that.q) && Objects.equals(betaProv, that.betaProv);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(skSpsEq, genesisSpsEqSk, q, betaProv);
+        return Objects.hash(skSpsEq, registrationSpsEqSk, q, betaProv);
     }
 
     public String toString() {
-        return "ProviderSecretKey(skSpsEq=" + this.getSkSpsEq() + ", genesisSpsEqSk=" + this.getGenesisSpsEqSk() + ", q=" + this.getQ() + ", betaProv=" + this.getBetaProv() + ")";
+        return "ProviderSecretKey(skSpsEq=" + this.getSkSpsEq() + ", registrationSpsEqSk=" + this.getRegistrationSpsEqSk() + ", q=" + this.getQ() + ", betaProv=" + this.getBetaProv() + ")";
     }
 }

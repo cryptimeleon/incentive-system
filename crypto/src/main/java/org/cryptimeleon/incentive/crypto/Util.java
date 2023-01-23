@@ -20,14 +20,14 @@ import java.math.BigInteger;
  * Collection of utility functions
  */
 public class Util {
-    public static UserKeyPair addGenesisSignatureToUserKeys(UserPreKeyPair userPreKeyPair, ProviderKeyPair providerKeyPair, IncentivePublicParameters pp) {
+    public static UserKeyPair addRegistrationSignatureToUserPreKeys(UserPreKeyPair userPreKeyPair, ProviderKeyPair providerKeyPair, IncentivePublicParameters pp) {
         return new UserKeyPair(
                 userPreKeyPair.getPk(),
                 new UserSecretKey(
                         userPreKeyPair.getPsk().getUsk(),
                         userPreKeyPair.getPsk().getPrfKey(),
                         (SPSEQSignature) pp.getSpsEq().sign(
-                            providerKeyPair.getSk().getGenesisSpsEqSk(),
+                            providerKeyPair.getSk().getRegistrationSpsEqSk(),
                             userPreKeyPair.getPk().getUpk(),
                             pp.getW()
                         )

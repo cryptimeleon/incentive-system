@@ -46,7 +46,7 @@ import static org.mockito.Mockito.*;
 /**
  * Tests all the functionality of the incentive service.
  * This includes the server side of the crypto protocols (Issue-Join, Credit-Earn, Spend-Deduct)
- * and the issuing of genesis tokens.
+ * and the issuing of registration tokens.
  * <p>
  * Uses a WebTestClient object as the client for the crypto protocol tests.
  * The servers that the incentive service communicates with
@@ -154,7 +154,7 @@ public class IncentiveServiceTest {
     }
 
     /**
-     * Tests functionality for issuing genesis tokens to new users.
+     * Tests functionality for issuing registration tokens to new users.
      */
     @Test
     public void registrationTest(@Autowired WebTestClient webClient) {
@@ -162,11 +162,11 @@ public class IncentiveServiceTest {
         var userPreKeyPair = TestSuite.userPreKeyPair;
         var registrationCoupon = TestSuite.incentiveSystem.signRegistrationCoupon(TestSuite.storeKeyPair, TestSuite.userKeyPair.getPk(), "Some User Name");
 
-        // issuing of genesis signature
+        // issuing of registration signature
         SPSEQSignature signature = retrieveRegistrationSignatureForCoupon(webClient, registrationCoupon);
 
         // assert that signature verifies under the providers SPS-EQ key
-        assertThat(pp.getSpsEq().verify(pkp.getPk().getGenesisSpsEqPk(), signature, userPreKeyPair.getPk().getUpk(), pp.getW()))
+        assertThat(pp.getSpsEq().verify(pkp.getPk().getRegistrationSpsEqPk(), signature, userPreKeyPair.getPk().getUpk(), pp.getW()))
                 .isTrue();
     }
 

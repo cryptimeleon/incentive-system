@@ -172,9 +172,9 @@ public class IncentiveSystem {
         // 3. Store user info
         dbAccess.storeUserData(registrationCoupon);
 
-        // 4. Sign userPublicKey under registration (genesis) keys
+        // 4. Sign userPublicKey under registration (registration) keys
         return (SPSEQSignature) pp.getSpsEq().sign(
-                providerKeyPair.getSk().getGenesisSpsEqSk(),
+                providerKeyPair.getSk().getRegistrationSpsEqSk(),
                 registrationCoupon.getUserPublicKey().getUpk(),
                 pp.getW());
     }
@@ -191,7 +191,7 @@ public class IncentiveSystem {
                                            SPSEQSignature registrationTokenSignature,
                                            UserPublicKey userPublicKey) {
         return pp.getSpsEq().verify(
-                providerPublicKey.getGenesisSpsEqPk(),
+                providerPublicKey.getRegistrationSpsEqPk(),
                 registrationTokenSignature,
                 userPublicKey.getUpk(),
                 pp.getW()
@@ -232,15 +232,15 @@ public class IncentiveSystem {
         // generate random values needed for generation of fresh user token using PRF hashThenPRFtoZn, user secret key is hash input
         IssueJoinRandomness R = IssueJoinRandomness.generate(pp);
 
-        // blind genesis signature
-        GroupElement blindedUpk = upk.getUpk().pow(R.blindGenesisR);
-        GroupElement blindedW = pp.getW().pow(R.blindGenesisR);
-        SPSEQSignature blindedGenesisSignature = (SPSEQSignature) pp.getSpsEq().chgRep(
-                ukp.getSk().getGenesisSignature(),
-                R.blindGenesisR,
-                pk.getGenesisSpsEqPk()
+        // blind registration signature
+        GroupElement blindedUpk = upk.getUpk().pow(R.blindRegistrationSignatureR);
+        GroupElement blindedW = pp.getW().pow(R.blindRegistrationSignatureR);
+        SPSEQSignature blindedRegistrationSignature = (SPSEQSignature) pp.getSpsEq().chgRep(
+                ukp.getSk().getRegistrationSignature(),
+                R.blindRegistrationSignatureR,
+                pk.getRegistrationSpsEqPk()
         );
-        assert pp.getSpsEq().verify(pk.getGenesisSpsEqPk(), blindedGenesisSignature, blindedUpk, blindedW);
+        assert pp.getSpsEq().verify(pk.getRegistrationSpsEqPk(), blindedRegistrationSignature, blindedUpk, blindedW);
 
 
         GroupElementVector H = pk.getTokenMetadataH(this.pp);
@@ -260,7 +260,7 @@ public class IncentiveSystem {
         // assemble and return join request object (commitment, proof of well-formedness)
         return JoinFirstStepOutput.of(
                 R,
-                new JoinRequest(c0Pre, c1Pre, cwfProof, blindedUpk, blindedW, blindedGenesisSignature)
+                new JoinRequest(c0Pre, c1Pre, cwfProof, blindedUpk, blindedW, blindedRegistrationSignature)
         );
     }
 
@@ -284,10 +284,10 @@ public class IncentiveSystem {
         GroupElement blindedUpk = jr.getBlindedUpk();
         FiatShamirProof cwfProof = jr.getCwfProof();
 
-        // Verify genesis signature
-        SPSEQSignature blindedGenesisSignature = jr.getBlindedGenesisSignature();
-        if (!pp.getSpsEq().verify(pk.getGenesisSpsEqPk(), blindedGenesisSignature, blindedUpk, blindedW)) {
-            throw new IllegalArgumentException("The blinded genesis signature is invalid!");
+        // Verify registration signature
+        SPSEQSignature blindedRegistrationSignature = jr.getBlindedRegistrationSignature();
+        if (!pp.getSpsEq().verify(pk.getRegistrationSpsEqPk(), blindedRegistrationSignature, blindedUpk, blindedW)) {
+            throw new IllegalArgumentException("The blinded registration signature is invalid!");
         }
 
         // reassemble common input for the commitment well-formedness proof

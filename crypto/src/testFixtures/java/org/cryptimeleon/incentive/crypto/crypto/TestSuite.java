@@ -19,7 +19,7 @@ public class TestSuite {
     static public final StoreKeyPair storeKeyPair = incentiveSystem.generateStoreKeyPair();
     static public final ProviderKeyPair providerKeyPair = incentiveSystem.generateProviderKeyPair();
     static public final UserPreKeyPair userPreKeyPair = incentiveSystem.generateUserPreKeyPair();
-    static public final UserKeyPair userKeyPair = Util.addGenesisSignatureToUserKeys(userPreKeyPair, providerKeyPair, pp);
+    static public final UserKeyPair userKeyPair = Util.addRegistrationSignatureToUserPreKeys(userPreKeyPair, providerKeyPair, pp);
 
     /**
      * Generates a sound empty (i.e. no points) user token as output by a sound execution of the Issue-Join protocol.

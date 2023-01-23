@@ -26,18 +26,18 @@ public class UserSecretKey implements Representable, UniqueByteRepresentable {
 
     @Represented(restorer = "spsEq")
     @UniqueByteRepresented
-    private SPSEQSignature genesisSignature;
+    private SPSEQSignature registrationSignature;
 
-    public UserSecretKey(ZnElement usk, PrfKey prfKey, SPSEQSignature genesisSignature) {
+    public UserSecretKey(ZnElement usk, PrfKey prfKey, SPSEQSignature registrationSignature) {
         this.usk = usk;
         this.prfKey = prfKey;
-        this.genesisSignature = genesisSignature;
+        this.registrationSignature = registrationSignature;
     }
 
-    public UserSecretKey(UserPreSecretKey userPreSecretKey, SPSEQSignature genesisSignature) {
+    public UserSecretKey(UserPreSecretKey userPreSecretKey, SPSEQSignature registrationSignature) {
         this.usk = userPreSecretKey.getUsk();
         this.prfKey = userPreSecretKey.getPrfKey();
-        this.genesisSignature = genesisSignature;
+        this.registrationSignature = registrationSignature;
     }
 
 
@@ -67,8 +67,8 @@ public class UserSecretKey implements Representable, UniqueByteRepresentable {
         return this.prfKey;
     }
 
-    public SPSEQSignature getGenesisSignature() {
-        return this.genesisSignature;
+    public SPSEQSignature getRegistrationSignature() {
+        return this.registrationSignature;
     }
 
     @Override
@@ -76,15 +76,15 @@ public class UserSecretKey implements Representable, UniqueByteRepresentable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         UserSecretKey that = (UserSecretKey) o;
-        return Objects.equals(usk, that.usk) && Objects.equals(prfKey, that.prfKey) && Objects.equals(genesisSignature, that.genesisSignature);
+        return Objects.equals(usk, that.usk) && Objects.equals(prfKey, that.prfKey) && Objects.equals(registrationSignature, that.registrationSignature);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(usk, prfKey, genesisSignature);
+        return Objects.hash(usk, prfKey, registrationSignature);
     }
 
     public String toString() {
-        return "UserSecretKey(usk=" + this.getUsk() + ", prfKey=" + this.getPrfKey() + ", genesisSignature=" + this.getGenesisSignature() + ")";
+        return "UserSecretKey(usk=" + this.getUsk() + ", prfKey=" + this.getPrfKey() + ", registrationSignature=" + this.getRegistrationSignature() + ")";
     }
 }

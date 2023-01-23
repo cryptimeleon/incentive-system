@@ -25,7 +25,7 @@ class FakeCryptoApiService(
 
     override suspend fun retrieveRegistrationSignatureFor(serializedRegistrationCoupon: String): Response<String> {
         val registrationCoupon = RegistrationCoupon(jsonConverter.deserialize(serializedRegistrationCoupon), IncentiveSystemRestorer(pp))
-        val signature = pp.spsEq.sign(providerKeyPair.sk.genesisSpsEqSk, registrationCoupon.userPublicKey.upk, pp.w)
+        val signature = pp.spsEq.sign(providerKeyPair.sk.registrationSpsEqSk, registrationCoupon.userPublicKey.upk, pp.w)
         return Response.success(jsonConverter.serialize(signature.representation))
     }
 

@@ -31,7 +31,7 @@ import java.util.UUID;
 @RestController
 public class IncentiveController {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(IncentiveController.class);
-    // ref to service that handles server side of crypto protocols + genesis token issuing
+    // ref to service that handles server side of crypto protocols + registration token issuing
     private final IncentiveService incentiveService;
     // ref to service that handles temporary DoS of double-spending protection service
     private final DosService dosService;

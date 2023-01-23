@@ -25,7 +25,7 @@ public class TestHelper {
         ProviderPublicKey providerPublicKey = new ProviderPublicKey(jsonConverter.deserialize(infoClient.querySerializedProviderPublicKey().block()), pp);
         ProviderKeyPair providerKeyPair = new ProviderKeyPair(providerSecretKey, providerPublicKey);
         UserPreKeyPair userPreKeyPair = (new IncentiveSystem(pp)).generateUserPreKeyPair();
-        UserKeyPair userKeyPair = Util.addGenesisSignatureToUserKeys(userPreKeyPair, providerKeyPair, pp);
+        UserKeyPair userKeyPair = Util.addRegistrationSignatureToUserPreKeys(userPreKeyPair, providerKeyPair, pp);
         return new TestCryptoAssets(pp, providerKeyPair, userKeyPair);
     }
 }

@@ -151,11 +151,11 @@ public class Setup {
 
         // generate SPS-EQ key pairs
         SignatureKeyPair<SPSEQVerificationKey, SPSEQSigningKey> tokenSpsEqKeyPair = pp.getSpsEq().generateKeyPair(3);
-        SignatureKeyPair<SPSEQVerificationKey, SPSEQSigningKey> genesisSpsEqKeyPair = pp.getSpsEq().generateKeyPair(2);
+        SignatureKeyPair<SPSEQVerificationKey, SPSEQSigningKey> registrationSpsEqKeyPair = pp.getSpsEq().generateKeyPair(2);
 
         // wrap up values
-        ProviderPublicKey pk = new ProviderPublicKey(tokenSpsEqKeyPair.getVerificationKey(), genesisSpsEqKeyPair.getVerificationKey(), h);
-        ProviderSecretKey sk = new ProviderSecretKey(tokenSpsEqKeyPair.getSigningKey(), genesisSpsEqKeyPair.getSigningKey(), q, betaProv);
+        ProviderPublicKey pk = new ProviderPublicKey(tokenSpsEqKeyPair.getVerificationKey(), registrationSpsEqKeyPair.getVerificationKey(), h);
+        ProviderSecretKey sk = new ProviderSecretKey(tokenSpsEqKeyPair.getSigningKey(), registrationSpsEqKeyPair.getSigningKey(), q, betaProv);
         return new ProviderKeyPair(sk, pk);
     }
 

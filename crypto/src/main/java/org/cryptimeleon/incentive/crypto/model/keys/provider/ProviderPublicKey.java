@@ -17,7 +17,7 @@ public class ProviderPublicKey implements Representable {
     private SPSEQVerificationKey pkSpsEq;
 
     @Represented(restorer = "SPSEQScheme")
-    private SPSEQVerificationKey genesisSpsEqPk;
+    private SPSEQVerificationKey registrationSpsEqPk;
 
     @Represented(restorer = "G1")
     private GroupElementVector h; // first six bases for the Pedersen commitment in the tokens
@@ -29,9 +29,9 @@ public class ProviderPublicKey implements Representable {
                 .deserialize(repr);
     }
 
-    public ProviderPublicKey(SPSEQVerificationKey pkSpsEq, SPSEQVerificationKey genesisSpsEqPk, GroupElementVector h) {
+    public ProviderPublicKey(SPSEQVerificationKey pkSpsEq, SPSEQVerificationKey registrationSpsEqPk, GroupElementVector h) {
         this.pkSpsEq = pkSpsEq;
-        this.genesisSpsEqPk = genesisSpsEqPk;
+        this.registrationSpsEqPk = registrationSpsEqPk;
         this.h = h;
     }
 
@@ -79,8 +79,8 @@ public class ProviderPublicKey implements Representable {
         return this.pkSpsEq;
     }
 
-    public SPSEQVerificationKey getGenesisSpsEqPk() {
-        return this.genesisSpsEqPk;
+    public SPSEQVerificationKey getRegistrationSpsEqPk() {
+        return this.registrationSpsEqPk;
     }
 
     public GroupElementVector getH() {
@@ -92,15 +92,15 @@ public class ProviderPublicKey implements Representable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ProviderPublicKey that = (ProviderPublicKey) o;
-        return Objects.equals(pkSpsEq, that.pkSpsEq) && Objects.equals(genesisSpsEqPk, that.genesisSpsEqPk) && Objects.equals(h, that.h);
+        return Objects.equals(pkSpsEq, that.pkSpsEq) && Objects.equals(registrationSpsEqPk, that.registrationSpsEqPk) && Objects.equals(h, that.h);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(pkSpsEq, genesisSpsEqPk, h);
+        return Objects.hash(pkSpsEq, registrationSpsEqPk, h);
     }
 
     public String toString() {
-        return "ProviderPublicKey(pkSpsEq=" + this.getPkSpsEq() + ", genesisSpsEqPk=" + this.getGenesisSpsEqPk() + ", h=" + this.getH() + ")";
+        return "ProviderPublicKey(pkSpsEq=" + this.getPkSpsEq() + ", registrationSpsEqPk=" + this.getRegistrationSpsEqPk() + ", h=" + this.getH() + ")";
     }
 }

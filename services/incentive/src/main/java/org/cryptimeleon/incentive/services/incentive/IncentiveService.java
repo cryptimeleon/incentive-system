@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
  * More precisely, this service runs the server side of the crypto protocols with clients
  * (i.e. Issue in Issue-Join, Credit in Credit-Earn and Deduct in Spend-Deduct).
  * <p>
- * Furthermore, this service also issues genesis tokens.
+ * Furthermore, this service also issues registration tokens.
  */
 @Service
 public class IncentiveService {
