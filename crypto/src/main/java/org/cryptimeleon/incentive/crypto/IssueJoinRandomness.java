@@ -14,16 +14,16 @@ public class IssueJoinRandomness {
     final Zn.ZnElement z;
     final Zn.ZnElement t;
     final Zn.ZnElement u;
-    final Zn.ZnElement blindGenesisR;
+    final Zn.ZnElement blindRegistrationSignatureR;
 
-    public IssueJoinRandomness(Zn.ZnElement eskUsr, Zn.ZnElement dsrnd0, Zn.ZnElement dsrnd1, Zn.ZnElement z, Zn.ZnElement t, Zn.ZnElement u, Zn.ZnElement blindGenesisR) {
+    public IssueJoinRandomness(Zn.ZnElement eskUsr, Zn.ZnElement dsrnd0, Zn.ZnElement dsrnd1, Zn.ZnElement z, Zn.ZnElement t, Zn.ZnElement u, Zn.ZnElement blindRegistrationSignatureR) {
         this.eskUsr = eskUsr;
         this.dsrnd0 = dsrnd0;
         this.dsrnd1 = dsrnd1;
         this.z = z;
         this.t = t;
         this.u = u;
-        this.blindGenesisR = blindGenesisR;
+        this.blindRegistrationSignatureR = blindRegistrationSignatureR;
     }
 
     static IssueJoinRandomness generate(IncentivePublicParameters pp) {

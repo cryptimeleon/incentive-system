@@ -2,8 +2,14 @@ package org.cryptimeleon.incentive.crypto;
 
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
+import org.cryptimeleon.incentive.crypto.callback.IRegistrationCouponDBHandler;
+import org.cryptimeleon.incentive.crypto.callback.IStorePublicKeyVerificationHandler;
 import org.cryptimeleon.incentive.crypto.crypto.TestSuite;
 import org.cryptimeleon.incentive.crypto.model.*;
+import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
+import org.cryptimeleon.incentive.crypto.model.keys.store.StoreKeyPair;
+import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
+import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentive.crypto.proof.spend.SpendHelper;
 import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenUpdateLeaf;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
@@ -11,11 +17,17 @@ import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
 import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellformednessProtocol;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.rings.RingElement;
+import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
 
 /**
  * Performs a full example run of all three protocols as in a real-world setting.
@@ -27,6 +39,38 @@ import java.util.logging.Logger;
 public class IncentiveSystemTest {
     Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
+    IncentiveSystem incSys = TestSuite.incentiveSystem;
+    Zn usedZn = incSys.getPp().getBg().getZn();
+    StoreKeyPair skp = TestSuite.storeKeyPair;
+    ProviderKeyPair pkp = TestSuite.providerKeyPair;
+    UserKeyPair ukp = TestSuite.userKeyPair;
+
+    @Test
+    public void registrationTest() {
+        UserPublicKey upk = ukp.getPk();
+        String userInfo = "Name: Max Mustermann, ID-Number: 12345678";
+        List<RegistrationCoupon> registrationCouponList = new ArrayList<>();
+        IRegistrationCouponDBHandler iRegistrationCouponDBHandler = registrationCouponList::add;
+        IStorePublicKeyVerificationHandler iStorePublicKeyVerificationHandler = (s) -> true;
+
+
+        RegistrationCoupon registrationCoupon = incSys.signRegistrationCoupon(skp, upk, userInfo);
+        SPSEQSignature registrationToken = incSys.verifyRegistrationCouponAndIssueRegistrationToken(
+                pkp,
+                registrationCoupon,
+                iStorePublicKeyVerificationHandler,
+                iRegistrationCouponDBHandler
+        );
+
+        assertThat(incSys.verifyRegistrationCoupon(registrationCoupon, (s)-> true)).isTrue();
+        assertThat(registrationCouponList).hasSize(1);
+        assertThat(incSys.verifyRegistrationToken(pkp.getPk(), registrationToken, registrationCoupon)).isTrue();
+
+        // Some additional representation test here to avoid duplicate setup
+        RegistrationCoupon deserializedRegistrationCoupon = new RegistrationCoupon(registrationCoupon.getRepresentation(), TestSuite.incentiveSystemRestorer);
+        assertThat(registrationCoupon).isEqualTo(deserializedRegistrationCoupon);
+    }
+
     @Test
     public void fullProtocolTestRun() {
         logger.info("Starting integration test of all three cryptographic protocols.");
@@ -35,18 +79,7 @@ public class IncentiveSystemTest {
          * incentive system setup and user+provider key generation
          */
 
-        logger.info("Setting up the incentive system and generating keys.");
-
-        // generate incentive system pp and extracts used Zn for shorter references
-        var incSys = TestSuite.incentiveSystem;
-
-        var usedZn = incSys.getPp().getBg().getZn();
-
-        // generate provider keys
-        var pkp = TestSuite.providerKeyPair;
-
-        // generate user key pair for user
-        var ukp = TestSuite.userKeyPair;
+        logger.info("Setup promotion parameters.");
 
         // generate promotion parameters
         var promotionParameters = IncentiveSystem.generatePromotionParameters(2);

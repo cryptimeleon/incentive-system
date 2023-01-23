@@ -1,15 +1,21 @@
 package org.cryptimeleon.incentive.crypto;
 
 import org.cryptimeleon.craco.common.ByteArrayImplementation;
+import org.cryptimeleon.craco.common.plaintexts.MessageBlock;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProof;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
+import org.cryptimeleon.craco.sig.ecdsa.ECDSASignature;
+import org.cryptimeleon.craco.sig.ecdsa.ECDSASignatureScheme;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignatureScheme;
+import org.cryptimeleon.incentive.crypto.callback.IRegistrationCouponDBHandler;
+import org.cryptimeleon.incentive.crypto.callback.IStorePublicKeyVerificationHandler;
 import org.cryptimeleon.incentive.crypto.dsprotectionlogic.DatabaseHandler;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderSecretKey;
+import org.cryptimeleon.incentive.crypto.model.keys.store.StoreKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPreKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
@@ -84,22 +90,126 @@ public class IncentiveSystem {
         return Setup.userPreKeyGen(this.pp);
     }
 
+    public StoreKeyPair generateStoreKeyPair() {
+        return Setup.storeKeyGen();
+    }
+
     @Deprecated
     public PromotionParameters legacyPromotionParameters() {
         return new PromotionParameters(BigInteger.ONE, 1);
     }
 
+    /*
+     * Registration
+     */
 
     /**
-     * Sign a verified (userPublicKey, w) tuple for the genesis process:
-     * We can force users to such a signed public key in all their tokens.
+     * Issue a ECDSA signature on a {@code (upk, id-info)} tuple and return an object containing all data, the signature
+     * und the verification key.
+     * <p>
+     * It should be verified somehow that the id-info belong user who request a signature to such a tuple, since it will
+     * be used to identify and penalize maliciously acting users.
+     *
+     * @param storeKeyPair  the keypair is used to 1. sign he tuple and 2. attach the verification key to the data
+     * @param userPublicKey a userPublicKey that will be encoded in the user's tokens
+     * @param userInfo      some data that identifies the user as a person, e.g. the ID number, its name and address, ...
+     * @return the signed tuple with signature
      */
-    public SPSEQSignature signVerifiedUserPublicKey(ProviderKeyPair providerKeyPair, UserPublicKey userPublicKey) {
+    public RegistrationCoupon signRegistrationCoupon(StoreKeyPair storeKeyPair, UserPublicKey userPublicKey, String userInfo) {
+        ECDSASignatureScheme ecdsaSignatureScheme = new ECDSASignatureScheme();
+        MessageBlock msg = constructRegistrationCouponMessageBlock(userPublicKey, userInfo);
+        ECDSASignature internalSignature = (ECDSASignature) ecdsaSignatureScheme.sign(msg, storeKeyPair.getSk().getEcdsaSigningKey());
+        return new RegistrationCoupon(userPublicKey, userInfo, storeKeyPair.getPk(), internalSignature);
+    }
+
+    /**
+     * Verify the registration coupon signature and its public key
+     *
+     * @param registrationCoupon the registration coupon to verify
+     * @param verificationHandler some callback method to verify the public key
+     * @return whether the signature is valid and trusted
+     */
+    public boolean verifyRegistrationCoupon(RegistrationCoupon registrationCoupon, IStorePublicKeyVerificationHandler verificationHandler) {
+        if (!verificationHandler.isStorePublicKeyTrusted(registrationCoupon.getStorePublicKey())) {
+            throw new RuntimeException("Store Public Key is not Trusted");
+        }
+
+        ECDSASignatureScheme ecdsaSignatureScheme = new ECDSASignatureScheme();
+        MessageBlock msg = constructRegistrationCouponMessageBlock(registrationCoupon.getUserPublicKey(), registrationCoupon.getUserInfo());
+        return ecdsaSignatureScheme.verify(msg, registrationCoupon.getSignature(), registrationCoupon.getStorePublicKey().getEcdsaVerificationKey());
+    }
+
+    /**
+     * Issue a registration token i.e., a signature of the user public key under the providers registration SPSEQ keys,
+     * for a valid, signed registrationCoupon,
+     * <p>
+     * Verifies that the user data is signed under a valid and trusted public key.
+     * Allows storing the user data using a callback.
+     *
+     * @param providerKeyPair     The keypair of the provider used to issue the SPSEQ signature
+     * @param registrationCoupon  the coupon holds the user data, store public key, and signature under that key
+     * @param verificationHandler an object that provides a function to verify the store public key
+     * @param dbAccess            an object that provides a function to store the {@code registrationCoupon} to identify users and/or
+     *                            hold stores accountable for registering fake users
+     * @return a SPSEQSignature on the users public key under the registration SPSEQ keys
+     */
+    public SPSEQSignature verifyRegistrationCouponAndIssueRegistrationToken(ProviderKeyPair providerKeyPair,
+                                                                            RegistrationCoupon registrationCoupon,
+                                                                            IStorePublicKeyVerificationHandler verificationHandler,
+                                                                            IRegistrationCouponDBHandler dbAccess) {
+        // 1. Verify verification key, e.g. with a CA hierarchy or whitelist
+        if (!verificationHandler.isStorePublicKeyTrusted(registrationCoupon.getStorePublicKey())) {
+            throw new RuntimeException("Store Public Key is not Trusted");
+        }
+
+        // 2. Verify Signature on User Data
+        ECDSASignatureScheme ecdsaSignatureScheme = new ECDSASignatureScheme();
+        MessageBlock msg = constructRegistrationCouponMessageBlock(registrationCoupon.getUserPublicKey(), registrationCoupon.getUserInfo());
+        if (!ecdsaSignatureScheme.verify(msg, registrationCoupon.getSignature(), registrationCoupon.getStorePublicKey().getEcdsaVerificationKey())) {
+            throw new RuntimeException("Registration Coupon Invalid");
+        }
+
+        // 3. Store user info
+        dbAccess.storeUserData(registrationCoupon);
+
+        // 4. Sign userPublicKey under registration (registration) keys
         return (SPSEQSignature) pp.getSpsEq().sign(
-                providerKeyPair.getSk().getGenesisSpsEqSk(),
+                providerKeyPair.getSk().getRegistrationSpsEqSk(),
+                registrationCoupon.getUserPublicKey().getUpk(),
+                pp.getW());
+    }
+
+    /**
+     * Verify the registration token signature.
+     *
+     * @param providerPublicKey          the public key of the provider used for verification
+     * @param registrationTokenSignature the registration token signature
+     * @param userPublicKey the user public key that is signed in this registration token
+     * @return whether the signature is valid
+     */
+    public boolean verifyRegistrationToken(ProviderPublicKey providerPublicKey,
+                                           SPSEQSignature registrationTokenSignature,
+                                           UserPublicKey userPublicKey) {
+        return pp.getSpsEq().verify(
+                providerPublicKey.getRegistrationSpsEqPk(),
+                registrationTokenSignature,
                 userPublicKey.getUpk(),
                 pp.getW()
         );
+    }
+
+    /**
+     * Verify the registration token signature.
+     *
+     * @param providerPublicKey          the public key of the provider used for verification
+     * @param registrationTokenSignature the registration token signature
+     * @param registrationCoupon         the registration token containing the signed data
+     * @return whether the signature is valid
+     */
+    public boolean verifyRegistrationToken(ProviderPublicKey providerPublicKey,
+                                           SPSEQSignature registrationTokenSignature,
+                                           RegistrationCoupon registrationCoupon) {
+        return verifyRegistrationToken(providerPublicKey, registrationTokenSignature, registrationCoupon.getUserPublicKey());
     }
 
 
@@ -122,15 +232,15 @@ public class IncentiveSystem {
         // generate random values needed for generation of fresh user token using PRF hashThenPRFtoZn, user secret key is hash input
         IssueJoinRandomness R = IssueJoinRandomness.generate(pp);
 
-        // blind genesis signature
-        GroupElement blindedUpk = upk.getUpk().pow(R.blindGenesisR);
-        GroupElement blindedW = pp.getW().pow(R.blindGenesisR);
-        SPSEQSignature blindedGenesisSignature = (SPSEQSignature) pp.getSpsEq().chgRep(
-                ukp.getSk().getGenesisSignature(),
-                R.blindGenesisR,
-                pk.getGenesisSpsEqPk()
+        // blind registration signature
+        GroupElement blindedUpk = upk.getUpk().pow(R.blindRegistrationSignatureR);
+        GroupElement blindedW = pp.getW().pow(R.blindRegistrationSignatureR);
+        SPSEQSignature blindedRegistrationSignature = (SPSEQSignature) pp.getSpsEq().chgRep(
+                ukp.getSk().getRegistrationSignature(),
+                R.blindRegistrationSignatureR,
+                pk.getRegistrationSpsEqPk()
         );
-        assert pp.getSpsEq().verify(pk.getGenesisSpsEqPk(), blindedGenesisSignature, blindedUpk, blindedW);
+        assert pp.getSpsEq().verify(pk.getRegistrationSpsEqPk(), blindedRegistrationSignature, blindedUpk, blindedW);
 
 
         GroupElementVector H = pk.getTokenMetadataH(this.pp);
@@ -150,7 +260,7 @@ public class IncentiveSystem {
         // assemble and return join request object (commitment, proof of well-formedness)
         return JoinFirstStepOutput.of(
                 R,
-                new JoinRequest(c0Pre, c1Pre, cwfProof, blindedUpk, blindedW, blindedGenesisSignature)
+                new JoinRequest(c0Pre, c1Pre, cwfProof, blindedUpk, blindedW, blindedRegistrationSignature)
         );
     }
 
@@ -174,10 +284,10 @@ public class IncentiveSystem {
         GroupElement blindedUpk = jr.getBlindedUpk();
         FiatShamirProof cwfProof = jr.getCwfProof();
 
-        // Verify genesis signature
-        SPSEQSignature blindedGenesisSignature = jr.getBlindedGenesisSignature();
-        if (!pp.getSpsEq().verify(pk.getGenesisSpsEqPk(), blindedGenesisSignature, blindedUpk, blindedW)) {
-            throw new IllegalArgumentException("The blinded genesis signature is invalid!");
+        // Verify registration signature
+        SPSEQSignature blindedRegistrationSignature = jr.getBlindedRegistrationSignature();
+        if (!pp.getSpsEq().verify(pk.getRegistrationSpsEqPk(), blindedRegistrationSignature, blindedUpk, blindedW)) {
+            throw new IllegalArgumentException("The blinded registration signature is invalid!");
         }
 
         // reassemble common input for the commitment well-formedness proof
@@ -872,6 +982,13 @@ public class IncentiveSystem {
                 "SpendDeduct"
         ).stream().map(ringElement -> (ZnElement) ringElement).collect(Collectors.toList());
         return new SpendDeductRandomness(prv.get(0), prv.get(1), prv.get(2), prv.get(3), prv.get(4), prv.get(5));
+    }
+
+    private MessageBlock constructRegistrationCouponMessageBlock(UserPublicKey userPublicKey, String userInfo) {
+        return new MessageBlock(
+                new ByteArrayImplementation(userPublicKey.getUniqueByteRepresentation()),
+                new ByteArrayImplementation(userInfo.getBytes())
+        );
     }
 
     public IncentivePublicParameters getPp() {

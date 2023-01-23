@@ -27,7 +27,7 @@ class FakeCryptoRepository(
         get() = _cryptoMaterial
     private val incentiveSystem = IncentiveSystem(pp)
 
-    override suspend fun refreshCryptoMaterial() {
+    override suspend fun refreshCryptoMaterial(userDataForRegistration: String) {
         _cryptoMaterial.value = CryptoMaterial(pp, providerKeyPair.pk, userKeyPair)
     }
 

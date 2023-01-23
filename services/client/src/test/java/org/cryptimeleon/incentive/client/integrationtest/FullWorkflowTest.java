@@ -4,6 +4,7 @@ import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.EarnRequestDto;
 import org.cryptimeleon.incentive.crypto.model.JoinResponse;
+import org.cryptimeleon.incentive.crypto.model.RegistrationCoupon;
 import org.cryptimeleon.incentive.crypto.model.Token;
 import org.cryptimeleon.incentive.promotion.model.Basket;
 import org.cryptimeleon.incentive.promotion.model.BasketItem;
@@ -34,6 +35,23 @@ public class FullWorkflowTest extends TransactionTestPreparation {
     @BeforeAll
     void setup() {
         prepareBasketServiceAndPromotions();
+    }
+
+    @Test
+    void registrationTest() {
+        var serializedUserPublicKey = jsonConverter.serialize(cryptoAssets.getUserKeyPair().getPk().getRepresentation());
+
+        // Send request to store/basket service and retrieve coupon
+        var serializedRegistrationCoupon = basketClient.registerUser(serializedUserPublicKey, "Some User Name");
+        var registrationCoupon = new RegistrationCoupon(jsonConverter.deserialize(serializedRegistrationCoupon), incentiveRestorer);
+
+        assertThat(incentiveSystem.verifyRegistrationCoupon(registrationCoupon, (s)->true)).isTrue();
+
+        // Send coupon to provider/incentive service and retrieve SPSEQ
+        var serializedRegistrationSignature= incentiveClient.registerUserWithCoupon(registrationCoupon);
+        var registrationSignature = new SPSEQSignature(jsonConverter.deserialize(serializedRegistrationSignature), cryptoAssets.getPublicParameters().getBg().getG1(), cryptoAssets.getPublicParameters().getBg().getG2());
+
+        assertThat(incentiveSystem.verifyRegistrationToken(cryptoAssets.getProviderKeyPair().getPk(), registrationSignature, registrationCoupon)).isTrue();
     }
 
     @Test

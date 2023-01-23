@@ -1,10 +1,7 @@
 package org.cryptimeleon.incentive.app.di
 
 import android.content.Context
-import android.content.res.Resources
 import android.net.ConnectivityManager
-import android.provider.Settings.Global.getString
-import androidx.compose.ui.res.stringResource
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
@@ -16,7 +13,6 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
-import org.cryptimeleon.incentive.app.MainApplication
 import org.cryptimeleon.incentive.app.R
 import org.cryptimeleon.incentive.app.data.BasketRepository
 import org.cryptimeleon.incentive.app.data.CryptoRepository
@@ -25,11 +21,7 @@ import org.cryptimeleon.incentive.app.data.PromotionRepository
 import org.cryptimeleon.incentive.app.data.database.basket.BasketDatabase
 import org.cryptimeleon.incentive.app.data.database.crypto.CryptoDatabase
 import org.cryptimeleon.incentive.app.data.database.promotion.PromotionDatabase
-import org.cryptimeleon.incentive.app.data.network.BasketApiService
-import org.cryptimeleon.incentive.app.data.network.CryptoApiService
-import org.cryptimeleon.incentive.app.data.network.DosApiService
-import org.cryptimeleon.incentive.app.data.network.InfoApiService
-import org.cryptimeleon.incentive.app.data.network.PromotionApiService
+import org.cryptimeleon.incentive.app.data.network.*
 import org.cryptimeleon.incentive.app.domain.IBasketRepository
 import org.cryptimeleon.incentive.app.domain.ICryptoRepository
 import org.cryptimeleon.incentive.app.domain.IPreferencesRepository
@@ -66,6 +58,16 @@ class HiltApiModule {
     @Provides
     fun provideConnectivityManager(@ApplicationContext context: Context): ConnectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
+    @Singleton
+    @Provides
+    fun provideStoreApiService(urlConfig: UrlConfig): StoreApiService {
+        return Retrofit.Builder()
+            .addConverterFactory(ScalarsConverterFactory.create())
+            .baseUrl(urlConfig.basket_url)
+            .build()
+            .create(StoreApiService::class.java)
+    }
 
     @Singleton
     @Provides
@@ -162,11 +164,13 @@ class HiltRepositoryModule {
         infoApiService: InfoApiService,
         cryptoApiService: CryptoApiService,
         cryptoDatabase: CryptoDatabase,
+        storeApiService: StoreApiService,
     ): ICryptoRepository =
         CryptoRepository(
             infoApiService,
             cryptoApiService,
             cryptoDatabase.cryptoDatabaseDao(),
+            storeApiService,
         )
 
     @Singleton

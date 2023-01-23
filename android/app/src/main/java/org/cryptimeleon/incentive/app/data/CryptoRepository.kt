@@ -10,6 +10,7 @@ import org.cryptimeleon.incentive.app.data.database.crypto.CryptoMaterialEntity
 import org.cryptimeleon.incentive.app.data.database.crypto.CryptoTokenEntity
 import org.cryptimeleon.incentive.app.data.network.CryptoApiService
 import org.cryptimeleon.incentive.app.data.network.InfoApiService
+import org.cryptimeleon.incentive.app.data.network.StoreApiService
 import org.cryptimeleon.incentive.app.domain.DSException
 import org.cryptimeleon.incentive.app.domain.ICryptoRepository
 import org.cryptimeleon.incentive.app.domain.PayRedeemException
@@ -18,9 +19,11 @@ import org.cryptimeleon.incentive.app.domain.model.BulkRequestDto
 import org.cryptimeleon.incentive.app.domain.model.BulkResponseDto
 import org.cryptimeleon.incentive.app.domain.model.CryptoMaterial
 import org.cryptimeleon.incentive.crypto.IncentiveSystem
+import org.cryptimeleon.incentive.crypto.IncentiveSystemRestorer
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters
 import org.cryptimeleon.incentive.crypto.model.JoinResponse
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters
+import org.cryptimeleon.incentive.crypto.model.RegistrationCoupon
 import org.cryptimeleon.incentive.crypto.model.Token
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair
@@ -38,6 +41,7 @@ class CryptoRepository(
     private val infoApiService: InfoApiService,
     private val cryptoApiService: CryptoApiService,
     private val cryptoDao: CryptoDao,
+    private val storeApiService: StoreApiService,
 ) : ICryptoRepository {
     private val jsonConverter = JSONConverter()
 
@@ -132,35 +136,49 @@ class CryptoRepository(
         cryptoDao.deleteCryptoMaterial()
     }
 
-    override suspend fun refreshCryptoMaterial() {
+    override suspend fun refreshCryptoMaterial(userDataForRegistration: String) {
         val oldSerializedCryptoAsset = cryptoDao.observeCryptoMaterial().first()
         val (remotePP: String, remotePPK: String) = queryRemoteCryptoMaterial()
 
         if (needToResetCryptoData(oldSerializedCryptoAsset, remotePP, remotePPK)) {
             Timber.d("Deleting all crypto data since PP or PPK have changed")
             deleteAll()
-            generateAndStoreNewCryptoAssets(remotePP, remotePPK)
+            generateAndStoreNewCryptoAssets(remotePP, remotePPK, userDataForRegistration)
         }
     }
 
     private suspend fun generateAndStoreNewCryptoAssets(
         remotePP: String,
-        remotePPK: String
+        remotePPK: String,
+        userDataForRegistration: String
     ) {
+        // Setup
         val pp = IncentivePublicParameters(jsonConverter.deserialize(remotePP))
         val incentiveSystem = IncentiveSystem(pp)
         val providerPublicKey = ProviderPublicKey(jsonConverter.deserialize(remotePPK), pp)
         val userPreKeyPair = incentiveSystem.generateUserPreKeyPair()
+
+        // Registration
+        val registrationCouponResponse = storeApiService.retrieveRegistrationCouponFor(jsonConverter.serialize(userPreKeyPair.pk.representation), userDataForRegistration)
+        if (!registrationCouponResponse.isSuccessful) throw java.lang.RuntimeException("Registration at Store failed" + registrationCouponResponse.code())
+
+        val serializedRegistrationCoupon = registrationCouponResponse.body() ?: throw RuntimeException("Registration at Store unsuccessful")
+        val registrationCoupon = RegistrationCoupon(jsonConverter.deserialize(serializedRegistrationCoupon), IncentiveSystemRestorer(pp))
+        assert(incentiveSystem.verifyRegistrationCoupon(registrationCoupon) { true })
+
         val signatureResponse =
-            cryptoApiService.retrieveGenesisSignatureFor(jsonConverter.serialize(userPreKeyPair.pk.upk.representation))
+            cryptoApiService.retrieveRegistrationSignatureFor(serializedRegistrationCoupon)
         if (!signatureResponse.isSuccessful) {
             throw RuntimeException("Signature Request failed!")
         }
         val signature =
             pp.spsEq.restoreSignature(jsonConverter.deserialize(signatureResponse.body()))
+        assert(incentiveSystem.verifyRegistrationToken(providerPublicKey, signature, registrationCoupon))
+
+
+        // Store everything
         val userKeyPair = UserKeyPair(userPreKeyPair, signature)
         val newCryptoAsset = CryptoMaterial(pp, providerPublicKey, userKeyPair)
-
         cryptoDao.insertCryptoMaterial(toSerializedCryptoAsset(newCryptoAsset))
     }
 

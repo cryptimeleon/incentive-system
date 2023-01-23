@@ -176,5 +176,4 @@ public class ClientHelper {
         var redeemRequest = new RedeemBasketRequest(basketId, request, value);
         redeemBasket(webTestClient, redeemRequest, redeemSecret, expectedStatus);
     }
-
 }

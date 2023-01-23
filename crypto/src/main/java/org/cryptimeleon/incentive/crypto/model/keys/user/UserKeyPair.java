@@ -8,9 +8,9 @@ public class UserKeyPair {
     private final UserPublicKey pk;
     private final UserSecretKey sk;
 
-    public UserKeyPair(UserPreKeyPair userPreKeyPair, SPSEQSignature genesisSignature) {
+    public UserKeyPair(UserPreKeyPair userPreKeyPair, SPSEQSignature registrationSignature) {
         pk = userPreKeyPair.getPk();
-        sk = new UserSecretKey(userPreKeyPair.getPsk(), genesisSignature);
+        sk = new UserSecretKey(userPreKeyPair.getPsk(), registrationSignature);
     }
 
     public UserKeyPair(UserPublicKey pk, UserSecretKey sk) {

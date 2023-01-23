@@ -9,6 +9,7 @@ import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.SpendRequestDto;
 import org.cryptimeleon.incentive.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
+import org.cryptimeleon.incentive.crypto.IncentiveSystemRestorer;
 import org.cryptimeleon.incentive.crypto.Util;
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 import org.cryptimeleon.incentive.crypto.model.SpendResponse;
@@ -61,6 +62,7 @@ public class TransactionTestPreparation extends IncentiveSystemIntegrationTest {
 
     protected TestCryptoAssets cryptoAssets;
     protected IncentiveSystem incentiveSystem;
+    protected IncentiveSystemRestorer incentiveRestorer;
 
 
     protected void prepareBasketServiceAndPromotions() {
@@ -70,6 +72,7 @@ public class TransactionTestPreparation extends IncentiveSystemIntegrationTest {
 
         cryptoAssets = TestHelper.getCryptoAssets(infoClient, sharedSecret);
         incentiveSystem = new IncentiveSystem(cryptoAssets.getPublicParameters());
+        incentiveRestorer = new IncentiveSystemRestorer(cryptoAssets.getPublicParameters());
 
         basketClient.newBasketItem(basketItemDto, basketProviderSecret).block();
         basketClient.newRewardItem(rewardItemDto, basketProviderSecret).block();
@@ -156,7 +159,6 @@ public class TransactionTestPreparation extends IncentiveSystemIntegrationTest {
      * wrapper around crypto. ... .Helper.generateToken that fixes parameters that are the same for all calls anyway.
      *
      * @param promotionParameters promotion parameters for the promotion the token should be used for
-     * @param pointVector         point counts in the token
      * @param pointVector         point counts in the token
      * @return Token
      */

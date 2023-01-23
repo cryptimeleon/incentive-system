@@ -1,9 +1,10 @@
 package org.cryptimeleon.incentive.services.incentive;
 
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
-import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
-import org.cryptimeleon.craco.sig.sps.eq.SPSEQSigningKey;
 import org.cryptimeleon.incentive.client.dto.inc.*;
+import org.cryptimeleon.incentive.crypto.IncentiveSystemRestorer;
+import org.cryptimeleon.incentive.crypto.callback.IRegistrationCouponDBHandler;
+import org.cryptimeleon.incentive.crypto.callback.IStorePublicKeyVerificationHandler;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
@@ -14,6 +15,7 @@ import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
 import org.cryptimeleon.incentive.promotion.model.Basket;
 import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect;
 import org.cryptimeleon.incentive.promotion.sideeffect.SideEffect;
+import org.cryptimeleon.incentive.services.incentive.api.RegistrationCouponJSON;
 import org.cryptimeleon.incentive.services.incentive.error.BasketAlreadyPaidException;
 import org.cryptimeleon.incentive.services.incentive.error.BasketNotPaidException;
 import org.cryptimeleon.incentive.services.incentive.error.IncentiveServiceException;
@@ -40,7 +42,7 @@ import java.util.stream.Collectors;
  * More precisely, this service runs the server side of the crypto protocols with clients
  * (i.e. Issue in Issue-Join, Credit in Credit-Earn and Deduct in Spend-Deduct).
  * <p>
- * Furthermore, this service also issues genesis tokens.
+ * Furthermore, this service also issues registration tokens.
  */
 @Service
 public class IncentiveService {
@@ -51,14 +53,21 @@ public class IncentiveService {
     private final BasketRepository basketRepository;
     private final TokenUpdateResultRepository tokenUpdateResultRepository;
     private final OfflineDSPRepository offlineDspRepository;
+    private final RegistrationCouponRepository registrationCouponRepository;
 
     @Autowired
-    private IncentiveService(CryptoRepository cryptoRepository, PromotionRepository promotionRepository, BasketRepository basketRepository, TokenUpdateResultRepository tokenUpdateResultRepository, OfflineDSPRepository offlineDspRepository) {
+    private IncentiveService(CryptoRepository cryptoRepository,
+                             PromotionRepository promotionRepository,
+                             BasketRepository basketRepository,
+                             TokenUpdateResultRepository tokenUpdateResultRepository,
+                             OfflineDSPRepository offlineDspRepository,
+                             RegistrationCouponRepository registrationCouponRepository) {
         this.cryptoRepository = cryptoRepository;
         this.promotionRepository = promotionRepository;
         this.basketRepository = basketRepository;
         this.tokenUpdateResultRepository = tokenUpdateResultRepository;
         this.offlineDspRepository = offlineDspRepository;
+        this.registrationCouponRepository = registrationCouponRepository;
     }
 
     /**
@@ -301,22 +310,35 @@ public class IncentiveService {
         return new TokenUpdateResultsDto(results.stream().filter(tokenUpdateResult -> tokenUpdateResult instanceof ZkpTokenUpdateResultDto).map(i -> (ZkpTokenUpdateResultDto) i).collect(Collectors.toList()), results.stream().filter(tokenUpdateResult -> tokenUpdateResult instanceof EarnTokenUpdateResultDto).map(i -> (EarnTokenUpdateResultDto) i).collect(Collectors.toList()));
     }
 
-    /**
-     * Computes a serialized representation of a genesis signature on the passed user public key.
-     */
-    public String generateGenesisSignature(String serializedUserPublicKey) {
+    public String registerUser(String serializedRegistrationCoupon) {
         var pp = cryptoRepository.getPublicParameters();
-        var sk = cryptoRepository.getProviderSecretKey().getGenesisSpsEqSk();
-        var upk = pp.getBg().getG1().restoreElement(jsonConverter.deserialize(serializedUserPublicKey));
-        SPSEQSignature signature = generateGenesisSignature(pp, sk, upk);
-        return jsonConverter.serialize(signature.getRepresentation());
+        var providerKeyPair = new ProviderKeyPair(cryptoRepository.getProviderSecretKey(), cryptoRepository.getProviderPublicKey());
+        var registrationCoupon = new RegistrationCoupon(jsonConverter.deserialize(serializedRegistrationCoupon), new IncentiveSystemRestorer(pp));
+
+        // Callbacks for crypto implementation.
+        // TODO: Currently, we allow the message to be signed under any store public key
+        // TODO: Do we need some kind of check whether users are already part of the system
+        IStorePublicKeyVerificationHandler verificationHandler = (storePublicKey) -> true;
+        IRegistrationCouponDBHandler registrationCouponDBHandler = registrationCouponRepository::addCoupon;
+
+        var registrationToken = cryptoRepository.getIncentiveSystem().verifyRegistrationCouponAndIssueRegistrationToken(
+                providerKeyPair,
+                registrationCoupon,
+                verificationHandler,
+                registrationCouponDBHandler
+        );
+
+        return jsonConverter.serialize(registrationToken.getRepresentation());
     }
 
-    /**
-     * Computes a genesis signature on the passed user public key using the passed SPS-EQ signing key in the SPS-EQ contained in the passed public parameters.
-     * A genesis signature for a user is a signature on this user's public key together with the common base w of all users' public keys.
-     */
-    private SPSEQSignature generateGenesisSignature(IncentivePublicParameters pp, SPSEQSigningKey skSpsEq, GroupElement upk) {
-        return (SPSEQSignature) pp.getSpsEq().sign(skSpsEq, upk, pp.getW());
+    public List<RegistrationCouponJSON> getRegistrationCoupons() {
+        return registrationCouponRepository.getAllCoupons().stream().map((coupon) ->
+            new RegistrationCouponJSON(
+                    coupon.getUserInfo(),
+                    jsonConverter.serialize(coupon.getUserPublicKey().getRepresentation()),
+                    jsonConverter.serialize(coupon.getSignature().getRepresentation()),
+                    jsonConverter.serialize(coupon.getStorePublicKey().getRepresentation())
+            )
+        ).collect(Collectors.toList());
     }
 }

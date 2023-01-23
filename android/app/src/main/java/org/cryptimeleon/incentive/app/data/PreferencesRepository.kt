@@ -1,10 +1,7 @@
 package org.cryptimeleon.incentive.app.data
 
 import androidx.datastore.core.DataStore
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.booleanPreferencesKey
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -12,13 +9,12 @@ import org.cryptimeleon.incentive.app.domain.IPreferencesRepository
 import org.cryptimeleon.incentive.app.domain.model.DoubleSpendingPreferences
 import java.io.IOException
 
-private const val DOUBLE_SPENDING_PREFERENCES_NAME = "double_spending_preferences"
-
 class PreferencesRepository(private val dataStore: DataStore<Preferences>) :
     IPreferencesRepository {
 
     private object PreferencesKeys {
         val DISCARD_UPDATED_TOKEN = booleanPreferencesKey("discard_updated_token")
+        val USER_DATA = stringPreferencesKey("user_data")
     }
 
     override val doubleSpendingPreferencesFlow: Flow<DoubleSpendingPreferences> = dataStore.data
@@ -35,9 +31,20 @@ class PreferencesRepository(private val dataStore: DataStore<Preferences>) :
             DoubleSpendingPreferences(showCompleted)
         }
 
+    override val userDataPreferencesFlow: Flow<String> = dataStore.data
+        .map { preferences ->
+            preferences[PreferencesKeys.USER_DATA] ?: "Cryptimeleon User"
+        }
+
     override suspend fun updateDiscardUpdatedToken(discardToken: Boolean) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.DISCARD_UPDATED_TOKEN] = discardToken
+        }
+    }
+
+    override suspend fun setUserData(userData: String) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.USER_DATA] = userData
         }
     }
 }

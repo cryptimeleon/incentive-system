@@ -36,6 +36,19 @@ public class InfoController {
         return new ResponseEntity<>("", HttpStatus.UNAUTHORIZED);
     }
 
+    @GetMapping("/store-public-key")
+    public ResponseEntity<String> queryStorePublicKey() {
+        return new ResponseEntity<>(infoService.getSerializedStorePublicKey(), HttpStatus.OK);
+    }
+
+    @GetMapping("/store-secret-key")
+    public ResponseEntity<String> queryStoreSecretKey(@RequestHeader(name = "shared-secret") String storeSharedSecret) {
+        if (infoService.verifyStoreSharedSecret(storeSharedSecret)) {
+            return new ResponseEntity<>(infoService.getSerializedStoreSecretKey(), HttpStatus.OK);
+        }
+        return new ResponseEntity<>("", HttpStatus.UNAUTHORIZED);
+    }
+
     public InfoController(final InfoService infoService) {
         this.infoService = infoService;
     }

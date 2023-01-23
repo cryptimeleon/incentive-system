@@ -37,6 +37,13 @@
           </router-link>
         </li>
         <li>
+          <router-link to="/provider-frontend">
+            <span class="text-white hover:text-gray-200">
+              Provider Frontend
+            </span>
+          </router-link>
+        </li>
+        <li>
           <router-link to="/ds-protection">
             <span class="text-white hover:text-gray-200">
               Double-Spending Protection

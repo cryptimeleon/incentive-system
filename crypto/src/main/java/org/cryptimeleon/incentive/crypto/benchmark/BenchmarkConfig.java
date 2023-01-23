@@ -55,7 +55,7 @@ public class BenchmarkConfig {
         this.pp = Setup.trustedSetup(securityParameter, bilinearGroupChoice);
         var providerKeys = Setup.providerKeyGen(pp);
         var userPreKeys = Setup.userPreKeyGen(pp);
-        var userKeys = Util.addGenesisSignatureToUserKeys(userPreKeys, providerKeys, pp);
+        var userKeys = Util.addRegistrationSignatureToUserPreKeys(userPreKeys, providerKeys, pp);
         this.upk = userKeys.getPk();
         this.usk = userKeys.getSk();
         this.ppk = providerKeys.getPk();

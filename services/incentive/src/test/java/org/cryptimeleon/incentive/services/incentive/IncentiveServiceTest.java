@@ -7,10 +7,7 @@ import org.cryptimeleon.incentive.client.dto.inc.TokenUpdateResultsDto;
 import org.cryptimeleon.incentive.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.crypto.TestSuite;
-import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
-import org.cryptimeleon.incentive.crypto.model.SpendRequest;
-import org.cryptimeleon.incentive.crypto.model.SpendResponse;
-import org.cryptimeleon.incentive.crypto.model.Token;
+import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentive.promotion.Promotion;
@@ -19,6 +16,7 @@ import org.cryptimeleon.incentive.promotion.hazel.HazelTokenUpdate;
 import org.cryptimeleon.incentive.promotion.model.Basket;
 import org.cryptimeleon.incentive.promotion.model.BasketItem;
 import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect;
+import org.cryptimeleon.incentive.services.incentive.api.RegistrationCouponJSON;
 import org.cryptimeleon.incentive.services.incentive.repository.BasketRepository;
 import org.cryptimeleon.incentive.services.incentive.repository.CryptoRepository;
 import org.cryptimeleon.incentive.services.incentive.repository.OfflineDSPRepository;
@@ -38,10 +36,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.cryptimeleon.incentive.services.incentive.ClientHelper.*;
@@ -51,13 +46,13 @@ import static org.mockito.Mockito.*;
 /**
  * Tests all the functionality of the incentive service.
  * This includes the server side of the crypto protocols (Issue-Join, Credit-Earn, Spend-Deduct)
- * and the issuing of genesis tokens.
- *
+ * and the issuing of registration tokens.
+ * <p>
  * Uses a WebTestClient object as the client for the crypto protocol tests.
  * The servers that the incentive service communicates with
  * (namely basket, info and double-spending protection service)
  * are mocked using hard-coded answers to the test queries.
- *
+ * <p>
  * The incentive system instance used for all tests is the hard-coded one from the crypto.testFixtures package.
  */
 @TestInstance(TestInstance.Lifecycle.PER_METHOD)
@@ -159,25 +154,34 @@ public class IncentiveServiceTest {
     }
 
     /**
-     * Tests functionality for issuing genesis tokens to new users.
+     * Tests functionality for issuing registration tokens to new users.
      */
     @Test
-    public void genesisTest(@Autowired WebTestClient webClient) {
+    public void registrationTest(@Autowired WebTestClient webClient) {
         // use hard-coded key pair (from crypto.testFixtures) of a user that is not yet in the system
         var userPreKeyPair = TestSuite.userPreKeyPair;
+        var registrationCoupon = TestSuite.incentiveSystem.signRegistrationCoupon(TestSuite.storeKeyPair, TestSuite.userKeyPair.getPk(), "Some User Name");
 
-        // issuing of genesis signature
-        SPSEQSignature signature = retrieveGenesisSignature(webClient, userPreKeyPair);
+        // issuing of registration signature
+        SPSEQSignature signature = retrieveRegistrationSignatureForCoupon(webClient, registrationCoupon);
 
         // assert that signature verifies under the providers SPS-EQ key
-        assertThat(pp.getSpsEq().verify(pkp.getPk().getGenesisSpsEqPk(), signature, userPreKeyPair.getPk().getUpk(), pp.getW()))
+        assertThat(pp.getSpsEq().verify(pkp.getPk().getRegistrationSpsEqPk(), signature, userPreKeyPair.getPk().getUpk(), pp.getW()))
                 .isTrue();
     }
 
+    @Test
+    public void registrationCouponStorageTest(@Autowired WebTestClient webClient) {
+        var registrationCoupon = TestSuite.incentiveSystem.signRegistrationCoupon(TestSuite.storeKeyPair, TestSuite.userKeyPair.getPk(), "Some User Name");
+        retrieveRegistrationSignatureForCoupon(webClient, registrationCoupon);
+
+        var registrationCoupons = getAllRegistrationCoupons(webClient);
+
+        assertThat(registrationCoupons).hasSize(1).anyMatch((coupon) -> registrationCoupon.getUserInfo().equals(coupon.getUserInfo()));
+    }
 
     /**
      * Tests implementation of the Issue algorithm (server side of the issue join protocol).
-     * @param webClient
      */
     @Test
     public void joinTest(@Autowired WebTestClient webClient) {
@@ -322,17 +326,6 @@ public class IncentiveServiceTest {
         sendBulkRequests(webTestClient, new BulkRequestDto(List.of(), List.of()), emptyTestBasket, HttpStatus.OK); // transaction shall not be synced into DB in this test case
     }
 
-    private SPSEQSignature retrieveGenesisSignature(WebTestClient webClient, org.cryptimeleon.incentive.crypto.model.keys.user.UserPreKeyPair userPreKeyPair) {
-        var serializedSignature = webClient.post()
-                .uri("/genesis")
-                .header("user-public-key", jsonConverter.serialize(userPreKeyPair.getPk().getUpk().getRepresentation()))
-                .exchange()
-                .expectBody(String.class)
-                .returnResult()
-                .getResponseBody();
-        return pp.getSpsEq().restoreSignature(jsonConverter.deserialize(serializedSignature));
-    }
-
     @Test
     void testDSP_ImmediateRejection(@Autowired WebTestClient webTestClient) {
         addPromotion(webTestClient, testPromotion, providerSecret, HttpStatus.OK);
@@ -453,5 +446,25 @@ public class IncentiveServiceTest {
         var serializedSpendResponse = resultsDto.getZkpTokenUpdateResultDtoList().get(0).getSerializedResponse();
         SpendResponse spendResponse = new SpendResponse(jsonConverter.deserialize(serializedSpendResponse), pp.getBg().getZn(), pp.getSpsEq());
         return incentiveSystem.handleSpendRequestResponse(testPromotion.getPromotionParameters(), spendResponse, spendRequest, token, pointsAfterSpend, pkp.getPk(), ukp);
+    }
+
+    private SPSEQSignature retrieveRegistrationSignatureForCoupon(WebTestClient webClient, RegistrationCoupon registrationCoupon) {
+        var serializedSignature = webClient.get()
+                .uri("/register-with-coupon")
+                .header("registration-coupon", jsonConverter.serialize(registrationCoupon.getRepresentation()))
+                .exchange()
+                .expectBody(String.class)
+                .returnResult()
+                .getResponseBody();
+        return pp.getSpsEq().restoreSignature(jsonConverter.deserialize(serializedSignature));
+    }
+
+    private RegistrationCouponJSON[] getAllRegistrationCoupons(WebTestClient webClient) {
+        return webClient.get()
+                .uri("/registration-coupons")
+                .exchange()
+                .expectBody(RegistrationCouponJSON[].class)
+                .returnResult()
+                .getResponseBody();
     }
 }

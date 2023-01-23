@@ -1,5 +1,6 @@
 package org.cryptimeleon.incentive.crypto;
 
+import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
@@ -19,13 +20,17 @@ import java.math.BigInteger;
  * Collection of utility functions
  */
 public class Util {
-    public static UserKeyPair addGenesisSignatureToUserKeys(UserPreKeyPair userPreKeyPair, ProviderKeyPair providerKeyPair, IncentivePublicParameters pp) {
+    public static UserKeyPair addRegistrationSignatureToUserPreKeys(UserPreKeyPair userPreKeyPair, ProviderKeyPair providerKeyPair, IncentivePublicParameters pp) {
         return new UserKeyPair(
                 userPreKeyPair.getPk(),
                 new UserSecretKey(
                         userPreKeyPair.getPsk().getUsk(),
                         userPreKeyPair.getPsk().getPrfKey(),
-                        (new IncentiveSystem(pp)).signVerifiedUserPublicKey(providerKeyPair, userPreKeyPair.getPk())
+                        (SPSEQSignature) pp.getSpsEq().sign(
+                            providerKeyPair.getSk().getRegistrationSpsEqSk(),
+                            userPreKeyPair.getPk().getUpk(),
+                            pp.getW()
+                        )
                 )
         );
     }

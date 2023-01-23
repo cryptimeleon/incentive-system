@@ -21,12 +21,12 @@ public class JoinRequest implements Representable {
 
     private final FiatShamirProof cwfProof; // proof for well-formedness of token and knowledge of usk corresp. to upk
 
-    // (upb^r, w^r) + genesisSignature^r (valid signature on this tuple)
+    // (upb^r, w^r) + registrationSignature^r (valid signature on this tuple)
     private final GroupElement blindedUpk;
 
     private final GroupElement blindedW;
 
-    private final SPSEQSignature blindedGenesisSignature;
+    private final SPSEQSignature blindedRegistrationSignature;
 
 
     public JoinRequest(Representation repr, IncentivePublicParameters pp, FiatShamirProofSystem fsps) {
@@ -41,18 +41,18 @@ public class JoinRequest implements Representable {
         this.preCommitment1 = usedG1.restoreElement(list.get(1));
         this.blindedUpk = usedG1.restoreElement(list.get(2));
         this.blindedW = usedG1.restoreElement(list.get(3));
-        this.blindedGenesisSignature = pp.getSpsEq().restoreSignature(list.get(4));
+        this.blindedRegistrationSignature = pp.getSpsEq().restoreSignature(list.get(4));
         var cwfProofCommonInput = new CommitmentWellformednessCommonInput(preCommitment0, preCommitment1, blindedUpk, blindedW); // recompute cwf proof common input
         this.cwfProof = fsps.restoreProof(cwfProofCommonInput, list.get(5));
     }
 
-    public JoinRequest(GroupElement preCommitment0, GroupElement preCommitment1, FiatShamirProof cwfProof, GroupElement blindedUpk, GroupElement blindedW, SPSEQSignature blindedGenesisSignature) {
+    public JoinRequest(GroupElement preCommitment0, GroupElement preCommitment1, FiatShamirProof cwfProof, GroupElement blindedUpk, GroupElement blindedW, SPSEQSignature blindedRegistrationSignature) {
         this.preCommitment0 = preCommitment0;
         this.preCommitment1 = preCommitment1;
         this.cwfProof = cwfProof;
         this.blindedUpk = blindedUpk;
         this.blindedW = blindedW;
-        this.blindedGenesisSignature = blindedGenesisSignature;
+        this.blindedRegistrationSignature = blindedRegistrationSignature;
     }
 
     public Representation getRepresentation() {
@@ -61,7 +61,7 @@ public class JoinRequest implements Representable {
                 this.preCommitment1.getRepresentation(),
                 this.blindedUpk.getRepresentation(),
                 this.blindedW.getRepresentation(),
-                this.blindedGenesisSignature.getRepresentation(),
+                this.blindedRegistrationSignature.getRepresentation(),
                 this.cwfProof.getRepresentation()
         );
     }
@@ -86,8 +86,8 @@ public class JoinRequest implements Representable {
         return this.blindedW;
     }
 
-    public SPSEQSignature getBlindedGenesisSignature() {
-        return this.blindedGenesisSignature;
+    public SPSEQSignature getBlindedRegistrationSignature() {
+        return this.blindedRegistrationSignature;
     }
 
     @Override
@@ -95,15 +95,15 @@ public class JoinRequest implements Representable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         JoinRequest that = (JoinRequest) o;
-        return Objects.equals(preCommitment0, that.preCommitment0) && Objects.equals(preCommitment1, that.preCommitment1) && Objects.equals(cwfProof, that.cwfProof) && Objects.equals(blindedUpk, that.blindedUpk) && Objects.equals(blindedW, that.blindedW) && Objects.equals(blindedGenesisSignature, that.blindedGenesisSignature);
+        return Objects.equals(preCommitment0, that.preCommitment0) && Objects.equals(preCommitment1, that.preCommitment1) && Objects.equals(cwfProof, that.cwfProof) && Objects.equals(blindedUpk, that.blindedUpk) && Objects.equals(blindedW, that.blindedW) && Objects.equals(blindedRegistrationSignature, that.blindedRegistrationSignature);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(preCommitment0, preCommitment1, cwfProof, blindedUpk, blindedW, blindedGenesisSignature);
+        return Objects.hash(preCommitment0, preCommitment1, cwfProof, blindedUpk, blindedW, blindedRegistrationSignature);
     }
 
     public String toString() {
-        return "JoinRequest(preCommitment0=" + this.getPreCommitment0() + ", preCommitment1=" + this.getPreCommitment1() + ", cwfProof=" + this.getCwfProof() + ", blindedUpk=" + this.getBlindedUpk() + ", blindedW=" + this.getBlindedW() + ", blindedGenesisSignature=" + this.getBlindedGenesisSignature() + ")";
+        return "JoinRequest(preCommitment0=" + this.getPreCommitment0() + ", preCommitment1=" + this.getPreCommitment1() + ", cwfProof=" + this.getCwfProof() + ", blindedUpk=" + this.getBlindedUpk() + ", blindedW=" + this.getBlindedW() + ", blindedRegistrationSignature=" + this.getBlindedRegistrationSignature() + ")";
     }
 }
