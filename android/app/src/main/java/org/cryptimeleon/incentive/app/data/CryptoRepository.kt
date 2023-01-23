@@ -159,7 +159,10 @@ class CryptoRepository(
         val userPreKeyPair = incentiveSystem.generateUserPreKeyPair()
 
         // Registration
-        val serializedRegistrationCoupon = storeApiService.retrieveGenesisSignatureFor(jsonConverter.serialize(userPreKeyPair.pk.representation), userDataForRegistration).body() ?: throw RuntimeException("Registration at Store unsuccessful")
+        val registrationCouponResponse = storeApiService.retrieveRegistrationCouponFor(jsonConverter.serialize(userPreKeyPair.pk.representation), userDataForRegistration)
+        if (!registrationCouponResponse.isSuccessful) throw java.lang.RuntimeException("Registration at Store failed" + registrationCouponResponse.code())
+
+        val serializedRegistrationCoupon = registrationCouponResponse.body() ?: throw RuntimeException("Registration at Store unsuccessful")
         val registrationCoupon = RegistrationCoupon(jsonConverter.deserialize(serializedRegistrationCoupon), IncentiveSystemRestorer(pp))
         assert(incentiveSystem.verifyRegistrationCoupon(registrationCoupon) { true })
 

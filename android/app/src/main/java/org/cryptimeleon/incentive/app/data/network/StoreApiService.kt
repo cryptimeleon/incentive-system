@@ -6,7 +6,7 @@ import retrofit2.http.Header
 
 interface StoreApiService {
     @GET("register-user-and-obtain-serialized-registration-coupon")
-    suspend fun retrieveGenesisSignatureFor(
+    suspend fun retrieveRegistrationCouponFor(
         @Header("user-public-key") serializedPublicKey: String,
         @Header("user-info") userData: String
     ): Response<String>
