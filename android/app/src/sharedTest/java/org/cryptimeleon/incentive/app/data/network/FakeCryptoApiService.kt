@@ -4,13 +4,14 @@ import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSyst
 import org.cryptimeleon.incentive.app.domain.model.BulkRequestDto
 import org.cryptimeleon.incentive.app.domain.model.BulkResponseDto
 import org.cryptimeleon.incentive.crypto.IncentiveSystem
+import org.cryptimeleon.incentive.crypto.IncentiveSystemRestorer
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters
 import org.cryptimeleon.incentive.crypto.model.JoinRequest
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters
+import org.cryptimeleon.incentive.crypto.model.RegistrationCoupon
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair
 import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellformednessProtocol
 import org.cryptimeleon.math.serialization.converter.JSONConverter
-import org.cryptimeleon.math.structures.groups.GroupElement
 import retrofit2.Response
 import java.util.*
 
@@ -23,13 +24,8 @@ class FakeCryptoApiService(
     private val jsonConverter = JSONConverter()
 
     override suspend fun retrieveRegistrationSignatureFor(serializedRegistrationCoupon: String): Response<String> {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun retrieveGenesisSignatureFor(serializedPublicKey: String): Response<String> {
-        val publicKey: GroupElement =
-            pp.bg.g1.restoreElement(jsonConverter.deserialize(serializedPublicKey))
-        val signature = pp.spsEq.sign(providerKeyPair.sk.genesisSpsEqSk, publicKey, pp.w)
+        val registrationCoupon = RegistrationCoupon(jsonConverter.deserialize(serializedRegistrationCoupon), IncentiveSystemRestorer(pp))
+        val signature = pp.spsEq.sign(providerKeyPair.sk.genesisSpsEqSk, registrationCoupon.userPublicKey.upk, pp.w)
         return Response.success(jsonConverter.serialize(signature.representation))
     }
 
