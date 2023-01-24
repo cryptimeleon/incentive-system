@@ -8,7 +8,9 @@ import org.cryptimeleon.craco.sig.ecdsa.ECDSASignature;
 import org.cryptimeleon.craco.sig.ecdsa.ECDSASignatureScheme;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignatureScheme;
+import org.cryptimeleon.incentive.crypto.callback.IClearingDBHandler;
 import org.cryptimeleon.incentive.crypto.callback.IRegistrationCouponDBHandler;
+import org.cryptimeleon.incentive.crypto.callback.IStoreBasketRedeemedHandler;
 import org.cryptimeleon.incentive.crypto.callback.IStorePublicKeyVerificationHandler;
 import org.cryptimeleon.incentive.crypto.dsprotectionlogic.DatabaseHandler;
 import org.cryptimeleon.incentive.crypto.model.*;
@@ -16,6 +18,7 @@ import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderSecretKey;
 import org.cryptimeleon.incentive.crypto.model.keys.store.StoreKeyPair;
+import org.cryptimeleon.incentive.crypto.model.keys.store.StorePublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPreKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
@@ -29,6 +32,7 @@ import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellform
 import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellformednessWitness;
 import org.cryptimeleon.math.hash.UniqueByteRepresentable;
 import org.cryptimeleon.math.hash.impl.ByteArrayAccumulator;
+import org.cryptimeleon.math.hash.impl.SHA256HashFunction;
 import org.cryptimeleon.math.random.RandomGenerator;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.groups.GroupElement;
@@ -42,6 +46,7 @@ import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 
@@ -367,6 +372,177 @@ public class IncentiveSystem {
      * end of the implementation of the Issue {@literal <}-{@literal >}Join protocol
      */
 
+    public EarnStoreRequest generateEarnCouponRequest(Token token, UserKeyPair userKeyPair) {
+        // Compute pseudorandom value from the token that is used to blind the commitment
+        // This makes this algorithm deterministic
+        var s = pp.getPrfToZn().hashThenPrfToZn(userKeyPair.getSk().getPrfKey(), token, "CreditEarn");
+
+        var c0Prime = token.getCommitment0().pow(s).compute();
+        var c1Prime = token.getCommitment1().pow(s).compute();
+        var c2Prime = c1Prime.pow(token.getPromotionId()).compute();
+
+        byte[] h = computeEarnHash(c0Prime, c1Prime, c2Prime);
+
+        return new EarnStoreRequest(h);
+    }
+
+    public EarnStoreCoupon signEarnCoupon(StoreKeyPair storeKeyPair,
+                                          UUID basketId,
+                                          BigInteger promotionId,
+                                          Vector<BigInteger> deltaK,
+                                          EarnStoreRequest earnStoreRequest,
+                                          IStoreBasketRedeemedHandler storeBasketRedeemedHandler) {
+        boolean issueSignature = storeBasketRedeemedHandler.verifyAndStorePromotionIdAndHashForBasket(basketId, promotionId, earnStoreRequest.getH());
+        if (!issueSignature) throw new RuntimeException("Basket already redeemed with different hash!");
+
+        ECDSASignatureScheme ecdsaSignatureScheme = new ECDSASignatureScheme();
+        var message = constructEarnCouponMessageBlock(promotionId, deltaK, earnStoreRequest.getH());
+        var signature = (ECDSASignature) ecdsaSignatureScheme.sign(message, storeKeyPair.getSk().getEcdsaSigningKey());
+
+        return new EarnStoreCoupon(signature, storeKeyPair.getPk());
+    }
+
+    public boolean verifyEarnCoupon(StorePublicKey storePublicKey,
+                                    BigInteger promotionId,
+                                    Vector<BigInteger> deltaK,
+                                    EarnStoreRequest earnStoreRequest,
+                                    EarnStoreCoupon earnStoreCoupon) {
+        ECDSASignatureScheme ecdsaSignatureScheme = new ECDSASignatureScheme();
+        var message = constructEarnCouponMessageBlock(promotionId, deltaK, earnStoreRequest.getH());
+        return ecdsaSignatureScheme.verify(message, earnStoreCoupon.getSignature(), storePublicKey.getEcdsaVerificationKey());
+    }
+
+    public EarnRequestECDSA generateEarnRequest(
+            Token token,
+            ProviderPublicKey providerPublicKey,
+            UserKeyPair userKeyPair,
+            BigInteger promotionId,
+            Vector<BigInteger> deltaK,
+            EarnStoreCoupon earnStoreCoupon
+    ) {
+        // Re-compute pseudorandom blinding value
+        var s = pp.getPrfToZn().hashThenPrfToZn(userKeyPair.getSk().getPrfKey(), token, "CreditEarn");
+
+        // Blind commitments and change representation of signature such that it is valid for blinded commitments
+        // The blinded commitments and signature are sent to the provider
+        return new EarnRequestECDSA(
+                promotionId,
+                deltaK,
+                earnStoreCoupon,
+                (SPSEQSignature) pp.getSpsEq().chgRep(
+                        token.getSignature(),
+                        s,
+                        providerPublicKey.getPkSpsEq()
+                ),
+                token.getCommitment0().pow(s).compute(),  // Compute for concurrent computation
+                token.getCommitment1().pow(s).compute()
+        );
+    }
+
+    public SPSEQSignature generateEarnResponse(PromotionParameters promotionParameters,
+                                               ProviderKeyPair providerKeyPair,
+                                               EarnRequestECDSA earnRequestECDSA,
+                                               Vector<BigInteger> deltaK,
+                                               IClearingDBHandler clearingDBHandler) {
+        // Blinded token
+        var c0Prime = earnRequestECDSA.getcPrime0();
+        var c1Prime = earnRequestECDSA.getcPrime1();
+        var c2Prime = earnRequestECDSA.getcPrime1().pow(earnRequestECDSA.getPromotionId());
+
+        // Compute hash h
+        var h = computeEarnHash(c0Prime, c1Prime, c2Prime);
+
+        // Verify ECDSA
+        ECDSASignatureScheme ecdsaSignatureScheme = new ECDSASignatureScheme();
+        var message = constructEarnCouponMessageBlock(earnRequestECDSA.getPromotionId(), earnRequestECDSA.getDeltaK(), h);
+        var ecdsaValid = ecdsaSignatureScheme.verify(message, earnRequestECDSA.getEarnStoreCoupon().getSignature(), earnRequestECDSA.getEarnStoreCoupon().getStorePublicKey().getEcdsaVerificationKey());
+        if (!ecdsaValid) throw new RuntimeException("ECDSA signature invalid");
+
+        // Verify blinded SPSEQ
+        SPSEQSignatureScheme spseqSignatureScheme = pp.getSpsEq();
+        var blindedSpseqValid = spseqSignatureScheme.verify(providerKeyPair.getPk().getPkSpsEq(), earnRequestECDSA.getSpseqSignature(), GroupElementVector.of(c0Prime, c1Prime, c2Prime));
+        if (!blindedSpseqValid) throw new RuntimeException("(Blinded) SPSEQ signature invalid");
+
+        // Add to clearing DB
+        clearingDBHandler.addEarningDataToClearingDB(promotionParameters.getPromotionId(), deltaK, h, earnRequestECDSA);
+
+        // Blind-sign update
+        var Q = providerKeyPair.getSk().getTokenPointsQ(promotionParameters);
+        var K = deltaK.map(k -> pp.getBg().getG1().getZn().createZnElement(k));
+        var c0PrimePlusDeltaK = c0Prime.op(c1Prime.pow(Q.innerProduct(K))).compute();
+
+        return (SPSEQSignature) spseqSignatureScheme.sign(providerKeyPair.getSk().getSkSpsEq(), c0PrimePlusDeltaK, c1Prime, c2Prime);
+    }
+
+    public Token handleEarnResponse(PromotionParameters promotionParameters,
+                                    EarnRequestECDSA earnRequest,
+                                    SPSEQSignature changedSignature,
+                                    Vector<BigInteger> deltaK,
+                                    Token token,
+                                    ProviderPublicKey providerPublicKey,
+                                    UserKeyPair userKeyPair) {
+
+        // Pseudorandom randomness s used for blinding in the request
+        var s = pp.getPrfToZn().hashThenPrfToZn(userKeyPair.getSk().getPrfKey(), token, "CreditEarn");
+        var K = RingElementVector.fromStream(deltaK.stream().map(e -> pp.getBg().getZn().createZnElement(e)));
+
+        // Recover blinded commitments (to match the commitments signed by the prover) with updated value
+        var blindedNewC0 = earnRequest.getcPrime0()
+                .op(providerPublicKey.getTokenPointsH(promotionParameters)
+                        .pow(s)
+                        .innerProduct(K)
+                ).compute();
+        var blindedNewC1 = earnRequest.getcPrime1();
+
+        // Verify signature on recovered commitments
+        var signatureValid = pp.getSpsEq().verify(providerPublicKey.getPkSpsEq(),
+                changedSignature,
+                blindedNewC0,
+                blindedNewC1,
+                blindedNewC1.pow(promotionParameters.getPromotionId()));
+        if (!signatureValid) {
+            throw new IllegalArgumentException("Signature is not valid");
+        }
+
+        // Change representation of signature such that it is valid for un-blinded commitment
+        var newSignature = pp.getSpsEq().chgRep(changedSignature, s.inv(), providerPublicKey.getPkSpsEq());
+
+        // Assemble new token
+        return new Token(
+                blindedNewC0.pow(s.inv()).compute(), // Un-blind commitment
+                blindedNewC1.pow(s.inv()).compute(), // see above
+                token.getEncryptionSecretKey(),
+                token.getDoubleSpendRandomness0(),
+                token.getDoubleSpendRandomness1(),
+                token.getZ(),
+                token.getT(),
+                token.getPromotionId(),
+                new RingElementVector(token.getPoints().zip(
+                        K,
+                        RingElement::add
+                )),
+                (SPSEQSignature) newSignature
+        );
+    }
+
+    private static byte[] computeEarnHash(GroupElement c0Prime, GroupElement c1Prime, GroupElement c2Prime) {
+        var sha = new SHA256HashFunction();
+        var hashAccumulator = new ByteArrayAccumulator();
+        hashAccumulator.escapeAndAppend(c0Prime);
+        hashAccumulator.escapeAndAppend(c1Prime);
+        hashAccumulator.escapeAndAppend(c2Prime);
+        return sha.hash(hashAccumulator.extractBytes());
+    }
+
+    private static MessageBlock constructEarnCouponMessageBlock(BigInteger promotionId, Vector<BigInteger> deltaK, byte[] h) {
+        return new MessageBlock(
+                new ByteArrayImplementation("earn".getBytes()),
+                new ByteArrayImplementation(promotionId.toByteArray()),
+                new MessageBlock(deltaK.map((k) -> new ByteArrayImplementation(k.toByteArray())).toList()),
+                new ByteArrayImplementation(h)
+        );
+    }
+
 
     /*
      * implementation of the Credit {@literal <}-{@literal >}Earn protocol
@@ -382,6 +558,7 @@ public class IncentiveSystem {
      * @param userKeyPair       the key pair of the user submitting the request
      * @return request to give to a provider
      */
+    @Deprecated
     public EarnRequest generateEarnRequest(Token token, ProviderPublicKey providerPublicKey, UserKeyPair userKeyPair) {
         // Compute pseudorandom value from the token that is used to blind the commitment
         // This makes this algorithm deterministic
@@ -409,6 +586,7 @@ public class IncentiveSystem {
      * @param providerKeyPair the provider key pair
      * @return a signature on a blinded, updated token
      */
+    @Deprecated
     public SPSEQSignature generateEarnRequestResponse(PromotionParameters promotionParameters, EarnRequest earnRequest, Vector<BigInteger> deltaK, ProviderKeyPair providerKeyPair) {
         var C0 = earnRequest.getC0();
         var C1 = earnRequest.getC1();
@@ -448,6 +626,7 @@ public class IncentiveSystem {
      * @param userKeyPair       keypair of the user
      * @return new token with value of the old token + k
      */
+    @Deprecated
     public Token handleEarnRequestResponse(PromotionParameters promotionParameters,
                                            EarnRequest earnRequest,
                                            SPSEQSignature changedSignature,
