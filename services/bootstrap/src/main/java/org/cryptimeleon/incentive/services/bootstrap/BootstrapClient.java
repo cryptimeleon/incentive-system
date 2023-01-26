@@ -56,5 +56,6 @@ public class BootstrapClient {
 
     private void publishPromotions(List<Promotion> promotions) {
         incentiveClient.addPromotions(promotions, promotionServiceProviderSecret).block();
+        basketClient.addPromotions(promotions, basketServiceProviderSecret).block();
     }
 }
