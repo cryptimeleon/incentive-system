@@ -1,6 +1,7 @@
 plugins {
     id "java-library"
     id 'jacoco'
+    id "java-test-fixtures"
 }
 
 sourceCompatibility = JavaVersion.VERSION_11
@@ -15,6 +16,7 @@ repositories {
 
 dependencies {
     api "org.cryptimeleon.incentive:crypto"
+    testFixturesApi(testFixtures('org.cryptimeleon.incentive:crypto'))
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.2")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.2")
 }
