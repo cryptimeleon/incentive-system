@@ -70,13 +70,15 @@ public class TransactionTestPreparation extends IncentiveSystemIntegrationTest {
         basketClient = new BasketClient(basketUrl);
         incentiveClient = new IncentiveClient(incentiveUrl);
 
-        cryptoAssets = TestHelper.getCryptoAssets(infoClient, sharedSecret);
+        cryptoAssets = TestHelper.getCryptoAssets(infoClient, providerSharedSecret);
         incentiveSystem = new IncentiveSystem(cryptoAssets.getPublicParameters());
         incentiveRestorer = new IncentiveSystemRestorer(cryptoAssets.getPublicParameters());
 
         basketClient.newBasketItem(basketItemDto, basketProviderSecret).block();
         basketClient.newRewardItem(rewardItemDto, basketProviderSecret).block();
         basketClient.addShoppingItems(testBasketItems, basketProviderSecret);
+        // Promotions need to be present at both services!
+        basketClient.addPromotions(List.of(testPromotion), storeSharedSecret).block();
         incentiveClient.addPromotions(List.of(testPromotion), incentiveProviderSecret).block();
     }
 

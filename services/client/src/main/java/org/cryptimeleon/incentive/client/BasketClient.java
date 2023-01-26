@@ -1,6 +1,10 @@
 package org.cryptimeleon.incentive.client;
 
 import org.cryptimeleon.incentive.client.dto.*;
+import org.cryptimeleon.incentive.promotion.Promotion;
+import org.cryptimeleon.math.serialization.RepresentableRepresentation;
+import org.cryptimeleon.math.serialization.converter.JSONConverter;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -8,6 +12,7 @@ import reactor.core.publisher.Mono;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Client calls for info service.
@@ -19,6 +24,7 @@ public class BasketClient implements AliveEndpoint {
      * Webclient configured with the url of the basket service
      */
     private final WebClient basketClient;
+    private final JSONConverter jsonConverter = new JSONConverter();
 
     public BasketClient(String basketUrl) {
         this.basketClient = WebClientHelper.buildWebClient(basketUrl);
@@ -135,5 +141,18 @@ public class BasketClient implements AliveEndpoint {
                 .header("user-info", userInfo)
                 .retrieve()
                 .bodyToMono(String.class).block();
+    }
+
+    public Mono<ResponseEntity<Void>> addPromotions(List<Promotion> promotions, String providerSecret) {
+        return basketClient.post()
+                .uri("/promotions")
+                .header("store-secret", providerSecret)
+                .body(BodyInserters.fromValue(serializedPromotionsRepresentable(promotions)))
+                .retrieve()
+                .toBodilessEntity();
+    }
+
+    private List<String> serializedPromotionsRepresentable(List<Promotion> promotions) {
+        return promotions.stream().map(p -> jsonConverter.serialize(new RepresentableRepresentation(p))).collect(Collectors.toList());
     }
 }

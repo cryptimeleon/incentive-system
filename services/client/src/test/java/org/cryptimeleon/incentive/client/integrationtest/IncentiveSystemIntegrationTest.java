@@ -33,7 +33,10 @@ public abstract class IncentiveSystemIntegrationTest {
     String basketProviderSecret;
 
     @Value("${provider.shared-secret}")
-    String sharedSecret;
+    String providerSharedSecret;
+
+    @Value("${store.shared-secret}")
+    String storeSharedSecret;
 
     @Value("${incentive-service.provider-secret}")
     String incentiveProviderSecret;
