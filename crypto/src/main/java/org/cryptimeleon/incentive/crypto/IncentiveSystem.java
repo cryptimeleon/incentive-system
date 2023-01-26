@@ -45,6 +45,7 @@ import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -372,7 +373,7 @@ public class IncentiveSystem {
      * end of the implementation of the Issue {@literal <}-{@literal >}Join protocol
      */
 
-    public EarnStoreRequest generateEarnCouponRequest(Token token, UserKeyPair userKeyPair) {
+    public EarnStoreRequest generateEarnCouponRequest(Token token, UserKeyPair userKeyPair, UUID basketId, BigInteger promotionId) {
         // Compute pseudorandom value from the token that is used to blind the commitment
         // This makes this algorithm deterministic
         var s = pp.getPrfToZn().hashThenPrfToZn(userKeyPair.getSk().getPrfKey(), token, "CreditEarn");
@@ -383,20 +384,20 @@ public class IncentiveSystem {
 
         byte[] h = computeEarnHash(c0Prime, c1Prime, c2Prime);
 
-        return new EarnStoreRequest(h);
+        return new EarnStoreRequest(h, basketId, promotionId);
     }
 
     public EarnStoreCoupon signEarnCoupon(StoreKeyPair storeKeyPair,
-                                          UUID basketId,
-                                          BigInteger promotionId,
                                           Vector<BigInteger> deltaK,
                                           EarnStoreRequest earnStoreRequest,
                                           IStoreBasketRedeemedHandler storeBasketRedeemedHandler) {
-        boolean issueSignature = storeBasketRedeemedHandler.verifyAndStorePromotionIdAndHashForBasket(basketId, promotionId, earnStoreRequest.getH());
-        if (!issueSignature) throw new RuntimeException("Basket already redeemed with different hash!");
+        boolean issueSignature = storeBasketRedeemedHandler.verifyAndStorePromotionIdAndHashForBasket(earnStoreRequest.getBasketId(), earnStoreRequest.getPromotionId(), earnStoreRequest.getH());
+        if (!issueSignature) {
+            throw new RuntimeException(String.format("Basket %s already redeemed with different hash than %s!", earnStoreRequest.getBasketId().toString(), Arrays.toString(earnStoreRequest.getH())));
+        }
 
         ECDSASignatureScheme ecdsaSignatureScheme = new ECDSASignatureScheme();
-        var message = constructEarnCouponMessageBlock(promotionId, deltaK, earnStoreRequest.getH());
+        var message = constructEarnCouponMessageBlock(earnStoreRequest.getPromotionId(), deltaK, earnStoreRequest.getH());
         var signature = (ECDSASignature) ecdsaSignatureScheme.sign(message, storeKeyPair.getSk().getEcdsaSigningKey());
 
         return new EarnStoreCoupon(signature, storeKeyPair.getPk());
@@ -517,10 +518,7 @@ public class IncentiveSystem {
                 token.getZ(),
                 token.getT(),
                 token.getPromotionId(),
-                new RingElementVector(token.getPoints().zip(
-                        K,
-                        RingElement::add
-                )),
+                new RingElementVector(token.getPoints().zip(K, RingElement::add)),
                 (SPSEQSignature) newSignature
         );
     }

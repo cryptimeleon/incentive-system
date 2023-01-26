@@ -16,6 +16,7 @@ public class EarnTest {
     IncentiveSystem incSys = TestSuite.incentiveSystem;
     UUID basketId = UUID.randomUUID();
     PromotionParameters promotionParameters = IncentiveSystem.generatePromotionParameters(2);
+    BigInteger promotionId = promotionParameters.getPromotionId();
     Token token = TestSuite.generateToken(promotionParameters);
     Vector<BigInteger> earnAmount = Vector.of(BigInteger.valueOf(3L), BigInteger.valueOf(5L));
 
@@ -23,8 +24,8 @@ public class EarnTest {
     public void earnTest() {
         var earnAmount = Vector.of(BigInteger.valueOf(3L), BigInteger.valueOf(5L));
 
-        var storeReq = incSys.generateEarnCouponRequest(token, TestSuite.userKeyPair);
-        var storeRes = incSys.signEarnCoupon(TestSuite.storeKeyPair, basketId, promotionParameters.getPromotionId(), earnAmount, storeReq, (UUID basketId, BigInteger promotionId, byte[] hash) -> true);
+        var storeReq = incSys.generateEarnCouponRequest(token, TestSuite.userKeyPair, basketId, promotionId);
+        var storeRes = incSys.signEarnCoupon(TestSuite.storeKeyPair, earnAmount, storeReq, (UUID basketId, BigInteger promotionId, byte[] hash) -> true);
         assertThat(incSys.verifyEarnCoupon(TestSuite.storeKeyPair.getPk(), promotionParameters.getPromotionId(), earnAmount, storeReq, storeRes))
                 .isTrue();
 
@@ -40,8 +41,8 @@ public class EarnTest {
     @Test
     public void earnTestManipulatedEarnAmountFails() {
         var invalidEarnAmount = Vector.of(BigInteger.valueOf(5L), BigInteger.valueOf(7L));
-        var storeReq = incSys.generateEarnCouponRequest(token, TestSuite.userKeyPair);
-        var storeRes = incSys.signEarnCoupon(TestSuite.storeKeyPair, basketId, promotionParameters.getPromotionId(), earnAmount, storeReq, (UUID basketId, BigInteger promotionId, byte[] hash) -> true);
+        var storeReq = incSys.generateEarnCouponRequest(token, TestSuite.userKeyPair, basketId, promotionId);
+        var storeRes = incSys.signEarnCoupon(TestSuite.storeKeyPair, earnAmount, storeReq, (UUID basketId, BigInteger promotionId, byte[] hash) -> true);
         assertThat(incSys.verifyEarnCoupon(TestSuite.storeKeyPair.getPk(), promotionParameters.getPromotionId(), earnAmount, storeReq, storeRes))
                 .isTrue();
 
@@ -53,10 +54,10 @@ public class EarnTest {
 
     @Test
     public void earnTestInvalidHashStoreSided() {
-        var storeReq = incSys.generateEarnCouponRequest(token, TestSuite.userKeyPair);
+        var storeReq = incSys.generateEarnCouponRequest(token, TestSuite.userKeyPair, basketId, promotionId);
 
         // Set lambda to false => hash invalid
-        assertThatThrownBy(() -> incSys.signEarnCoupon(TestSuite.storeKeyPair, basketId, promotionParameters.getPromotionId(), earnAmount, storeReq, (UUID basketId, BigInteger promotionId, byte[] hash) -> false))
+        assertThatThrownBy(() -> incSys.signEarnCoupon(TestSuite.storeKeyPair, earnAmount, storeReq, (UUID basketId, BigInteger promotionId, byte[] hash) -> false))
                 .isInstanceOf(RuntimeException.class);
     }
 
@@ -75,8 +76,8 @@ public class EarnTest {
                 token.getSignature()
         );
 
-        var storeReq = incSys.generateEarnCouponRequest(tokenWithDoubledPoints, TestSuite.userKeyPair);
-        var storeRes = incSys.signEarnCoupon(TestSuite.storeKeyPair, basketId, promotionParameters.getPromotionId(), earnAmount, storeReq, (UUID basketId, BigInteger promotionId, byte[] hash) -> true);
+        var storeReq = incSys.generateEarnCouponRequest(tokenWithDoubledPoints, TestSuite.userKeyPair, basketId, promotionId);
+        var storeRes = incSys.signEarnCoupon(TestSuite.storeKeyPair, earnAmount, storeReq, (UUID basketId, BigInteger promotionId, byte[] hash) -> true);
         assertThat(incSys.verifyEarnCoupon(TestSuite.storeKeyPair.getPk(), promotionParameters.getPromotionId(), earnAmount, storeReq, storeRes))
                 .isTrue();
 
@@ -87,7 +88,7 @@ public class EarnTest {
 
     @Test
     void earnStoreRequestRepresentationTest() {
-        EarnStoreRequest earnStoreRequest = new EarnStoreRequest("Test".getBytes());
+        EarnStoreRequest earnStoreRequest = new EarnStoreRequest("Test".getBytes(), basketId, promotionId);
 
         EarnStoreRequest recoveredEarnStoreRequest = new EarnStoreRequest(earnStoreRequest.getRepresentation());
 
@@ -96,8 +97,8 @@ public class EarnTest {
 
     @Test
     void earnStoreCouponRepresentationTest() {
-        var storeReq = incSys.generateEarnCouponRequest(token, TestSuite.userKeyPair);
-        EarnStoreCoupon earnStoreCoupon = incSys.signEarnCoupon(TestSuite.storeKeyPair, basketId, promotionParameters.getPromotionId(), earnAmount, storeReq, (UUID basketId, BigInteger promotionId, byte[] hash) -> true);
+        var storeReq = incSys.generateEarnCouponRequest(token, TestSuite.userKeyPair, basketId, promotionId);
+        EarnStoreCoupon earnStoreCoupon = incSys.signEarnCoupon(TestSuite.storeKeyPair, earnAmount, storeReq, (UUID basketId, BigInteger promotionId, byte[] hash) -> true);
 
         EarnStoreCoupon recoveredEarnStoreCoupon = new EarnStoreCoupon(earnStoreCoupon.getRepresentation());
 

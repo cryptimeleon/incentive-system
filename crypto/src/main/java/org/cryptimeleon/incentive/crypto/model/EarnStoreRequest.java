@@ -1,24 +1,40 @@
 package org.cryptimeleon.incentive.crypto.model;
 
-import org.cryptimeleon.math.serialization.ByteArrayRepresentation;
-import org.cryptimeleon.math.serialization.Representable;
-import org.cryptimeleon.math.serialization.Representation;
+import org.cryptimeleon.math.serialization.*;
 
+import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Objects;
+import java.util.UUID;
 
 public class EarnStoreRequest implements Representable {
     private final byte[] h;
+    private final UUID basketId;
+    private final BigInteger promotionId;
 
-    public EarnStoreRequest(byte[] h) {
+    public EarnStoreRequest(byte[] h, UUID basketId, BigInteger promotionId) {
         this.h = h;
+        this.basketId = basketId;
+        this.promotionId = promotionId;
     }
 
     public EarnStoreRequest(Representation representation) {
-        this.h = ((ByteArrayRepresentation) representation).get();
+        ListRepresentation listRepresentation = (ListRepresentation) representation;
+        this.h = ((ByteArrayRepresentation) listRepresentation.get(0)).get();
+        this.basketId = UUID.fromString(((StringRepresentation) listRepresentation.get(1)).get());
+        this.promotionId = new BigInteger(((StringRepresentation) listRepresentation.get(2)).get());
     }
 
     public byte[] getH() {
         return h;
+    }
+
+    public UUID getBasketId() {
+        return basketId;
+    }
+
+    public BigInteger getPromotionId() {
+        return promotionId;
     }
 
     @Override
@@ -26,16 +42,22 @@ public class EarnStoreRequest implements Representable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         EarnStoreRequest that = (EarnStoreRequest) o;
-        return Arrays.equals(h, that.h);
+        return Arrays.equals(h, that.h) && Objects.equals(basketId, that.basketId) && Objects.equals(promotionId, that.promotionId);
     }
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(h);
+        int result = Objects.hash(basketId, promotionId);
+        result = 31 * result + Arrays.hashCode(h);
+        return result;
     }
 
     @Override
     public Representation getRepresentation() {
-        return new ByteArrayRepresentation(h);
+        return new ListRepresentation(
+                new ByteArrayRepresentation(h),
+                new StringRepresentation(basketId.toString()),
+                new StringRepresentation(promotionId.toString())
+        );
     }
 }
