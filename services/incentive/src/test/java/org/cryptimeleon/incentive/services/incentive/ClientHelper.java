@@ -5,11 +5,9 @@ import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.EarnRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.TokenUpdateResultsDto;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
-import org.cryptimeleon.incentive.crypto.model.EarnRequest;
-import org.cryptimeleon.incentive.crypto.model.Token;
+import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
-import org.cryptimeleon.incentive.crypto.model.JoinResponse;
 import org.cryptimeleon.incentive.promotion.Promotion;
 import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
@@ -236,6 +234,33 @@ public class ClientHelper {
         // execute second part of Earn algorithm and output resulting token
         return incentiveSystem.handleEarnRequestResponse(promotion.getPromotionParameters(), earnRequest, spseqSignature, pointsToEarn, token, pkp.getPk(), ukp);
     }
+
+
+    /**
+     * Generate an earn request based on parameters, run earn with service and compute updated token.
+     */
+    public static Token earnWithProviderECDSA(WebTestClient webClient,
+                                              IncentiveSystem incentiveSystem,
+                                              ProviderKeyPair pkp,
+                                              UserKeyPair ukp,
+                                              Token token,
+                                              Vector<BigInteger> pointsToEarn,
+                                              EarnStoreCoupon earnStoreCoupon,
+                                              PromotionParameters promotionParameters) {
+        var earnRequest = incentiveSystem.generateEarnRequest(token, pkp.getPk(), ukp, promotionParameters.getPromotionId(), pointsToEarn, earnStoreCoupon);
+        var serializedEarnResponse = webClient.get()
+                .uri("/earn")
+                .header("earn-request", jsonConverter.serialize(earnRequest.getRepresentation()))
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody(String.class)
+                .returnResult()
+                .getResponseBody();
+        var earnResponse = new SPSEQSignature(jsonConverter.deserialize(serializedEarnResponse), incentiveSystem.pp.getBg().getG1(), incentiveSystem.pp.getBg().getG2());
+        return incentiveSystem.handleEarnResponse(promotionParameters, earnRequest, earnResponse, pointsToEarn, token, pkp.getPk(), ukp);
+    }
+
 
     /*
     * helper methods

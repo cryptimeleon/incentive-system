@@ -24,6 +24,7 @@ import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.groups.GroupElement;
+import org.cryptimeleon.math.structures.rings.RingElement;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -96,6 +97,7 @@ public class IncentiveServiceTest {
             "Test Description",
             List.of(testTokenUpdate),
             "Test");
+    private final Vector<BigInteger> testEarnAmount = Vector.of(BigInteger.valueOf(12L));
 
     // shared secret for authenticated queries
     @Value("${incentive-service.provider-secret}")
@@ -207,6 +209,28 @@ public class IncentiveServiceTest {
 
     @Test
     public void earnTest(@Autowired WebTestClient webClient) {
+        // add promotion that is used for tests to the system
+        addPromotion(webClient, testPromotion, providerSecret, HttpStatus.OK);
+        Token token = TestSuite.generateToken(testPromotion.getPromotionParameters());
+        EarnStoreCoupon earnStoreCoupon = TestSuite.getEarnCouponForPromotion(testPromotion.getPromotionParameters(), token, testBasket.getBasketId(), testEarnAmount);
+
+        // generate earn request and pretend like the test user sent it to you
+        var updatedToken = earnWithProviderECDSA(
+                webClient,
+                incentiveSystem,
+                pkp,
+                ukp,
+                token,
+                testEarnAmount,
+                earnStoreCoupon,
+                testPromotion.getPromotionParameters()
+        );
+
+        assertThat(updatedToken.getPoints().map(RingElement::asInteger)).isEqualTo(testEarnAmount);
+    }
+
+    @Test
+    public void earnTestOld(@Autowired WebTestClient webClient) {
         // add promotion that is used for tests to the system
         addPromotion(webClient, testPromotion, providerSecret, HttpStatus.OK);
 

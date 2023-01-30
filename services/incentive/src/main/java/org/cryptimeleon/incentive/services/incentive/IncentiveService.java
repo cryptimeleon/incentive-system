@@ -1,6 +1,7 @@
 package org.cryptimeleon.incentive.services.incentive;
 
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
+import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentive.client.dto.inc.*;
 import org.cryptimeleon.incentive.crypto.IncentiveSystemRestorer;
 import org.cryptimeleon.incentive.crypto.callback.IRegistrationCouponDBHandler;
@@ -54,6 +55,7 @@ public class IncentiveService {
     private final TokenUpdateResultRepository tokenUpdateResultRepository;
     private final OfflineDSPRepository offlineDspRepository;
     private final RegistrationCouponRepository registrationCouponRepository;
+    private final ClearingRepository clearingRepository;
 
     @Autowired
     private IncentiveService(CryptoRepository cryptoRepository,
@@ -61,13 +63,15 @@ public class IncentiveService {
                              BasketRepository basketRepository,
                              TokenUpdateResultRepository tokenUpdateResultRepository,
                              OfflineDSPRepository offlineDspRepository,
-                             RegistrationCouponRepository registrationCouponRepository) {
+                             RegistrationCouponRepository registrationCouponRepository,
+                             ClearingRepository clearingRepository) {
         this.cryptoRepository = cryptoRepository;
         this.promotionRepository = promotionRepository;
         this.basketRepository = basketRepository;
         this.tokenUpdateResultRepository = tokenUpdateResultRepository;
         this.offlineDspRepository = offlineDspRepository;
         this.registrationCouponRepository = registrationCouponRepository;
+        this.clearingRepository = clearingRepository;
     }
 
     /**
@@ -340,5 +344,23 @@ public class IncentiveService {
                     jsonConverter.serialize(coupon.getStorePublicKey().getRepresentation())
             )
         ).collect(Collectors.toList());
+    }
+
+    public String handleEarn(String serializedEarnRequest) {
+        EarnRequestECDSA earnRequestECDSA = new EarnRequestECDSA(jsonConverter.deserialize(serializedEarnRequest), cryptoRepository.getPublicParameters());
+        Promotion promotion = promotionRepository.getPromotion(earnRequestECDSA.getPromotionId()).orElseThrow(() -> new IncentiveServiceException("Promotion not fount"));
+
+        // Callbacks for crypto implementation.
+        // TODO: Currently, we allow the message to be signed under any store public key
+        IStorePublicKeyVerificationHandler verificationHandler = (storePublicKey) -> true;
+
+        SPSEQSignature updatedSignature = cryptoRepository.getIncentiveSystem().generateEarnResponse(
+                promotion.getPromotionParameters(),
+                new ProviderKeyPair(cryptoRepository.getProviderSecretKey(), cryptoRepository.getProviderPublicKey()),
+                earnRequestECDSA,
+                clearingRepository::addEarnClearingData,
+                verificationHandler
+        );
+        return jsonConverter.serialize(updatedSignature.getRepresentation());
     }
 }

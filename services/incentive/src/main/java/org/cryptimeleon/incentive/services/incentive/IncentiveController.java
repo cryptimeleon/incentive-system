@@ -144,6 +144,11 @@ public class IncentiveController {
         return new ResponseEntity<>(incentiveService.joinPromotion(promotionId, serializedJoinRequest), HttpStatus.OK);
     }
 
+    @GetMapping("/earn")
+    public String earn(@RequestHeader(name = "earn-request") String serializedEarnRequest) {
+        return incentiveService.handleEarn(serializedEarnRequest);
+    }
+
     /**
      * HTTP endpoint for sending a bulk of spend and earn requests to the incentive server.
      * Server will apply the updates to the basket identified by the passed basket ID
