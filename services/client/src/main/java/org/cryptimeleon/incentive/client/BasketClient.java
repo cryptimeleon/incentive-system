@@ -1,6 +1,7 @@
 package org.cryptimeleon.incentive.client;
 
 import org.cryptimeleon.incentive.client.dto.*;
+import org.cryptimeleon.incentive.crypto.model.EarnStoreRequest;
 import org.cryptimeleon.incentive.promotion.Promotion;
 import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
@@ -139,6 +140,15 @@ public class BasketClient implements AliveEndpoint {
                 .uri("/register-user-and-obtain-serialized-registration-coupon")
                 .header("user-public-key", userPublicKey)
                 .header("user-info", userInfo)
+                .retrieve()
+                .bodyToMono(String.class).block();
+    }
+
+    public String requestEarnCoupon(EarnStoreRequest earnStoreRequest) {
+        return basketClient
+                .get()
+                .uri("/earn")
+                .header("earn-store-request", jsonConverter.serialize(earnStoreRequest.getRepresentation()))
                 .retrieve()
                 .bodyToMono(String.class).block();
     }

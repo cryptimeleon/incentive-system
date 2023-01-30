@@ -70,7 +70,7 @@ public class TransactionTestPreparation extends IncentiveSystemIntegrationTest {
         basketClient = new BasketClient(basketUrl);
         incentiveClient = new IncentiveClient(incentiveUrl);
 
-        cryptoAssets = TestHelper.getCryptoAssets(infoClient, providerSharedSecret);
+        cryptoAssets = TestHelper.getCryptoAssets(infoClient, providerSharedSecret, storeSharedSecret);
         incentiveSystem = new IncentiveSystem(cryptoAssets.getPublicParameters());
         incentiveRestorer = new IncentiveSystemRestorer(cryptoAssets.getPublicParameters());
 
@@ -78,7 +78,7 @@ public class TransactionTestPreparation extends IncentiveSystemIntegrationTest {
         basketClient.newRewardItem(rewardItemDto, basketProviderSecret).block();
         basketClient.addShoppingItems(testBasketItems, basketProviderSecret);
         // Promotions need to be present at both services!
-        basketClient.addPromotions(List.of(testPromotion), storeSharedSecret).block();
+        basketClient.addPromotions(List.of(testPromotion), basketProviderSecret).block();
         incentiveClient.addPromotions(List.of(testPromotion), incentiveProviderSecret).block();
     }
 

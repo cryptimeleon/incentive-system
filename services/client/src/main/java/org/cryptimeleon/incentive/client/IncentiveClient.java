@@ -2,6 +2,7 @@ package org.cryptimeleon.incentive.client;
 
 import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.TokenUpdateResultsDto;
+import org.cryptimeleon.incentive.crypto.model.EarnRequestECDSA;
 import org.cryptimeleon.incentive.crypto.model.RegistrationCoupon;
 import org.cryptimeleon.incentive.promotion.Promotion;
 import org.cryptimeleon.math.serialization.RepresentableRepresentation;
@@ -93,6 +94,15 @@ public class IncentiveClient implements AliveEndpoint {
         return incentiveClient.get()
                 .uri("/register-with-coupon")
                 .header("registration-coupon", jsonConverter.serialize(registrationCoupon.getRepresentation()))
+                .retrieve()
+                .bodyToMono((new ParameterizedTypeReference<String>() {}))
+                .block();
+    }
+
+    public String sendEarnRequest(EarnRequestECDSA earnRequest) {
+        return incentiveClient.get()
+                .uri("/earn")
+                .header("earn-request", jsonConverter.serialize(earnRequest.getRepresentation()))
                 .retrieve()
                 .bodyToMono((new ParameterizedTypeReference<String>() {}))
                 .block();
