@@ -1,9 +1,7 @@
 package org.cryptimeleon.incentive.crypto.crypto;
 
 import org.cryptimeleon.incentive.crypto.*;
-import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
-import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
-import org.cryptimeleon.incentive.crypto.model.Token;
+import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.store.StoreKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
@@ -11,6 +9,7 @@ import org.cryptimeleon.incentive.crypto.model.keys.user.UserPreKeyPair;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 
 import java.math.BigInteger;
+import java.util.UUID;
 
 public class TestSuite {
     static public final IncentivePublicParameters pp = IncentiveSystem.setup(128, BilinearGroupChoice.Debug);
@@ -37,5 +36,10 @@ public class TestSuite {
     public static Token generateToken(PromotionParameters promotionParameters,
                                       Vector<BigInteger> points) {
         return Helper.generateToken(pp, userKeyPair, providerKeyPair, promotionParameters, points);
+    }
+
+    public static EarnStoreCoupon getEarnCouponForPromotion(PromotionParameters promotionParameters, Token token, UUID basketId, Vector<BigInteger> earnAmount) {
+        EarnStoreRequest earnStoreRequest = incentiveSystem.generateEarnCouponRequest(token, userKeyPair, basketId, promotionParameters.getPromotionId());
+        return incentiveSystem.signEarnCoupon(storeKeyPair, earnAmount, earnStoreRequest, (a, b, c)-> true);
     }
 }
