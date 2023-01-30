@@ -30,7 +30,7 @@ public class EarnTest {
                 .isTrue();
 
         var providerReq = incSys.generateEarnRequest(token, TestSuite.providerKeyPair.getPk(), TestSuite.userKeyPair, promotionParameters.getPromotionId(), earnAmount, storeRes);
-        var providerRes = incSys.generateEarnResponse(promotionParameters, TestSuite.providerKeyPair, providerReq, earnAmount, (a, b, c, d) -> {});
+        var providerRes = incSys.generateEarnResponse(promotionParameters, TestSuite.providerKeyPair, providerReq, (a, b) -> {}, (a) -> true);
 
         var updatedToken = incSys.handleEarnResponse(promotionParameters, providerReq, providerRes, earnAmount, token, TestSuite.providerKeyPair.getPk(), TestSuite.userKeyPair);
 
@@ -48,7 +48,7 @@ public class EarnTest {
 
         var providerReq = incSys.generateEarnRequest(token, TestSuite.providerKeyPair.getPk(), TestSuite.userKeyPair, promotionParameters.getPromotionId(), invalidEarnAmount, storeRes);
 
-        assertThatThrownBy(() -> incSys.generateEarnResponse(promotionParameters, TestSuite.providerKeyPair, providerReq, earnAmount, (a, b, c, d) -> {}))
+        assertThatThrownBy(() -> incSys.generateEarnResponse(promotionParameters, TestSuite.providerKeyPair, providerReq, (a, b) -> {}, (a) -> true))
                 .isInstanceOf(RuntimeException.class);
     }
 
@@ -82,7 +82,7 @@ public class EarnTest {
                 .isTrue();
 
         var providerReq = incSys.generateEarnRequest(tokenWithDoubledPoints, TestSuite.providerKeyPair.getPk(), TestSuite.userKeyPair, promotionParameters.getPromotionId(), earnAmount, storeRes);
-        assertThatThrownBy(() -> incSys.generateEarnResponse(promotionParameters, TestSuite.providerKeyPair, providerReq, earnAmount, (a, b, c, d) -> {}))
+        assertThatThrownBy(() -> incSys.generateEarnResponse(promotionParameters, TestSuite.providerKeyPair, providerReq, (a, b) -> {}, (a) -> true))
                 .isInstanceOf(RuntimeException.class);
     }
 
@@ -103,5 +103,16 @@ public class EarnTest {
         EarnStoreCoupon recoveredEarnStoreCoupon = new EarnStoreCoupon(earnStoreCoupon.getRepresentation());
 
         assertThat(recoveredEarnStoreCoupon).isEqualTo(earnStoreCoupon);
+    }
+
+    @Test
+    void earnRequestECDSARepresentationTest() {
+        var storeReq = incSys.generateEarnCouponRequest(token, TestSuite.userKeyPair, basketId, promotionId);
+        EarnStoreCoupon earnStoreCoupon = incSys.signEarnCoupon(TestSuite.storeKeyPair, earnAmount, storeReq, (UUID basketId, BigInteger promotionId, byte[] hash) -> true);
+        EarnRequestECDSA earnRequestECDSA = incSys.generateEarnRequest(token, TestSuite.providerKeyPair.getPk(), TestSuite.userKeyPair, promotionId, Vector.of(BigInteger.ONE), earnStoreCoupon);
+
+        EarnRequestECDSA deserializedEarnRequestECDSA = new EarnRequestECDSA(earnRequestECDSA.getRepresentation(), TestSuite.pp);
+
+        assertThat(deserializedEarnRequestECDSA).isEqualTo(earnRequestECDSA);
     }
 }

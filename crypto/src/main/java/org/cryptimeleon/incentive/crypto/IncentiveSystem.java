@@ -443,8 +443,8 @@ public class IncentiveSystem {
     public SPSEQSignature generateEarnResponse(PromotionParameters promotionParameters,
                                                ProviderKeyPair providerKeyPair,
                                                EarnRequestECDSA earnRequestECDSA,
-                                               Vector<BigInteger> deltaK,
-                                               IClearingDBHandler clearingDBHandler) {
+                                               IClearingDBHandler clearingDBHandler,
+                                               IStorePublicKeyVerificationHandler storePublicKeyVerificationHandler) {
         // Blinded token
         var c0Prime = earnRequestECDSA.getcPrime0();
         var c1Prime = earnRequestECDSA.getcPrime1();
@@ -452,6 +452,11 @@ public class IncentiveSystem {
 
         // Compute hash h
         var h = computeEarnHash(c0Prime, c1Prime, c2Prime);
+
+        // Verify Store ECDSA public key is trusted
+        if (!storePublicKeyVerificationHandler.isStorePublicKeyTrusted(earnRequestECDSA.getEarnStoreCoupon().getStorePublicKey())) {
+            throw new RuntimeException("Store public key is not trusted");
+        }
 
         // Verify ECDSA
         ECDSASignatureScheme ecdsaSignatureScheme = new ECDSASignatureScheme();
@@ -465,11 +470,11 @@ public class IncentiveSystem {
         if (!blindedSpseqValid) throw new RuntimeException("(Blinded) SPSEQ signature invalid");
 
         // Add to clearing DB
-        clearingDBHandler.addEarningDataToClearingDB(promotionParameters.getPromotionId(), deltaK, h, earnRequestECDSA);
+        clearingDBHandler.addEarningDataToClearingDB(earnRequestECDSA, h);
 
         // Blind-sign update
         var Q = providerKeyPair.getSk().getTokenPointsQ(promotionParameters);
-        var K = deltaK.map(k -> pp.getBg().getG1().getZn().createZnElement(k));
+        var K = earnRequestECDSA.getDeltaK().map(k -> pp.getBg().getG1().getZn().createZnElement(k));
         var c0PrimePlusDeltaK = c0Prime.op(c1Prime.pow(Q.innerProduct(K))).compute();
 
         return (SPSEQSignature) spseqSignatureScheme.sign(providerKeyPair.getSk().getSkSpsEq(), c0PrimePlusDeltaK, c1Prime, c2Prime);
