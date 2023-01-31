@@ -12,7 +12,7 @@ dependencies {
 
     implementation 'org.cryptimeleon.incentive:crypto'
     implementation 'org.cryptimeleon.incentive:promotion'
-    testImplementation testFixtures('org.cryptimeleon.incentive:crypto')
+    testImplementation testFixtures('org.cryptimeleon.incentive:promotion')
 }
 
 bootJar {

@@ -10,7 +10,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
     implementation 'org.cryptimeleon.incentive:promotion'
-    testImplementation(testFixtures('org.cryptimeleon.incentive:crypto'))
+    testImplementation(testFixtures('org.cryptimeleon.incentive:promotion'))
 
     implementation project(":client")
 

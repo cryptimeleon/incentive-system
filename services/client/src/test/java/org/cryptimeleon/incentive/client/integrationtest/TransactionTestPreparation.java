@@ -49,6 +49,7 @@ public class TransactionTestPreparation extends IncentiveSystemIntegrationTest {
             "Some Test Promotion",
             List.of(testTokenUpdate),
             "Apple");
+
     protected final ItemDto firstTestItem = new ItemDto("1", "First Test Item", 100);
     protected final ItemDto secondTestItem = new ItemDto("1", "First Test Item", 100);
     protected final List<ItemDto> testBasketItems = List.of(firstTestItem, secondTestItem);

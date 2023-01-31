@@ -11,11 +11,10 @@ import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentive.promotion.Promotion;
-import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion;
+import org.cryptimeleon.incentive.promotion.TestSuiteWithPromotion;
 import org.cryptimeleon.incentive.promotion.hazel.HazelTokenUpdate;
 import org.cryptimeleon.incentive.promotion.model.Basket;
 import org.cryptimeleon.incentive.promotion.model.BasketItem;
-import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect;
 import org.cryptimeleon.incentive.services.incentive.api.RegistrationCouponJSON;
 import org.cryptimeleon.incentive.services.incentive.repository.BasketRepository;
 import org.cryptimeleon.incentive.services.incentive.repository.CryptoRepository;
@@ -87,16 +86,8 @@ public class IncentiveServiceTest {
     );
 
     // hard-coded token update
-    private final HazelTokenUpdate testTokenUpdate = new HazelTokenUpdate(UUID.randomUUID(),
-            "Reward",
-            new RewardSideEffect("Yay"),
-            2);
-    private final Promotion testPromotion = new HazelPromotion(
-            HazelPromotion.generatePromotionParameters(),
-            "Test Promotion",
-            "Test Description",
-            List.of(testTokenUpdate),
-            "Test");
+    private final Promotion testPromotion = TestSuiteWithPromotion.promotion;
+    private final HazelTokenUpdate testTokenUpdate = (HazelTokenUpdate) testPromotion.getZkpTokenUpdates().get(0);
     private final Vector<BigInteger> testEarnAmount = Vector.of(BigInteger.valueOf(12L));
 
     // shared secret for authenticated queries

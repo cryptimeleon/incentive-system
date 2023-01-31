@@ -2,10 +2,7 @@ package org.cryptimeleon.incentive.services.incentive;
 
 
 import org.cryptimeleon.incentive.promotion.Promotion;
-import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion;
-import org.cryptimeleon.incentive.promotion.hazel.HazelTokenUpdate;
-import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect;
-import org.cryptimeleon.incentive.promotion.streak.StreakPromotion;
+import org.cryptimeleon.incentive.promotion.TestSuiteWithPromotion;
 import org.cryptimeleon.incentive.services.incentive.repository.CryptoRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,9 +12,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.web.reactive.server.WebTestClient;
-
-import java.util.List;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cryptimeleon.incentive.services.incentive.ClientHelper.*;
@@ -30,18 +24,8 @@ import static org.cryptimeleon.incentive.services.incentive.ClientHelper.*;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class PromotionTest {
     // hard-coded promotions used for tests
-    private final Promotion firstTestPromotion = new HazelPromotion(
-            HazelPromotion.generatePromotionParameters(),
-            "First Test Promotion",
-            "First Test Description",
-            List.of(new HazelTokenUpdate(UUID.randomUUID(), "Reward", new RewardSideEffect("Yay"), 2)),
-            "Test");
-    private final Promotion secondTestPromotion = new StreakPromotion(
-            HazelPromotion.generatePromotionParameters(),
-            "Second Test Promotion",
-            "Second Test Description",
-            List.of(new HazelTokenUpdate(UUID.randomUUID(), "Reward", new RewardSideEffect("Yay"), 2)),
-            7);
+    private final Promotion firstTestPromotion = TestSuiteWithPromotion.promotion;
+    private final Promotion secondTestPromotion = TestSuiteWithPromotion.alternativePromotion;
 
     /*
     * Declares the crypto repository field as an attribute that is mocked

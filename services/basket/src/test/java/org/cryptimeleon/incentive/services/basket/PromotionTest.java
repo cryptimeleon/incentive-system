@@ -2,10 +2,7 @@ package org.cryptimeleon.incentive.services.basket;
 
 
 import org.cryptimeleon.incentive.promotion.Promotion;
-import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion;
-import org.cryptimeleon.incentive.promotion.hazel.HazelTokenUpdate;
-import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect;
-import org.cryptimeleon.incentive.promotion.streak.StreakPromotion;
+import org.cryptimeleon.incentive.promotion.TestSuiteWithPromotion;
 import org.cryptimeleon.incentive.services.basket.repository.CryptoRepository;
 import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
@@ -21,7 +18,6 @@ import org.springframework.web.reactive.function.BodyInserters;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -36,18 +32,8 @@ public class PromotionTest {
     private static final JSONConverter jsonConverter = new JSONConverter();
 
     // hard-coded promotions used for tests
-    private final Promotion firstTestPromotion = new HazelPromotion(
-            HazelPromotion.generatePromotionParameters(),
-            "First Test Promotion",
-            "First Test Description",
-            List.of(new HazelTokenUpdate(UUID.randomUUID(), "Reward", new RewardSideEffect("Yay"), 2)),
-            "Test");
-    private final Promotion secondTestPromotion = new StreakPromotion(
-            HazelPromotion.generatePromotionParameters(),
-            "Second Test Promotion",
-            "Second Test Description",
-            List.of(new HazelTokenUpdate(UUID.randomUUID(), "Reward", new RewardSideEffect("Yay"), 2)),
-            7);
+    private final Promotion firstTestPromotion = TestSuiteWithPromotion.promotion;
+    private final Promotion secondTestPromotion = TestSuiteWithPromotion.alternativePromotion;
 
     // shared secret used to make authenticated requests to the promotion service
     @Value("${basket-service.provider-secret}")
