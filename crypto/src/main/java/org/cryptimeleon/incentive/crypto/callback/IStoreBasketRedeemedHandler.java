@@ -3,6 +3,9 @@ package org.cryptimeleon.incentive.crypto.callback;
 import java.math.BigInteger;
 import java.util.UUID;
 
+/**
+ * Interface for the logic around redeeming baskets and re-requesting with the same hash.
+ */
 public interface IStoreBasketRedeemedHandler {
     /**
      * Returns true if:
