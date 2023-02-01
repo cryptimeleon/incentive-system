@@ -355,9 +355,8 @@ public class IncentiveService {
         IStorePublicKeyVerificationHandler verificationHandler = (storePublicKey) -> true;
 
         SPSEQSignature updatedSignature = cryptoRepository.getIncentiveSystem().generateEarnResponse(
-                promotion.getPromotionParameters(),
+                earnRequestECDSA, promotion.getPromotionParameters(),
                 new ProviderKeyPair(cryptoRepository.getProviderSecretKey(), cryptoRepository.getProviderPublicKey()),
-                earnRequestECDSA,
                 clearingRepository::addEarnClearingData,
                 verificationHandler
         );

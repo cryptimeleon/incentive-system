@@ -258,7 +258,7 @@ public class ClientHelper {
                 .returnResult()
                 .getResponseBody();
         var earnResponse = new SPSEQSignature(jsonConverter.deserialize(serializedEarnResponse), incentiveSystem.pp.getBg().getG1(), incentiveSystem.pp.getBg().getG2());
-        return incentiveSystem.handleEarnResponse(promotionParameters, earnRequest, earnResponse, pointsToEarn, token, pkp.getPk(), ukp);
+        return incentiveSystem.handleEarnResponse(earnRequest, earnResponse, promotionParameters, token, ukp, pkp.getPk());
     }
 
 

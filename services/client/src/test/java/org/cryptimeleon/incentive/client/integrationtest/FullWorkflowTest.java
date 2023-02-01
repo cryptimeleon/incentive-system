@@ -122,7 +122,7 @@ public class FullWorkflowTest extends TransactionTestPreparation {
         var earnRequest = incentiveSystem.generateEarnRequest(token, cryptoAssets.getProviderKeyPair().getPk(), cryptoAssets.getUserKeyPair(), promotion.getPromotionParameters().getPromotionId(), pointsToEarn, earnCoupon);
         var serializedEarnResponse = incentiveClient.sendEarnRequest(earnRequest);
         SPSEQSignature updatedSignature = new SPSEQSignature(jsonConverter.deserialize(serializedEarnResponse), cryptoAssets.getPublicParameters().getBg().getG1(), cryptoAssets.getPublicParameters().getBg().getG2());
-        return incentiveSystem.handleEarnResponse(promotion.getPromotionParameters(), earnRequest, updatedSignature, pointsToEarn, token, cryptoAssets.getProviderKeyPair().getPk(), cryptoAssets.getUserKeyPair());
+        return incentiveSystem.handleEarnResponse(earnRequest, updatedSignature, promotion.getPromotionParameters(), token, cryptoAssets.getUserKeyPair(), cryptoAssets.getProviderKeyPair().getPk());
     }
 
     @Deprecated

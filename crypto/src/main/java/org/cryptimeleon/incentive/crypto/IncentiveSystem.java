@@ -446,6 +446,17 @@ public class IncentiveSystem {
         return ecdsaSignatureScheme.verify(message, earnStoreCouponSignature.getSignature(), earnStoreCouponSignature.getStorePublicKey().getEcdsaVerificationKey());
     }
 
+    /**
+     * Generate a earn request that uses a earn coupon signed by a store as a proof that one is eligigble to earn points.
+     *
+     * @param token the token to update, must be the same as used for the coupon
+     * @param providerPublicKey the public key of the provider required for blinding the tokens signature
+     * @param userKeyPair the user keypair
+     * @param promotionId the promotion id of the token
+     * @param deltaK the vector of points that shall be added to the tokens points. Must match the amount signed by the {@literal earnStoreCouponSignature}
+     * @param earnStoreCouponSignature the signature of a trusted store admitting this earn request
+     * @return the request to send to the provider
+     */
     public EarnRequestECDSA generateEarnRequest(
             Token token,
             ProviderPublicKey providerPublicKey,
@@ -473,9 +484,23 @@ public class IncentiveSystem {
         );
     }
 
-    public SPSEQSignature generateEarnResponse(PromotionParameters promotionParameters,
+    /**
+     * Providers logic for handling a earn request. Does the following:
+     * 1. Verify request authenticated by trusted store
+     * 2. Verify token valid
+     * 3. Update token to new score
+     * 4. Store clearing data to make store 'pay' for issuing the points
+     *
+     * @param earnRequestECDSA                  the earn request
+     * @param promotionParameters               the parameters associated to the promotion from the user's request. Can be identified
+     *                                          by the promotionId in the request
+     * @param providerKeyPair                   the keys of the provider
+     * @param clearingDBHandler                 a callback for adding all relevant data to the clearing db
+     * @param storePublicKeyVerificationHandler a callback for verifying that the store's key used to authenticate the request is trusted
+     * @return the blindly updated signature
+     */
+    public SPSEQSignature generateEarnResponse(EarnRequestECDSA earnRequestECDSA, PromotionParameters promotionParameters,
                                                ProviderKeyPair providerKeyPair,
-                                               EarnRequestECDSA earnRequestECDSA,
                                                IClearingDBHandler clearingDBHandler,
                                                IStorePublicKeyVerificationHandler storePublicKeyVerificationHandler) {
         // Blinded token
@@ -513,17 +538,27 @@ public class IncentiveSystem {
         return (SPSEQSignature) spseqSignatureScheme.sign(providerKeyPair.getSk().getSkSpsEq(), c0PrimePlusDeltaK, c1Prime, c2Prime);
     }
 
-    public Token handleEarnResponse(PromotionParameters promotionParameters,
-                                    EarnRequestECDSA earnRequest,
+    /**
+     * Obtains the updated token with more points from the blinded updated signature retrieved from the provider.
+     *
+     * @param earnRequest the request sent to the provider
+     * @param changedSignature the response signature
+     * @param promotionParameters the parameters of this promotion
+     * @param token the old token
+     * @param userKeyPair the user keypair
+     * @param providerPublicKey the provider's public key
+     * @return the updated token with more points
+     */
+    public Token handleEarnResponse(EarnRequestECDSA earnRequest,
                                     SPSEQSignature changedSignature,
-                                    Vector<BigInteger> deltaK,
+                                    PromotionParameters promotionParameters,
                                     Token token,
-                                    ProviderPublicKey providerPublicKey,
-                                    UserKeyPair userKeyPair) {
+                                    UserKeyPair userKeyPair,
+                                    ProviderPublicKey providerPublicKey) {
 
         // Pseudorandom randomness s used for blinding in the request
         var s = pp.getPrfToZn().hashThenPrfToZn(userKeyPair.getSk().getPrfKey(), token, "CreditEarn");
-        var K = RingElementVector.fromStream(deltaK.stream().map(e -> pp.getBg().getZn().createZnElement(e)));
+        var K = RingElementVector.fromStream(earnRequest.getDeltaK().stream().map(e -> pp.getBg().getZn().createZnElement(e)));
 
         // Recover blinded commitments (to match the commitments signed by the prover) with updated value
         var blindedNewC0 = earnRequest.getcPrime0()

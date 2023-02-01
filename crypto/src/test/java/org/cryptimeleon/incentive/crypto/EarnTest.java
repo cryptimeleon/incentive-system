@@ -30,9 +30,9 @@ public class EarnTest {
                 .isTrue();
 
         var providerReq = incSys.generateEarnRequest(token, TestSuite.providerKeyPair.getPk(), TestSuite.userKeyPair, promotionParameters.getPromotionId(), earnAmount, storeRes);
-        var providerRes = incSys.generateEarnResponse(promotionParameters, TestSuite.providerKeyPair, providerReq, (a, b) -> {}, (a) -> true);
+        var providerRes = incSys.generateEarnResponse(providerReq, promotionParameters, TestSuite.providerKeyPair, (a, b) -> {}, (a) -> true);
 
-        var updatedToken = incSys.handleEarnResponse(promotionParameters, providerReq, providerRes, earnAmount, token, TestSuite.providerKeyPair.getPk(), TestSuite.userKeyPair);
+        var updatedToken = incSys.handleEarnResponse(providerReq, providerRes, promotionParameters, token, TestSuite.userKeyPair, TestSuite.providerKeyPair.getPk());
 
         assertThat(updatedToken.getPoints().zip(earnAmount, (l, r) -> l.asInteger().equals(r)).reduce((l, r) -> l && r))
                 .isTrue();
@@ -48,7 +48,7 @@ public class EarnTest {
 
         var providerReq = incSys.generateEarnRequest(token, TestSuite.providerKeyPair.getPk(), TestSuite.userKeyPair, promotionParameters.getPromotionId(), invalidEarnAmount, storeRes);
 
-        assertThatThrownBy(() -> incSys.generateEarnResponse(promotionParameters, TestSuite.providerKeyPair, providerReq, (a, b) -> {}, (a) -> true))
+        assertThatThrownBy(() -> incSys.generateEarnResponse(providerReq, promotionParameters, TestSuite.providerKeyPair, (a, b) -> {}, (a) -> true))
                 .isInstanceOf(RuntimeException.class);
     }
 
@@ -82,7 +82,7 @@ public class EarnTest {
                 .isTrue();
 
         var providerReq = incSys.generateEarnRequest(tokenWithDoubledPoints, TestSuite.providerKeyPair.getPk(), TestSuite.userKeyPair, promotionParameters.getPromotionId(), earnAmount, storeRes);
-        assertThatThrownBy(() -> incSys.generateEarnResponse(promotionParameters, TestSuite.providerKeyPair, providerReq, (a, b) -> {}, (a) -> true))
+        assertThatThrownBy(() -> incSys.generateEarnResponse(providerReq, promotionParameters, TestSuite.providerKeyPair, (a, b) -> {}, (a) -> true))
                 .isInstanceOf(RuntimeException.class);
     }
 
