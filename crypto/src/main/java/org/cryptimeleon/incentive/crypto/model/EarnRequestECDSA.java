@@ -19,7 +19,7 @@ public class EarnRequestECDSA implements Representable {
     @Represented
     private final Vector<BigInteger> deltaK;
     @Represented
-    private final EarnStoreCoupon earnStoreCoupon;
+    private final EarnStoreCouponSignature earnStoreCouponSignature;
     @Represented
     private final SPSEQSignature spseqSignature;
     @Represented(restorer = "bg")
@@ -27,10 +27,10 @@ public class EarnRequestECDSA implements Representable {
     @Represented(restorer = "bg")
     private final GroupElement cPrime1;
 
-    public EarnRequestECDSA(BigInteger promotionId, Vector<BigInteger> deltaK, EarnStoreCoupon earnStoreCoupon, SPSEQSignature spseqSignature, GroupElement cPrime0, GroupElement cPrime1) {
+    public EarnRequestECDSA(BigInteger promotionId, Vector<BigInteger> deltaK, EarnStoreCouponSignature earnStoreCouponSignature, SPSEQSignature spseqSignature, GroupElement cPrime0, GroupElement cPrime1) {
         this.promotionId = promotionId;
         this.deltaK = deltaK;
-        this.earnStoreCoupon = earnStoreCoupon;
+        this.earnStoreCouponSignature = earnStoreCouponSignature;
         this.spseqSignature = spseqSignature;
         this.cPrime0 = cPrime0;
         this.cPrime1 = cPrime1;
@@ -40,7 +40,7 @@ public class EarnRequestECDSA implements Representable {
         ListRepresentation listRepresentation = (ListRepresentation) representation;
         this.promotionId = new BigInteger(((ByteArrayRepresentation) listRepresentation.get(0)).get());
         this.deltaK = new Vector<>(((ListRepresentation) listRepresentation.get(1)).stream().map(r -> new BigInteger(((ByteArrayRepresentation) r).get())).collect(Collectors.toList()));
-        this.earnStoreCoupon = new EarnStoreCoupon(listRepresentation.get(2));
+        this.earnStoreCouponSignature = new EarnStoreCouponSignature(listRepresentation.get(2));
         this.spseqSignature = new SPSEQSignature(listRepresentation.get(3), pp.getBg().getG1(), pp.getBg().getG2());
         this.cPrime0 = pp.getBg().getG1().restoreElement(listRepresentation.get(4));
         this.cPrime1 = pp.getBg().getG1().restoreElement(listRepresentation.get(5));
@@ -54,8 +54,8 @@ public class EarnRequestECDSA implements Representable {
         return deltaK;
     }
 
-    public EarnStoreCoupon getEarnStoreCoupon() {
-        return earnStoreCoupon;
+    public EarnStoreCouponSignature getEarnStoreCoupon() {
+        return earnStoreCouponSignature;
     }
 
     public SPSEQSignature getSpseqSignature() {
@@ -75,12 +75,12 @@ public class EarnRequestECDSA implements Representable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         EarnRequestECDSA that = (EarnRequestECDSA) o;
-        return Objects.equals(promotionId, that.promotionId) && Objects.equals(deltaK, that.deltaK) && Objects.equals(earnStoreCoupon, that.earnStoreCoupon) && Objects.equals(spseqSignature, that.spseqSignature) && Objects.equals(cPrime0, that.cPrime0) && Objects.equals(cPrime1, that.cPrime1);
+        return Objects.equals(promotionId, that.promotionId) && Objects.equals(deltaK, that.deltaK) && Objects.equals(earnStoreCouponSignature, that.earnStoreCouponSignature) && Objects.equals(spseqSignature, that.spseqSignature) && Objects.equals(cPrime0, that.cPrime0) && Objects.equals(cPrime1, that.cPrime1);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(promotionId, deltaK, earnStoreCoupon, spseqSignature, cPrime0, cPrime1);
+        return Objects.hash(promotionId, deltaK, earnStoreCouponSignature, spseqSignature, cPrime0, cPrime1);
     }
 
     @Override
@@ -88,7 +88,7 @@ public class EarnRequestECDSA implements Representable {
         return new ListRepresentation(
                 new ByteArrayRepresentation(promotionId.toByteArray()),
                 new ListRepresentation(deltaK.map(bigInteger -> new ByteArrayRepresentation(bigInteger.toByteArray())).stream().collect(Collectors.toList())),
-                earnStoreCoupon.getRepresentation(),
+                earnStoreCouponSignature.getRepresentation(),
                 spseqSignature.getRepresentation(),
                 cPrime0.getRepresentation(),
                 cPrime1.getRepresentation()

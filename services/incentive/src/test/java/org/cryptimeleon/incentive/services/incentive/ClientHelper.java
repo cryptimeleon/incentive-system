@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 
 /**
  * Implements the functionality of the incentive client for the test cases.
- *
+ * <p>
  * More precisely, a WebTestClient is used in the test cases
  * so this class provides one method for each incentive service endpoint
  * which makes the passed WebTestClient make the respective request.
@@ -152,7 +152,7 @@ public class ClientHelper {
      * @param promotionId ID of the promotion that the user wants to earn points for
      * @param basketId ID of the basket of the user (which is used to compute the earned points)
      * @param expectedStatus if any other status than this is returned upon the client's request, an exception is throwns
-     * @return
+     * @return the request that can processed by the provider
      */
     static EarnRequest generateAndSendEarnRequest(WebTestClient webTestClient,
                                                   IncentiveSystem incentiveSystem,
@@ -245,9 +245,9 @@ public class ClientHelper {
                                               UserKeyPair ukp,
                                               Token token,
                                               Vector<BigInteger> pointsToEarn,
-                                              EarnStoreCoupon earnStoreCoupon,
+                                              EarnStoreCouponSignature earnStoreCouponSignature,
                                               PromotionParameters promotionParameters) {
-        var earnRequest = incentiveSystem.generateEarnRequest(token, pkp.getPk(), ukp, promotionParameters.getPromotionId(), pointsToEarn, earnStoreCoupon);
+        var earnRequest = incentiveSystem.generateEarnRequest(token, pkp.getPk(), ukp, promotionParameters.getPromotionId(), pointsToEarn, earnStoreCouponSignature);
         var serializedEarnResponse = webClient.get()
                 .uri("/earn")
                 .header("earn-request", jsonConverter.serialize(earnRequest.getRepresentation()))

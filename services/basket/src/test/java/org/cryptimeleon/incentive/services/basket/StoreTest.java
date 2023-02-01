@@ -1,7 +1,7 @@
 package org.cryptimeleon.incentive.services.basket;
 
 import org.cryptimeleon.incentive.crypto.crypto.TestSuite;
-import org.cryptimeleon.incentive.crypto.model.EarnStoreCoupon;
+import org.cryptimeleon.incentive.crypto.model.EarnStoreCouponSignature;
 import org.cryptimeleon.incentive.crypto.model.EarnStoreRequest;
 import org.cryptimeleon.incentive.crypto.model.RegistrationCoupon;
 import org.cryptimeleon.incentive.crypto.model.Token;
@@ -99,15 +99,13 @@ public class StoreTest {
                 .expectBody(String.class)
                 .returnResult()
                 .getResponseBody();
-        EarnStoreCoupon earnStoreCoupon = new EarnStoreCoupon(jsonConverter.deserialize(serializedStoreEarnCoupon));
+        EarnStoreCouponSignature earnStoreCouponSignature = new EarnStoreCouponSignature(jsonConverter.deserialize(serializedStoreEarnCoupon));
 
         Vector<BigInteger> deltaK = promotion.computeEarningsForBasket(StoreService.promotionBasketFromBasketEntity(basket));
         assertThat(TestSuiteWithPromotion.incentiveSystem.verifyEarnCoupon(
-                        TestSuiteWithPromotion.storeKeyPair.getPk(),
-                        promotion.getPromotionParameters().getPromotionId(),
-                        deltaK,
-                        earnStoreRequest,
-                        earnStoreCoupon
+                earnStoreRequest, deltaK,
+                earnStoreCouponSignature,
+                        storePublicKey -> true
                 )
         ).isTrue();
     }

@@ -18,7 +18,6 @@ import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderSecretKey;
 import org.cryptimeleon.incentive.crypto.model.keys.store.StoreKeyPair;
-import org.cryptimeleon.incentive.crypto.model.keys.store.StorePublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPreKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
@@ -373,6 +372,15 @@ public class IncentiveSystem {
      * end of the implementation of the Issue {@literal <}-{@literal >}Join protocol
      */
 
+    /**
+     * Generate the request to the store for getting an 'earn coupon' for a specific promotion and basket.
+     *
+     * @param token earn points for this token
+     * @param userKeyPair only required for pseudorandomness
+     * @param basketId the id of the basket that this earn-request will be associated to
+     * @param promotionId the id of the promotion of this token and earn request
+     * @return a request that can be processed by the store
+     */
     public EarnStoreRequest generateEarnCouponRequest(Token token, UserKeyPair userKeyPair, UUID basketId, BigInteger promotionId) {
         // Compute pseudorandom value from the token that is used to blind the commitment
         // This makes this algorithm deterministic
@@ -387,10 +395,21 @@ public class IncentiveSystem {
         return new EarnStoreRequest(h, basketId, promotionId);
     }
 
-    public EarnStoreCoupon signEarnCoupon(StoreKeyPair storeKeyPair,
-                                          Vector<BigInteger> deltaK,
-                                          EarnStoreRequest earnStoreRequest,
-                                          IStoreBasketRedeemedHandler storeBasketRedeemedHandler) {
+    /**
+     * Method for the store to issue an earn coupon for a verified vector of points to earn for a fixed request and basket.
+     * It needs to be verified that the basket is not yet redeemed for a request with different hash (we allow re-requesting
+     * the same update in case of failure). Further, the basket needs to be marked as redeemed by this request.
+     *
+     * @param storeKeyPair the keypair of the store required to issue the signature of the coupon
+     * @param deltaK a verified amount of points the user is eligible to earn for the request
+     * @param earnStoreRequest the users request containing all necessary data for the store to verify the request and issue the coupon
+     * @param storeBasketRedeemedHandler a callback to 1) Check that this basket can be redeemed with this request 2) Marks this basket as redeemed for this request
+     * @return the 'coupon', which is essentially a signature on the earn update data under the stores ECDSA key
+     */
+    public EarnStoreCouponSignature signEarnCoupon(StoreKeyPair storeKeyPair,
+                                                   Vector<BigInteger> deltaK,
+                                                   EarnStoreRequest earnStoreRequest,
+                                                   IStoreBasketRedeemedHandler storeBasketRedeemedHandler) {
         boolean issueSignature = storeBasketRedeemedHandler.verifyAndStorePromotionIdAndHashForBasket(earnStoreRequest.getBasketId(), earnStoreRequest.getPromotionId(), earnStoreRequest.getH());
         if (!issueSignature) {
             throw new RuntimeException(String.format("Basket %s already redeemed with different hash than %s!", earnStoreRequest.getBasketId().toString(), Arrays.toString(earnStoreRequest.getH())));
@@ -400,17 +419,31 @@ public class IncentiveSystem {
         var message = constructEarnCouponMessageBlock(earnStoreRequest.getPromotionId(), deltaK, earnStoreRequest.getH());
         var signature = (ECDSASignature) ecdsaSignatureScheme.sign(message, storeKeyPair.getSk().getEcdsaSigningKey());
 
-        return new EarnStoreCoupon(signature, storeKeyPair.getPk());
+        return new EarnStoreCouponSignature(signature, storeKeyPair.getPk());
     }
 
-    public boolean verifyEarnCoupon(StorePublicKey storePublicKey,
-                                    BigInteger promotionId,
+    /**
+     * Verify that an earn store coupon is signed under a trusted public key.
+     *
+     * @param earnStoreRequest                  the requests which holds most data of the coupon
+     * @param deltaK                            the earn-amount of the coupon
+     * @param earnStoreCouponSignature          the signature of the coupon including the verification key
+     * @param storePublicKeyVerificationHandler a callback to verify that the verification key is trusted
+     * @return true if all checks pass
+     */
+    public boolean verifyEarnCoupon(EarnStoreRequest earnStoreRequest,
                                     Vector<BigInteger> deltaK,
-                                    EarnStoreRequest earnStoreRequest,
-                                    EarnStoreCoupon earnStoreCoupon) {
+                                    EarnStoreCouponSignature earnStoreCouponSignature,
+                                    IStorePublicKeyVerificationHandler storePublicKeyVerificationHandler) {
+
+        // Verify Store ECDSA public key is trusted
+        if (!storePublicKeyVerificationHandler.isStorePublicKeyTrusted(earnStoreCouponSignature.getStorePublicKey())) {
+            throw new RuntimeException("Store public key is not trusted");
+        }
+
         ECDSASignatureScheme ecdsaSignatureScheme = new ECDSASignatureScheme();
-        var message = constructEarnCouponMessageBlock(promotionId, deltaK, earnStoreRequest.getH());
-        return ecdsaSignatureScheme.verify(message, earnStoreCoupon.getSignature(), storePublicKey.getEcdsaVerificationKey());
+        var message = constructEarnCouponMessageBlock(earnStoreRequest.getPromotionId(), deltaK, earnStoreRequest.getH());
+        return ecdsaSignatureScheme.verify(message, earnStoreCouponSignature.getSignature(), earnStoreCouponSignature.getStorePublicKey().getEcdsaVerificationKey());
     }
 
     public EarnRequestECDSA generateEarnRequest(
@@ -419,7 +452,7 @@ public class IncentiveSystem {
             UserKeyPair userKeyPair,
             BigInteger promotionId,
             Vector<BigInteger> deltaK,
-            EarnStoreCoupon earnStoreCoupon
+            EarnStoreCouponSignature earnStoreCouponSignature
     ) {
         // Re-compute pseudorandom blinding value
         var s = pp.getPrfToZn().hashThenPrfToZn(userKeyPair.getSk().getPrfKey(), token, "CreditEarn");
@@ -429,7 +462,7 @@ public class IncentiveSystem {
         return new EarnRequestECDSA(
                 promotionId,
                 deltaK,
-                earnStoreCoupon,
+                earnStoreCouponSignature,
                 (SPSEQSignature) pp.getSpsEq().chgRep(
                         token.getSignature(),
                         s,

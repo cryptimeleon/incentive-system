@@ -3,7 +3,7 @@ package org.cryptimeleon.incentive.client.integrationtest;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.EarnRequestDto;
-import org.cryptimeleon.incentive.crypto.model.EarnStoreCoupon;
+import org.cryptimeleon.incentive.crypto.model.EarnStoreCouponSignature;
 import org.cryptimeleon.incentive.crypto.model.JoinResponse;
 import org.cryptimeleon.incentive.crypto.model.RegistrationCoupon;
 import org.cryptimeleon.incentive.crypto.model.Token;
@@ -115,8 +115,8 @@ public class FullWorkflowTest extends TransactionTestPreparation {
         var pointsToEarn = promotion.computeEarningsForBasket(basket);
         var earnCouponRequest = incentiveSystem.generateEarnCouponRequest(token, cryptoAssets.getUserKeyPair(), basket.getBasketId(), promotion.getPromotionParameters().getPromotionId());
         var serializedEarnCoupon  = basketClient.requestEarnCoupon(earnCouponRequest);
-        var earnCoupon = new EarnStoreCoupon(jsonConverter.deserialize(serializedEarnCoupon));
-        assertThat(incentiveSystem.verifyEarnCoupon(cryptoAssets.getStoreKeyPair().getPk(), promotion.getPromotionParameters().getPromotionId(), pointsToEarn, earnCouponRequest, earnCoupon))
+        var earnCoupon = new EarnStoreCouponSignature(jsonConverter.deserialize(serializedEarnCoupon));
+        assertThat(incentiveSystem.verifyEarnCoupon(earnCouponRequest, pointsToEarn, earnCoupon, storePublicKey -> true))
                 .isTrue();
 
         var earnRequest = incentiveSystem.generateEarnRequest(token, cryptoAssets.getProviderKeyPair().getPk(), cryptoAssets.getUserKeyPair(), promotion.getPromotionParameters().getPromotionId(), pointsToEarn, earnCoupon);

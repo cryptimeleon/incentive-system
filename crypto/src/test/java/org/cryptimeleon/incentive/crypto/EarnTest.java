@@ -26,7 +26,7 @@ public class EarnTest {
 
         var storeReq = incSys.generateEarnCouponRequest(token, TestSuite.userKeyPair, basketId, promotionId);
         var storeRes = incSys.signEarnCoupon(TestSuite.storeKeyPair, earnAmount, storeReq, (UUID basketId, BigInteger promotionId, byte[] hash) -> true);
-        assertThat(incSys.verifyEarnCoupon(TestSuite.storeKeyPair.getPk(), promotionParameters.getPromotionId(), earnAmount, storeReq, storeRes))
+        assertThat(incSys.verifyEarnCoupon(storeReq, earnAmount, storeRes, storePublicKey -> true))
                 .isTrue();
 
         var providerReq = incSys.generateEarnRequest(token, TestSuite.providerKeyPair.getPk(), TestSuite.userKeyPair, promotionParameters.getPromotionId(), earnAmount, storeRes);
@@ -43,7 +43,7 @@ public class EarnTest {
         var invalidEarnAmount = Vector.of(BigInteger.valueOf(5L), BigInteger.valueOf(7L));
         var storeReq = incSys.generateEarnCouponRequest(token, TestSuite.userKeyPair, basketId, promotionId);
         var storeRes = incSys.signEarnCoupon(TestSuite.storeKeyPair, earnAmount, storeReq, (UUID basketId, BigInteger promotionId, byte[] hash) -> true);
-        assertThat(incSys.verifyEarnCoupon(TestSuite.storeKeyPair.getPk(), promotionParameters.getPromotionId(), earnAmount, storeReq, storeRes))
+        assertThat(incSys.verifyEarnCoupon(storeReq, earnAmount, storeRes, storePublicKey -> true))
                 .isTrue();
 
         var providerReq = incSys.generateEarnRequest(token, TestSuite.providerKeyPair.getPk(), TestSuite.userKeyPair, promotionParameters.getPromotionId(), invalidEarnAmount, storeRes);
@@ -78,7 +78,7 @@ public class EarnTest {
 
         var storeReq = incSys.generateEarnCouponRequest(tokenWithDoubledPoints, TestSuite.userKeyPair, basketId, promotionId);
         var storeRes = incSys.signEarnCoupon(TestSuite.storeKeyPair, earnAmount, storeReq, (UUID basketId, BigInteger promotionId, byte[] hash) -> true);
-        assertThat(incSys.verifyEarnCoupon(TestSuite.storeKeyPair.getPk(), promotionParameters.getPromotionId(), earnAmount, storeReq, storeRes))
+        assertThat(incSys.verifyEarnCoupon(storeReq, earnAmount, storeRes, storePublicKey -> true))
                 .isTrue();
 
         var providerReq = incSys.generateEarnRequest(tokenWithDoubledPoints, TestSuite.providerKeyPair.getPk(), TestSuite.userKeyPair, promotionParameters.getPromotionId(), earnAmount, storeRes);
@@ -98,18 +98,18 @@ public class EarnTest {
     @Test
     void earnStoreCouponRepresentationTest() {
         var storeReq = incSys.generateEarnCouponRequest(token, TestSuite.userKeyPair, basketId, promotionId);
-        EarnStoreCoupon earnStoreCoupon = incSys.signEarnCoupon(TestSuite.storeKeyPair, earnAmount, storeReq, (UUID basketId, BigInteger promotionId, byte[] hash) -> true);
+        EarnStoreCouponSignature earnStoreCouponSignature = incSys.signEarnCoupon(TestSuite.storeKeyPair, earnAmount, storeReq, (UUID basketId, BigInteger promotionId, byte[] hash) -> true);
 
-        EarnStoreCoupon recoveredEarnStoreCoupon = new EarnStoreCoupon(earnStoreCoupon.getRepresentation());
+        EarnStoreCouponSignature recoveredEarnStoreCouponSignature = new EarnStoreCouponSignature(earnStoreCouponSignature.getRepresentation());
 
-        assertThat(recoveredEarnStoreCoupon).isEqualTo(earnStoreCoupon);
+        assertThat(recoveredEarnStoreCouponSignature).isEqualTo(earnStoreCouponSignature);
     }
 
     @Test
     void earnRequestECDSARepresentationTest() {
         var storeReq = incSys.generateEarnCouponRequest(token, TestSuite.userKeyPair, basketId, promotionId);
-        EarnStoreCoupon earnStoreCoupon = incSys.signEarnCoupon(TestSuite.storeKeyPair, earnAmount, storeReq, (UUID basketId, BigInteger promotionId, byte[] hash) -> true);
-        EarnRequestECDSA earnRequestECDSA = incSys.generateEarnRequest(token, TestSuite.providerKeyPair.getPk(), TestSuite.userKeyPair, promotionId, Vector.of(BigInteger.ONE), earnStoreCoupon);
+        EarnStoreCouponSignature earnStoreCouponSignature = incSys.signEarnCoupon(TestSuite.storeKeyPair, earnAmount, storeReq, (UUID basketId, BigInteger promotionId, byte[] hash) -> true);
+        EarnRequestECDSA earnRequestECDSA = incSys.generateEarnRequest(token, TestSuite.providerKeyPair.getPk(), TestSuite.userKeyPair, promotionId, Vector.of(BigInteger.ONE), earnStoreCouponSignature);
 
         EarnRequestECDSA deserializedEarnRequestECDSA = new EarnRequestECDSA(earnRequestECDSA.getRepresentation(), TestSuite.pp);
 

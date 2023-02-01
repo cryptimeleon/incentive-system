@@ -38,7 +38,7 @@ public class TestSuite {
         return Helper.generateToken(pp, userKeyPair, providerKeyPair, promotionParameters, points);
     }
 
-    public static EarnStoreCoupon getEarnCouponForPromotion(PromotionParameters promotionParameters, Token token, UUID basketId, Vector<BigInteger> earnAmount) {
+    public static EarnStoreCouponSignature getEarnCouponForPromotion(PromotionParameters promotionParameters, Token token, UUID basketId, Vector<BigInteger> earnAmount) {
         EarnStoreRequest earnStoreRequest = incentiveSystem.generateEarnCouponRequest(token, userKeyPair, basketId, promotionParameters.getPromotionId());
         return incentiveSystem.signEarnCoupon(storeKeyPair, earnAmount, earnStoreRequest, (a, b, c)-> true);
     }
