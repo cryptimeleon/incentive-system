@@ -14,6 +14,7 @@ import org.cryptimeleon.math.structures.rings.zn.HashIntoZn;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 import java.math.BigInteger;
+import java.util.UUID;
 
 
 /**
@@ -45,7 +46,8 @@ public class Util {
      * @param cPre1 cPre1 to hash
      * @return hashed ZnElement gamma
      */
-    public static Zn.ZnElement hashGamma(Zn zn, GroupElement dsid, Zn.ZnElement tid, GroupElement cPre0, GroupElement cPre1, UniqueByteRepresentable userChoice) {
+    @Deprecated
+    public static Zn.ZnElement hashGammaOld(Zn zn, GroupElement dsid, Zn.ZnElement tid, GroupElement cPre0, GroupElement cPre1, UniqueByteRepresentable userChoice) {
         var hashfunction = new HashIntoZn(zn);
         var accumulator = new ByteArrayAccumulator();
         accumulator.escapeAndSeparate(dsid.getUniqueByteRepresentation());
@@ -53,6 +55,16 @@ public class Util {
         accumulator.escapeAndSeparate(cPre0.getUniqueByteRepresentation());
         accumulator.escapeAndSeparate(cPre1.getUniqueByteRepresentation());
         accumulator.escapeAndSeparate(userChoice);
+        return hashfunction.hash(accumulator.extractBytes());
+    }
+
+    static Zn.ZnElement hashGamma(Zn zn, GroupElement dsid, UUID basketId, GroupElement cPre0, GroupElement cPre1) {
+        var hashfunction = new HashIntoZn(zn);
+        var accumulator = new ByteArrayAccumulator();
+        accumulator.escapeAndSeparate(dsid.getUniqueByteRepresentation());
+        accumulator.escapeAndSeparate(basketId.toString());
+        accumulator.escapeAndSeparate(cPre0.getUniqueByteRepresentation());
+        accumulator.escapeAndSeparate(cPre1.getUniqueByteRepresentation());
         return hashfunction.hash(accumulator.extractBytes());
     }
 

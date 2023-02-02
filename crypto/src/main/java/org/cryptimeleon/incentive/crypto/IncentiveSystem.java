@@ -758,6 +758,28 @@ public class IncentiveSystem {
      * implementation of the Deduct {@literal <}-{@literal >}Spend protocol
      */
 
+    public SpendCouponRequest generateStoreSpendRequest(Token token, UserKeyPair userKeyPair, Vector<BigInteger> newPoints, ProviderPublicKey providerPublicKey, PromotionParameters promotionParameters, UUID basketId) {
+        var R = computeSpendDeductRandomness(userKeyPair.getSk(), token);
+        var zp = pp.getBg().getZn();
+        var usk = userKeyPair.getSk().getUsk();
+        var esk = token.getEncryptionSecretKey();
+        var dsid = pp.getW().pow(esk);
+        var vectorH = providerPublicKey.getH(this.pp, promotionParameters);
+        var vectorR = zp.getUniformlyRandomElements(pp.getNumEskDigits());
+        var newPointsVector = RingElementVector.fromStream(newPoints.stream().map(e -> pp.getBg().getZn().createZnElement(e)));
+
+        // Prepare a new commitment (cPre0, cPre1) based on the pseudorandom values
+        var exponents = new RingElementVector(R.tS, usk, R.eskUsrS, R.dsrnd0S, R.dsrnd1S, R.zS).concatenate(newPointsVector);
+        var cPre0 = vectorH.innerProduct(exponents).pow(R.uS).compute();
+        var cPre1 = pp.getG1Generator().pow(R.uS).compute();
+
+        var gamma = Util.hashGamma(zp, dsid, basketId, cPre0, cPre1); // TODO include all user choices
+        var c= usk.mul(gamma).add(token.getDoubleSpendRandomness0());
+
+        var proof = (FiatShamirProof) null;
+        return new SpendCouponRequest(dsid, c, token.getSignature(), token.getCommitment0(), cPre0, cPre1, proof);
+    }
+
 
     /**
      * Generates a request to add value k to token.
@@ -771,6 +793,7 @@ public class IncentiveSystem {
      * @param spendDeductTree     the zero knowledge proof for this promotion
      * @return serializable spendRequest that can be sent to the provider
      */
+    @Deprecated
     public SpendRequest generateSpendRequest(PromotionParameters promotionParameters,
                                              Token token,
                                              ProviderPublicKey providerPublicKey,
@@ -791,7 +814,7 @@ public class IncentiveSystem {
 
         /* Compute pseudorandom values */
         // As in credit-earn, we use the PRF to make the algorithm deterministic
-        var R = computeSpendDeductRandomness(userKeyPair.getSk(), token);
+        var R = computeSpendDeductRandomnessOld(userKeyPair.getSk(), token);
 
         // Prepare a new commitment (cPre0, cPre1) based on the pseudorandom values
         var exponents = new RingElementVector(R.tS, usk, R.eskUsrS, R.dsrnd0S, R.dsrnd1S, R.zS).concatenate(newPointsVector);
@@ -802,7 +825,7 @@ public class IncentiveSystem {
            If token is used twice in two different transactions, the provider observes (c0,c1), (c0',c1') with gamma!=gamma'
            Hence, the provider can easily retrieve usk and esk (using the Schnorr-trick, computing (c0-c0')/(gamma-gamma') for usk, analogously for esk). */
         // using tid as user choice TODO change this once user choice generation is properly implemented, see issue 75
-        var gamma = Util.hashGamma(zp, dsid, tid, cPre0, cPre1, tid);
+        var gamma = Util.hashGammaOld(zp, dsid, tid, cPre0, cPre1, tid);
         var c0 = usk.mul(gamma).add(token.getDoubleSpendRandomness0());
         var c1 = esk.mul(gamma).add(token.getDoubleSpendRandomness1());
 
@@ -842,6 +865,7 @@ public class IncentiveSystem {
      *                            influences the computation of challenge generator gamma and provider share esk_prov
      * @return tuple of response to send to the user and information required for double-spending protection
      */
+    @Deprecated
     public DeductOutput generateSpendRequestResponse(PromotionParameters promotionParameters,
                                                      SpendRequest spendRequest,
                                                      ProviderKeyPair providerKeyPair,
@@ -866,7 +890,7 @@ public class IncentiveSystem {
         var spendDeductZkp = new SpendDeductBooleanZkp(spendDeductTree, pp, promotionParameters, providerKeyPair.getPk());
         var fiatShamirProofSystem = new FiatShamirProofSystem(spendDeductZkp);
         // using tid as user choice TODO change this once user choice generation is properly implemented, see issue 75
-        var gamma = Util.hashGamma(pp.getBg().getZn(), spendRequest.getDsid(), tid, spendRequest.getCPre0(), spendRequest.getCPre1(), userChoice);
+        var gamma = Util.hashGammaOld(pp.getBg().getZn(), spendRequest.getDsid(), tid, spendRequest.getCPre0(), spendRequest.getCPre1(), userChoice);
         var commonInput = new SpendDeductZkpCommonInput(spendRequest, gamma);
         var proofValid = fiatShamirProofSystem.checkProof(commonInput, spendRequest.getSpendDeductZkp());
         if (!proofValid) {
@@ -917,6 +941,7 @@ public class IncentiveSystem {
      * @param userKeyPair       keypair of the user
      * @return token with the value of the old token + k
      */
+    @Deprecated
     public Token handleSpendRequestResponse(PromotionParameters promotionParameters,
                                             SpendResponse spendResponse,
                                             SpendRequest spendRequest,
@@ -929,7 +954,7 @@ public class IncentiveSystem {
         var newPointsVector = RingElementVector.fromStream(newPoints.stream().map(e -> pp.getBg().getZn().createZnElement(e)));
 
         // Re-compute pseudorandom values
-        var R = computeSpendDeductRandomness(userKeyPair.getSk(), token);
+        var R = computeSpendDeductRandomnessOld(userKeyPair.getSk(), token);
 
         // Verify the signature on the new, blinded commitment
         var blindedCStar0 = spendRequest.getCPre0().op(providerPublicKey.getH().get(1).pow(spendResponse.getEskProvStar().mul(R.uS)));
@@ -1224,11 +1249,22 @@ public class IncentiveSystem {
      * @param token         the token is hashed to server as input for the prf
      * @return a data object with the pseudorandom values
      */
-    private SpendDeductRandomness computeSpendDeductRandomness(UserSecretKey userSecretKey, Token token) {
+    @Deprecated
+    private SpendDeductRandomness computeSpendDeductRandomnessOld(UserSecretKey userSecretKey, Token token) {
         var prv = pp.getPrfToZn().hashThenPrfToZnVector(
                 userSecretKey.getPrfKey(),
                 token,
                 6,
+                "SpendDeductOld"
+        ).stream().map(ringElement -> (ZnElement) ringElement).collect(Collectors.toList());
+        return new SpendDeductRandomness(prv.get(0), prv.get(1), prv.get(2), prv.get(3), prv.get(4), prv.get(5));
+    }
+
+    private SpendDeductRandomness computeSpendDeductRandomness(UserSecretKey userSecretKey, Token token) {
+        var prv = pp.getPrfToZn().hashThenPrfToZnVector(
+                userSecretKey.getPrfKey(),
+                token,
+                5,
                 "SpendDeduct"
         ).stream().map(ringElement -> (ZnElement) ringElement).collect(Collectors.toList());
         return new SpendDeductRandomness(prv.get(0), prv.get(1), prv.get(2), prv.get(3), prv.get(4), prv.get(5));
