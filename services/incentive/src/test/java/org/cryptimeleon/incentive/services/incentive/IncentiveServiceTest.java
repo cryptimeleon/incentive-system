@@ -11,11 +11,10 @@ import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentive.promotion.Promotion;
-import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion;
+import org.cryptimeleon.incentive.promotion.TestSuiteWithPromotion;
 import org.cryptimeleon.incentive.promotion.hazel.HazelTokenUpdate;
 import org.cryptimeleon.incentive.promotion.model.Basket;
 import org.cryptimeleon.incentive.promotion.model.BasketItem;
-import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect;
 import org.cryptimeleon.incentive.services.incentive.api.RegistrationCouponJSON;
 import org.cryptimeleon.incentive.services.incentive.repository.BasketRepository;
 import org.cryptimeleon.incentive.services.incentive.repository.CryptoRepository;
@@ -24,6 +23,7 @@ import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.groups.GroupElement;
+import org.cryptimeleon.math.structures.rings.RingElement;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -86,16 +86,9 @@ public class IncentiveServiceTest {
     );
 
     // hard-coded token update
-    private final HazelTokenUpdate testTokenUpdate = new HazelTokenUpdate(UUID.randomUUID(),
-            "Reward",
-            new RewardSideEffect("Yay"),
-            2);
-    private final Promotion testPromotion = new HazelPromotion(
-            HazelPromotion.generatePromotionParameters(),
-            "Test Promotion",
-            "Test Description",
-            List.of(testTokenUpdate),
-            "Test");
+    private final Promotion testPromotion = TestSuiteWithPromotion.promotion;
+    private final HazelTokenUpdate testTokenUpdate = (HazelTokenUpdate) testPromotion.getZkpTokenUpdates().get(0);
+    private final Vector<BigInteger> testEarnAmount = Vector.of(BigInteger.valueOf(12L));
 
     // shared secret for authenticated queries
     @Value("${incentive-service.provider-secret}")
@@ -207,6 +200,28 @@ public class IncentiveServiceTest {
 
     @Test
     public void earnTest(@Autowired WebTestClient webClient) {
+        // add promotion that is used for tests to the system
+        addPromotion(webClient, testPromotion, providerSecret, HttpStatus.OK);
+        Token token = TestSuite.generateToken(testPromotion.getPromotionParameters());
+        EarnStoreCouponSignature earnStoreCouponSignature = TestSuite.getEarnCouponForPromotion(testPromotion.getPromotionParameters(), token, testBasket.getBasketId(), testEarnAmount);
+
+        // generate earn request and pretend like the test user sent it to you
+        var updatedToken = earnWithProviderECDSA(
+                webClient,
+                incentiveSystem,
+                pkp,
+                ukp,
+                token,
+                testEarnAmount,
+                earnStoreCouponSignature,
+                testPromotion.getPromotionParameters()
+        );
+
+        assertThat(updatedToken.getPoints().map(RingElement::asInteger)).isEqualTo(testEarnAmount);
+    }
+
+    @Test
+    public void earnTestOld(@Autowired WebTestClient webClient) {
         // add promotion that is used for tests to the system
         addPromotion(webClient, testPromotion, providerSecret, HttpStatus.OK);
 

@@ -5,11 +5,9 @@ import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.EarnRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.TokenUpdateResultsDto;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
-import org.cryptimeleon.incentive.crypto.model.EarnRequest;
-import org.cryptimeleon.incentive.crypto.model.Token;
+import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
-import org.cryptimeleon.incentive.crypto.model.JoinResponse;
 import org.cryptimeleon.incentive.promotion.Promotion;
 import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
@@ -28,7 +26,7 @@ import java.util.stream.Collectors;
 
 /**
  * Implements the functionality of the incentive client for the test cases.
- *
+ * <p>
  * More precisely, a WebTestClient is used in the test cases
  * so this class provides one method for each incentive service endpoint
  * which makes the passed WebTestClient make the respective request.
@@ -154,7 +152,7 @@ public class ClientHelper {
      * @param promotionId ID of the promotion that the user wants to earn points for
      * @param basketId ID of the basket of the user (which is used to compute the earned points)
      * @param expectedStatus if any other status than this is returned upon the client's request, an exception is throwns
-     * @return
+     * @return the request that can processed by the provider
      */
     static EarnRequest generateAndSendEarnRequest(WebTestClient webTestClient,
                                                   IncentiveSystem incentiveSystem,
@@ -236,6 +234,33 @@ public class ClientHelper {
         // execute second part of Earn algorithm and output resulting token
         return incentiveSystem.handleEarnRequestResponse(promotion.getPromotionParameters(), earnRequest, spseqSignature, pointsToEarn, token, pkp.getPk(), ukp);
     }
+
+
+    /**
+     * Generate an earn request based on parameters, run earn with service and compute updated token.
+     */
+    public static Token earnWithProviderECDSA(WebTestClient webClient,
+                                              IncentiveSystem incentiveSystem,
+                                              ProviderKeyPair pkp,
+                                              UserKeyPair ukp,
+                                              Token token,
+                                              Vector<BigInteger> pointsToEarn,
+                                              EarnStoreCouponSignature earnStoreCouponSignature,
+                                              PromotionParameters promotionParameters) {
+        var earnRequest = incentiveSystem.generateEarnRequest(token, pkp.getPk(), ukp, promotionParameters.getPromotionId(), pointsToEarn, earnStoreCouponSignature);
+        var serializedEarnResponse = webClient.get()
+                .uri("/earn")
+                .header("earn-request", jsonConverter.serialize(earnRequest.getRepresentation()))
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody(String.class)
+                .returnResult()
+                .getResponseBody();
+        var earnResponse = new SPSEQSignature(jsonConverter.deserialize(serializedEarnResponse), incentiveSystem.pp.getBg().getG1(), incentiveSystem.pp.getBg().getG2());
+        return incentiveSystem.handleEarnResponse(earnRequest, earnResponse, promotionParameters, token, ukp, pkp.getPk());
+    }
+
 
     /*
     * helper methods

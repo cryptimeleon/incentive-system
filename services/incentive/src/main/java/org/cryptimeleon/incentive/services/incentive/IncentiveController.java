@@ -94,13 +94,6 @@ public class IncentiveController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    /*
-     * end of endpoints for managing promotions in the system
-     */
-    /*
-     * endpoints for the user to interact with a provider of the incentive system
-     */
-
     /**
      * HTTP endpoint for deleting all promotions from the system.
      * Authorized action, requires passing the provider secret via a header in the HTTP request.
@@ -117,6 +110,13 @@ public class IncentiveController {
         incentiveService.deleteAllPromotions();
         return new ResponseEntity<>(HttpStatus.OK);
     }
+
+    /*
+     * end of endpoints for managing promotions in the system
+     */
+    /*
+     * endpoints for the user to interact with a provider of the incentive system
+     */
 
     /**
      * HTTP endpoint for joining the system by obtaining a registration token by showing a valid registration coupon
@@ -142,6 +142,11 @@ public class IncentiveController {
     @PostMapping("/join-promotion")
     public ResponseEntity<String> joinPromotion(@RequestHeader(name = "promotion-id") BigInteger promotionId, @RequestHeader(name = "join-request") String serializedJoinRequest) {
         return new ResponseEntity<>(incentiveService.joinPromotion(promotionId, serializedJoinRequest), HttpStatus.OK);
+    }
+
+    @GetMapping("/earn")
+    public String earn(@RequestHeader(name = "earn-request") String serializedEarnRequest) {
+        return incentiveService.handleEarn(serializedEarnRequest);
     }
 
     /**

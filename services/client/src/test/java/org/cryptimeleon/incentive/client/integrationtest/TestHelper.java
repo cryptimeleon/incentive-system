@@ -7,6 +7,9 @@ import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderSecretKey;
+import org.cryptimeleon.incentive.crypto.model.keys.store.StoreKeyPair;
+import org.cryptimeleon.incentive.crypto.model.keys.store.StorePublicKey;
+import org.cryptimeleon.incentive.crypto.model.keys.store.StoreSecretKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPreKeyPair;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
@@ -19,25 +22,30 @@ import java.util.Objects;
 public class TestHelper {
     private static final JSONConverter jsonConverter = new JSONConverter();
 
-    static TestCryptoAssets getCryptoAssets(InfoClient infoClient, String providerSharedSecret) {
+    static TestCryptoAssets getCryptoAssets(InfoClient infoClient, String providerSharedSecret, String storeSharedSecret) {
         IncentivePublicParameters pp = new IncentivePublicParameters(jsonConverter.deserialize(infoClient.querySerializedPublicParameters().block()));
         ProviderSecretKey providerSecretKey = new ProviderSecretKey(jsonConverter.deserialize(infoClient.querySerializedProviderSecretKey(providerSharedSecret).block()), pp);
         ProviderPublicKey providerPublicKey = new ProviderPublicKey(jsonConverter.deserialize(infoClient.querySerializedProviderPublicKey().block()), pp);
+        StorePublicKey storePublicKey  = new StorePublicKey(jsonConverter.deserialize(infoClient.querySerializedStorePublicKey().block()));
+        StoreSecretKey storeSecretKey = new StoreSecretKey(jsonConverter.deserialize(infoClient.querySerializedStoreSecretKey(storeSharedSecret).block()));
         ProviderKeyPair providerKeyPair = new ProviderKeyPair(providerSecretKey, providerPublicKey);
+        StoreKeyPair storeKeyPair = new StoreKeyPair(storeSecretKey, storePublicKey);
         UserPreKeyPair userPreKeyPair = (new IncentiveSystem(pp)).generateUserPreKeyPair();
         UserKeyPair userKeyPair = Util.addRegistrationSignatureToUserPreKeys(userPreKeyPair, providerKeyPair, pp);
-        return new TestCryptoAssets(pp, providerKeyPair, userKeyPair);
+        return new TestCryptoAssets(pp, providerKeyPair, storeKeyPair, userKeyPair);
     }
 }
 
 final class TestCryptoAssets {
     private final IncentivePublicParameters publicParameters;
     private final ProviderKeyPair providerKeyPair;
+    private final StoreKeyPair storeKeyPair;
     private final UserKeyPair userKeyPair;
 
-    public TestCryptoAssets(final IncentivePublicParameters publicParameters, final ProviderKeyPair providerKeyPair, final UserKeyPair userKeyPair) {
+    public TestCryptoAssets(IncentivePublicParameters publicParameters, ProviderKeyPair providerKeyPair, StoreKeyPair storeKeyPair, UserKeyPair userKeyPair) {
         this.publicParameters = publicParameters;
         this.providerKeyPair = providerKeyPair;
+        this.storeKeyPair = storeKeyPair;
         this.userKeyPair = userKeyPair;
     }
 
@@ -53,39 +61,20 @@ final class TestCryptoAssets {
         return this.userKeyPair;
     }
 
+    public StoreKeyPair getStoreKeyPair() {
+        return storeKeyPair;
+    }
+
     @Override
-    public boolean equals(final Object o) {
-        if (o == this) return true;
-        if (!(o instanceof TestCryptoAssets)) return false;
-        final TestCryptoAssets other = (TestCryptoAssets) o;
-        final Object this$publicParameters = this.getPublicParameters();
-        final Object other$publicParameters = other.getPublicParameters();
-        if (!Objects.equals(this$publicParameters, other$publicParameters))
-            return false;
-        final Object this$providerKeyPair = this.getProviderKeyPair();
-        final Object other$providerKeyPair = other.getProviderKeyPair();
-        if (!Objects.equals(this$providerKeyPair, other$providerKeyPair))
-            return false;
-        final Object this$userKeyPair = this.getUserKeyPair();
-        final Object other$userKeyPair = other.getUserKeyPair();
-        return Objects.equals(this$userKeyPair, other$userKeyPair);
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        TestCryptoAssets that = (TestCryptoAssets) o;
+        return Objects.equals(publicParameters, that.publicParameters) && Objects.equals(providerKeyPair, that.providerKeyPair) && Objects.equals(storeKeyPair, that.storeKeyPair) && Objects.equals(userKeyPair, that.userKeyPair);
     }
 
     @Override
     public int hashCode() {
-        final int PRIME = 59;
-        int result = 1;
-        final Object $publicParameters = this.getPublicParameters();
-        result = result * PRIME + ($publicParameters == null ? 43 : $publicParameters.hashCode());
-        final Object $providerKeyPair = this.getProviderKeyPair();
-        result = result * PRIME + ($providerKeyPair == null ? 43 : $providerKeyPair.hashCode());
-        final Object $userKeyPair = this.getUserKeyPair();
-        result = result * PRIME + ($userKeyPair == null ? 43 : $userKeyPair.hashCode());
-        return result;
-    }
-
-    @Override
-    public String toString() {
-        return "TestCryptoAssets(publicParameters=" + this.getPublicParameters() + ", providerKeyPair=" + this.getProviderKeyPair() + ", userKeyPair=" + this.getUserKeyPair() + ")";
+        return Objects.hash(publicParameters, providerKeyPair, storeKeyPair, userKeyPair);
     }
 }

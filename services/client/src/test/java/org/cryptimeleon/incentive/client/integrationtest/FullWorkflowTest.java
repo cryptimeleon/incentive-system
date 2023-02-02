@@ -3,9 +3,11 @@ package org.cryptimeleon.incentive.client.integrationtest;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.EarnRequestDto;
+import org.cryptimeleon.incentive.crypto.model.EarnStoreCouponSignature;
 import org.cryptimeleon.incentive.crypto.model.JoinResponse;
 import org.cryptimeleon.incentive.crypto.model.RegistrationCoupon;
 import org.cryptimeleon.incentive.crypto.model.Token;
+import org.cryptimeleon.incentive.promotion.Promotion;
 import org.cryptimeleon.incentive.promotion.model.Basket;
 import org.cryptimeleon.incentive.promotion.model.BasketItem;
 import org.cryptimeleon.math.structures.cartesian.Vector;
@@ -65,9 +67,19 @@ public class FullWorkflowTest extends TransactionTestPreparation {
     void earnTest() {
         var token = generateToken();
         var basket = createBasketWithItems();
+
+        Token newToken = runEarnProtocol(token, basket, testPromotion);
+        Assertions.assertEquals(newToken.getPoints().map(RingElement::asInteger), testPromotion.computeEarningsForBasket(basket));
+    }
+
+    @Test
+    @Deprecated
+    void earnTestLegacy() {
+        var token = generateToken();
+        var basket = createBasketWithItems();
         var basketValueForPromotion = testPromotion.computeEarningsForBasket(basket);
         log.info("Run valid credit earn protocol");
-        Token newToken = runEarnProtocol(token, basket, basketValueForPromotion);
+        Token newToken = runEarnProtocolLegacy(token, basket, basketValueForPromotion);
         Assertions.assertEquals(newToken.getPoints().map(RingElement::asInteger), basketValueForPromotion);
     }
 
@@ -99,7 +111,22 @@ public class FullWorkflowTest extends TransactionTestPreparation {
         return incentiveSystem.handleJoinRequestResponse(testPromotion.getPromotionParameters(), cryptoAssets.getProviderKeyPair().getPk(), joinTuple, joinResponse);
     }
 
-    private Token runEarnProtocol(Token token, org.cryptimeleon.incentive.promotion.model.Basket basket, org.cryptimeleon.math.structures.cartesian.Vector<java.math.BigInteger> basketValueForPromotion) {
+    private Token runEarnProtocol(Token token, org.cryptimeleon.incentive.promotion.model.Basket basket, Promotion promotion) {
+        var pointsToEarn = promotion.computeEarningsForBasket(basket);
+        var earnCouponRequest = incentiveSystem.generateEarnCouponRequest(token, cryptoAssets.getUserKeyPair(), basket.getBasketId(), promotion.getPromotionParameters().getPromotionId());
+        var serializedEarnCoupon  = basketClient.requestEarnCoupon(earnCouponRequest);
+        var earnCoupon = new EarnStoreCouponSignature(jsonConverter.deserialize(serializedEarnCoupon));
+        assertThat(incentiveSystem.verifyEarnCoupon(earnCouponRequest, pointsToEarn, earnCoupon, storePublicKey -> true))
+                .isTrue();
+
+        var earnRequest = incentiveSystem.generateEarnRequest(token, cryptoAssets.getProviderKeyPair().getPk(), cryptoAssets.getUserKeyPair(), promotion.getPromotionParameters().getPromotionId(), pointsToEarn, earnCoupon);
+        var serializedEarnResponse = incentiveClient.sendEarnRequest(earnRequest);
+        SPSEQSignature updatedSignature = new SPSEQSignature(jsonConverter.deserialize(serializedEarnResponse), cryptoAssets.getPublicParameters().getBg().getG1(), cryptoAssets.getPublicParameters().getBg().getG2());
+        return incentiveSystem.handleEarnResponse(earnRequest, updatedSignature, promotion.getPromotionParameters(), token, cryptoAssets.getUserKeyPair(), cryptoAssets.getProviderKeyPair().getPk());
+    }
+
+    @Deprecated
+    private Token runEarnProtocolLegacy(Token token, org.cryptimeleon.incentive.promotion.model.Basket basket, org.cryptimeleon.math.structures.cartesian.Vector<java.math.BigInteger> basketValueForPromotion) {
         var earnRequest = incentiveSystem.generateEarnRequest(token, cryptoAssets.getProviderKeyPair().getPk(), cryptoAssets.getUserKeyPair());
         var serializedEarnRequest = jsonConverter.serialize(earnRequest.getRepresentation());
         incentiveClient.sendBulkUpdates(basket.getBasketId(), new BulkRequestDto(List.of(new EarnRequestDto(testPromotion.getPromotionParameters().getPromotionId(), serializedEarnRequest)), Collections.emptyList())).block();

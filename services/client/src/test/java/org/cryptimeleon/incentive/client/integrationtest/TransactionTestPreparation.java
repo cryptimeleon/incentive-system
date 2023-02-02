@@ -49,6 +49,7 @@ public class TransactionTestPreparation extends IncentiveSystemIntegrationTest {
             "Some Test Promotion",
             List.of(testTokenUpdate),
             "Apple");
+
     protected final ItemDto firstTestItem = new ItemDto("1", "First Test Item", 100);
     protected final ItemDto secondTestItem = new ItemDto("1", "First Test Item", 100);
     protected final List<ItemDto> testBasketItems = List.of(firstTestItem, secondTestItem);
@@ -70,13 +71,15 @@ public class TransactionTestPreparation extends IncentiveSystemIntegrationTest {
         basketClient = new BasketClient(basketUrl);
         incentiveClient = new IncentiveClient(incentiveUrl);
 
-        cryptoAssets = TestHelper.getCryptoAssets(infoClient, sharedSecret);
+        cryptoAssets = TestHelper.getCryptoAssets(infoClient, providerSharedSecret, storeSharedSecret);
         incentiveSystem = new IncentiveSystem(cryptoAssets.getPublicParameters());
         incentiveRestorer = new IncentiveSystemRestorer(cryptoAssets.getPublicParameters());
 
         basketClient.newBasketItem(basketItemDto, basketProviderSecret).block();
         basketClient.newRewardItem(rewardItemDto, basketProviderSecret).block();
         basketClient.addShoppingItems(testBasketItems, basketProviderSecret);
+        // Promotions need to be present at both services!
+        basketClient.addPromotions(List.of(testPromotion), basketProviderSecret).block();
         incentiveClient.addPromotions(List.of(testPromotion), incentiveProviderSecret).block();
     }
 
