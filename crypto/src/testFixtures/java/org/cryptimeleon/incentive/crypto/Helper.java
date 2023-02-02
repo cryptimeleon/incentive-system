@@ -47,14 +47,13 @@ public class Helper {
         var vectorH = providerKeyPair.getPk().getH(pp, promotionParameters);
         var zp = pp.getBg().getZn();
         // Manually create a token since issue-join is not yet implemented
-        var encryptionSecretKey = zp.getUniformlyRandomNonzeroElement();
         var dsrd1 = zp.getUniformlyRandomElement();
         var dsrd2 = zp.getUniformlyRandomElement();
         var z = zp.getUniformlyRandomElement();
         var t = zp.getUniformlyRandomElement();
         var pointsVector = RingElementVector.fromStream(points.stream().map(e -> pp.getBg().getZn().createZnElement(e)));
         var exponents = RingElementVector.of(
-                t, userKeyPair.getSk().getUsk(), encryptionSecretKey, dsrd1, dsrd2, z
+                t, userKeyPair.getSk().getUsk(), zp.getZeroElement(), dsrd1, dsrd2, z
         );
         exponents = exponents.concatenate(pointsVector);
         var c1 = vectorH.innerProduct(exponents).compute();
@@ -63,7 +62,6 @@ public class Helper {
         return new Token(
                 c1,
                 c2,
-                encryptionSecretKey,
                 dsrd1,
                 dsrd2,
                 z,

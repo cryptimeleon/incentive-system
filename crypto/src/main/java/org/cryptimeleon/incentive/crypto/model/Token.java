@@ -26,9 +26,6 @@ public class Token implements Representable, UniqueByteRepresentable {
     private GroupElement commitment1; // the second part of the Pedersen commitment computed from the bases and the exponents, representing the actual token
 
     @Represented(restorer = "Zn")
-    private ZnElement encryptionSecretKey; // secret key used for the ElGamal encryption in the Spend algorithm
-
-    @Represented(restorer = "Zn")
     private ZnElement doubleSpendRandomness0; // randomness used for the first challenge generation in double spending protection
 
     @Represented(restorer = "Zn")
@@ -57,10 +54,9 @@ public class Token implements Representable, UniqueByteRepresentable {
                 .deserialize(repr);
     }
 
-    public Token(GroupElement commitment0, GroupElement commitment1, ZnElement encryptionSecretKey, ZnElement doubleSpendRandomness0, ZnElement doubleSpendRandomness1, ZnElement z, ZnElement t, BigInteger promotionId, RingElementVector points, SPSEQSignature signature) {
+    public Token(GroupElement commitment0, GroupElement commitment1, ZnElement doubleSpendRandomness0, ZnElement doubleSpendRandomness1, ZnElement z, ZnElement t, BigInteger promotionId, RingElementVector points, SPSEQSignature signature) {
         this.commitment0 = commitment0;
         this.commitment1 = commitment1;
-        this.encryptionSecretKey = encryptionSecretKey;
         this.doubleSpendRandomness0 = doubleSpendRandomness0;
         this.doubleSpendRandomness1 = doubleSpendRandomness1;
         this.z = z;
@@ -82,7 +78,6 @@ public class Token implements Representable, UniqueByteRepresentable {
         accumulator.escapeAndSeparate(this.commitment1.getUniqueByteRepresentation());
         accumulator.escapeAndSeparate(this.doubleSpendRandomness0.getUniqueByteRepresentation());
         accumulator.escapeAndSeparate(this.doubleSpendRandomness1.getUniqueByteRepresentation());
-        accumulator.escapeAndSeparate(this.encryptionSecretKey.getUniqueByteRepresentation());
         accumulator.escapeAndSeparate(this.signature.getUniqueByteRepresentation());
         accumulator.escapeAndSeparate(this.promotionId.toByteArray());
         accumulator.escapeAndSeparate(this.z.getUniqueByteRepresentation());
@@ -97,7 +92,7 @@ public class Token implements Representable, UniqueByteRepresentable {
      * @return element of group G1
      */
     public GroupElement computeDsid(IncentivePublicParameters pp) {
-        return pp.getW().pow(encryptionSecretKey);
+        return pp.getW().pow(0);
     }
 
     public GroupElement getCommitment0() {
@@ -106,10 +101,6 @@ public class Token implements Representable, UniqueByteRepresentable {
 
     public GroupElement getCommitment1() {
         return this.commitment1;
-    }
-
-    public ZnElement getEncryptionSecretKey() {
-        return this.encryptionSecretKey;
     }
 
     public ZnElement getDoubleSpendRandomness0() {
@@ -145,15 +136,15 @@ public class Token implements Representable, UniqueByteRepresentable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Token token = (Token) o;
-        return Objects.equals(commitment0, token.commitment0) && Objects.equals(commitment1, token.commitment1) && Objects.equals(encryptionSecretKey, token.encryptionSecretKey) && Objects.equals(doubleSpendRandomness0, token.doubleSpendRandomness0) && Objects.equals(doubleSpendRandomness1, token.doubleSpendRandomness1) && Objects.equals(z, token.z) && Objects.equals(t, token.t) && Objects.equals(promotionId, token.promotionId) && Objects.equals(points, token.points) && Objects.equals(signature, token.signature);
+        return Objects.equals(commitment0, token.commitment0) && Objects.equals(commitment1, token.commitment1) && Objects.equals(doubleSpendRandomness0, token.doubleSpendRandomness0) && Objects.equals(doubleSpendRandomness1, token.doubleSpendRandomness1) && Objects.equals(z, token.z) && Objects.equals(t, token.t) && Objects.equals(promotionId, token.promotionId) && Objects.equals(points, token.points) && Objects.equals(signature, token.signature);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(commitment0, commitment1, encryptionSecretKey, doubleSpendRandomness0, doubleSpendRandomness1, z, t, promotionId, points, signature);
+        return Objects.hash(commitment0, commitment1, doubleSpendRandomness0, doubleSpendRandomness1, z, t, promotionId, points, signature);
     }
 
     public String toString() {
-        return "Token(commitment0=" + this.getCommitment0() + ", commitment1=" + this.getCommitment1() + ", encryptionSecretKey=" + this.getEncryptionSecretKey() + ", doubleSpendRandomness0=" + this.getDoubleSpendRandomness0() + ", doubleSpendRandomness1=" + this.getDoubleSpendRandomness1() + ", z=" + this.getZ() + ", t=" + this.getT() + ", promotionId=" + this.getPromotionId() + ", points=" + this.getPoints() + ", signature=" + this.getSignature() + ")";
+        return "Token(commitment0=" + this.getCommitment0() + ", commitment1=" + this.getCommitment1() + ", doubleSpendRandomness0=" + this.getDoubleSpendRandomness0() + ", doubleSpendRandomness1=" + this.getDoubleSpendRandomness1() + ", z=" + this.getZ() + ", t=" + this.getT() + ", promotionId=" + this.getPromotionId() + ", points=" + this.getPoints() + ", signature=" + this.getSignature() + ")";
     }
 }

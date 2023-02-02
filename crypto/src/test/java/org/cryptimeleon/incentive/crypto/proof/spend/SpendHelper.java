@@ -14,6 +14,7 @@ import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkpCommonInput;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkpWitnessInput;
 import org.cryptimeleon.math.structures.cartesian.Vector;
+import org.cryptimeleon.math.structures.groups.cartesian.GroupElementVector;
 import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
 import org.cryptimeleon.math.structures.rings.integers.IntegerRing;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
@@ -90,8 +91,7 @@ public class SpendHelper {
     public static SpendZkpTestSuite generateTestSuite(Vector<BigInteger> newPoints, IncentivePublicParameters pp, PromotionParameters promotion, ProviderKeyPair providerKey, Token token, UserKeyPair userKey, Zn zn) {
         var zp = pp.getBg().getZn();
         var usk = userKey.getSk().getUsk();
-        var esk = token.getEncryptionSecretKey();
-        var dsid = pp.getW().pow(esk);
+        var dsid = pp.getW().pow(0);
         var vectorH = providerKey.getPk().getH(pp, promotion);
         var vectorR = zp.getUniformlyRandomElements(pp.getNumEskDigits());
         var newPointsVector = RingElementVector.fromStream(newPoints.stream().map(e -> pp.getBg().getZn().createZnElement(e)));
@@ -117,9 +117,9 @@ public class SpendHelper {
            If token is used twice in two different transactions, the provider observes (c0,c1), (c0',c1') with gamma!=gamma'
            Hence, the provider can easily retrieve usk and esk (using the Schnorr-trick, computing (c0-c0')/(gamma-gamma') for usk, analogously for esk). */
         // using tid as user choice TODO change this once user choice generation is properly implemented, see issue 75
-        var gamma = Util.hashGamma(zp, dsid, tid, cPre0, cPre1, tid);
+        var gamma = Util.hashGammaOld(zp, dsid, tid, cPre0, cPre1, tid);
         var c0 = usk.mul(gamma).add(token.getDoubleSpendRandomness0());
-        var c1 = esk.mul(gamma).add(token.getDoubleSpendRandomness1());
+        Zn.ZnElement c1 = null;
 
         /* Compute El-Gamal encryption of esk^*_usr using under secret key esk
            This allows the provider to decrypt usk^*_usr in case of double spending with the leaked esk.
@@ -131,10 +131,10 @@ public class SpendHelper {
 
         // Encrypt digits using El-Gamal and the randomness r
         var cTrace0 = pp.getW().pow(vectorR).compute();
-        var cTrace1 = cTrace0.pow(esk).op(pp.getW().pow(eskUsrSDec)).compute();
+        GroupElementVector cTrace1 = null;
 
         /* Build noninteractive (Fiat-Shamir transformed) ZKP to ensure that the user follows the rules of the protocol */
-        var witness = new SpendDeductZkpWitnessInput(usk, token.getZ(), zS, token.getT(), tS, uS, esk, eskUsrS, token.getDoubleSpendRandomness0(), dsrnd0S, token.getDoubleSpendRandomness1(), dsrnd1S, eskUsrSDec, vectorR, token.getPoints(), newPointsVector);
+        var witness = new SpendDeductZkpWitnessInput(usk, token.getZ(), zS, token.getT(), tS, uS, null, eskUsrS, token.getDoubleSpendRandomness0(), dsrnd0S, token.getDoubleSpendRandomness1(), dsrnd1S, eskUsrSDec, vectorR, token.getPoints(), newPointsVector);
         var commonInput = new SpendDeductZkpCommonInput(gamma, c0, c1, dsid, cPre0, cPre1, token.getCommitment0(), cTrace0, cTrace1);
         return new SpendZkpTestSuite(witness, commonInput);
     }

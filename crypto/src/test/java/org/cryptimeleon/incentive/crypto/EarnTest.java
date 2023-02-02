@@ -66,7 +66,6 @@ public class EarnTest {
         var tokenWithDoubledPoints = new Token(
                 token.getCommitment0().pow(2),
                 token.getCommitment1(),
-                token.getEncryptionSecretKey(),
                 token.getDoubleSpendRandomness0(),
                 token.getDoubleSpendRandomness1(),
                 token.getZ(),

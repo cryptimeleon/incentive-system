@@ -337,18 +337,13 @@ public class IncentiveSystem {
         // extract relevant variables from join request, join response and public parameters
         GroupElement c0Pre = jReq.getPreCommitment0();
         SPSEQSignature preCert = jRes.getPreCertificate();
-        ZnElement eskProv = jRes.getEskProv();
         SPSEQSignatureScheme usedSpsEq = pp.getSpsEq();
-
-        // re-compute modified pre-commitment for token
-        GroupElement h2 = pk.getH().get(1);
-        GroupElement modifiedC0Pre = c0Pre.op(h2.pow(R.u.mul(eskProv)));
 
         // verify the signature on the modified pre-commitment
         if (!usedSpsEq.verify(
                 pk.getPkSpsEq(),
                 preCert,
-                modifiedC0Pre,
+                c0Pre,
                 jReq.getPreCommitment1(),
                 jReq.getPreCommitment1().pow(promotionParameters.getPromotionId())
         )) {
@@ -357,15 +352,14 @@ public class IncentiveSystem {
 
         // change representation of token-certificate pair
         SPSEQSignature finalCert = (SPSEQSignature) usedSpsEq.chgRep(preCert, R.u.inv(), pk.getPkSpsEq()); // adapt signature
-        GroupElement finalCommitment0 = modifiedC0Pre.pow(R.u.inv()); // need to adapt message manually (entry by entry), used equivalence relation is R_exp
+        GroupElement finalCommitment0 = c0Pre.pow(R.u.inv()); // need to adapt message manually (entry by entry), used equivalence relation is R_exp
         GroupElement finalCommitment1 = pp.getG1Generator();
 
         // assemble and return token
-        ZnElement esk = R.eskUsr.add(eskProv);
         Zn usedZn = pp.getBg().getZn();
         RingElementVector zeros = RingElementVector.generate(usedZn::getZeroElement, promotionParameters.getPointsVectorSize());
 
-        return new Token(finalCommitment0, finalCommitment1, esk, R.dsrnd0, R.dsrnd1, R.z, R.t, promotionParameters.getPromotionId(), zeros, finalCert);
+        return new Token(finalCommitment0, finalCommitment1, R.dsrnd0, R.dsrnd1, R.z, R.t, promotionParameters.getPromotionId(), zeros, finalCert);
     }
 
     /*
@@ -585,7 +579,6 @@ public class IncentiveSystem {
         return new Token(
                 blindedNewC0.pow(s.inv()).compute(), // Un-blind commitment
                 blindedNewC1.pow(s.inv()).compute(), // see above
-                token.getEncryptionSecretKey(),
                 token.getDoubleSpendRandomness0(),
                 token.getDoubleSpendRandomness1(),
                 token.getZ(),
@@ -735,7 +728,6 @@ public class IncentiveSystem {
         return new Token(
                 blindedNewC0.pow(s.inv()).compute(), // Un-blind commitment
                 blindedNewC1.pow(s.inv()).compute(), // see above
-                token.getEncryptionSecretKey(),
                 token.getDoubleSpendRandomness0(),
                 token.getDoubleSpendRandomness1(),
                 token.getZ(),
@@ -762,8 +754,7 @@ public class IncentiveSystem {
         var R = computeSpendDeductRandomness(userKeyPair.getSk(), token);
         var zp = pp.getBg().getZn();
         var usk = userKeyPair.getSk().getUsk();
-        var esk = token.getEncryptionSecretKey();
-        var dsid = pp.getW().pow(esk);
+        GroupElement dsid = null;
         var vectorH = providerPublicKey.getH(this.pp, promotionParameters);
         var vectorR = zp.getUniformlyRandomElements(pp.getNumEskDigits());
         var newPointsVector = RingElementVector.fromStream(newPoints.stream().map(e -> pp.getBg().getZn().createZnElement(e)));
@@ -805,8 +796,7 @@ public class IncentiveSystem {
         // Some local variables and pre-computations to make the code more readable
         var zp = pp.getBg().getZn();
         var usk = userKeyPair.getSk().getUsk();
-        var esk = token.getEncryptionSecretKey();
-        var dsid = pp.getW().pow(esk);
+        var dsid = pp.getW().pow(1);
         var vectorH = providerPublicKey.getH(this.pp, promotionParameters);
         var vectorR = zp.getUniformlyRandomElements(pp.getNumEskDigits());
         var newPointsVector = RingElementVector.fromStream(newPoints.stream().map(e -> pp.getBg().getZn().createZnElement(e)));
@@ -827,7 +817,7 @@ public class IncentiveSystem {
         // using tid as user choice TODO change this once user choice generation is properly implemented, see issue 75
         var gamma = Util.hashGammaOld(zp, dsid, tid, cPre0, cPre1, tid);
         var c0 = usk.mul(gamma).add(token.getDoubleSpendRandomness0());
-        var c1 = esk.mul(gamma).add(token.getDoubleSpendRandomness1());
+        ZnElement c1 = null;
 
         /* Compute El-Gamal encryption of esk^*_usr using under secret key esk
            This allows the provider to decrypt usk^*_usr in case of double spending with the leaked esk.
@@ -839,12 +829,12 @@ public class IncentiveSystem {
 
         // Encrypt digits using El-Gamal and the randomness r
         var cTrace0 = pp.getW().pow(vectorR).compute();
-        var cTrace1 = cTrace0.pow(esk).op(pp.getW().pow(eskUsrSDec)).compute();
+        GroupElementVector cTrace1 = null;
 
         /* Build non-interactive (Fiat-Shamir transformed) ZKP to ensure that the user follows the rules of the protocol */
         var spendDeductZkp = new SpendDeductBooleanZkp(spendDeductTree, pp, promotionParameters, providerPublicKey);
         var fiatShamirProofSystem = new FiatShamirProofSystem(spendDeductZkp);
-        var witness = new SpendDeductZkpWitnessInput(usk, token.getZ(), R.zS, token.getT(), R.tS, R.uS, esk, R.eskUsrS, token.getDoubleSpendRandomness0(), R.dsrnd0S, token.getDoubleSpendRandomness1(), R.dsrnd1S, eskUsrSDec, vectorR, token.getPoints(), newPointsVector);
+        var witness = new SpendDeductZkpWitnessInput(usk, token.getZ(), R.zS, token.getT(), R.tS, R.uS, null, R.eskUsrS, token.getDoubleSpendRandomness0(), R.dsrnd0S, token.getDoubleSpendRandomness1(), R.dsrnd1S, eskUsrSDec, vectorR, token.getPoints(), newPointsVector);
         var commonInput = new SpendDeductZkpCommonInput(gamma, c0, c1, dsid, cPre0, cPre1, token.getCommitment0(), cTrace0, cTrace1);
         var proof = fiatShamirProofSystem.createProof(commonInput, witness);
 
@@ -972,7 +962,6 @@ public class IncentiveSystem {
         return new Token(
                 blindedCStar0.pow(R.uS.inv()), // Unblind commitment
                 pp.getG1Generator(), // Same as unblinded CStar1
-                R.eskUsrS.add(spendResponse.getEskProvStar()), // esk^* is sum of user's and providers new esk
                 R.dsrnd0S,
                 R.dsrnd1S,
                 R.zS,
