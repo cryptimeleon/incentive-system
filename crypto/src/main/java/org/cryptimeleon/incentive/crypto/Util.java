@@ -47,7 +47,7 @@ public class Util {
      * @return hashed ZnElement gamma
      */
     @Deprecated
-    public static Zn.ZnElement hashGammaOld(Zn zn, GroupElement dsid, Zn.ZnElement tid, GroupElement cPre0, GroupElement cPre1, UniqueByteRepresentable userChoice) {
+    public static Zn.ZnElement hashGammaOld(Zn zn, Zn.ZnElement dsid, Zn.ZnElement tid, GroupElement cPre0, GroupElement cPre1, UniqueByteRepresentable userChoice) {
         var hashfunction = new HashIntoZn(zn);
         var accumulator = new ByteArrayAccumulator();
         accumulator.escapeAndSeparate(dsid.getUniqueByteRepresentation());
@@ -58,7 +58,7 @@ public class Util {
         return hashfunction.hash(accumulator.extractBytes());
     }
 
-    static Zn.ZnElement hashGamma(Zn zn, GroupElement dsid, UUID basketId, GroupElement cPre0, GroupElement cPre1) {
+    static Zn.ZnElement hashGamma(Zn zn, Zn.ZnElement dsid, UUID basketId, GroupElement cPre0, GroupElement cPre1) {
         var hashfunction = new HashIntoZn(zn);
         var accumulator = new ByteArrayAccumulator();
         accumulator.escapeAndSeparate(dsid.getUniqueByteRepresentation());

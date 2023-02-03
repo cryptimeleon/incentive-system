@@ -12,7 +12,7 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
 import java.util.Objects;
 
 public class SpendCouponRequest implements Representable {
-    private final GroupElement dsid;
+    private final Zn.ZnElement dsid;
     private final Zn.ZnElement c;
     private final SPSEQSignature sigma;
     private final GroupElement c0; // do not send C_1 since it should be equal to g_1 anyways
@@ -24,7 +24,7 @@ public class SpendCouponRequest implements Representable {
         ListRepresentation listRepresentation = (ListRepresentation) representation;
         Group g1 = pp.getBg().getG1();
 
-        this.dsid = g1.restoreElement(listRepresentation.get(0));
+        this.dsid = pp.getBg().getZn().restoreElement(listRepresentation.get(0));
         this.c = pp.getBg().getZn().restoreElement(listRepresentation.get(1));
         this.sigma = pp.getSpsEq().restoreSignature(listRepresentation.get(2));
         this.c0 = g1.restoreElement(listRepresentation.get(3));
@@ -33,7 +33,7 @@ public class SpendCouponRequest implements Representable {
         // TODO
         this.spendZkp = null; // listRepresentation.get(6);
     }
-    public SpendCouponRequest(GroupElement dsid, Zn.ZnElement c, SPSEQSignature sigma, GroupElement c0, GroupElement cPre0, GroupElement cPre1, FiatShamirProof spendZkp) {
+    public SpendCouponRequest(Zn.ZnElement dsid, Zn.ZnElement c, SPSEQSignature sigma, GroupElement c0, GroupElement cPre0, GroupElement cPre1, FiatShamirProof spendZkp) {
         this.dsid = dsid;
         this.c = c;
         this.sigma = sigma;
@@ -43,7 +43,7 @@ public class SpendCouponRequest implements Representable {
         this.spendZkp = spendZkp;
     }
 
-    public GroupElement getDsid() {
+    public Zn.ZnElement getDsid() {
         return dsid;
     }
 
