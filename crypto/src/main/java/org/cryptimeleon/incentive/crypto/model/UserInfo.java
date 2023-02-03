@@ -20,18 +20,14 @@ public class UserInfo implements Representable {
     @Represented(restorer = "Zn")
     private Zn.ZnElement dsBlame;
 
-    @Represented(restorer = "Zn")
-    private Zn.ZnElement dsTrace;
-
     public UserInfo(Representation repr, IncentivePublicParameters pp) {
         new ReprUtil(this).register(pp.getBg().getZn(), "Zn").deserialize(repr.list().get(0));
         this.upk = new UserPublicKey(repr.list().get(1), pp);
     }
 
-    public UserInfo(UserPublicKey upk, Zn.ZnElement dsBlame, Zn.ZnElement dsTrace) {
+    public UserInfo(UserPublicKey upk, Zn.ZnElement dsBlame) {
         this.upk = upk;
         this.dsBlame = dsBlame;
-        this.dsTrace = dsTrace;
     }
 
     @Override
@@ -47,8 +43,7 @@ public class UserInfo implements Representable {
     @Override
     public String toString() {
         return this.upk.toString() + " "
-                + this.dsBlame.toString() + " "
-                + this.dsTrace.toString();
+                + this.dsBlame.toString();
     }
 
     public UserPublicKey getUpk() {
@@ -59,20 +54,16 @@ public class UserInfo implements Representable {
         return this.dsBlame;
     }
 
-    public Zn.ZnElement getDsTrace() {
-        return this.dsTrace;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         UserInfo userInfo = (UserInfo) o;
-        return Objects.equals(upk, userInfo.upk) && Objects.equals(dsBlame, userInfo.dsBlame) && Objects.equals(dsTrace, userInfo.dsTrace);
+        return Objects.equals(upk, userInfo.upk) && Objects.equals(dsBlame, userInfo.dsBlame);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(upk, dsBlame, dsTrace);
+        return Objects.hash(upk, dsBlame);
     }
 }

@@ -45,7 +45,7 @@ public class Setup {
     // Which AES version to use for the PRF-to-ZN
     public static final int HASH_THEN_PRF_AES_KEY_LENGTH = 256;
     // The size of the metadata base vector of a token
-    public static final int H_SIZE_WITHOUT_POINTS = 6;
+    public static final int H_SIZE_WITHOUT_POINTS = 5;
     // Base for esk decomposition. Requires as many signed digits in the provider's public key, but reduces digits and
     // hence verifications required in the Spend-Deduct protocol for the encryption secret key
     public static final long ESK_DEC_BASE = 256;
