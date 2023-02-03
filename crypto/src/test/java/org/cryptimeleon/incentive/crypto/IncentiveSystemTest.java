@@ -194,7 +194,7 @@ public class IncentiveSystemTest {
                 i -> finalUpdatedToken.getPoints().get(i).asInteger().subtract(newPointsAmount3.get(i)),
                 newPointsAmount3.length()
         );
-        SpendDeductTree spendDeductTestZkp = SpendHelper.generateSimpleTestSpendDeductTree(incSys.pp, promotionParameters, pkp.getPk(), spendAmount);
+        SpendDeductTree spendDeductTestZkp = SpendHelper.generateSimpleTestSpendDeductTree(promotionParameters, spendAmount);
 
         // user generates spend request
         SpendRequest spendRequest3 = incSys.generateSpendRequest(promotionParameters, updatedToken, pkp.getPk(), newPointsAmount3, ukp, tid3, spendDeductTestZkp);

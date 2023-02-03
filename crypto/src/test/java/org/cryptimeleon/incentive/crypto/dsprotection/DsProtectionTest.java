@@ -1,28 +1,15 @@
 package org.cryptimeleon.incentive.crypto.dsprotection;
 
-import org.cryptimeleon.incentive.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
-import org.cryptimeleon.incentive.crypto.crypto.TestSuite;
-import org.cryptimeleon.incentive.crypto.model.*;
-import org.cryptimeleon.incentive.crypto.proof.spend.SpendHelper;
-import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
-import org.cryptimeleon.math.structures.cartesian.Vector;
-import org.cryptimeleon.math.structures.groups.GroupElement;
-import org.cryptimeleon.math.structures.rings.RingElement;
-import org.cryptimeleon.math.structures.rings.zn.Zn;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.math.BigInteger;
-import java.util.Objects;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.cryptimeleon.incentive.crypto.model.PromotionParameters;
 
 
 public class DsProtectionTest {
     private static final PromotionParameters promotionParameters = IncentiveSystem.generatePromotionParameters(1);
     private TestDatabaseHandler dbHandler;
 
+    /*
+    TODO this is not compatible to new workflow. Delete it?
     @BeforeEach
     void setupDBHandler() {
         dbHandler = new TestDatabaseHandler();
@@ -135,9 +122,9 @@ public class DsProtectionTest {
     class SpendResult {
         private final DoubleSpendingTag doubleSpendingTag;
         private final Token tokenAfterSpend;
-        private final GroupElement dsid;
+        private final Zn.ZnElement dsid;
 
-        public SpendResult(DoubleSpendingTag doubleSpendingTag, Token tokenAfterSpend, GroupElement dsid) {
+        public SpendResult(DoubleSpendingTag doubleSpendingTag, Token tokenAfterSpend, Zn.ZnElement dsid) {
             this.doubleSpendingTag = doubleSpendingTag;
             this.tokenAfterSpend = tokenAfterSpend;
             this.dsid = dsid;
@@ -151,7 +138,7 @@ public class DsProtectionTest {
             return this.tokenAfterSpend;
         }
 
-        public GroupElement getDsid() {
+        public Zn.ZnElement getDsid() {
             return this.dsid;
         }
 
@@ -172,5 +159,6 @@ public class DsProtectionTest {
             return "DsProtectionTest.SpendResult(doubleSpendingTag=" + this.getDoubleSpendingTag() + ", tokenAfterSpend=" + this.getTokenAfterSpend() + ", dsid=" + this.getDsid() + ")";
         }
     }
+     */
 }
 

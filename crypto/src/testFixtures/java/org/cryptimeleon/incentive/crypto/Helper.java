@@ -47,13 +47,13 @@ public class Helper {
         var vectorH = providerKeyPair.getPk().getH(pp, promotionParameters);
         var zp = pp.getBg().getZn();
         // Manually create a token since issue-join is not yet implemented
-        var dsrd1 = zp.getUniformlyRandomElement();
-        var dsrd2 = zp.getUniformlyRandomElement();
+        var dsid = zp.getUniformlyRandomElement();
+        var dsrd = zp.getUniformlyRandomElement();
         var z = zp.getUniformlyRandomElement();
         var t = zp.getUniformlyRandomElement();
         var pointsVector = RingElementVector.fromStream(points.stream().map(e -> pp.getBg().getZn().createZnElement(e)));
         var exponents = RingElementVector.of(
-                t, userKeyPair.getSk().getUsk(), zp.getZeroElement(), dsrd1, dsrd2, z
+                t, userKeyPair.getSk().getUsk(), dsid, dsrd, z
         );
         exponents = exponents.concatenate(pointsVector);
         var c1 = vectorH.innerProduct(exponents).compute();
@@ -62,8 +62,8 @@ public class Helper {
         return new Token(
                 c1,
                 c2,
-                dsrd1,
-                dsrd2,
+                dsid,
+                dsrd,
                 z,
                 t,
                 promotionParameters.getPromotionId(),
@@ -125,11 +125,7 @@ public class Helper {
                 BigInteger.ONE, // Promotion ID (same promotion)
                 new DoubleSpendingTag(
                         usedZn.getUniformlyRandomElement(),
-                        usedZn.getUniformlyRandomElement(),
-                        usedZn.getUniformlyRandomElement(),
-                        usedZn.getUniformlyRandomElement(),
-                        usedG1.getUniformlyRandomElements(pp.getNumEskDigits()),
-                        usedG1.getUniformlyRandomElements(pp.getNumEskDigits())
+                        usedZn.getUniformlyRandomElement()
                 )
         );
     }
@@ -145,7 +141,6 @@ public class Helper {
 
         return new UserInfo(
                 new UserPublicKey(usedG1.getUniformlyRandomElement()),
-                usedZn.getUniformlyRandomElement(),
                 usedZn.getUniformlyRandomElement()
         );
     }

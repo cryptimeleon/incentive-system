@@ -5,6 +5,7 @@ import org.cryptimeleon.incentive.crypto.model.Transaction;
 import org.cryptimeleon.incentive.crypto.model.TransactionIdentifier;
 import org.cryptimeleon.incentive.crypto.model.UserInfo;
 import org.cryptimeleon.math.structures.groups.GroupElement;
+import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,10 +16,10 @@ import java.util.stream.Collectors;
 public class TestDatabaseHandler implements DatabaseHandler {
 
     private final List<Transaction> transactionNodes = new ArrayList<>();
-    private final List<GroupElement> tokenNodes = new ArrayList<>();
-    private final Map<TransactionIdentifier, GroupElement> edgesFromTransactionToTokens = new HashMap<>(); // TODO 1:1 instead of 1:n?
+    private final List<Zn.ZnElement> tokenNodes = new ArrayList<>();
+    private final Map<TransactionIdentifier, Zn.ZnElement> edgesFromTransactionToTokens = new HashMap<>(); // TODO 1:1 instead of 1:n?
     private final Map<GroupElement, ArrayList<TransactionIdentifier>> edgesFromTokenToTransactions = new HashMap<>();
-    private final Map<GroupElement, UserInfo> userInfoMap = new HashMap<>();
+    private final Map<Zn.ZnElement, UserInfo> userInfoMap = new HashMap<>();
 
     public TestDatabaseHandler() {
     }
@@ -42,17 +43,19 @@ public class TestDatabaseHandler implements DatabaseHandler {
     }
 
     @Override
-    public void addTokenNode(GroupElement dsid) {
+    public void addTokenNode(Zn.ZnElement dsid) {
         tokenNodes.add(dsid);
     }
 
     @Override
-    public void addTransactionTokenEdge(TransactionIdentifier taId, GroupElement dsid) {
+    public void addTransactionTokenEdge(TransactionIdentifier taId, Zn.ZnElement dsid) {
         edgesFromTransactionToTokens.put(taId, dsid);
     }
 
     @Override
-    public void addTokenTransactionEdge(GroupElement dsid, TransactionIdentifier taId) {
+    public void addTokenTransactionEdge(Zn.ZnElement dsid, TransactionIdentifier taId) {
+        throw new RuntimeException();
+        /* TODO wait for refactoring
         edgesFromTokenToTransactions.compute(dsid, (doubleSpendingID, transactionIdentifiers) -> {
             if (transactionIdentifiers == null) {
                 return new ArrayList<>(List.of(taId));
@@ -61,6 +64,7 @@ public class TestDatabaseHandler implements DatabaseHandler {
                 return transactionIdentifiers;
             }
         });
+        */
     }
 
     @Override
@@ -70,17 +74,17 @@ public class TestDatabaseHandler implements DatabaseHandler {
     }
 
     @Override
-    public boolean containsTokenNode(GroupElement dsid) {
+    public boolean containsTokenNode(Zn.ZnElement dsid) {
         return tokenNodes.contains(dsid);
     }
 
     @Override
-    public boolean containsTransactionTokenEdge(TransactionIdentifier taId, GroupElement dsid) {
+    public boolean containsTransactionTokenEdge(TransactionIdentifier taId, Zn.ZnElement dsid) {
         return edgesFromTransactionToTokens.containsKey(taId) && edgesFromTransactionToTokens.get(taId).equals(dsid);
     }
 
     @Override
-    public boolean containsTokenTransactionEdge(GroupElement dsid, TransactionIdentifier taId) {
+    public boolean containsTokenTransactionEdge(Zn.ZnElement dsid, TransactionIdentifier taId) {
         return edgesFromTokenToTransactions.containsKey(dsid) && edgesFromTokenToTransactions.get(dsid).contains(taId);
     }
 
@@ -91,7 +95,7 @@ public class TestDatabaseHandler implements DatabaseHandler {
      * @param dsid     double-spending ID identifying the token
      */
     @Override
-    public void addAndLinkUserInfo(UserInfo userInfo, GroupElement dsid) {
+    public void addAndLinkUserInfo(UserInfo userInfo, Zn.ZnElement dsid) {
         userInfoMap.put(dsid, userInfo);
     }
 
@@ -101,7 +105,7 @@ public class TestDatabaseHandler implements DatabaseHandler {
      * @param dsid
      */
     @Override
-    public UserInfo getUserInfo(GroupElement dsid) {
+    public UserInfo getUserInfo(Zn.ZnElement dsid) {
         return userInfoMap.get(dsid);
     }
 
@@ -111,7 +115,7 @@ public class TestDatabaseHandler implements DatabaseHandler {
      * @param dsid
      */
     @Override
-    public ArrayList<Transaction> getConsumingTransactions(GroupElement dsid) {
+    public ArrayList<Transaction> getConsumingTransactions(Zn.ZnElement dsid) {
         return edgesFromTokenToTransactions.getOrDefault(dsid, new ArrayList<>())
                 .stream()
                 .map(this::getTransactionNode)

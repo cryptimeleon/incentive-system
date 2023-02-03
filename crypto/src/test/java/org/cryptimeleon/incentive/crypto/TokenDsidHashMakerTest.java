@@ -19,7 +19,7 @@ class TokenDsidHashMakerTest {
 
     @Test
     void smokeTest() {
-        String hash = TokenDsidHashMaker.hashToken(token, TestSuite.pp);
+        String hash = TokenDsidHashMaker.hashToken(token);
         String shortHash = TokenDsidHashMaker.shortHash(hash);
         System.out.println(hash);
         System.out.println(shortHash);
@@ -27,8 +27,8 @@ class TokenDsidHashMakerTest {
 
     @Test
     void compareWithManualHash() throws NoSuchAlgorithmException {
-        String hash = TokenDsidHashMaker.hashToken(token, TestSuite.pp);
-        String serializedDsid = jsonConverter.serialize(token.computeDsid(TestSuite.pp).getRepresentation());
+        String hash = TokenDsidHashMaker.hashToken(token);
+        String serializedDsid = jsonConverter.serialize(token.getDoubleSpendingId().getRepresentation());
         String manualHashString = hashAndEncodeHexString(serializedDsid);
 
         assertThat(hash).isEqualToIgnoringCase(manualHashString);

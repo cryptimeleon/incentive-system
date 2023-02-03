@@ -76,8 +76,7 @@ class TokenPointsZkpTest {
 
         zn = pp.getBg().getZn();
         var testSuite = SpendHelper.generateTestSuite(
-                Util.getZeroBigIntegerVector(4),
-                pp, promotion, providerKey, token, userKey, zn
+                Util.getZeroBigIntegerVector(4), pp, promotion, providerKey, token, userKey, zn
         );
 
         witness = testSuite.witness;
