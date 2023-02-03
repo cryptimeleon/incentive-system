@@ -50,7 +50,7 @@ public class DsprotectionService {
         JSONConverter jsonConverter = new JSONConverter();
         IncentivePublicParameters pp = cryptoRepository.getPp();
         Zn.ZnElement tid = pp.getBg().getZn().restoreElement(jsonConverter.deserialize(serializedTidRepr));
-        GroupElement dsid = pp.getBg().getG1().restoreElement(jsonConverter.deserialize(serializedDsidRepr));
+        Zn.ZnElement dsid = pp.getBg().getG1().restoreElement(jsonConverter.deserialize(serializedDsidRepr));
         DoubleSpendingTag dsTag = new DoubleSpendingTag(jsonConverter.deserialize(serializedDsTagRepr), pp);
         // actual call to dbSync
         IncentiveSystem theIncSys = cryptoRepository.getIncSys();
@@ -95,7 +95,7 @@ public class DsprotectionService {
         JSONConverter jsonConverter = new JSONConverter();
         Representation dsidRepr = jsonConverter.deserialize(serializedDsidRepr);
         Group g1Group = cryptoRepository.getPp().getBg().getG1();
-        GroupElement dsid = g1Group.restoreElement(dsidRepr);
+        Zn.ZnElement dsid = g1Group.restoreElement(dsidRepr);
         // make call to db handler + return result
         return localDbHandler.containsTokenNode(dsid);
     }

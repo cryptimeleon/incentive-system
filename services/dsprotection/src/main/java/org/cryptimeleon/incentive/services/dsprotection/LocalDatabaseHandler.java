@@ -74,7 +74,7 @@ public class LocalDatabaseHandler implements DatabaseHandler {
      * Adds a new token node for a token with the passed dsid to the database.
      */
     @Override
-    public void addTokenNode(GroupElement dsid) {
+    public void addTokenNode(Zn.ZnElement dsid) {
         // create dsid entry object
         DsIdEntry dsIdEntry = new DsIdEntry(dsid);
 
@@ -87,7 +87,7 @@ public class LocalDatabaseHandler implements DatabaseHandler {
      * Semantics of this edge: the passed transaction produced the token with the passed double-spending ID
      */
     @Override
-    public void addTransactionTokenEdge(TransactionIdentifier taId, GroupElement dsid) {
+    public void addTransactionTokenEdge(TransactionIdentifier taId, Zn.ZnElement dsid) {
         // retrieve entries for respective transaction and dsID
         TransactionEntry taEntry = findTransactionEntryWithTaIdentifier(taId);
         DsIdEntry dsIdEntry = findDsidEntry(dsid);
@@ -109,7 +109,7 @@ public class LocalDatabaseHandler implements DatabaseHandler {
      * Semantics of this edge: the token with the passed double-spending ID was consumed in the passed transaction
      */
     @Override
-    public void addTokenTransactionEdge(GroupElement dsid, TransactionIdentifier taId) {
+    public void addTokenTransactionEdge(Zn.ZnElement dsid, TransactionIdentifier taId) {
         // retrieve entries for respective transaction and dsID
         TransactionEntry taEntry = findTransactionEntryWithTaIdentifier(taId);
         DsIdEntry dsIdEntry = findDsidEntry(dsid);
@@ -138,7 +138,7 @@ public class LocalDatabaseHandler implements DatabaseHandler {
      * Checks the double-spending ID table for containment of the passed dsid.
      */
     @Override
-    public boolean containsTokenNode(GroupElement dsid) {
+    public boolean containsTokenNode(Zn.ZnElement dsid) {
         return findDsidEntry(dsid) != null;
     }
 
@@ -148,7 +148,7 @@ public class LocalDatabaseHandler implements DatabaseHandler {
      * Result is returned as HTTP response object.
      */
     @Override
-    public boolean containsTransactionTokenEdge(TransactionIdentifier taId, GroupElement dsid) {
+    public boolean containsTransactionTokenEdge(TransactionIdentifier taId, Zn.ZnElement dsid) {
         // retrieve entries for respective transaction and dsID
         TransactionEntry taEntry = findTransactionEntryWithTaIdentifier(taId);
         DsIdEntry dsIdEntry = findDsidEntry(dsid);
@@ -163,7 +163,7 @@ public class LocalDatabaseHandler implements DatabaseHandler {
      * So this method checks whether said token was consumed in said transaction.
      */
     @Override
-    public boolean containsTokenTransactionEdge(GroupElement dsid, TransactionIdentifier taId) {
+    public boolean containsTokenTransactionEdge(Zn.ZnElement dsid, TransactionIdentifier taId) {
         // retrieve entries for respective transaction and dsID
         TransactionEntry taEntry = findTransactionEntryWithTaIdentifier(taId);
         DsIdEntry dsIdEntry = findDsidEntry(dsid);
@@ -179,7 +179,7 @@ public class LocalDatabaseHandler implements DatabaseHandler {
      * Adds the passed user info as an entry to the database and links it to the entry for the passed dsid.
      */
     @Override
-    public void addAndLinkUserInfo(UserInfo userInfo, GroupElement dsid) {
+    public void addAndLinkUserInfo(UserInfo userInfo, Zn.ZnElement dsid) {
         // creating user info entry object
         UserInfoEntry uie = new UserInfoEntry(userInfo);
 
@@ -220,7 +220,7 @@ public class LocalDatabaseHandler implements DatabaseHandler {
      * null is returned.
      */
     @Override
-    public UserInfo getUserInfo(GroupElement dsid) {
+    public UserInfo getUserInfo(Zn.ZnElement dsid) {
         // query user info from database
         DsIdEntry dside = findDsidEntry(dsid);
 
@@ -251,7 +251,7 @@ public class LocalDatabaseHandler implements DatabaseHandler {
      * Retrieves all transactions that consumed the token with the passed dsid.
      */
     @Override
-    public ArrayList<Transaction> getConsumingTransactions(GroupElement dsid) {
+    public ArrayList<Transaction> getConsumingTransactions(Zn.ZnElement dsid) {
         // query respective entries
         ArrayList<TransactionEntry> taeList = getConsumingTransactionEntries(
                 findDsidEntry(dsid).getId()
@@ -331,12 +331,8 @@ public class LocalDatabaseHandler implements DatabaseHandler {
                 new BigInteger(taEntry.getPromotionId()),
                 new DoubleSpendingTag(
                         this.pp,
-                        taDsTagEntry.getSerializedC0Repr(),
-                        taDsTagEntry.getSerializedC1Repr(),
-                        taDsTagEntry.getSerializedGammaRepr(),
-                        taDsTagEntry.getSerializedEskStarProvRepr(),
-                        taDsTagEntry.getSerializedCTrace0Repr(),
-                        taDsTagEntry.getSerializedCTrace1Repr()
+                        taDsTagEntry.getSerializedC0Repr(), // TODO this needs to be adapted once we decide what to do with this service
+                        taDsTagEntry.getSerializedGammaRepr()
                 )
         );
     }
@@ -428,7 +424,7 @@ public class LocalDatabaseHandler implements DatabaseHandler {
     /**
      * Retrieves and returns the double-spending ID entry for the double-spending ID with the passed value (if existent).
      */
-    private DsIdEntry findDsidEntry(GroupElement dsid) {
+    private DsIdEntry findDsidEntry(Zn.ZnElement dsid) {
         // query all DSID entries from database
         ArrayList<DsIdEntry> dsidEntryList = (ArrayList<DsIdEntry>) dsidRepository.findAll();
 

@@ -13,6 +13,7 @@ import org.cryptimeleon.incentive.services.dsprotection.mock.MockTransactionEntr
 import org.cryptimeleon.incentive.services.dsprotection.mock.MockUserInfoEntryRepository;
 import org.cryptimeleon.incentive.services.dsprotection.storage.TransactionEntry;
 import org.cryptimeleon.math.structures.cartesian.Vector;
+import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -54,9 +55,9 @@ public class DbSyncIntegrationTest {
 
         logger.info("Generating random valid transactions and dsids.");
         var ta1 = Helper.generateRandomTransaction(incSys.pp, true);
-        var dsid1 = pp.getBg().getG1().getUniformlyRandomElement();
+        Zn.ZnElement dsid1 = pp.getBg().getG1().getUniformlyRandomElement();
         var ta2 = Helper.generateRandomTransaction(incSys.pp, true);
-        var dsid2 = pp.getBg().getG1().getUniformlyRandomElement();
+        Zn.ZnElement dsid2 = pp.getBg().getG1().getUniformlyRandomElement();
 
         logger.info("Adding transactions to database.");
         incSys.dbSync(
@@ -216,9 +217,9 @@ public class DbSyncIntegrationTest {
         var t2 = spendDeductOutputT2.getOccuredTransaction();
         var t2Prime = spendDeductOutputT2Prime.getOccuredTransaction();
         var t3 = spendDeductOutputT3.getOccuredTransaction();
-        var dsid1 = initialToken.computeDsid(pp);
-        var dsid2 = spendDeductOutputT1Prime.getResultToken().computeDsid(pp); // we want dsid2 to be the successor of t1Prime, as in the graph from the paper
-        var dsid3 = spendDeductOutputT2.getResultToken().computeDsid(pp); // we want dsid3 to be the successor of t2, as in the graph from the paper
+        Zn.ZnElement dsid1 = initialToken.getDoubleSpendingId();
+        Zn.ZnElement dsid2 = spendDeductOutputT1Prime.getResultToken().getDoubleSpendingId(); // we want dsid2 to be the successor of t1Prime, as in the graph from the paper
+        Zn.ZnElement dsid3 = spendDeductOutputT2.getResultToken().getDoubleSpendingId(); // we want dsid3 to be the successor of t2, as in the graph from the paper
 
         logger.info("Syncing transactions and dsids to database.");
         logger.info("Syncing some honest spend transactions.");

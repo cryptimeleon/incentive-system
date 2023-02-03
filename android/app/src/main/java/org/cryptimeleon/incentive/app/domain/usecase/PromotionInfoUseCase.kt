@@ -6,14 +6,12 @@ import org.cryptimeleon.incentive.app.domain.IBasketRepository
 import org.cryptimeleon.incentive.app.domain.ICryptoRepository
 import org.cryptimeleon.incentive.app.domain.IPromotionRepository
 import org.cryptimeleon.incentive.app.domain.model.Basket
-import org.cryptimeleon.incentive.app.domain.model.CryptoMaterial
 import org.cryptimeleon.incentive.app.domain.model.Earn
 import org.cryptimeleon.incentive.app.domain.model.None
 import org.cryptimeleon.incentive.app.domain.model.PromotionUserUpdateChoice
 import org.cryptimeleon.incentive.app.domain.model.RewardItem
 import org.cryptimeleon.incentive.app.domain.model.ZKP
 import org.cryptimeleon.incentive.app.util.toBigIntVector
-import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters
 import org.cryptimeleon.incentive.crypto.model.Token
 import org.cryptimeleon.incentive.promotion.Promotion
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdate
@@ -54,13 +52,12 @@ class PromotionInfoUseCase(
                 val promotions = flowArgs[0] as List<Promotion>
                 val userUpdateChoices = flowArgs[1] as List<PromotionUserUpdateChoice>
                 val tokens = flowArgs[2] as List<Token>
-                val pp = (flowArgs[3] as CryptoMaterial).pp
                 val rewardItems = flowArgs[4] as List<RewardItem>
                 val basket = flowArgs[5] as Basket
 
                 promotions.map { promotion ->
                     val promotionInfoUseCaseWorker = PromotionInfoUseCaseWorker(
-                        pp, promotion, userUpdateChoices, tokens, rewardItems, basket
+                        promotion, userUpdateChoices, tokens, rewardItems, basket
                     )
                     promotionInfoUseCaseWorker.computePromotionData()
                 }
@@ -72,7 +69,6 @@ class PromotionInfoUseCase(
 }
 
 private class PromotionInfoUseCaseWorker(
-    val pp: IncentivePublicParameters,
     val promotion: Promotion,
     userUpdateChoices: List<PromotionUserUpdateChoice>,
     tokens: List<Token>,
@@ -100,9 +96,9 @@ private class PromotionInfoUseCaseWorker(
 
     fun computePromotionData(): PromotionData {
         return when (promotion) {
-            is HazelPromotion -> HazelPromotionData(promotion, token, allTokenUpdates, pp)
-            is VipPromotion -> VipPromotionData(promotion, token, allTokenUpdates, pp)
-            is StreakPromotion -> StreakPromotionData(promotion, token, allTokenUpdates, pp)
+            is HazelPromotion -> HazelPromotionData(promotion, token, allTokenUpdates)
+            is VipPromotion -> VipPromotionData(promotion, token, allTokenUpdates)
+            is StreakPromotion -> StreakPromotionData(promotion, token, allTokenUpdates)
             else -> {
                 throw RuntimeException("Not implemented yet!")
             }

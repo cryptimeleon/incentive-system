@@ -3,7 +3,6 @@ package org.cryptimeleon.incentive.app.domain.usecase
 import org.cryptimeleon.incentive.app.domain.usecase.StreakDate.Companion.toLong
 import org.cryptimeleon.incentive.app.util.toBigIntVector
 import org.cryptimeleon.incentive.crypto.TokenDsidHashMaker
-import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters
 import org.cryptimeleon.incentive.crypto.model.Token
 import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion
 import org.cryptimeleon.incentive.promotion.streak.StreakPromotion
@@ -61,7 +60,7 @@ data class HazelPromotionData(
     constructor(
         promotion: HazelPromotion,
         token: Token,
-        tokenUpdates: List<TokenUpdate>, pp: IncentivePublicParameters
+        tokenUpdates: List<TokenUpdate>
 
     ) : this(
         promotionName = promotion.promotionName,
@@ -69,7 +68,7 @@ data class HazelPromotionData(
         promotionDescription = promotion.promotionDescription,
         points = token.toBigIntVector(),
         tokenUpdates = tokenUpdates,
-        tokenHash = TokenDsidHashMaker.hashToken(token, pp),
+        tokenHash = TokenDsidHashMaker.hashToken(token),
         tokenJson = tokenToJsonString(token)
     )
 
@@ -91,13 +90,12 @@ data class StreakPromotionData(
     constructor(
         promotion: StreakPromotion,
         token: Token,
-        tokenUpdates: List<TokenUpdate>,
-        pp: IncentivePublicParameters
+        tokenUpdates: List<TokenUpdate>
     ) : this(
         promotionName = promotion.promotionName,
         pid = promotion.promotionParameters.promotionId,
         promotionDescription = promotion.promotionDescription,
-        tokenHash = TokenDsidHashMaker.hashToken(token, pp),
+        tokenHash = TokenDsidHashMaker.hashToken(token),
         streakCount = token.toBigIntVector().get(0).toInt(),
         lastDate = StreakDate.fromLong(token.toBigIntVector().get(1).toLong()),
         tokenUpdates = tokenUpdates,
@@ -162,14 +160,13 @@ data class VipPromotionData(
     constructor(
         promotion: VipPromotion,
         token: Token,
-        tokenUpdates: List<TokenUpdate>,
-        pp: IncentivePublicParameters
+        tokenUpdates: List<TokenUpdate>
     ) : this(
         promotionName = promotion.promotionName,
         pid = promotion.promotionParameters.promotionId,
         promotionDescription = promotion.promotionDescription,
         tokenUpdates = tokenUpdates,
-        tokenHash = TokenDsidHashMaker.hashToken(token, pp),
+        tokenHash = TokenDsidHashMaker.hashToken(token),
         score = token.toBigIntVector().get(0).toInt(),
         vipLevel = VipStatus.fromInt(
             token.toBigIntVector().get(1).toInt()

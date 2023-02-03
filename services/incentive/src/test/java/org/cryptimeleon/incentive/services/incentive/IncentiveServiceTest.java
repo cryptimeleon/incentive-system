@@ -24,6 +24,7 @@ import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.RingElement;
+import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -104,7 +105,7 @@ public class IncentiveServiceTest {
 
     @MockBean
     private OfflineDSPRepository offlineDSPRepository;
-    private ArrayList<GroupElement> dsids;
+    private ArrayList<Zn.ZnElement> dsids;
     private boolean dsidOffline;
 
 

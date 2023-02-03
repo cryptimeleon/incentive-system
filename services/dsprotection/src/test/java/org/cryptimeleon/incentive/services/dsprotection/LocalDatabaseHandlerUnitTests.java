@@ -11,7 +11,7 @@ import org.cryptimeleon.incentive.services.dsprotection.mock.MockDsidEntryReposi
 import org.cryptimeleon.incentive.services.dsprotection.mock.MockTransactionEntryRepository;
 import org.cryptimeleon.incentive.services.dsprotection.mock.MockUserInfoEntryRepository;
 import org.cryptimeleon.incentive.services.dsprotection.storage.TransactionEntry;
-import org.cryptimeleon.math.structures.groups.GroupElement;
+import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -95,8 +95,8 @@ public class LocalDatabaseHandlerUnitTests {
         ).size());
 
         logger.info("Generating random double-spending IDs.");
-        GroupElement dsid1 = pp.getBg().getG1().getUniformlyRandomElement();
-        GroupElement dsid2 = pp.getBg().getG1().getUniformlyRandomElement();
+        Zn.ZnElement dsid1 = pp.getBg().getG1().getUniformlyRandomElement();
+        Zn.ZnElement dsid2 = pp.getBg().getG1().getUniformlyRandomElement();
 
         logger.info("Adding double-spending IDs to the database.");
         dbHandler.addTokenNode(dsid1);
@@ -167,8 +167,8 @@ public class LocalDatabaseHandlerUnitTests {
         dbHandler.addTransactionNode(ta3);
 
         logger.info("Generating and adding random double-spending IDs.");
-        GroupElement dsid1 = pp.getBg().getG1().getUniformlyRandomElement();
-        GroupElement dsid2 = pp.getBg().getG1().getUniformlyRandomElement();
+        Zn.ZnElement dsid1 = pp.getBg().getG1().getUniformlyRandomElement();
+        Zn.ZnElement dsid2 = pp.getBg().getG1().getUniformlyRandomElement();
         dbHandler.addTokenNode(dsid1);
         dbHandler.addTokenNode(dsid2);
 

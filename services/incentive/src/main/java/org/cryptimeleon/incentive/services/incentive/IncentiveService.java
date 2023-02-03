@@ -25,7 +25,7 @@ import org.cryptimeleon.incentive.services.incentive.repository.*;
 import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.cartesian.Vector;
-import org.cryptimeleon.math.structures.groups.GroupElement;
+import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -211,7 +211,7 @@ public class IncentiveService {
         * it is critical that transactions that occured during dsp service downtime are always recorded in the database,
         * no matter whether dsid was already known.
         */
-        GroupElement usedTokenDsid = spendRequest.getDsid();
+        Zn.ZnElement usedTokenDsid = spendRequest.getDsid();
         if (!offlineDspRepository.simulatedDosAttackOngoing() && offlineDspRepository.containsDsid(usedTokenDsid)) {
             // immediately reject transaction if no simulated DoS attack ongoing and spent token already contained
             throw new OnlineDoubleSpendingException();

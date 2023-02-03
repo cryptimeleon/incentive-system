@@ -1,7 +1,7 @@
 package org.cryptimeleon.incentive.services.dsprotection.storage;
 
 import org.cryptimeleon.incentive.services.dsprotection.Util;
-import org.cryptimeleon.math.structures.groups.GroupElement;
+import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 import javax.persistence.*;
 import java.util.Objects;
@@ -31,7 +31,7 @@ public class DsIdEntry {
     /**
      * Standard constructor, does not associate user info to this token.
      */
-    public DsIdEntry(GroupElement dsid) {
+    public DsIdEntry(Zn.ZnElement dsid) {
         this.serializedDsidRepr = Util.computeSerializedRepresentation(dsid);
     }
 

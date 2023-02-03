@@ -4,11 +4,9 @@ import org.cryptimeleon.incentive.crypto.model.DoubleSpendingTag;
 import org.cryptimeleon.incentive.crypto.model.TransactionIdentifier;
 import org.cryptimeleon.math.serialization.Representable;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
-import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
@@ -46,7 +44,7 @@ public class DSProtectionClient {
      * @param userChoice represents the reward that the user claimed with this transaction
      * @return server response (success or failure report)
      */
-    public String dbSync(Zn.ZnElement tid, GroupElement dsid, DoubleSpendingTag dstag, BigInteger promotionId, String userChoice) {
+    public String dbSync(Zn.ZnElement tid, Zn.ZnElement dsid, DoubleSpendingTag dstag, BigInteger promotionId, String userChoice) {
         // marshall transaction data
         String serializedTid = computeSerializedRepresentation(tid);
         String serializedDsidRepr = computeSerializedRepresentation(dsid);
@@ -104,7 +102,7 @@ public class DSProtectionClient {
     /**
      * Returns true if and only if token with the specified double-spending protection ID is already contained in the database.
      */
-    public Boolean containsDsid(GroupElement dsid) {
+    public Boolean containsDsid(Zn.ZnElement dsid) {
         // marshall data
         String serializedDsidRepr = computeSerializedRepresentation(dsid);
 

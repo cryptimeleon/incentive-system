@@ -141,7 +141,7 @@ public class TransactionTestPreparation extends IncentiveSystemIntegrationTest {
         );
 
         // assemble and return transaction identifier
-        var gamma = Util.hashGamma(
+        var gamma = Util.hashGammaOld(
                 cryptoAssets.getPublicParameters().getBg().getZn(),
                 spendRequest.getDsid(),
                 tid,

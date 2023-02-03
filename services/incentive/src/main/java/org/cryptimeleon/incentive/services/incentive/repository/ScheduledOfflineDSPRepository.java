@@ -3,7 +3,6 @@ package org.cryptimeleon.incentive.services.incentive.repository;
 import org.cryptimeleon.incentive.client.DSProtectionClient;
 import org.cryptimeleon.incentive.crypto.model.DeductOutput;
 import org.cryptimeleon.incentive.crypto.model.SpendRequest;
-import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -57,7 +56,7 @@ public class ScheduledOfflineDSPRepository implements OfflineDSPRepository {
      * Returns true if and only if the double-spending database contains a node for the passed dsid.
      */
     @Override
-    public boolean containsDsid(GroupElement dsid) {
+    public boolean containsDsid(Zn.ZnElement dsid) {
         return dsProtectionClient.containsDsid(dsid);
     }
 

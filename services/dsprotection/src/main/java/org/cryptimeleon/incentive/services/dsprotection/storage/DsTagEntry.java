@@ -41,12 +41,13 @@ public class DsTagEntry {
      * Auto-generates the entry for a double-spending tag.
      */
     public DsTagEntry(DoubleSpendingTag dsTag) {
-        this.serializedC0Repr = Util.computeSerializedRepresentation(dsTag.getC0());
-        this.serializedC1Repr = Util.computeSerializedRepresentation(dsTag.getC1());
+        // TODO decide what to do with this service
+        this.serializedC0Repr = "";
+        this.serializedC1Repr = "";
         this.serializedGammaRepr = Util.computeSerializedRepresentation(dsTag.getGamma());
-        this.serializedEskStarProvRepr = Util.computeSerializedRepresentation(dsTag.getEskStarProv());
-        this.serializedCTrace0Repr = Util.computeSerializedRepresentation(dsTag.getCtrace0());
-        this.serializedCTrace1Repr = Util.computeSerializedRepresentation(dsTag.getCtrace1());
+        this.serializedEskStarProvRepr = "";
+        this.serializedCTrace0Repr = "";
+        this.serializedCTrace1Repr = "";
     }
 
     public String toString() {
