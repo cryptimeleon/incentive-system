@@ -20,7 +20,7 @@ import java.util.Objects;
  * A class representing the public parameters of the 2020 incentive system.
  */
 public class IncentivePublicParameters implements PublicParameters {
-    private final SetMembershipPublicParameters eskBaseSetMembershipPublicParameters;
+    private final SetMembershipPublicParameters setMembershipPublicParameters;
     @Represented
     private BilinearGroup bg;
     @Represented(restorer = "bg::getG1")
@@ -36,15 +36,15 @@ public class IncentivePublicParameters implements PublicParameters {
     @Represented
     private SPSEQSignatureScheme spsEq; // same here for SPS-EQ scheme
     @Represented(restorer = "bg::getZn")
-    private Zn.ZnElement eskDecBase;
+    private Zn.ZnElement rangeProofBase; // Base used for set-membership proofs. Larger base => more signature but shorter proofs
     @Represented
-    private Integer maxPointBasePower; // eskDecBase^this determines the maximum point count that is considered valid
-    private int numEskDigits; // rho from the 2020 inc sys paper (number of digits of esk in base-representation), this is computed in the init method since it contains redundant data
+    private Integer maxPointBasePower; // rangeProofBase^this determines the maximum point count that is considered valid
+    private int numRangeProofDigits; // rho from the 2020 inc sys paper (number of digits of esk in base-representation), this is computed in the init method since it contains redundant data
 
     public IncentivePublicParameters(Representation repr) {
         new ReprUtil(this)
                 .deserialize(repr.list().get(0));
-        this.eskBaseSetMembershipPublicParameters = new SetMembershipPublicParameters(bg, repr.list().get(1));
+        this.setMembershipPublicParameters = new SetMembershipPublicParameters(bg, repr.list().get(1));
         init();
     }
 
@@ -55,9 +55,9 @@ public class IncentivePublicParameters implements PublicParameters {
                                      GroupElement g2,
                                      HashThenPrfToZn prfToZn,
                                      SPSEQSignatureScheme spsEq,
-                                     Zn.ZnElement eskDecBase,
+                                     Zn.ZnElement rangeProofBase,
                                      int maxPointBasePower,
-                                     SetMembershipPublicParameters eskBaseSetMembershipPublicParameters) {
+                                     SetMembershipPublicParameters setMembershipPublicParameters) {
         this.bg = bg;
         this.w = w;
         this.h7 = h7;
@@ -65,9 +65,9 @@ public class IncentivePublicParameters implements PublicParameters {
         this.g2Generator = g2;
         this.prfToZn = prfToZn;
         this.spsEq = spsEq;
-        this.eskDecBase = eskDecBase;
+        this.rangeProofBase = rangeProofBase;
         this.maxPointBasePower = maxPointBasePower;
-        this.eskBaseSetMembershipPublicParameters = eskBaseSetMembershipPublicParameters;
+        this.setMembershipPublicParameters = setMembershipPublicParameters;
         init();
     }
 
@@ -75,7 +75,7 @@ public class IncentivePublicParameters implements PublicParameters {
     public Representation getRepresentation() {
         var repr = new ListRepresentation();
         repr.add(ReprUtil.serialize(this));
-        repr.add(eskBaseSetMembershipPublicParameters.getRepresentation());
+        repr.add(setMembershipPublicParameters.getRepresentation());
         return repr;
     }
 
@@ -83,7 +83,7 @@ public class IncentivePublicParameters implements PublicParameters {
      * Some initialization of redundant values
      */
     private void init() {
-        numEskDigits = IntegerRing.decomposeIntoDigits(bg.getZn().getCharacteristic(), eskDecBase.asInteger()).length;
+        numRangeProofDigits = IntegerRing.decomposeIntoDigits(bg.getZn().getCharacteristic(), rangeProofBase.asInteger()).length;
     }
 
     public BilinearGroup getBg() {
@@ -114,20 +114,20 @@ public class IncentivePublicParameters implements PublicParameters {
         return this.spsEq;
     }
 
-    public Zn.ZnElement getEskDecBase() {
-        return this.eskDecBase;
+    public Zn.ZnElement getRangeProofBase() {
+        return this.rangeProofBase;
     }
 
     public Integer getMaxPointBasePower() {
         return this.maxPointBasePower;
     }
 
-    public SetMembershipPublicParameters getEskBaseSetMembershipPublicParameters() {
-        return this.eskBaseSetMembershipPublicParameters;
+    public SetMembershipPublicParameters getSetMembershipPublicParameters() {
+        return this.setMembershipPublicParameters;
     }
 
-    public int getNumEskDigits() {
-        return this.numEskDigits;
+    public int getNumRangeProofDigits() {
+        return this.numRangeProofDigits;
     }
 
     @Override
@@ -135,15 +135,15 @@ public class IncentivePublicParameters implements PublicParameters {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         IncentivePublicParameters that = (IncentivePublicParameters) o;
-        return numEskDigits == that.numEskDigits && Objects.equals(bg, that.bg) && Objects.equals(g1Generator, that.g1Generator) && Objects.equals(g2Generator, that.g2Generator) && Objects.equals(w, that.w) && Objects.equals(h7, that.h7) && Objects.equals(prfToZn, that.prfToZn) && Objects.equals(spsEq, that.spsEq) && Objects.equals(eskDecBase, that.eskDecBase) && Objects.equals(maxPointBasePower, that.maxPointBasePower) && Objects.equals(eskBaseSetMembershipPublicParameters, that.eskBaseSetMembershipPublicParameters);
+        return numRangeProofDigits == that.numRangeProofDigits && Objects.equals(bg, that.bg) && Objects.equals(g1Generator, that.g1Generator) && Objects.equals(g2Generator, that.g2Generator) && Objects.equals(w, that.w) && Objects.equals(h7, that.h7) && Objects.equals(prfToZn, that.prfToZn) && Objects.equals(spsEq, that.spsEq) && Objects.equals(rangeProofBase, that.rangeProofBase) && Objects.equals(maxPointBasePower, that.maxPointBasePower) && Objects.equals(setMembershipPublicParameters, that.setMembershipPublicParameters);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(bg, g1Generator, g2Generator, w, h7, prfToZn, spsEq, eskDecBase, maxPointBasePower, eskBaseSetMembershipPublicParameters, numEskDigits);
+        return Objects.hash(bg, g1Generator, g2Generator, w, h7, prfToZn, spsEq, rangeProofBase, maxPointBasePower, setMembershipPublicParameters, numRangeProofDigits);
     }
 
     public String toString() {
-        return "IncentivePublicParameters(bg=" + this.getBg() + ", g1Generator=" + this.getG1Generator() + ", g2Generator=" + this.getG2Generator() + ", w=" + this.getW() + ", h7=" + this.getH7() + ", prfToZn=" + this.getPrfToZn() + ", spsEq=" + this.getSpsEq() + ", eskDecBase=" + this.getEskDecBase() + ", maxPointBasePower=" + this.getMaxPointBasePower() + ", eskBaseSetMembershipPublicParameters=" + this.getEskBaseSetMembershipPublicParameters() + ", numEskDigits=" + this.getNumEskDigits() + ")";
+        return "IncentivePublicParameters(bg=" + this.getBg() + ", g1Generator=" + this.getG1Generator() + ", g2Generator=" + this.getG2Generator() + ", w=" + this.getW() + ", h7=" + this.getH7() + ", prfToZn=" + this.getPrfToZn() + ", spsEq=" + this.getSpsEq() + ", eskDecBase=" + this.getRangeProofBase() + ", maxPointBasePower=" + this.getMaxPointBasePower() + ", eskBaseSetMembershipPublicParameters=" + this.getSetMembershipPublicParameters() + ", numEskDigits=" + this.getNumRangeProofDigits() + ")";
     }
 }
