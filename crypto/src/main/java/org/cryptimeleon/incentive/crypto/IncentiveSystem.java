@@ -12,7 +12,6 @@ import org.cryptimeleon.incentive.crypto.callback.IClearingDBHandler;
 import org.cryptimeleon.incentive.crypto.callback.IRegistrationCouponDBHandler;
 import org.cryptimeleon.incentive.crypto.callback.IStoreBasketRedeemedHandler;
 import org.cryptimeleon.incentive.crypto.callback.IStorePublicKeyVerificationHandler;
-import org.cryptimeleon.incentive.crypto.dsprotectionlogic.DatabaseHandler;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
@@ -998,24 +997,6 @@ public class IncentiveSystem {
         return new UserInfo(upk, dsBlame);
     }
 
-
-    /*
-     * double-spending database interface to be used by provider
-     */
-
-    /**
-     * Adds a transaction's data (i.e. ID, challenge generator gamma, used token's dsid, ...) to the double-spending database.
-     * Triggers further DB-side actions for tracing tokens and transactions resulting from a double-spending attempt if necessary.
-     *
-     * @param tid        transaction ID
-     * @param dsid       double-spending ID of used token
-     * @param dsTag      double-spending tag of used token (contains challenge generator gamma)
-     * @param userChoice string representing the reward that the user chose
-     * @param dbHandler  reference to the object handling the database connectivity
-     */
-    public void dbSync(ZnElement tid, ZnElement dsid, DoubleSpendingTag dsTag, String userChoice, BigInteger promotionId, DatabaseHandler dbHandler) {
-        throw new RuntimeException();
-    }
 
     /*
      * end of double-spending database interface to be used by provider

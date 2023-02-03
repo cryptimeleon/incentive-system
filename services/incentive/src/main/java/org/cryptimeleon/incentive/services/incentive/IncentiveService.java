@@ -53,7 +53,7 @@ public class IncentiveService {
     private final PromotionRepository promotionRepository;
     private final BasketRepository basketRepository;
     private final TokenUpdateResultRepository tokenUpdateResultRepository;
-    private final OfflineDSPRepository offlineDspRepository;
+    private final DSPRepository offlineDspRepository;
     private final RegistrationCouponRepository registrationCouponRepository;
     private final ClearingRepository clearingRepository;
 
@@ -62,7 +62,7 @@ public class IncentiveService {
                              PromotionRepository promotionRepository,
                              BasketRepository basketRepository,
                              TokenUpdateResultRepository tokenUpdateResultRepository,
-                             OfflineDSPRepository offlineDspRepository,
+                             DSPRepository offlineDspRepository,
                              RegistrationCouponRepository registrationCouponRepository,
                              ClearingRepository clearingRepository) {
         this.cryptoRepository = cryptoRepository;
@@ -212,13 +212,12 @@ public class IncentiveService {
         * no matter whether dsid was already known.
         */
         Zn.ZnElement usedTokenDsid = spendRequest.getDsid();
-        if (!offlineDspRepository.simulatedDosAttackOngoing() && offlineDspRepository.containsDsid(usedTokenDsid)) {
+
+        if (offlineDspRepository.containsDsid(usedTokenDsid)) {
             // immediately reject transaction if no simulated DoS attack ongoing and spent token already contained
             throw new OnlineDoubleSpendingException();
-        } else {
-            // otherwise: record transaction in database as soon as possible
-            offlineDspRepository.addToDbSyncQueue(promotionId, tid, spendRequest, deductOutput);
         }
+
         // compute and store serialized representation of the spend response
         var result = jsonConverter.serialize(deductOutput.getSpendResponse().getRepresentation());
         log.info("SpendResult: " + result);

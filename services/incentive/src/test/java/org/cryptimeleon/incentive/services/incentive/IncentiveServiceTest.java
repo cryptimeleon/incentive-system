@@ -18,11 +18,10 @@ import org.cryptimeleon.incentive.promotion.model.BasketItem;
 import org.cryptimeleon.incentive.services.incentive.api.RegistrationCouponJSON;
 import org.cryptimeleon.incentive.services.incentive.repository.BasketRepository;
 import org.cryptimeleon.incentive.services.incentive.repository.CryptoRepository;
-import org.cryptimeleon.incentive.services.incentive.repository.OfflineDSPRepository;
+import org.cryptimeleon.incentive.services.incentive.repository.DSPRepository;
 import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.cartesian.Vector;
-import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.RingElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.junit.jupiter.api.BeforeEach;
@@ -104,9 +103,8 @@ public class IncentiveServiceTest {
     private BasketRepository basketRepository;
 
     @MockBean
-    private OfflineDSPRepository offlineDSPRepository;
+    private DSPRepository offlineDSPRepository;
     private ArrayList<Zn.ZnElement> dsids;
-    private boolean dsidOffline;
 
 
     @BeforeEach
@@ -124,24 +122,9 @@ public class IncentiveServiceTest {
         when(basketRepository.isBasketPaid(emptyTestBasketTwo.getBasketId())).thenReturn(false);
 
         dsids = new ArrayList<>();
-        dsidOffline = false;
         when(offlineDSPRepository.containsDsid(any())).thenAnswer(invocation ->
-            dsids.contains(invocation.getArgument(0, GroupElement.class))
+            dsids.contains(invocation.getArgument(0, Zn.ZnElement.class))
         );
-        when(offlineDSPRepository.simulatedDosAttackOngoing()).thenAnswer(invocation -> dsidOffline);
-        doAnswer(invocation -> {
-            var spendRequest = invocation.getArgument(2, SpendRequest.class);
-            dsids.add(spendRequest.getDsid());
-            return null;
-        }).when(offlineDSPRepository).addToDbSyncQueue(any(), any(), any(), any());
-        doAnswer(invocation -> {
-            dsidOffline=true;
-            return null;
-        }).when(offlineDSPRepository).addShortWaitPeriod();
-        doAnswer(invocation -> {
-            dsidOffline=false;
-            return null;
-        }).when(offlineDSPRepository).removeAllWaitPeriod();
 
         // clear all promotions for clean test starting state
         deleteAllPromotions(webTestClient, providerSecret, HttpStatus.OK);
@@ -340,61 +323,6 @@ public class IncentiveServiceTest {
     @Test
     void emptyBulkRequestTest(@Autowired WebTestClient webTestClient) {
         sendBulkRequests(webTestClient, new BulkRequestDto(List.of(), List.of()), emptyTestBasket, HttpStatus.OK); // transaction shall not be synced into DB in this test case
-    }
-
-    @Test
-    void testDSP_ImmediateRejection(@Autowired WebTestClient webTestClient) {
-        addPromotion(webTestClient, testPromotion, providerSecret, HttpStatus.OK);
-        var tokenPoints = Vector.of(BigInteger.valueOf(35));
-        var basketPoints = Vector.of(BigInteger.valueOf(0));
-        var pointsAfterSpend = testTokenUpdate.computeSatisfyingNewPointsVector(tokenPoints, basketPoints).orElseThrow();
-        var token = Helper.generateToken(
-                pp,
-                ukp,
-                pkp,
-                testPromotion.getPromotionParameters(),
-                tokenPoints
-        );
-
-        SpendRequest spendRequest = sendSingleSpendRequest(webTestClient, basketPoints, pointsAfterSpend, token, emptyTestBasket, HttpStatus.OK);
-        when(basketRepository.isBasketPaid(emptyTestBasket.getBasketId())).thenReturn(true);
-        var firstRemainderToken = retrieveTokenAfterSpend(webTestClient, token, pointsAfterSpend, spendRequest, emptyTestBasket);
-
-        // spend token again; should be prevented with I_AM_A_TEAPOT
-        sendSingleSpendRequest(webTestClient, basketPoints, pointsAfterSpend, token, emptyTestBasketTwo, HttpStatus.I_AM_A_TEAPOT);
-    }
-
-    @Test
-    void testDosAttackEnablesDoubleSpendingAttack(@Autowired WebTestClient webTestClient) {
-        addPromotion(webTestClient, testPromotion, providerSecret, HttpStatus.OK);
-        var tokenPoints = Vector.of(BigInteger.valueOf(35));
-        var basketPoints = Vector.of(BigInteger.valueOf(0));
-        var pointsAfterSpend = testTokenUpdate.computeSatisfyingNewPointsVector(tokenPoints, basketPoints).orElseThrow();
-        var token = Helper.generateToken(
-                pp,
-                ukp,
-                pkp,
-                testPromotion.getPromotionParameters(),
-                tokenPoints
-        );
-
-        SpendRequest spendRequest = sendSingleSpendRequest(webTestClient, basketPoints, pointsAfterSpend, token, emptyTestBasket, HttpStatus.OK);
-        when(basketRepository.isBasketPaid(emptyTestBasket.getBasketId())).thenReturn(true);
-        var firstRemainderToken = retrieveTokenAfterSpend(webTestClient, token, pointsAfterSpend, spendRequest, emptyTestBasket);
-
-        // DoS should enable double spending attack
-        activateDos(webTestClient);
-
-        SpendRequest doubleSpendingRequest = sendSingleSpendRequest(webTestClient, basketPoints, pointsAfterSpend, token, emptyTestBasketTwo, HttpStatus.OK);
-        when(basketRepository.isBasketPaid(emptyTestBasketTwo.getBasketId())).thenReturn(true);
-
-        var secondRemainderToken= retrieveTokenAfterSpend(webTestClient, token, pointsAfterSpend, doubleSpendingRequest, emptyTestBasketTwo);
-
-        assertThat(firstRemainderToken.getPoints()).isEqualTo(secondRemainderToken.getPoints());
-    }
-
-    private void activateDos(WebTestClient webTestClient) {
-        webTestClient.get().uri("/dos/short-duration").exchange().expectStatus().isOk();
     }
 
     /**
