@@ -38,14 +38,11 @@ import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.groups.cartesian.GroupElementVector;
 import org.cryptimeleon.math.structures.rings.RingElement;
 import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
-import org.cryptimeleon.math.structures.rings.integers.IntegerRing;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.cryptimeleon.math.structures.rings.zn.Zn.ZnElement;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.NoSuchElementException;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -252,14 +249,14 @@ public class IncentiveSystem {
 
         // compute Pedersen commitment for user token
         // need to retrieve exponent from usk object; point count of 0 is reresented by zero in used Z_n
-        RingElementVector exponents = new RingElementVector(R.t, usk.getUsk(), R.eskUsr, R.dsrnd0, R.dsrnd1, R.z);
+        RingElementVector exponents = new RingElementVector(R.t, usk.getUsk(), R.dsidUser, R.dsrnd, R.z);
         GroupElement c0Pre = H.innerProduct(exponents).pow(R.u);
         GroupElement c1Pre = pp.getG1Generator().pow(R.u);
 
         // compute NIZKP to prove well-formedness of token
         FiatShamirProofSystem cwfProofSystem = new FiatShamirProofSystem(new CommitmentWellformednessProtocol(pp, pk));
         CommitmentWellformednessCommonInput cwfCommon = new CommitmentWellformednessCommonInput(c0Pre, c1Pre, blindedUpk, blindedW);
-        CommitmentWellformednessWitness cwfWitness = new CommitmentWellformednessWitness(usk.getUsk(), R.eskUsr, R.dsrnd0, R.dsrnd1, R.z, R.t, R.u.inv());
+        CommitmentWellformednessWitness cwfWitness = new CommitmentWellformednessWitness(usk.getUsk(), R.dsidUser, R.dsrnd, R.z, R.t, R.u.inv());
         FiatShamirProof cwfProof = cwfProofSystem.createProof(cwfCommon, cwfWitness);
 
         // assemble and return join request object (commitment, proof of well-formedness)
@@ -305,8 +302,8 @@ public class IncentiveSystem {
         }
 
         // modify pre-commitment 0 using homomorphism trick and randomly chosen exponent
-        ZnElement eskProv = pp.getBg().getZn().getUniformlyRandomElement();
-        GroupElement modifiedC0Pre = c0Pre.op(c1Pre.pow(sk.getQ().get(1).mul(eskProv)));
+        ZnElement dsidProv = pp.getBg().getZn().getUniformlyRandomElement();
+        GroupElement modifiedC0Pre = c0Pre.op(c1Pre.pow(sk.getQ().get(1).mul(dsidProv)));
 
         // create certificate for modified pre-commitment vector
         SPSEQSignature cert = (SPSEQSignature) pp.getSpsEq().sign(
@@ -317,7 +314,7 @@ public class IncentiveSystem {
         ); // first argument: signing keys, other arguments form the msg vector
 
         // assemble and return join response object
-        return new JoinResponse(cert, eskProv);
+        return new JoinResponse(cert, dsidProv);
     }
 
     /**
@@ -339,11 +336,13 @@ public class IncentiveSystem {
         SPSEQSignature preCert = jRes.getPreCertificate();
         SPSEQSignatureScheme usedSpsEq = pp.getSpsEq();
 
+        GroupElement c0PreWithDsidProv = c0Pre.op(pk.getH().get(1).pow(jRes.getDsidProv()).pow(R.u));
+
         // verify the signature on the modified pre-commitment
         if (!usedSpsEq.verify(
                 pk.getPkSpsEq(),
                 preCert,
-                c0Pre,
+                c0PreWithDsidProv,
                 jReq.getPreCommitment1(),
                 jReq.getPreCommitment1().pow(promotionParameters.getPromotionId())
         )) {
@@ -352,14 +351,14 @@ public class IncentiveSystem {
 
         // change representation of token-certificate pair
         SPSEQSignature finalCert = (SPSEQSignature) usedSpsEq.chgRep(preCert, R.u.inv(), pk.getPkSpsEq()); // adapt signature
-        GroupElement finalCommitment0 = c0Pre.pow(R.u.inv()); // need to adapt message manually (entry by entry), used equivalence relation is R_exp
+        GroupElement finalCommitment0 = c0PreWithDsidProv.pow(R.u.inv()); // need to adapt message manually (entry by entry), used equivalence relation is R_exp
         GroupElement finalCommitment1 = pp.getG1Generator();
 
         // assemble and return token
         Zn usedZn = pp.getBg().getZn();
         RingElementVector zeros = RingElementVector.generate(usedZn::getZeroElement, promotionParameters.getPointsVectorSize());
 
-        return new Token(finalCommitment0, finalCommitment1, R.dsrnd0, R.dsrnd1, R.z, R.t, promotionParameters.getPromotionId(), zeros, finalCert);
+        return new Token(finalCommitment0, finalCommitment1, R.dsidUser.add(jRes.getDsidProv()), R.dsrnd, R.z, R.t, promotionParameters.getPromotionId(), zeros, finalCert);
     }
 
     /*
@@ -579,8 +578,8 @@ public class IncentiveSystem {
         return new Token(
                 blindedNewC0.pow(s.inv()).compute(), // Un-blind commitment
                 blindedNewC1.pow(s.inv()).compute(), // see above
-                token.getDoubleSpendRandomness0(),
-                token.getDoubleSpendRandomness1(),
+                token.getDoubleSpendingId(),
+                token.getDoubleSpendRandomness(),
                 token.getZ(),
                 token.getT(),
                 token.getPromotionId(),
@@ -728,8 +727,8 @@ public class IncentiveSystem {
         return new Token(
                 blindedNewC0.pow(s.inv()).compute(), // Un-blind commitment
                 blindedNewC1.pow(s.inv()).compute(), // see above
-                token.getDoubleSpendRandomness0(),
-                token.getDoubleSpendRandomness1(),
+                token.getDoubleSpendingId(),
+                token.getDoubleSpendRandomness(),
                 token.getZ(),
                 token.getT(),
                 token.getPromotionId(),
@@ -754,21 +753,19 @@ public class IncentiveSystem {
         var R = computeSpendDeductRandomness(userKeyPair.getSk(), token);
         var zp = pp.getBg().getZn();
         var usk = userKeyPair.getSk().getUsk();
-        GroupElement dsid = null;
         var vectorH = providerPublicKey.getH(this.pp, promotionParameters);
-        var vectorR = zp.getUniformlyRandomElements(pp.getNumEskDigits());
         var newPointsVector = RingElementVector.fromStream(newPoints.stream().map(e -> pp.getBg().getZn().createZnElement(e)));
 
         // Prepare a new commitment (cPre0, cPre1) based on the pseudorandom values
-        var exponents = new RingElementVector(R.tS, usk, R.eskUsrS, R.dsrnd0S, R.dsrnd1S, R.zS).concatenate(newPointsVector);
+        var exponents = new RingElementVector(R.tS, usk, R.dsidUserS, R.dsrndS, R.zS).concatenate(newPointsVector);
         var cPre0 = vectorH.innerProduct(exponents).pow(R.uS).compute();
         var cPre1 = pp.getG1Generator().pow(R.uS).compute();
 
-        var gamma = Util.hashGamma(zp, dsid, basketId, cPre0, cPre1); // TODO include all user choices
-        var c= usk.mul(gamma).add(token.getDoubleSpendRandomness0());
+        var gamma = Util.hashGamma(zp, token.getDoubleSpendingId(), basketId, cPre0, cPre1); // TODO include all user choices
+        var c = usk.mul(gamma).add(token.getDoubleSpendRandomness());
 
         var proof = (FiatShamirProof) null;
-        return new SpendCouponRequest(dsid, c, token.getSignature(), token.getCommitment0(), cPre0, cPre1, proof);
+        return new SpendCouponRequest(token.getDoubleSpendingId(), c, token.getSignature(), token.getCommitment0(), cPre0, cPre1, proof);
     }
 
 
@@ -796,18 +793,17 @@ public class IncentiveSystem {
         // Some local variables and pre-computations to make the code more readable
         var zp = pp.getBg().getZn();
         var usk = userKeyPair.getSk().getUsk();
-        var dsid = pp.getW().pow(1);
+        var dsid = token.getDoubleSpendingId();
         var vectorH = providerPublicKey.getH(this.pp, promotionParameters);
-        var vectorR = zp.getUniformlyRandomElements(pp.getNumEskDigits());
         var newPointsVector = RingElementVector.fromStream(newPoints.stream().map(e -> pp.getBg().getZn().createZnElement(e)));
 
 
         /* Compute pseudorandom values */
         // As in credit-earn, we use the PRF to make the algorithm deterministic
-        var R = computeSpendDeductRandomnessOld(userKeyPair.getSk(), token);
+        var R = computeSpendDeductRandomness(userKeyPair.getSk(), token);
 
         // Prepare a new commitment (cPre0, cPre1) based on the pseudorandom values
-        var exponents = new RingElementVector(R.tS, usk, R.eskUsrS, R.dsrnd0S, R.dsrnd1S, R.zS).concatenate(newPointsVector);
+        var exponents = new RingElementVector(R.tS, usk, R.dsidUserS, R.dsrndS, R.zS).concatenate(newPointsVector);
         var cPre0 = vectorH.innerProduct(exponents).pow(R.uS).compute();
         var cPre1 = pp.getG1Generator().pow(R.uS).compute();
 
@@ -816,30 +812,21 @@ public class IncentiveSystem {
            Hence, the provider can easily retrieve usk and esk (using the Schnorr-trick, computing (c0-c0')/(gamma-gamma') for usk, analogously for esk). */
         // using tid as user choice TODO change this once user choice generation is properly implemented, see issue 75
         var gamma = Util.hashGammaOld(zp, dsid, tid, cPre0, cPre1, tid);
-        var c0 = usk.mul(gamma).add(token.getDoubleSpendRandomness0());
-        ZnElement c1 = null;
+        var c0 = usk.mul(gamma).add(token.getDoubleSpendRandomness());
 
         /* Compute El-Gamal encryption of esk^*_usr using under secret key esk
            This allows the provider to decrypt usk^*_usr in case of double spending with the leaked esk.
            By additionally storing esk^*_prov, the provider can retrieve esk^* and thus iteratively decrypt the new esks. */
 
-        // Decompose the encryption-secret-key to base eskDecBase and map the digits to Zn
-        var eskUsrSDecBigInt = IntegerRing.decomposeIntoDigits(R.eskUsrS.asInteger(), pp.getEskDecBase().asInteger(), pp.getNumEskDigits());
-        var eskUsrSDec = RingElementVector.generate(i -> zp.valueOf(eskUsrSDecBigInt[i]), eskUsrSDecBigInt.length);
-
-        // Encrypt digits using El-Gamal and the randomness r
-        var cTrace0 = pp.getW().pow(vectorR).compute();
-        GroupElementVector cTrace1 = null;
-
         /* Build non-interactive (Fiat-Shamir transformed) ZKP to ensure that the user follows the rules of the protocol */
         var spendDeductZkp = new SpendDeductBooleanZkp(spendDeductTree, pp, promotionParameters, providerPublicKey);
         var fiatShamirProofSystem = new FiatShamirProofSystem(spendDeductZkp);
-        var witness = new SpendDeductZkpWitnessInput(usk, token.getZ(), R.zS, token.getT(), R.tS, R.uS, null, R.eskUsrS, token.getDoubleSpendRandomness0(), R.dsrnd0S, token.getDoubleSpendRandomness1(), R.dsrnd1S, eskUsrSDec, vectorR, token.getPoints(), newPointsVector);
-        var commonInput = new SpendDeductZkpCommonInput(gamma, c0, c1, dsid, cPre0, cPre1, token.getCommitment0(), cTrace0, cTrace1);
+        var witness = new SpendDeductZkpWitnessInput(usk, token.getZ(), R.zS, token.getT(), R.tS, R.uS, R.dsidUserS, token.getDoubleSpendRandomness(), R.dsrndS, token.getPoints(), newPointsVector);
+        var commonInput = new SpendDeductZkpCommonInput(gamma, c0, dsid, cPre0, cPre1, token.getCommitment0());
         var proof = fiatShamirProofSystem.createProof(commonInput, witness);
 
         // Assemble request
-        return new SpendRequest(dsid, proof, c0, c1, cPre0, cPre1, cTrace0, cTrace1, token.getCommitment0(), token.getSignature());
+        return new SpendRequest(dsid, proof, c0, cPre0, cPre1, token.getCommitment0(), token.getSignature());
     }
 
     /**
@@ -917,7 +904,7 @@ public class IncentiveSystem {
         // Assemble providers and users output and return as a tuple
         return new DeductOutput(
                 new SpendResponse(sigmaPrime, eskStarProv),
-                new DoubleSpendingTag(commonInput.c0, commonInput.c1, gamma, eskStarProv, commonInput.ctrace0, commonInput.ctrace1)
+                new DoubleSpendingTag(commonInput.c, gamma)
         );
     }
 
@@ -944,7 +931,7 @@ public class IncentiveSystem {
         var newPointsVector = RingElementVector.fromStream(newPoints.stream().map(e -> pp.getBg().getZn().createZnElement(e)));
 
         // Re-compute pseudorandom values
-        var R = computeSpendDeductRandomnessOld(userKeyPair.getSk(), token);
+        var R = computeSpendDeductRandomness(userKeyPair.getSk(), token);
 
         // Verify the signature on the new, blinded commitment
         var blindedCStar0 = spendRequest.getCPre0().op(providerPublicKey.getH().get(1).pow(spendResponse.getEskProvStar().mul(R.uS)));
@@ -962,8 +949,8 @@ public class IncentiveSystem {
         return new Token(
                 blindedCStar0.pow(R.uS.inv()), // Unblind commitment
                 pp.getG1Generator(), // Same as unblinded CStar1
-                R.dsrnd0S,
-                R.dsrnd1S,
+                R.dsidUserS.add(spendResponse.getEskProvStar()),
+                R.dsrndS,
                 R.zS,
                 R.tS,
                 token.getPromotionId(),
@@ -994,79 +981,22 @@ public class IncentiveSystem {
      */
     public UserInfo link(IncentivePublicParameters pp, DoubleSpendingTag dsTag, DoubleSpendingTag dsTagPrime) {
         // computing dsblame, DLOG of the usk of the user blamed of double-spending
-        ZnElement c0 = dsTag.getC0();
-        ZnElement c0Prime = dsTagPrime.getC0();
-        ZnElement c0Difference = c0.sub(c0Prime);
+        ZnElement c = dsTag.getC();
+        ZnElement cPrime = dsTagPrime.getC();
+        ZnElement cDifference = c.sub(cPrime);
 
         ZnElement gamma = dsTag.getGamma();
         ZnElement gammaPrime = dsTagPrime.getGamma();
         ZnElement gammaDifference = gamma.sub(gammaPrime);
 
-        ZnElement dsBlame = c0Difference.div(gammaDifference);
-
-        // computing dstrace to trace further transactions resulting from the detected double-spending attempt
-        ZnElement c1 = dsTag.getC1();
-        ZnElement c1Prime = dsTagPrime.getC1();
-        ZnElement c1Difference = c1.sub(c1Prime);
-
-        ZnElement dsTrace = c1Difference.div(gammaDifference);
+        ZnElement dsBlame = cDifference.div(gammaDifference);
 
         // computing public key of the user blamed of double-spending
         UserPublicKey upk = new UserPublicKey(pp.getW().pow(dsBlame));
 
         // assemble and return output
-        return new UserInfo(upk, dsBlame, dsTrace);
+        return new UserInfo(upk, dsBlame);
     }
-
-    /**
-     * Computes remainder token dsids for some double-spending transaction T (remainder token of a transaction: token that resulted from that transaction)
-     * and at the same time retrieves the next ElGamal encryption key (i.e. the one for the transaction T' after T) from the chain of keys.
-     *
-     * @param pp      public parameters of the respective incentive system instance
-     * @param dsTrace ElGamal decryption key used for tracing the next ElGamal encryption key (= dsid of remainder token) in the chain
-     * @param dsTag   double-spending tag associated to T, used to trace the remainder token
-     * @return trace output, which consists of remainder token and the dstrace ElGamal secret key of T'
-     */
-    public TraceOutput trace(IncentivePublicParameters pp, ZnElement dsTrace, DoubleSpendingTag dsTag) {
-        // extract values from passed objects to save references in the below for-loops
-        Zn usedZn = pp.getBg().getZn();
-        GroupElement w = pp.getW();
-        GroupElementVector ctrace1 = dsTag.getCtrace0(); // this is no off-by-one error but due to naming inconsistency between our Spend-Deduct code and the ds protection algos. in the paper
-        GroupElementVector ctrace2 = dsTag.getCtrace1();
-
-        // compute user share of ElGamal encryption secret key esk
-        ZnElement[] userEskShareDigits = new ZnElement[pp.getNumEskDigits()];
-        for (int i = 0; i < pp.getNumEskDigits(); i++) { // getNumEskDigits returns the number of digits the esk consists of (rho in the paper)
-            for (int b = 0; b < Setup.ESK_DEC_BASE; b++) {
-                // search for DLOG (i-th digit of the user share of esk), beta from paper is b in code
-                if (w.pow(b).equals(ctrace1.get(i).pow(dsTrace.neg()).op(ctrace2.get(i)))) {
-                    userEskShareDigits[i] = usedZn.valueOf(b);
-                    break;
-                }
-            }
-        }
-
-        // check whether all bits could be computed
-        for (int i = 0; i < pp.getNumEskDigits(); i++) {
-            if (userEskShareDigits[i] == null) {
-                throw new RuntimeException("Could not find a fitting " + i + "-th digit for the user's share of esk.");
-            }
-        }
-
-        // compute next dstrace
-        ZnElement dsTraceStar = usedZn.getZeroElement();
-        for (int i = 0; i < pp.getNumEskDigits(); i++) {
-            dsTraceStar = dsTraceStar.add(userEskShareDigits[i].mul(usedZn.valueOf(Setup.ESK_DEC_BASE).pow(i)));
-        }
-        dsTraceStar = dsTraceStar.add(dsTag.getEskStarProv());
-
-        // assemble and return output (new dsid and dstrace)
-        return new TraceOutput(pp.getW().pow(dsTraceStar), dsTraceStar);
-    }
-
-    /*
-     * end of crypto methods for double-spending detection
-     */
 
 
     /*
@@ -1083,148 +1013,8 @@ public class IncentiveSystem {
      * @param userChoice string representing the reward that the user chose
      * @param dbHandler  reference to the object handling the database connectivity
      */
-    public void dbSync(ZnElement tid, GroupElement dsid, DoubleSpendingTag dsTag, String userChoice, BigInteger promotionId, DatabaseHandler dbHandler) {
-        System.out.println("Started database synchronization process.");
-        // shorthands for readability
-        ZnElement gamma = dsTag.getGamma();
-        TransactionIdentifier taId = new TransactionIdentifier(tid, gamma);
-
-        // make list for keeping track of identifiers of transactions that are invalidated over the course of the method
-        ArrayList<TransactionIdentifier> invalidatedTasIdentifiers = new ArrayList<>();
-
-        // first part of DBSync from 2020 incentive system paper: adding a new transaction
-
-        // if transaction is not yet in the database
-        boolean transactionWasAlreadyKnown = dbHandler.containsTransactionNode(taId);
-        if (!transactionWasAlreadyKnown) {
-            System.out.println("Transaction not found in database, will be added.");
-            // add a corresponding transaction node to DB (which also contains the dstag)
-            Transaction ta = new Transaction(true, tid, userChoice, promotionId, dsTag); // first parameter: validity of the transaction
-            dbHandler.addTransactionNode(ta);
-        }
-
-        // if dsid of used token is not yet in DB
-        if (!dbHandler.containsTokenNode(dsid)) {
-            System.out.println("Spent token not found in database, will be added.");
-            // add a corresponding token node to DB
-            dbHandler.addTokenNode(dsid);
-            // and make edge from dsid's token node to the node of the passed transaction
-            dbHandler.addTokenTransactionEdge(dsid, taId);
-        }
-        // if dsid is already in DB but transaction was not before this call -> double-spending attempt detected!
-        else if (!transactionWasAlreadyKnown) {
-            System.out.println("Spent token found in database, double-spending protection mechanism triggered.");
-
-            // make edge from dsid's token node to the node of the passed transaction
-            dbHandler.addTokenTransactionEdge(dsid, taId);
-
-            // attempt to retrieve user info associated to dsid
-            UserInfo associatedUserInfo = null;
-            try {
-                associatedUserInfo = dbHandler.getUserInfo(dsid);
-            } catch (NoSuchElementException e) {
-                System.out.println("No user info associated with the spent token.");
-            }
-
-            // if the token node has no user info associated with it
-            if (associatedUserInfo == null) {
-                System.out.println("Retrieving all transactions that spent the passed token.");
-                // retrieve all transaction that consumed the dsid
-                ArrayList<Transaction> consumingTaList = dbHandler.getConsumingTransactions(dsid);
-
-                // use two of them to compute the user info for this token (i.e. link the double-spending to a user)
-                try {
-                    System.out.println("Attempting to compute user info for passed token.");
-                    DoubleSpendingTag firstTaTag = consumingTaList.get(0).getDsTag();
-                    DoubleSpendingTag secondTaTag = consumingTaList.get(1).getDsTag();
-                    UserInfo uInfo = this.link(this.pp, firstTaTag, secondTaTag);
-                    dbHandler.addAndLinkUserInfo(
-                            uInfo,
-                            dsid
-                    );
-                } catch (Exception e) {
-                    System.out.println("Cannot compute user info for passed token: need at least 2 consuming transactions");
-                }
-            }
-
-
-            // invalidate transaction
-            System.out.println("Marking transaction invalid.");
-            dbHandler.invalidateTransaction(taId);
-            invalidatedTasIdentifiers.add(taId);
-        }
-
-        // second part of DBSync: cascading invalidations
-        System.out.println("Starting cascading invalidations.");
-
-        // whenever a transaction is invalidated: invalidate all transactions that resulted from it (if any exist)
-        while (!invalidatedTasIdentifiers.isEmpty()) {
-            System.out.println("Processing invalidated transaction. " + invalidatedTasIdentifiers.size() + " pending.");
-
-            TransactionIdentifier currentTaId = invalidatedTasIdentifiers.remove(0);
-            System.out.println("Invalidated transaction " + currentTaId.toString() + " found.");
-
-            System.out.println("Retrieving transaction data for " + currentTaId + " .");
-
-            // retrieve transaction
-            Transaction ta = dbHandler.getTransactionNode(currentTaId);
-
-            System.out.println("Retrieving consumed token data (including user info).");
-
-            // retrieve double-spending ID of token consumed by transaction and the corresponding user info
-            GroupElement consumedDsid = dbHandler.getConsumedTokenDsid(currentTaId);
-            UserInfo consumedDsidUserInfo = dbHandler.getUserInfo(consumedDsid); // cannot be null since user info is always computed for invalidated transactions before needed
-
-            System.out.println("Tracing remainder token.");
-
-            // use Trace to compute remainder token's dsid (remainder token: token that resulted from the currently considered transaction)
-            TraceOutput traceOutput = this.trace(this.pp, consumedDsidUserInfo.getDsTrace(), ta.getDsTag());
-            GroupElement dsidStar = traceOutput.getDsidStar();
-
-            System.out.println("Traced remainder token.");
-
-            // add remainder token dsid if not contained yet
-            if (!dbHandler.containsTokenNode(dsidStar)) {
-                System.out.println("Remainder token not contained yet, will be added.");
-                dbHandler.addTokenNode(dsidStar);
-            } else {
-                System.out.println("Remainder token is already contained in the database.");
-            }
-
-            System.out.println("Linking user info to remainder token.");
-
-            // associate corresponding user info with remainder token dsid
-            UserInfo correspondingUserInfo = new UserInfo(
-                    consumedDsidUserInfo.getUpk(),
-                    consumedDsidUserInfo.getDsBlame(),
-                    traceOutput.getDsTraceStar()
-            );
-            dbHandler.addAndLinkUserInfo(
-                    correspondingUserInfo,
-                    dsidStar
-            );
-
-            System.out.println("Making edge from " + currentTaId + " to traced remainder token.");
-
-            // link current transaction with remainder token in database
-            dbHandler.addTransactionTokenEdge(currentTaId, dsidStar);
-
-            System.out.println("Invalidating all transactions that (directly or indirectly) consumed the traced remainder token of " + currentTaId + ".");
-
-            // invalidate all transactions that consumed the remainder token or followed from a transaction consuming it
-            ArrayList<Transaction> followingTransactions = dbHandler.getConsumingTransactions(dsidStar);
-            System.out.println(followingTransactions.size() + " transactions consuming remainder token detected, need to be invalidated.");
-            followingTransactions.forEach(currentTa -> {
-                dbHandler.invalidateTransaction(
-                        currentTa.getTaIdentifier()
-                );
-                invalidatedTasIdentifiers.add(currentTa.getTaIdentifier()); // add invalidated transaction to list so it will be processed
-            });
-        }
-
-        System.out.println("Cascading invalidations terminated.");
-
-        System.out.println("Finished database synchronization process.");
+    public void dbSync(ZnElement tid, ZnElement dsid, DoubleSpendingTag dsTag, String userChoice, BigInteger promotionId, DatabaseHandler dbHandler) {
+        throw new RuntimeException();
     }
 
     /*
@@ -1238,17 +1028,6 @@ public class IncentiveSystem {
      * @param token         the token is hashed to server as input for the prf
      * @return a data object with the pseudorandom values
      */
-    @Deprecated
-    private SpendDeductRandomness computeSpendDeductRandomnessOld(UserSecretKey userSecretKey, Token token) {
-        var prv = pp.getPrfToZn().hashThenPrfToZnVector(
-                userSecretKey.getPrfKey(),
-                token,
-                6,
-                "SpendDeductOld"
-        ).stream().map(ringElement -> (ZnElement) ringElement).collect(Collectors.toList());
-        return new SpendDeductRandomness(prv.get(0), prv.get(1), prv.get(2), prv.get(3), prv.get(4), prv.get(5));
-    }
-
     private SpendDeductRandomness computeSpendDeductRandomness(UserSecretKey userSecretKey, Token token) {
         var prv = pp.getPrfToZn().hashThenPrfToZnVector(
                 userSecretKey.getPrfKey(),
@@ -1256,7 +1035,7 @@ public class IncentiveSystem {
                 5,
                 "SpendDeduct"
         ).stream().map(ringElement -> (ZnElement) ringElement).collect(Collectors.toList());
-        return new SpendDeductRandomness(prv.get(0), prv.get(1), prv.get(2), prv.get(3), prv.get(4), prv.get(5));
+        return new SpendDeductRandomness(prv.get(0), prv.get(1), prv.get(2), prv.get(3), prv.get(4));
     }
 
     private MessageBlock constructRegistrationCouponMessageBlock(UserPublicKey userPublicKey, String userInfo) {
