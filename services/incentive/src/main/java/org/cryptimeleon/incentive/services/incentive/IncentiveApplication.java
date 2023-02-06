@@ -1,7 +1,6 @@
 package org.cryptimeleon.incentive.services.incentive;
 
 import org.cryptimeleon.incentive.client.BasketClient;
-import org.cryptimeleon.incentive.client.DSProtectionClient;
 import org.cryptimeleon.incentive.client.InfoClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
@@ -32,10 +31,5 @@ public class IncentiveApplication {
     @Bean
     BasketClient basketClient() {
         return new BasketClient(basketUrl);
-    }
-
-    @Bean
-    DSProtectionClient dsProtectionClient() {
-        return new DSProtectionClient(dsProtectionServiceUrl);
     }
 }

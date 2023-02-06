@@ -20,7 +20,7 @@ public class ProviderPublicKey implements Representable {
     private SPSEQVerificationKey registrationSpsEqPk;
 
     @Represented(restorer = "G1")
-    private GroupElementVector h; // first six bases for the Pedersen commitment in the tokens
+    private GroupElementVector h; // first five bases for the Pedersen commitment in the tokens
 
     public ProviderPublicKey(Representation repr, IncentivePublicParameters pp) {
         new ReprUtil(this)

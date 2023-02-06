@@ -1,10 +1,9 @@
 package org.cryptimeleon.incentive.crypto;
 
-import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.Token;
 import org.cryptimeleon.math.hash.impl.SHA256HashFunction;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
-import org.cryptimeleon.math.structures.groups.GroupElement;
+import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 /**
  * A token hash code similar to git commit hashes.
@@ -14,11 +13,11 @@ public class TokenDsidHashMaker {
     private static final char[] HEX_ARRAY = "0123456789ABCDEF".toCharArray();
     private static final int SHORT_HASH_LENGTH = 6;
 
-    public static String hashToken(Token token, IncentivePublicParameters pp) {
-        return hashDsid(token.computeDsid(pp));
+    public static String hashToken(Token token) {
+        return hashDsid(token.getDoubleSpendingId());
     }
 
-    public static String hashDsid(GroupElement dsid) {
+    public static String hashDsid(Zn.ZnElement dsid) {
         JSONConverter jsonConverter = new JSONConverter();
         SHA256HashFunction sha256 = new SHA256HashFunction();
 

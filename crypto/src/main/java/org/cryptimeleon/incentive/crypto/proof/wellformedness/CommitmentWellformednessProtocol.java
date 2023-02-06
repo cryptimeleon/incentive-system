@@ -17,16 +17,16 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
  * A protocol for proof of the well-formedness of the preliminary commitment in the initial user token as defined in the Issue {@literal <}-{@literal >}Join protocol of
  * the Cryptimeleon incentive system.
  * <p>
- * In particular, it proves knowledge of (usk, t, z, 1/u, eskUsr, dsrnd0, dsrnd1) in Z_p^7 s.t.
+ * In particular, it proves knowledge of (usk, t, z, 1/u, dsid_usr, dsrnd) in Z_p^7 s.t.
  * I    upk = w^usk
- * II   ( C^pre_0 ) ^ 1/u = h1^usk * h2^esk_usr * h3^dsrnd0 * h4^dsrnd1 * h6^z * h7^t
+ * II   ( C^pre_0 ) ^ 1/u = h1^usk * h2^dsid_usr * h3^dsrnd * h4^z * h5^z * h6^t
  * III  g1 = ( C^pre_1 ) ^ 1/u
  * <p>
  * Note that instead of u, 1/u is used to avoid implementation of double exponent proofs.
  * <p>
  * The common input for the interactive protocol for that proof is split into two parts:
  * the static part consists of the variables that are the same for every interaction, namely
- * w, h1, h2, h3, h4, h6, h7, g1 .
+ * w, h1, h2, h3, h4, h6, g1 .
  * These values are stored in the CommitmentWellformednessProof object.
  * On the other hand, there is the non-static part of the common input which comprises
  * upk, c0Pre, c1Pre
@@ -60,11 +60,10 @@ public class CommitmentWellformednessProtocol extends DelegateProtocol {
         var tVar = builder.addZnVariable("t", usedZn);
         var zVar = builder.addZnVariable("z", usedZn);
         var uInverseVar = builder.addZnVariable("uInverse", usedZn);
-        var eskUsrVar = builder.addZnVariable("eskUsr", usedZn);
-        var dsrnd0Var = builder.addZnVariable("dsrnd0", usedZn);
-        var dsrnd1Var = builder.addZnVariable("dsrnd1", usedZn);
+        var dsidUserVar = builder.addZnVariable("dsidUser", usedZn);
+        var dsrndVar = builder.addZnVariable("dsrnd", usedZn);
 
-        var exponentVector = new ExponentExpressionVector(tVar, uskVar, eskUsrVar, dsrnd0Var, dsrnd1Var, zVar);
+        var exponentVector = new ExponentExpressionVector(tVar, uskVar, dsidUserVar, dsrndVar, zVar);
 
         // create statement objects for all three statements that shall be proven
 
@@ -109,9 +108,8 @@ public class CommitmentWellformednessProtocol extends DelegateProtocol {
         builder.putWitnessValue("t", castedSecretInput.getT());
         builder.putWitnessValue("z", castedSecretInput.getZ());
         builder.putWitnessValue("uInverse", castedSecretInput.getUInverse());
-        builder.putWitnessValue("eskUsr", castedSecretInput.getEskUsr());
-        builder.putWitnessValue("dsrnd0", castedSecretInput.getDsrnd0());
-        builder.putWitnessValue("dsrnd1", castedSecretInput.getDsrnd1());
+        builder.putWitnessValue("dsidUser", castedSecretInput.getDsidUser());
+        builder.putWitnessValue("dsrnd", castedSecretInput.getDsrnd());
 
         // build the prover side of subprotocol using the passed builder
         return builder.build();

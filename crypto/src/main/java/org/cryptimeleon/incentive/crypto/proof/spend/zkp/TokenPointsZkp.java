@@ -47,18 +47,15 @@ class TokenPointsZkp extends DelegateProtocol {
         var zn = pp.getBg().getZn();
 
         // Variables to use
-        var eskVar = builder.addZnVariable("esk", zn);
         var uskVar = builder.addZnVariable("usk", zn);
-        var dsrnd0Var = builder.addZnVariable("dsrnd0", zn);
-        var dsrnd1Var = builder.addZnVariable("dsrnd1", zn);
+        var dsrndVar = builder.addZnVariable("dsrnd", zn);
         var zVar = builder.addZnVariable("z", zn);
         var tVar = builder.addZnVariable("t", zn);
         var pointsVector = ExponentExpressionVector.generate(i -> builder.addZnVariable("points_" + i, zn), promotionParameters.getPointsVectorSize());
 
-
-        // C=(H.pow(t, usk, esk, dsrnd_0, dsrnd_1, points, z), g_1)
+        // C_0=H.pow(t, usk, dsid, dsrnd, z, points)
         var commitmentC0Statement = H.innerProduct(
-                ExponentExpressionVector.of(tVar, uskVar, eskVar, dsrnd0Var, dsrnd1Var, zVar).concatenate(pointsVector.map(e -> e))
+                ExponentExpressionVector.of(tVar, uskVar, commonInput.dsid, dsrndVar, zVar).concatenate(pointsVector.map(e -> e))
         ).isEqualTo(commonInput.commitmentC0);
         builder.addSubprotocol("C0", new LinearStatementFragment(commitmentC0Statement));
 
@@ -69,9 +66,9 @@ class TokenPointsZkp extends DelegateProtocol {
                         "pointsVector[" + i + "]>=lowerLimits[" + i + "]",
                         new SmallerThanPowerFragment(
                                 pointsVector.get(i).sub(lowerLimits.get(i).intValue()),
-                                pp.getEskDecBase().asInteger().intValue(),
+                                pp.getRangeProofBase().asInteger().intValue(),
                                 pp.getMaxPointBasePower(),
-                                pp.getEskBaseSetMembershipPublicParameters()
+                                pp.getSetMembershipPublicParameters()
                         )
                 );
             }
@@ -80,9 +77,9 @@ class TokenPointsZkp extends DelegateProtocol {
                         "pointsVector[" + i + "]<=upperLimits[" + i + "]",
                         new SmallerThanPowerFragment(
                                 (new ExponentConstantExpr(upperLimits.get(i))).sub(pointsVector.get(i)),
-                                pp.getEskDecBase().asInteger().intValue(),
+                                pp.getRangeProofBase().asInteger().intValue(),
                                 pp.getMaxPointBasePower(),
-                                pp.getEskBaseSetMembershipPublicParameters()
+                                pp.getSetMembershipPublicParameters()
                         )
                 );
             }
@@ -96,10 +93,8 @@ class TokenPointsZkp extends DelegateProtocol {
         var secretInput = (SpendDeductZkpWitnessInput) pSecretInput;
 
         // Add variables to witness
-        builder.putWitnessValue("esk", secretInput.esk);
         builder.putWitnessValue("usk", secretInput.usk);
-        builder.putWitnessValue("dsrnd0", secretInput.dsrnd0);
-        builder.putWitnessValue("dsrnd1", secretInput.dsrnd1);
+        builder.putWitnessValue("dsrnd", secretInput.dsrnd);
         builder.putWitnessValue("z", secretInput.z);
         builder.putWitnessValue("t", secretInput.t);
 

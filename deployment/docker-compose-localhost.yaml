@@ -26,15 +26,6 @@ services:
     networks:
       - provider
     hostname: basketservice
-  dsprotectionservice:
-    image: cryptimeleon/incentive-service-dsprotection:0.5.0
-    ports:
-      - "8004:8004"
-    environment:
-      - INFO_SERVICE_URL=http://infoservice:8000/
-    networks:
-      - provider
-    hostname: dsprotectionservice
   bootstrapservice:
     image: cryptimeleon/incentive-service-bootstrap:0.5.0
     environment:

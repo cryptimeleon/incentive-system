@@ -14,7 +14,7 @@ import java.util.Objects;
 public class JoinResponse implements Representable {
     private final SPSEQSignature preCertificate; // preliminary certificate for the user token
 
-    private final ZnElement eskProv; // the share of the provider for the ElGamal encryption key for the initial token of the user
+    private final ZnElement dsidProv; // the share of the provider for the doubleSpendingId, to ensure it is uniformly random
 
     public JoinResponse(Representation repr, IncentivePublicParameters pp) {
         // force passed representation into a list representation (does not throw class cast exception in intended use cases)
@@ -27,19 +27,19 @@ public class JoinResponse implements Representable {
 
         // restore fields
         this.preCertificate = new SPSEQSignature(list.get(0), usedG1, usedG2);
-        this.eskProv = usedZn.restoreElement(list.get(1));
+        this.dsidProv = usedZn.restoreElement(list.get(1));
     }
 
-    public JoinResponse(SPSEQSignature preCertificate, ZnElement eskProv) {
+    public JoinResponse(SPSEQSignature preCertificate, ZnElement dsidProv) {
         this.preCertificate = preCertificate;
-        this.eskProv = eskProv;
+        this.dsidProv = dsidProv;
     }
 
     @Override
     public Representation getRepresentation() {
         return new ListRepresentation(
                 this.preCertificate.getRepresentation(),
-                this.eskProv.getRepresentation()
+                this.dsidProv.getRepresentation()
         );
     }
 
@@ -47,8 +47,8 @@ public class JoinResponse implements Representable {
         return this.preCertificate;
     }
 
-    public ZnElement getEskProv() {
-        return this.eskProv;
+    public ZnElement getDsidProv() {
+        return this.dsidProv;
     }
 
     @Override
@@ -56,15 +56,15 @@ public class JoinResponse implements Representable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         JoinResponse that = (JoinResponse) o;
-        return Objects.equals(preCertificate, that.preCertificate) && Objects.equals(eskProv, that.eskProv);
+        return Objects.equals(preCertificate, that.preCertificate) && Objects.equals(dsidProv, that.dsidProv);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(preCertificate, eskProv);
+        return Objects.hash(preCertificate, dsidProv);
     }
 
     public String toString() {
-        return "JoinResponse(preCertificate=" + this.getPreCertificate() + ", eskProv=" + this.getEskProv() + ")";
+        return "JoinResponse(preCertificate=" + this.getPreCertificate() + ", dsidProv=" + this.getDsidProv() + ")";
     }
 }

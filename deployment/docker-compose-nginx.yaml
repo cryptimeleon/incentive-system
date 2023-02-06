@@ -45,19 +45,6 @@ services:
     networks:
       - provider
     hostname: basketservice
-  dsprotectionservice:
-    image: cryptimeleon/incentive-service-dsprotection:0.5.0
-    ports:
-      - "8004:8004"
-    environment:
-      - SPRING_PROFILES_ACTIVE=production
-      - JAVA_TOOL_OPTIONS=-Xms512m -Xmx2048m
-      - SERVER_SERVLET_CONTEXT_PATH=${DSPROTECTION_CONTEXT:-/dsprotection}
-      - SPRINGFOX_HOST=${HOST:-incentives.cs.uni-paderborn.de}
-      - INFO_SERVICE_URL=http://infoservice:8000${INFO_CONTEXT:-/info}
-    networks:
-      - provider
-    hostname: dsprotectionservice
   bootstrapservice:
     image: cryptimeleon/incentive-service-bootstrap:0.5.0
     environment:

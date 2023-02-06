@@ -2,7 +2,6 @@ package org.cryptimeleon.incentive.services.incentive.repository;
 
 import org.cryptimeleon.incentive.crypto.model.DeductOutput;
 import org.cryptimeleon.incentive.crypto.model.SpendRequest;
-import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 import java.math.BigInteger;
@@ -33,7 +32,7 @@ public interface OfflineDSPRepository {
     /**
      * Returns true if and only if the double-spending database contains a node for the passed dsid.
      */
-    boolean containsDsid(GroupElement dsid);
+    boolean containsDsid(Zn.ZnElement dsid);
 
     void addShortWaitPeriod();
 

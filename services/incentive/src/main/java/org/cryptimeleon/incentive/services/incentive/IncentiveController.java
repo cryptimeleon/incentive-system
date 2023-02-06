@@ -33,8 +33,6 @@ public class IncentiveController {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(IncentiveController.class);
     // ref to service that handles server side of crypto protocols + registration token issuing
     private final IncentiveService incentiveService;
-    // ref to service that handles temporary DoS of double-spending protection service
-    private final DosService dosService;
     // shared secret, required to perform privileged actions
     @Value("${incentive-service.provider-secret}")
     private String providerSecret;
@@ -62,9 +60,8 @@ public class IncentiveController {
     /*
      * endpoints for managing promotions in the system
      */
-    public IncentiveController(final IncentiveService incentiveService, final DosService dosService) {
+    public IncentiveController(final IncentiveService incentiveService) {
         this.incentiveService = incentiveService;
-        this.dosService = dosService;
     }
 
     /**
@@ -166,42 +163,6 @@ public class IncentiveController {
     /*
     * end of endpoints for user to interact with provider of incentive system
     */
-    /*
-    * endpoints for simulating denial-of-service attacks on the double-spending database.
-    */
-    /**
-     * HTTP endpoint to start a short simulated DoS attack on the double-spending protection database.
-     */
-    @GetMapping("/dos/short-duration")
-    public void shortDos() {
-        dosService.addShortWaitPeriod();
-    }
-
-    /**
-     * HTTP endpoint to start a longer simulated DoS attack on the double-spending protection database.
-     */
-    @GetMapping("/dos/long-duration")
-    public void longDos() {
-        dosService.addLongWaitPeriod();
-    }
-
-    /**
-     * HTTP endpoint to "withdraw" demo denial-of-service attacks on the double-spending protection service
-     * and make it available again instantly.
-     */
-    @GetMapping("/dos/stop")
-    public void stopDos() {
-        dosService.removeAllWaitPeriod();
-    }
-
-    /**
-     * HTTP endpoint to query the remaining time that the double-spending protection service will be down due to demo denial-of-service attacks.
-     * @return time in seconds
-     */
-    @GetMapping("/dos/remaining-offline-time")
-    public long remainingOfflineTimeSeconds() {
-        return dosService.getRemainingOfflineTimeSeconds();
-    }
 
     /**
      * HTTP endpoint for obtaining all points and rewards for a paid basket identified by the passed ID.
