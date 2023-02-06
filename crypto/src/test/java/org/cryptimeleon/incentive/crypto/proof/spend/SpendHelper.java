@@ -95,9 +95,9 @@ public class SpendHelper {
         var cPre0 = vectorH.innerProduct(exponents).pow(uS).compute();
         var cPre1 = pp.getG1Generator().pow(uS).compute();
 
-        /* Enable double-spending-protection by forcing usk and esk becoming public in that case
-           If token is used twice in two different transactions, the provider observes (c0,c1), (c0',c1') with gamma!=gamma'
-           Hence, the provider can easily retrieve usk and esk (using the Schnorr-trick, computing (c0-c0')/(gamma-gamma') for usk, analogously for esk). */
+        /* Enable double-spending-protection by forcing usk becoming public in that case
+           If token is used twice in two different transactions, the provider observes c, 0 with gamma!=gamma'
+           Hence, the provider can easily retrieve usk and esk (using the Schnorr-trick, computing (c-c')/(gamma-gamma') for usk). */
         // using tid as user choice TODO change this once user choice generation is properly implemented, see issue 75
         var gamma = Util.hashGammaOld(zp, dsid, tid, cPre0, cPre1, tid);
         var c = usk.mul(gamma).add(token.getDoubleSpendRandomness());

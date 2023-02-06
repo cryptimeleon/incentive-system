@@ -28,7 +28,7 @@ public class Token implements Representable, UniqueByteRepresentable {
     @Represented(restorer = "Zn")
     private ZnElement doubleSpendingId; // nonce that is published when this token is invalidated
     @Represented(restorer = "Zn")
-    private ZnElement doubleSpendRandomness; // randomness used for the first challenge generation in double spending protection
+    private ZnElement doubleSpendRandomness; // randomness used for the challenge generation in double spending protection
 
     @Represented(restorer = "Zn")
     private ZnElement z; // first value for blinding the token group element

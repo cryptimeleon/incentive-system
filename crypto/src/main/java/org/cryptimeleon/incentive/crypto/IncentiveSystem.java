@@ -811,7 +811,7 @@ public class IncentiveSystem {
            Hence, the provider can easily retrieve usk and esk (using the Schnorr-trick, computing (c0-c0')/(gamma-gamma') for usk, analogously for esk). */
         // using tid as user choice TODO change this once user choice generation is properly implemented, see issue 75
         var gamma = Util.hashGammaOld(zp, dsid, tid, cPre0, cPre1, tid);
-        var c0 = usk.mul(gamma).add(token.getDoubleSpendRandomness());
+        var c = usk.mul(gamma).add(token.getDoubleSpendRandomness());
 
         /* Compute El-Gamal encryption of esk^*_usr using under secret key esk
            This allows the provider to decrypt usk^*_usr in case of double spending with the leaked esk.
@@ -821,11 +821,11 @@ public class IncentiveSystem {
         var spendDeductZkp = new SpendDeductBooleanZkp(spendDeductTree, pp, promotionParameters, providerPublicKey);
         var fiatShamirProofSystem = new FiatShamirProofSystem(spendDeductZkp);
         var witness = new SpendDeductZkpWitnessInput(usk, token.getZ(), R.zS, token.getT(), R.tS, R.uS, R.dsidUserS, token.getDoubleSpendRandomness(), R.dsrndS, token.getPoints(), newPointsVector);
-        var commonInput = new SpendDeductZkpCommonInput(gamma, c0, dsid, cPre0, cPre1, token.getCommitment0());
+        var commonInput = new SpendDeductZkpCommonInput(gamma, c, dsid, cPre0, cPre1, token.getCommitment0());
         var proof = fiatShamirProofSystem.createProof(commonInput, witness);
 
         // Assemble request
-        return new SpendRequest(dsid, proof, c0, cPre0, cPre1, token.getCommitment0(), token.getSignature());
+        return new SpendRequest(dsid, proof, c, cPre0, cPre1, token.getCommitment0(), token.getSignature());
     }
 
     /**

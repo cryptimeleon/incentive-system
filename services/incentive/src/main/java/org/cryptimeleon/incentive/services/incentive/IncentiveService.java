@@ -213,6 +213,9 @@ public class IncentiveService {
         */
         Zn.ZnElement usedTokenDsid = spendRequest.getDsid();
 
+        // TODO this has to be updated to new architecture!
+        // E.g. by storing responses for dsids and returning the same response if a dsid is not sent the first time
+
         if (offlineDspRepository.containsDsid(usedTokenDsid)) {
             // immediately reject transaction if no simulated DoS attack ongoing and spent token already contained
             throw new OnlineDoubleSpendingException();
