@@ -8,6 +8,7 @@ import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignatureScheme;
 import org.cryptimeleon.incentive.crypto.Util;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
+import org.cryptimeleon.incentive.crypto.model.keys.store.StorePublicKey;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkpCommonInput;
@@ -27,6 +28,7 @@ public class SpendClearingData implements Representable {
     private final UUID basketId;
     private final SPSEQSignature tokenSignature;
     private final ECDSASignature couponSignature;
+    private final StorePublicKey storePublicKey;
     private final Zn.ZnElement c;
     private final GroupElement c0;
     private final GroupElement cPre0;
@@ -38,6 +40,7 @@ public class SpendClearingData implements Representable {
                              UUID basketId,
                              SPSEQSignature tokenSignature,
                              ECDSASignature couponSignature,
+                             StorePublicKey storePublicKey,
                              Zn.ZnElement c,
                              GroupElement c0,
                              GroupElement cPre0,
@@ -48,6 +51,7 @@ public class SpendClearingData implements Representable {
         this.basketId = basketId;
         this.tokenSignature = tokenSignature;
         this.couponSignature = couponSignature;
+        this.storePublicKey = storePublicKey;
         this.c = c;
         this.c0 = c0;
         this.cPre0 = cPre0;
@@ -67,17 +71,18 @@ public class SpendClearingData implements Representable {
         this.dsid = zn.restoreElement(listRepresentation.get(1));
         this.basketId = UUID.fromString(((StringRepresentation) listRepresentation.get(2)).get());
         this.tokenSignature = spseqSignatureScheme.restoreSignature(listRepresentation.get(3));
-        this.couponSignature= (ECDSASignature) ecdsaSignatureScheme.restoreSignature(listRepresentation.get(4));
-        this.c = zn.restoreElement(listRepresentation.get(5));
-        this.c0 = group.restoreElement(listRepresentation.get(6));
-        this.cPre0 = group.restoreElement(listRepresentation.get(7));
-        this.cPre1 = group.restoreElement(listRepresentation.get(8));
+        this.couponSignature = (ECDSASignature) ecdsaSignatureScheme.restoreSignature(listRepresentation.get(4));
+        this.storePublicKey = new StorePublicKey(listRepresentation.get(5));
+        this.c = zn.restoreElement(listRepresentation.get(6));
+        this.c0 = group.restoreElement(listRepresentation.get(7));
+        this.cPre0 = group.restoreElement(listRepresentation.get(8));
+        this.cPre1 = group.restoreElement(listRepresentation.get(9));
 
         // Kinda nasty deserialization of zkp
         var gamma = Util.hashGamma(pp.getBg().getZn(), dsid, basketId, cPre0, cPre1, cPre1.pow(promotionParameters.getPromotionId())); // TODO include all user choices
         var spendDeductCommonInput = new SpendDeductZkpCommonInput(gamma, c, dsid, cPre0, cPre1, c0);
         var fiatShamirProofSystem = new FiatShamirProofSystem(new SpendDeductBooleanZkp(spendDeductTree, pp, promotionParameters, providerPublicKey));
-        this.proof = fiatShamirProofSystem.restoreProof(spendDeductCommonInput, listRepresentation.get(9));
+        this.proof = fiatShamirProofSystem.restoreProof(spendDeductCommonInput, listRepresentation.get(10));
     }
 
 
@@ -89,6 +94,7 @@ public class SpendClearingData implements Representable {
                 new StringRepresentation(basketId.toString()),
                 tokenSignature.getRepresentation(),
                 couponSignature.getRepresentation(),
+                storePublicKey.getRepresentation(),
                 c.getRepresentation(),
                 c0.getRepresentation(),
                 cPre0.getRepresentation(),

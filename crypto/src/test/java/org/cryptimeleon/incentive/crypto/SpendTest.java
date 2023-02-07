@@ -6,6 +6,7 @@ import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.proof.spend.SpendHelper;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.math.structures.cartesian.Vector;
+import org.cryptimeleon.math.structures.rings.RingElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -24,7 +25,7 @@ public class SpendTest {
     Token token = TestSuite.generateToken(promotionParameters, pointsBeforeSpend);
 
     @Test
-    void successfulSpendTest() {
+    void spendFullTest() {
         SpendDeductTree spendDeductTree = SpendHelper.generateSimpleTestSpendDeductTree(promotionParameters, pointDifference);
         SpendCouponRequest spendCouponRequest = incSys.generateStoreSpendRequest(
                 token,
@@ -35,27 +36,28 @@ public class SpendTest {
                 basketId,
                 spendDeductTree
         );
-         SpendStoreOutput spendStoreOutput = incSys.generateSpendCouponAndIssueReward(
+         SpendStoreOutput spendStoreOutput = incSys.signSpendCoupon(
                  TestSuite.storeKeyPair,
                  TestSuite.providerKeyPair.getPk(),
                  basketId,
                  promotionParameters,
                  spendCouponRequest,
                  spendDeductTree,
-                 new IStoreBasketRedeemedHandler() {
-                     @Override
-                     public boolean verifyAndStorePromotionIdAndHashForBasket(UUID basketId, BigInteger promotionId, byte[] hash) {
-                         throw new RuntimeException();
-                     }
-
-                     @Override
-                     public BasketRedeemedResult verifyAndRedeemBasket(UUID basketId, BigInteger promotionId, Zn.ZnElement gamma, SpendCouponSignature signature) {
-                         return new IStoreBasketRedeemedHandler.BasketNotRedeemed();
-                     }
-                 }
+                 TestSuite.allChecksTrueRedeemedHandler
          );
         SpendCouponSignature spendCouponSignature = spendStoreOutput.spendCouponSignature;
         Assertions.assertTrue(incSys.verifySpendCouponSignature(spendCouponRequest, spendCouponSignature, promotionParameters, basketId));
+
+        SpendRequestECDSA spendRequest = new SpendRequestECDSA(spendCouponRequest, spendCouponSignature, promotionParameters, basketId);
+        SpendResponseECDSA spendResponse = incSys.verifySpendRequestAndIssueNewToken(
+                TestSuite.providerKeyPair,
+                spendRequest,
+                promotionParameters,
+                (z) -> true,
+                spendDeductTree
+        );
+        Token updatedToken = incSys.retrieveUpdatedTokenFromSpendResponse(spendRequest, spendResponse, pointsAfterSpend, TestSuite.userKeyPair, token, TestSuite.providerKeyPair.getPk(), promotionParameters);
+        Assertions.assertEquals(updatedToken.getPoints().map(RingElement::asInteger), pointsAfterSpend);
     }
 
     @Test
@@ -70,7 +72,7 @@ public class SpendTest {
                 basketId,
                 spendDeductTree
         );
-        SpendStoreOutput spendStoreOutput = incSys.generateSpendCouponAndIssueReward(
+        SpendStoreOutput spendStoreOutput = incSys.signSpendCoupon(
                 TestSuite.storeKeyPair,
                 TestSuite.providerKeyPair.getPk(),
                 basketId,
@@ -92,6 +94,15 @@ public class SpendTest {
         SpendCouponSignature spendCouponSignature = spendStoreOutput.spendCouponSignature;
         SpendClearingData spendClearingData = spendStoreOutput.spendClearingData;
 
+        SpendRequestECDSA spendRequest = new SpendRequestECDSA(spendCouponRequest, spendCouponSignature, promotionParameters, basketId);
+        SpendResponseECDSA spendResponse = incSys.verifySpendRequestAndIssueNewToken(
+                TestSuite.providerKeyPair,
+                spendRequest,
+                promotionParameters,
+                (z) -> true,
+                spendDeductTree
+        );
+
         SpendCouponSignature deserializedSpendCouponSignature = new SpendCouponSignature(spendCouponSignature.getRepresentation());
         SpendClearingData deserializedSpendClearingData = new SpendClearingData(spendClearingData.getRepresentation(), incSys.pp, promotionParameters, spendDeductTree, TestSuite.providerKeyPair.getPk());
         SpendCouponRequest deserialzedSpendCouponRequest = new SpendCouponRequest(
@@ -102,10 +113,14 @@ public class SpendTest {
                 TestSuite.providerKeyPair.getPk(),
                 spendDeductTree
         );
+        SpendRequestECDSA deserializedSpendRequest = new SpendRequestECDSA(spendRequest.getRepresentation(), incSys.pp, promotionParameters, spendDeductTree, TestSuite.providerKeyPair.getPk());
+        SpendResponseECDSA deserializedSpendResponse = new SpendResponseECDSA(spendResponse.getRepresentation(), incSys.pp);
 
         Assertions.assertEquals(spendCouponRequest, deserialzedSpendCouponRequest);
         Assertions.assertEquals(spendCouponSignature, deserializedSpendCouponSignature);
         Assertions.assertEquals(spendClearingData, deserializedSpendClearingData);
+        Assertions.assertEquals(spendRequest, deserializedSpendRequest);
+        Assertions.assertEquals(spendResponse, deserializedSpendResponse);
     }
 
 }

@@ -23,7 +23,8 @@ public class Token implements Representable, UniqueByteRepresentable {
     private GroupElement commitment0; // the first part of the Pedersen commitment computed from the bases and the exponents, representing the actual token
 
     @Represented(restorer = "G1")
-    private GroupElement commitment1; // the second part of the Pedersen commitment computed from the bases and the exponents, representing the actual token
+    private GroupElement commitment1; // TODO remove this. Is just g1Generator!
+    // the second part of the Pedersen commitment computed from the bases and the exponents, representing the actual token
 
     @Represented(restorer = "Zn")
     private ZnElement doubleSpendingId; // nonce that is published when this token is invalidated

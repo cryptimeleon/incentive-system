@@ -774,13 +774,13 @@ public class IncentiveSystem {
         return new SpendCouponRequest(token.getDoubleSpendingId(), c, token.getSignature(), token.getCommitment0(), cPre0, cPre1, proof);
     }
 
-    public SpendStoreOutput generateSpendCouponAndIssueReward(StoreKeyPair storeKeyPair,
-                                                              ProviderPublicKey providerPublicKey,
-                                                              UUID basketId,
-                                                              PromotionParameters promotionParameters,
-                                                              SpendCouponRequest spendCouponRequest,
-                                                              SpendDeductTree spendDeductTree,
-                                                              IStoreBasketRedeemedHandler iStoreBasketRedeemedHandler
+    public SpendStoreOutput signSpendCoupon(StoreKeyPair storeKeyPair,
+                                            ProviderPublicKey providerPublicKey,
+                                            UUID basketId,
+                                            PromotionParameters promotionParameters,
+                                            SpendCouponRequest spendCouponRequest,
+                                            SpendDeductTree spendDeductTree,
+                                            IStoreBasketRedeemedHandler iStoreBasketRedeemedHandler
     ) {
         var zp = pp.getBg().getZn();
 
@@ -837,12 +837,17 @@ public class IncentiveSystem {
                 basketId,
                 spendCouponRequest.getSigma(),
                 signature,
+                storeKeyPair.getPk(),
                 spendCouponRequest.getC(),
                 spendCouponRequest.getC0(),
                 spendCouponRequest.getCPre0(),
                 spendCouponRequest.getCPre1(),
                 spendCouponRequest.getSpendZkp()
         );
+
+        // 1. Offline: Wait for payment
+        // 2. Issue reward
+        // 3. Give coupon signature to user
 
         return new SpendStoreOutput(spendCouponSignature, spendClearingData);
     }
@@ -851,6 +856,108 @@ public class IncentiveSystem {
         ECDSASignatureScheme ecdsaSignatureScheme = new ECDSASignatureScheme();
         MessageBlock messageBlock = constructSpendCouponMessageBlock(promotionParameters.getPromotionId(), spendCouponRequest.getDsid(), basketId);
         return ecdsaSignatureScheme.verify(messageBlock, spendCouponSignature.getSignature(), spendCouponSignature.getStorePublicKey().getEcdsaVerificationKey());
+    }
+
+    public SpendResponseECDSA verifySpendRequestAndIssueNewToken(ProviderKeyPair providerKeyPair,
+                                                                 SpendRequestECDSA spendRequestECDSA,
+                                                                 PromotionParameters promotionParameters,
+                                                                 IStorePublicKeyVerificationHandler storePublicKeyVerificationHandler,
+                                                                 SpendDeductTree spendDeductTree) {
+
+        // 1. Verify Store ECDSA public key is trusted
+        if (!storePublicKeyVerificationHandler.isStorePublicKeyTrusted(spendRequestECDSA.getStorePublicKey())) {
+            throw new RuntimeException("Store public key is not trusted");
+        }
+
+        // 2. Verify ECDSA
+        ECDSASignatureScheme ecdsaSignatureScheme = new ECDSASignatureScheme();
+        MessageBlock messageBlock = constructSpendCouponMessageBlock(promotionParameters.getPromotionId(), spendRequestECDSA.getDoubleSpendingId(), spendRequestECDSA.getBasketId());
+        boolean ecdsaValid = ecdsaSignatureScheme.verify(messageBlock, spendRequestECDSA.getCouponSignature(), spendRequestECDSA.getStorePublicKey().getEcdsaVerificationKey());
+        if (!ecdsaValid) {
+            throw new RuntimeException("Invalid ECDSA signature!");
+        }
+
+        // 3. Verify SPSEQ
+        SPSEQSignatureScheme spseqSignatureScheme = pp.getSpsEq();
+        spseqSignatureScheme.verify(providerKeyPair.getPk().getPkSpsEq(), spendRequestECDSA.getTokenSignature(), spendRequestECDSA.getC0(), pp.getG1Generator(), pp.getG1Generator().pow(promotionParameters.getPromotionId()));
+
+        // 4. Verify NZIK
+        var spendDeductZkp = new SpendDeductBooleanZkp(spendDeductTree, pp, promotionParameters, providerKeyPair.getPk());
+        var fiatShamirProofSystem = new FiatShamirProofSystem(spendDeductZkp);
+        // using tid as user choice TODO change this once user choice generation is properly implemented, see issue 75
+        var gamma = Util.hashGamma(pp.getBg().getZn(), spendRequestECDSA.getDoubleSpendingId(), spendRequestECDSA.getBasketId(), spendRequestECDSA.getcPre0(), spendRequestECDSA.getcPre1(), spendRequestECDSA.getcPre1().pow(promotionParameters.getPromotionId()));
+        var commonInput = new SpendDeductZkpCommonInput(spendRequestECDSA, gamma);
+        var proofValid = fiatShamirProofSystem.checkProof(commonInput, spendRequestECDSA.getProof());
+        if (!proofValid) {
+            throw new IllegalArgumentException("ZKP of the request is not valid!");
+        }
+
+        // 5. dsid_prov^*
+        var preimage = new ByteArrayAccumulator();
+        // TODO prf(coupon_signature) instead?
+        preimage.escapeAndSeparate(spendRequestECDSA.getDoubleSpendingId());
+        preimage.escapeAndSeparate(spendRequestECDSA.getBasketId().toString());
+        preimage.escapeAndSeparate(spendRequestECDSA.getPromotionId().toByteArray());
+        preimage.escapeAndSeparate(commonInput.c0Pre);
+        preimage.escapeAndSeparate(commonInput.c1Pre);
+        var dsidStarProv = pp.getPrfToZn().hashThenPrfToZn(providerKeyPair.getSk().getBetaProv(), new ByteArrayImplementation(preimage.extractBytes()), "dsid");
+
+        // 6. Create signature for new token
+        GroupElement cPre0 = spendRequestECDSA.getcPre0();
+        GroupElement cPre1 = spendRequestECDSA.getcPre1();
+        GroupElement cPre2 = cPre1.pow(promotionParameters.getPromotionId());
+        SPSEQSignature updatedTokenSignature = (SPSEQSignature) spseqSignatureScheme.sign(
+                providerKeyPair.getSk().getSkSpsEq(),
+                cPre0.op(cPre1.pow(dsidStarProv.mul(providerKeyPair.getSk().getQ().get(1)))),
+                cPre1,
+                cPre2
+        );
+
+        // Add to DS-DB
+        // TODO
+
+        return new SpendResponseECDSA(updatedTokenSignature, dsidStarProv);
+    }
+
+    public Token retrieveUpdatedTokenFromSpendResponse(SpendRequestECDSA spendRequestECDSA,
+                                                       SpendResponseECDSA spendResponseECDSA,
+                                                       Vector<BigInteger> newPoints,
+                                                       UserKeyPair userKeyPair,
+                                                       Token token,
+                                                       ProviderPublicKey providerPublicKey,
+                                                       PromotionParameters promotionParameters) {
+        var newPointsVector = RingElementVector.fromStream(newPoints.stream().map(e -> pp.getBg().getZn().createZnElement(e)));
+
+        // Re-compute pseudorandom values
+        var R = computeSpendDeductRandomness(userKeyPair.getSk(), token);
+
+        // Verify the signature on the new, blinded commitment
+        var blindedCStar0 = spendRequestECDSA.getcPre0().op(providerPublicKey.getH().get(1).pow(spendResponseECDSA.getDsidStarProv().mul(R.uS)));
+        var blindedCStar1 = pp.getG1Generator().pow(R.uS);
+        var blindedCStar2 = blindedCStar1.pow(promotionParameters.getPromotionId());
+        var valid = pp.getSpsEq().verify(
+                providerPublicKey.getPkSpsEq(),
+                spendResponseECDSA.getSignature(),
+                blindedCStar0,
+                blindedCStar1,
+                blindedCStar2
+        );
+        if (!valid) {
+            throw new IllegalArgumentException("Signature is not valid");
+        }
+
+        // Build new token
+        return new Token(
+                blindedCStar0.pow(R.uS.inv()),
+                pp.getG1Generator(),
+                R.dsidUserS.add(spendResponseECDSA.getDsidStarProv()),
+                R.dsrndS,
+                R.zS,
+                R.tS,
+                token.getPromotionId(),
+                new RingElementVector(newPointsVector),
+                (SPSEQSignature) pp.getSpsEq().chgRep(spendResponseECDSA.getSignature(), R.uS.inv(), providerPublicKey.getPkSpsEq())
+        );
     }
 
     private MessageBlock constructSpendCouponMessageBlock(BigInteger promotionId, ZnElement dsid, UUID basketId) {
