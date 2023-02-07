@@ -54,6 +54,7 @@ public class SpendTest {
                 spendRequest,
                 promotionParameters,
                 (z) -> true,
+                new TestSuite.TestDoubleSpendingDb(),
                 spendDeductTree
         );
         Token updatedToken = incSys.retrieveUpdatedTokenFromSpendResponse(spendRequest, spendResponse, pointsAfterSpend, TestSuite.userKeyPair, token, TestSuite.providerKeyPair.getPk(), promotionParameters);
@@ -100,6 +101,7 @@ public class SpendTest {
                 spendRequest,
                 promotionParameters,
                 (z) -> true,
+                new TestSuite.TestDoubleSpendingDb(),
                 spendDeductTree
         );
 

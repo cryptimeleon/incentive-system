@@ -8,10 +8,7 @@ import org.cryptimeleon.craco.sig.ecdsa.ECDSASignature;
 import org.cryptimeleon.craco.sig.ecdsa.ECDSASignatureScheme;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignatureScheme;
-import org.cryptimeleon.incentive.crypto.callback.IClearingDBHandler;
-import org.cryptimeleon.incentive.crypto.callback.IRegistrationCouponDBHandler;
-import org.cryptimeleon.incentive.crypto.callback.IStoreBasketRedeemedHandler;
-import org.cryptimeleon.incentive.crypto.callback.IStorePublicKeyVerificationHandler;
+import org.cryptimeleon.incentive.crypto.callback.*;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
@@ -862,7 +859,14 @@ public class IncentiveSystem {
                                                                  SpendRequestECDSA spendRequestECDSA,
                                                                  PromotionParameters promotionParameters,
                                                                  IStorePublicKeyVerificationHandler storePublicKeyVerificationHandler,
+                                                                 IDoubleSpendingHandler doubleSpendingHandler,
                                                                  SpendDeductTree spendDeductTree) {
+
+        // 0. Check if this is a retry
+        if (doubleSpendingHandler.containsDsid(spendRequestECDSA.getDoubleSpendingId())) {
+            DoubleSpendingDbEntry doubleSpendingDbEntry = doubleSpendingHandler.getEntryForDsid(spendRequestECDSA.getDoubleSpendingId()).get();
+            return new SpendResponseECDSA(doubleSpendingDbEntry.getSignature(), doubleSpendingDbEntry.getDsidProvStar());
+        }
 
         // 1. Verify Store ECDSA public key is trusted
         if (!storePublicKeyVerificationHandler.isStorePublicKeyTrusted(spendRequestECDSA.getStorePublicKey())) {
@@ -913,8 +917,9 @@ public class IncentiveSystem {
                 cPre2
         );
 
-        // Add to DS-DB
-        // TODO
+        // 7. Add to DoubleSpending DB
+        DoubleSpendingDbEntry doubleSpendingDbEntry = new DoubleSpendingDbEntry(spendRequestECDSA.getDoubleSpendingId(), new DoubleSpendingTag(spendRequestECDSA.getC(), gamma), spendRequestECDSA.getTokenSignature(), dsidStarProv);
+        doubleSpendingHandler.addEntry(spendRequestECDSA.getDoubleSpendingId(), doubleSpendingDbEntry);
 
         return new SpendResponseECDSA(updatedTokenSignature, dsidStarProv);
     }

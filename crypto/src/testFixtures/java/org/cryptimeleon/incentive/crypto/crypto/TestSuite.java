@@ -1,6 +1,7 @@
 package org.cryptimeleon.incentive.crypto.crypto;
 
 import org.cryptimeleon.incentive.crypto.*;
+import org.cryptimeleon.incentive.crypto.callback.IDoubleSpendingHandler;
 import org.cryptimeleon.incentive.crypto.callback.IStoreBasketRedeemedHandler;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
@@ -11,6 +12,8 @@ import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 import java.math.BigInteger;
+import java.util.HashMap;
+import java.util.Optional;
 import java.util.UUID;
 
 public class TestSuite {
@@ -66,5 +69,29 @@ public class TestSuite {
     public static EarnStoreCouponSignature getEarnCouponForPromotion(PromotionParameters promotionParameters, Token token, UUID basketId, Vector<BigInteger> earnAmount) {
         EarnStoreRequest earnStoreRequest = incentiveSystem.generateEarnCouponRequest(token, userKeyPair, basketId, promotionParameters.getPromotionId());
         return incentiveSystem.signEarnCoupon(storeKeyPair, earnAmount, earnStoreRequest, allChecksTrueRedeemedHandler);
+    }
+
+    public static class TestDoubleSpendingDb implements IDoubleSpendingHandler {
+
+        HashMap<Zn.ZnElement, DoubleSpendingDbEntry> dsMap = new HashMap<>();
+
+        @Override
+        public boolean containsDsid(Zn.ZnElement dsid) {
+            return dsMap.containsKey(dsid);
+        }
+
+        @Override
+        public Optional<DoubleSpendingDbEntry> getEntryForDsid(Zn.ZnElement dsid) {
+            if (dsMap.containsKey(dsid)) {
+                return Optional.of(dsMap.get(dsid));
+            } else {
+                return Optional.empty();
+            }
+        }
+
+        @Override
+        public void addEntry(Zn.ZnElement dsid, DoubleSpendingDbEntry doubleSpendingDbEntry) {
+            dsMap.put(dsid, doubleSpendingDbEntry);
+        }
     }
 }
