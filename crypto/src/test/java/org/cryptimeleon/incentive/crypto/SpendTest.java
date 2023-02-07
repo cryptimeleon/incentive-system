@@ -1,12 +1,10 @@
 package org.cryptimeleon.incentive.crypto;
 
-import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.incentive.crypto.callback.IStoreBasketRedeemedHandler;
 import org.cryptimeleon.incentive.crypto.crypto.TestSuite;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.proof.spend.SpendHelper;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
-import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.junit.jupiter.api.Assertions;
@@ -95,12 +93,15 @@ public class SpendTest {
         SpendClearingData spendClearingData = spendStoreOutput.spendClearingData;
 
         SpendCouponSignature deserializedSpendCouponSignature = new SpendCouponSignature(spendCouponSignature.getRepresentation());
-        SpendClearingData deserializedSpendClearingData = new SpendClearingData(spendClearingData.getRepresentation(), incSys.pp, promotionParameters, new FiatShamirProofSystem(new SpendDeductBooleanZkp(spendDeductTree, incSys.pp, promotionParameters, TestSuite.providerKeyPair.getPk())));
-        SpendCouponRequest deserialzedSpendCouponRequest = new SpendCouponRequest(spendCouponRequest.getRepresentation(),
+        SpendClearingData deserializedSpendClearingData = new SpendClearingData(spendClearingData.getRepresentation(), incSys.pp, promotionParameters, spendDeductTree, TestSuite.providerKeyPair.getPk());
+        SpendCouponRequest deserialzedSpendCouponRequest = new SpendCouponRequest(
+                spendCouponRequest.getRepresentation(),
                 incSys.pp,
                 basketId,
                 promotionParameters,
-                new FiatShamirProofSystem(new SpendDeductBooleanZkp(spendDeductTree, incSys.pp, promotionParameters, TestSuite.providerKeyPair.getPk())));
+                TestSuite.providerKeyPair.getPk(),
+                spendDeductTree
+        );
 
         Assertions.assertEquals(spendCouponRequest, deserialzedSpendCouponRequest);
         Assertions.assertEquals(spendCouponSignature, deserializedSpendCouponSignature);

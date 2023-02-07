@@ -59,6 +59,7 @@ public class Util {
     }
 
     public static Zn.ZnElement hashGamma(Zn zn, Zn.ZnElement dsid, UUID basketId, GroupElement cPre0, GroupElement cPre1, GroupElement cPre2) {
+        // TODO include all user choices
         var hashfunction = new HashIntoZn(zn);
         var accumulator = new ByteArrayAccumulator();
         accumulator.escapeAndSeparate(dsid.getUniqueByteRepresentation());

@@ -4,6 +4,9 @@ import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProof;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentive.crypto.Util;
+import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
+import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
+import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkpCommonInput;
 import org.cryptimeleon.math.serialization.ListRepresentation;
 import org.cryptimeleon.math.serialization.Representable;
@@ -24,7 +27,7 @@ public class SpendCouponRequest implements Representable {
     private final GroupElement cPre1;
     private final FiatShamirProof spendZkp;
 
-    public SpendCouponRequest(Representation representation, IncentivePublicParameters pp, UUID basketId, PromotionParameters promotionParameters, FiatShamirProofSystem fiatShamirProofSystem) {
+    public SpendCouponRequest(Representation representation, IncentivePublicParameters pp, UUID basketId, PromotionParameters promotionParameters, ProviderPublicKey providerPublicKey, SpendDeductTree spendDeductTree) {
         ListRepresentation listRepresentation = (ListRepresentation) representation;
         Group g1 = pp.getBg().getG1();
 
@@ -36,8 +39,9 @@ public class SpendCouponRequest implements Representable {
         this.cPre1 = g1.restoreElement(listRepresentation.get(5));
 
         // Kinda nasty deserialization of zkp
-        var gamma = Util.hashGamma(pp.getBg().getZn(), dsid, basketId, cPre0, cPre1, cPre1.pow(promotionParameters.getPromotionId())); // TODO include all user choices
+        var gamma = Util.hashGamma(pp.getBg().getZn(), dsid, basketId, cPre0, cPre1, cPre1.pow(promotionParameters.getPromotionId()));
         var spendDeductCommonInput = new SpendDeductZkpCommonInput(gamma, c, dsid, cPre0, cPre1, c0);
+        var fiatShamirProofSystem = new FiatShamirProofSystem(new SpendDeductBooleanZkp(spendDeductTree, pp, promotionParameters, providerPublicKey));
         this.spendZkp = fiatShamirProofSystem.restoreProof(spendDeductCommonInput, listRepresentation.get(6));
     }
     public SpendCouponRequest(Zn.ZnElement dsid, Zn.ZnElement c, SPSEQSignature sigma, GroupElement c0, GroupElement cPre0, GroupElement cPre1, FiatShamirProof spendZkp) {

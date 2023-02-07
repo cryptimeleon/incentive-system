@@ -7,6 +7,9 @@ import org.cryptimeleon.craco.sig.ecdsa.ECDSASignatureScheme;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignatureScheme;
 import org.cryptimeleon.incentive.crypto.Util;
+import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
+import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
+import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkpCommonInput;
 import org.cryptimeleon.math.serialization.*;
 import org.cryptimeleon.math.structures.groups.Group;
@@ -52,7 +55,7 @@ public class SpendClearingData implements Representable {
         this.proof = proof;
     }
 
-    public SpendClearingData(Representation representation, IncentivePublicParameters pp, PromotionParameters promotionParameters, FiatShamirProofSystem fiatShamirProofSystem) {
+    public SpendClearingData(Representation representation, IncentivePublicParameters pp, PromotionParameters promotionParameters, SpendDeductTree spendDeductTree, ProviderPublicKey providerPublicKey) {
         ListRepresentation listRepresentation = (ListRepresentation) representation;
 
         SPSEQSignatureScheme spseqSignatureScheme = pp.getSpsEq();
@@ -73,6 +76,7 @@ public class SpendClearingData implements Representable {
         // Kinda nasty deserialization of zkp
         var gamma = Util.hashGamma(pp.getBg().getZn(), dsid, basketId, cPre0, cPre1, cPre1.pow(promotionParameters.getPromotionId())); // TODO include all user choices
         var spendDeductCommonInput = new SpendDeductZkpCommonInput(gamma, c, dsid, cPre0, cPre1, c0);
+        var fiatShamirProofSystem = new FiatShamirProofSystem(new SpendDeductBooleanZkp(spendDeductTree, pp, promotionParameters, providerPublicKey));
         this.proof = fiatShamirProofSystem.restoreProof(spendDeductCommonInput, listRepresentation.get(9));
     }
 
