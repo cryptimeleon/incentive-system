@@ -57,7 +57,7 @@ public class EarnTest {
         var storeReq = incSys.generateEarnCouponRequest(token, TestSuite.userKeyPair, basketId, promotionId);
 
         // Set lambda to false => hash invalid
-        assertThatThrownBy(() -> incSys.signEarnCoupon(TestSuite.storeKeyPair, earnAmount, storeReq, TestSuite.allChecksTrueRedeemedHandler))
+        assertThatThrownBy(() -> incSys.signEarnCoupon(TestSuite.storeKeyPair, earnAmount, storeReq, TestSuite.earnFalseRedeemHandler))
                 .isInstanceOf(RuntimeException.class);
     }
 

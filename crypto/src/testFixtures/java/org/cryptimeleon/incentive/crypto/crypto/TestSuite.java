@@ -33,6 +33,18 @@ public class TestSuite {
         }
     };
 
+    static public final IStoreBasketRedeemedHandler earnFalseRedeemHandler = new IStoreBasketRedeemedHandler() {
+        @Override
+        public boolean verifyAndStorePromotionIdAndHashForBasket(UUID basketId, BigInteger promotionId, byte[] hash) {
+            return false;
+        }
+
+        @Override
+        public BasketRedeemedResult verifyAndRedeemBasket(UUID basketId, BigInteger promotionId, Zn.ZnElement gamma, SpendCouponSignature signature) {
+            return new IStoreBasketRedeemedHandler.BasketNotRedeemed();
+        }
+    };
+
     /**
      * Generates a sound empty (i.e. no points) user token as output by a sound execution of the Issue-Join protocol.
      */
