@@ -1,7 +1,10 @@
 package org.cryptimeleon.incentive.crypto.model;
 
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProof;
+import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
+import org.cryptimeleon.incentive.crypto.Util;
+import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkpCommonInput;
 import org.cryptimeleon.math.serialization.ListRepresentation;
 import org.cryptimeleon.math.serialization.Representable;
 import org.cryptimeleon.math.serialization.Representation;
@@ -10,6 +13,7 @@ import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 import java.util.Objects;
+import java.util.UUID;
 
 public class SpendCouponRequest implements Representable {
     private final Zn.ZnElement dsid;
@@ -20,7 +24,7 @@ public class SpendCouponRequest implements Representable {
     private final GroupElement cPre1;
     private final FiatShamirProof spendZkp;
 
-    public SpendCouponRequest(Representation representation, IncentivePublicParameters pp) {
+    public SpendCouponRequest(Representation representation, IncentivePublicParameters pp, UUID basketId, PromotionParameters promotionParameters, FiatShamirProofSystem fiatShamirProofSystem) {
         ListRepresentation listRepresentation = (ListRepresentation) representation;
         Group g1 = pp.getBg().getG1();
 
@@ -30,8 +34,11 @@ public class SpendCouponRequest implements Representable {
         this.c0 = g1.restoreElement(listRepresentation.get(3));
         this.cPre0 = g1.restoreElement(listRepresentation.get(4));
         this.cPre1 = g1.restoreElement(listRepresentation.get(5));
-        // TODO
-        this.spendZkp = null; // listRepresentation.get(6);
+
+        // Kinda nasty deserialization of zkp
+        var gamma = Util.hashGamma(pp.getBg().getZn(), dsid, basketId, cPre0, cPre1, cPre1.pow(promotionParameters.getPromotionId())); // TODO include all user choices
+        var spendDeductCommonInput = new SpendDeductZkpCommonInput(gamma, c, dsid, cPre0, cPre1, c0);
+        this.spendZkp = fiatShamirProofSystem.restoreProof(spendDeductCommonInput, listRepresentation.get(6));
     }
     public SpendCouponRequest(Zn.ZnElement dsid, Zn.ZnElement c, SPSEQSignature sigma, GroupElement c0, GroupElement cPre0, GroupElement cPre1, FiatShamirProof spendZkp) {
         this.dsid = dsid;
@@ -59,11 +66,11 @@ public class SpendCouponRequest implements Representable {
         return c0;
     }
 
-    public GroupElement getcPre0() {
+    public GroupElement getCPre0() {
         return cPre0;
     }
 
-    public GroupElement getcPre1() {
+    public GroupElement getCPre1() {
         return cPre1;
     }
 

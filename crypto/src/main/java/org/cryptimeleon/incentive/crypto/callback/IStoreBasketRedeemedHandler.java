@@ -1,5 +1,9 @@
 package org.cryptimeleon.incentive.crypto.callback;
 
+import org.cryptimeleon.incentive.crypto.model.SpendCouponSignature;
+import org.cryptimeleon.incentive.crypto.model.SpendStoreOutput;
+import org.cryptimeleon.math.structures.rings.zn.Zn;
+
 import java.math.BigInteger;
 import java.util.UUID;
 
@@ -22,4 +26,19 @@ public interface IStoreBasketRedeemedHandler {
      * @return true if the store should issue an ECDSA signature for the request
      */
     boolean verifyAndStorePromotionIdAndHashForBasket(UUID basketId, BigInteger promotionId, byte[] hash);
+
+    BasketRedeemedResult verifyAndRedeemBasket(UUID basketId, BigInteger promotionId, Zn.ZnElement gamma, SpendCouponSignature signature);
+
+    interface BasketRedeemedResult {}
+
+    class BasketNotRedeemed implements BasketRedeemedResult {}
+    class BasketRedeemedForDifferentGamma implements BasketRedeemedResult {}
+    class BasketRedeemedForSameGamma implements BasketRedeemedResult {
+        public final SpendStoreOutput spendStoreOutput;
+
+        BasketRedeemedForSameGamma(SpendStoreOutput spendStoreOutput) {
+            this.spendStoreOutput = spendStoreOutput;
+        }
+    }
 }
+

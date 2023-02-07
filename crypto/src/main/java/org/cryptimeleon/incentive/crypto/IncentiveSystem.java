@@ -748,7 +748,8 @@ public class IncentiveSystem {
      * implementation of the Deduct {@literal <}-{@literal >}Spend protocol
      */
 
-    public SpendCouponRequest generateStoreSpendRequest(Token token, UserKeyPair userKeyPair, Vector<BigInteger> newPoints, ProviderPublicKey providerPublicKey, PromotionParameters promotionParameters, UUID basketId) {
+    public SpendCouponRequest generateStoreSpendRequest(Token token, UserKeyPair userKeyPair, Vector<BigInteger> newPoints, ProviderPublicKey providerPublicKey, PromotionParameters promotionParameters, UUID basketId, SpendDeductTree spendDeductTree) {
+        // TODO context=spendDeductTree?
         var R = computeSpendDeductRandomness(userKeyPair.getSk(), token);
         var zp = pp.getBg().getZn();
         var usk = userKeyPair.getSk().getUsk();
@@ -759,12 +760,106 @@ public class IncentiveSystem {
         var exponents = new RingElementVector(R.tS, usk, R.dsidUserS, R.dsrndS, R.zS).concatenate(newPointsVector);
         var cPre0 = vectorH.innerProduct(exponents).pow(R.uS).compute();
         var cPre1 = pp.getG1Generator().pow(R.uS).compute();
+        var cPre2 = pp.getG1Generator().pow(R.uS).pow(promotionParameters.getPromotionId()).compute();
 
-        var gamma = Util.hashGamma(zp, token.getDoubleSpendingId(), basketId, cPre0, cPre1); // TODO include all user choices
+        var gamma = Util.hashGamma(zp, token.getDoubleSpendingId(), basketId, cPre0, cPre1, cPre2); // TODO include all user choices
         var c = usk.mul(gamma).add(token.getDoubleSpendRandomness());
 
-        var proof = (FiatShamirProof) null;
+        var spendDeductZkp = new SpendDeductBooleanZkp(spendDeductTree, pp, promotionParameters, providerPublicKey);
+        var fiatShamirProofSystem = new FiatShamirProofSystem(spendDeductZkp);
+        var witness = new SpendDeductZkpWitnessInput(usk, token.getZ(), R.zS, token.getT(), R.tS, R.uS, R.dsidUserS, token.getDoubleSpendRandomness(), R.dsrndS, token.getPoints(), newPointsVector);
+        var commonInput = new SpendDeductZkpCommonInput(gamma, c, token.getDoubleSpendingId(), cPre0, cPre1, token.getCommitment0());
+        var proof = fiatShamirProofSystem.createProof(commonInput, witness);
+
         return new SpendCouponRequest(token.getDoubleSpendingId(), c, token.getSignature(), token.getCommitment0(), cPre0, cPre1, proof);
+    }
+
+    public SpendStoreOutput generateSpendCouponAndIssueReward(StoreKeyPair storeKeyPair,
+                                                              ProviderPublicKey providerPublicKey,
+                                                              UUID basketId,
+                                                              PromotionParameters promotionParameters,
+                                                              SpendCouponRequest spendCouponRequest,
+                                                              SpendDeductTree spendDeductTree,
+                                                              IStoreBasketRedeemedHandler iStoreBasketRedeemedHandler
+    ) {
+        var zp = pp.getBg().getZn();
+
+        // Verify old token signature valid
+        var c0 = spendCouponRequest.getC0();
+        var c1 = pp.getG1Generator();
+        var c2 = c1.pow(promotionParameters.getPromotionId());
+
+        var spseqValid = pp.getSpsEq().verify(providerPublicKey.getPkSpsEq(), spendCouponRequest.getSigma(), c0, c1, c2);
+        if (!spseqValid) {
+            throw new RuntimeException("Invalid token signature");
+        }
+
+        // Compute gamma
+        var cPre0 = spendCouponRequest.getCPre0();
+        var cPre1 = spendCouponRequest.getCPre1();
+        var cPre2 = cPre1.pow(promotionParameters.getPromotionId()).compute();
+
+        var gamma = Util.hashGamma(zp, spendCouponRequest.getDsid(), basketId, cPre0, cPre1, cPre2); // TODO include all user choices
+
+        // Verify proof
+        var spendDeductZkp = new SpendDeductBooleanZkp(spendDeductTree, pp, promotionParameters, providerPublicKey);
+        var fiatShamirProofSystem = new FiatShamirProofSystem(spendDeductZkp);
+        var commonInput = new SpendDeductZkpCommonInput(spendCouponRequest, gamma);
+        var proofValid = fiatShamirProofSystem.checkProof(commonInput, spendCouponRequest.getSpendZkp());
+        if (!proofValid) {
+            throw new IllegalArgumentException("ZKP of the request is not valid!");
+        }
+
+        // Signature to legitimate retrieving a new token
+        var ecdsa = new ECDSASignatureScheme();
+        MessageBlock spendCouponMessageBlock = constructSpendCouponMessageBlock(promotionParameters.getPromotionId(), spendCouponRequest.getDsid(), basketId);
+        var signature = (ECDSASignature) ecdsa.sign(spendCouponMessageBlock, storeKeyPair.getSk().getEcdsaSigningKey());
+        var spendCouponSignature = new SpendCouponSignature(signature, storeKeyPair.getPk());
+
+        // TODO (optional): Check if dsid already used at provider => direct rejection)
+
+        var redeemResult = iStoreBasketRedeemedHandler.verifyAndRedeemBasket(basketId, promotionParameters.getPromotionId(), gamma, spendCouponSignature);
+        if (redeemResult instanceof IStoreBasketRedeemedHandler.BasketRedeemedForDifferentGamma) {
+            throw new RuntimeException("Basket already redeemed for different request!");
+        }
+        if (redeemResult instanceof IStoreBasketRedeemedHandler.BasketRedeemedForSameGamma) {
+            // TODO there might be a nicer way around this?
+            return ((IStoreBasketRedeemedHandler.BasketRedeemedForSameGamma) redeemResult).spendStoreOutput;
+        }
+        if (redeemResult instanceof IStoreBasketRedeemedHandler.BasketNotRedeemed) {
+            // pass, everything allright
+        }
+
+        // 3. Blacklist dsid at provider and send clearing data => Provider finds users that perform double-spending attack!
+        var spendClearingData = new SpendClearingData(
+                promotionParameters.getPromotionId(),
+                spendCouponRequest.getDsid(),
+                basketId,
+                spendCouponRequest.getSigma(),
+                signature,
+                spendCouponRequest.getC(),
+                spendCouponRequest.getC0(),
+                spendCouponRequest.getCPre0(),
+                spendCouponRequest.getCPre1(),
+                spendCouponRequest.getSpendZkp()
+        );
+
+        return new SpendStoreOutput(spendCouponSignature, spendClearingData);
+    }
+
+    public boolean verifySpendCouponSignature(SpendCouponRequest spendCouponRequest, SpendCouponSignature spendCouponSignature, PromotionParameters promotionParameters, UUID basketId) {
+        ECDSASignatureScheme ecdsaSignatureScheme = new ECDSASignatureScheme();
+        MessageBlock messageBlock = constructSpendCouponMessageBlock(promotionParameters.getPromotionId(), spendCouponRequest.getDsid(), basketId);
+        return ecdsaSignatureScheme.verify(messageBlock, spendCouponSignature.getSignature(), spendCouponSignature.getStorePublicKey().getEcdsaVerificationKey());
+    }
+
+    private MessageBlock constructSpendCouponMessageBlock(BigInteger promotionId, ZnElement dsid, UUID basketId) {
+        return new MessageBlock(
+                new ByteArrayImplementation("spend".getBytes()),
+                new ByteArrayImplementation(promotionId.toByteArray()),
+                new ByteArrayImplementation(dsid.getUniqueByteRepresentation()),
+                new ByteArrayImplementation(basketId.toString().getBytes())
+        );
     }
 
 

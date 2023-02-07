@@ -58,13 +58,14 @@ public class Util {
         return hashfunction.hash(accumulator.extractBytes());
     }
 
-    static Zn.ZnElement hashGamma(Zn zn, Zn.ZnElement dsid, UUID basketId, GroupElement cPre0, GroupElement cPre1) {
+    public static Zn.ZnElement hashGamma(Zn zn, Zn.ZnElement dsid, UUID basketId, GroupElement cPre0, GroupElement cPre1, GroupElement cPre2) {
         var hashfunction = new HashIntoZn(zn);
         var accumulator = new ByteArrayAccumulator();
         accumulator.escapeAndSeparate(dsid.getUniqueByteRepresentation());
         accumulator.escapeAndSeparate(basketId.toString());
         accumulator.escapeAndSeparate(cPre0.getUniqueByteRepresentation());
         accumulator.escapeAndSeparate(cPre1.getUniqueByteRepresentation());
+        accumulator.escapeAndSeparate(cPre2.getUniqueByteRepresentation());
         return hashfunction.hash(accumulator.extractBytes());
     }
 

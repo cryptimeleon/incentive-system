@@ -1,12 +1,14 @@
 package org.cryptimeleon.incentive.crypto.crypto;
 
 import org.cryptimeleon.incentive.crypto.*;
+import org.cryptimeleon.incentive.crypto.callback.IStoreBasketRedeemedHandler;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.store.StoreKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPreKeyPair;
 import org.cryptimeleon.math.structures.cartesian.Vector;
+import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 import java.math.BigInteger;
 import java.util.UUID;
@@ -19,6 +21,17 @@ public class TestSuite {
     static public final ProviderKeyPair providerKeyPair = incentiveSystem.generateProviderKeyPair();
     static public final UserPreKeyPair userPreKeyPair = incentiveSystem.generateUserPreKeyPair();
     static public final UserKeyPair userKeyPair = Util.addRegistrationSignatureToUserPreKeys(userPreKeyPair, providerKeyPair, pp);
+    static public final IStoreBasketRedeemedHandler allChecksTrueRedeemedHandler = new IStoreBasketRedeemedHandler() {
+        @Override
+        public boolean verifyAndStorePromotionIdAndHashForBasket(UUID basketId, BigInteger promotionId, byte[] hash) {
+            return true;
+        }
+
+        @Override
+        public BasketRedeemedResult verifyAndRedeemBasket(UUID basketId, BigInteger promotionId, Zn.ZnElement gamma, SpendCouponSignature signature) {
+            return new IStoreBasketRedeemedHandler.BasketNotRedeemed();
+        }
+    };
 
     /**
      * Generates a sound empty (i.e. no points) user token as output by a sound execution of the Issue-Join protocol.
@@ -40,6 +53,6 @@ public class TestSuite {
 
     public static EarnStoreCouponSignature getEarnCouponForPromotion(PromotionParameters promotionParameters, Token token, UUID basketId, Vector<BigInteger> earnAmount) {
         EarnStoreRequest earnStoreRequest = incentiveSystem.generateEarnCouponRequest(token, userKeyPair, basketId, promotionParameters.getPromotionId());
-        return incentiveSystem.signEarnCoupon(storeKeyPair, earnAmount, earnStoreRequest, (a, b, c)-> true);
+        return incentiveSystem.signEarnCoupon(storeKeyPair, earnAmount, earnStoreRequest, allChecksTrueRedeemedHandler);
     }
 }
