@@ -6,7 +6,7 @@ import org.cryptimeleon.incentive.client.dto.inc.SpendRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.TokenUpdateResultsDto;
 import org.cryptimeleon.incentive.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
-import org.cryptimeleon.incentive.crypto.crypto.TestSuite;
+import org.cryptimeleon.incentive.crypto.TestSuite;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;

@@ -12,6 +12,7 @@ import java.util.Objects;
 public class SpendResponseECDSA implements Representable {
     private final SPSEQSignature signature;
     private final Zn.ZnElement dsidStarProv;
+
     public SpendResponseECDSA(SPSEQSignature signature, Zn.ZnElement dsidStarProv) {
         this.signature = signature;
         this.dsidStarProv = dsidStarProv;

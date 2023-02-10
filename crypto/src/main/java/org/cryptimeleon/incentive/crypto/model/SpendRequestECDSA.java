@@ -12,6 +12,7 @@ import org.cryptimeleon.incentive.crypto.model.keys.store.StorePublicKey;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkpCommonInput;
+import org.cryptimeleon.math.hash.UniqueByteRepresentable;
 import org.cryptimeleon.math.serialization.*;
 import org.cryptimeleon.math.structures.groups.Group;
 import org.cryptimeleon.math.structures.groups.GroupElement;
@@ -75,7 +76,8 @@ public class SpendRequestECDSA implements Representable {
                              IncentivePublicParameters pp,
                              PromotionParameters promotionParameters,
                              SpendDeductTree spendDeductTree,
-                             ProviderPublicKey providerPublicKey) {
+                             ProviderPublicKey providerPublicKey,
+                             UniqueByteRepresentable context) {
         // TODO need promotion parameters but do not know promotionId yet!
         ListRepresentation listRepresentation = (ListRepresentation) representation;
         Zn zn = pp.getBg().getZn();
@@ -94,7 +96,7 @@ public class SpendRequestECDSA implements Representable {
         this.cPre1 = group.restoreElement(listRepresentation.get(8));
         this.c0 = group.restoreElement(listRepresentation.get(9));
 
-        Zn.ZnElement gamma = Util.hashGamma(pp.getBg().getZn(), doubleSpendingId, basketId, cPre0, cPre1, cPre1.pow(promotionParameters.getPromotionId())); // TODO include all user choices
+        Zn.ZnElement gamma = Util.hashGamma(pp.getBg().getZn(), doubleSpendingId, basketId, cPre0, cPre1, cPre1.pow(promotionParameters.getPromotionId()), context);
         SpendDeductZkpCommonInput spendDeductCommonInput = new SpendDeductZkpCommonInput(gamma, c, doubleSpendingId, cPre0, cPre1, c0);
         FiatShamirProofSystem fiatShamirProofSystem = new FiatShamirProofSystem(new SpendDeductBooleanZkp(spendDeductTree, pp, promotionParameters, providerPublicKey));
         this.proof = fiatShamirProofSystem.restoreProof(spendDeductCommonInput, listRepresentation.get(10));

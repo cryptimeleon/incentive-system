@@ -1,52 +1,29 @@
-package org.cryptimeleon.incentive.crypto.crypto;
+package org.cryptimeleon.incentive.crypto;
 
-import org.cryptimeleon.incentive.crypto.*;
-import org.cryptimeleon.incentive.crypto.callback.IDoubleSpendingHandler;
-import org.cryptimeleon.incentive.crypto.callback.IStoreBasketRedeemedHandler;
+import org.cryptimeleon.incentive.crypto.callback.IDsidBlacklistHandler;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.store.StoreKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPreKeyPair;
+import org.cryptimeleon.math.hash.UniqueByteRepresentable;
+import org.cryptimeleon.math.misc.ByteArrayImpl;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 import java.math.BigInteger;
 import java.util.HashMap;
-import java.util.Optional;
 import java.util.UUID;
 
 public class TestSuite {
     static public final IncentivePublicParameters pp = IncentiveSystem.setup(128, BilinearGroupChoice.Debug);
     static public final IncentiveSystem incentiveSystem = new IncentiveSystem(pp);
-    static public final IncentiveSystemRestorer incentiveSystemRestorer = new IncentiveSystemRestorer(pp);
     static public final StoreKeyPair storeKeyPair = incentiveSystem.generateStoreKeyPair();
     static public final ProviderKeyPair providerKeyPair = incentiveSystem.generateProviderKeyPair();
     static public final UserPreKeyPair userPreKeyPair = incentiveSystem.generateUserPreKeyPair();
     static public final UserKeyPair userKeyPair = Util.addRegistrationSignatureToUserPreKeys(userPreKeyPair, providerKeyPair, pp);
-    static public final IStoreBasketRedeemedHandler allChecksTrueRedeemedHandler = new IStoreBasketRedeemedHandler() {
-        @Override
-        public boolean verifyAndStorePromotionIdAndHashForBasket(UUID basketId, BigInteger promotionId, byte[] hash) {
-            return true;
-        }
-
-        @Override
-        public BasketRedeemedResult verifyAndRedeemBasket(UUID basketId, BigInteger promotionId, Zn.ZnElement gamma, SpendCouponSignature signature) {
-            return new IStoreBasketRedeemedHandler.BasketNotRedeemed();
-        }
-    };
-
-    static public final IStoreBasketRedeemedHandler earnFalseRedeemHandler = new IStoreBasketRedeemedHandler() {
-        @Override
-        public boolean verifyAndStorePromotionIdAndHashForBasket(UUID basketId, BigInteger promotionId, byte[] hash) {
-            return false;
-        }
-
-        @Override
-        public BasketRedeemedResult verifyAndRedeemBasket(UUID basketId, BigInteger promotionId, Zn.ZnElement gamma, SpendCouponSignature signature) {
-            return new IStoreBasketRedeemedHandler.BasketNotRedeemed();
-        }
-    };
+    static public final IncentiveSystemRestorer incentiveSystemRestorer = new IncentiveSystemRestorer(pp);
+    static public final UniqueByteRepresentable context = new ByteArrayImpl("contex".getBytes());
 
     /**
      * Generates a sound empty (i.e. no points) user token as output by a sound execution of the Issue-Join protocol.
@@ -68,30 +45,20 @@ public class TestSuite {
 
     public static EarnStoreCouponSignature getEarnCouponForPromotion(PromotionParameters promotionParameters, Token token, UUID basketId, Vector<BigInteger> earnAmount) {
         EarnStoreRequest earnStoreRequest = incentiveSystem.generateEarnCouponRequest(token, userKeyPair, basketId, promotionParameters.getPromotionId());
-        return incentiveSystem.signEarnCoupon(storeKeyPair, earnAmount, earnStoreRequest, allChecksTrueRedeemedHandler);
+        return incentiveSystem.signEarnCoupon(storeKeyPair, earnAmount, earnStoreRequest, new TestRedeemedHandler());
     }
 
-    public static class TestDoubleSpendingDb implements IDoubleSpendingHandler {
-
-        HashMap<Zn.ZnElement, DoubleSpendingDbEntry> dsMap = new HashMap<>();
+    public static class TestDsidBlacklist implements IDsidBlacklistHandler {
+        HashMap<Zn.ZnElement, Zn.ZnElement> dsMap = new HashMap<>();
 
         @Override
-        public boolean containsDsid(Zn.ZnElement dsid) {
-            return dsMap.containsKey(dsid);
+        public boolean containsDsidWithDifferentGamma(Zn.ZnElement doubleSpendingId, Zn.ZnElement gamma) {
+            return dsMap.containsKey(doubleSpendingId) && !dsMap.get(doubleSpendingId).equals(gamma);
         }
 
         @Override
-        public Optional<DoubleSpendingDbEntry> getEntryForDsid(Zn.ZnElement dsid) {
-            if (dsMap.containsKey(dsid)) {
-                return Optional.of(dsMap.get(dsid));
-            } else {
-                return Optional.empty();
-            }
-        }
-
-        @Override
-        public void addEntry(Zn.ZnElement dsid, DoubleSpendingDbEntry doubleSpendingDbEntry) {
-            dsMap.put(dsid, doubleSpendingDbEntry);
+        public void addEntryIfDsidNotPresent(Zn.ZnElement doubleSpendingId, Zn.ZnElement gamma) {
+            dsMap.putIfAbsent(doubleSpendingId, gamma);
         }
     }
 }

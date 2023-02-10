@@ -70,6 +70,24 @@ public class IncentiveSystem {
         return new PromotionParameters(BigInteger.valueOf(RandomGenerator.getRandomNumber(Long.MIN_VALUE, Long.MAX_VALUE)), pointsVectorSize);
     }
 
+    private static byte[] computeEarnHash(GroupElement c0Prime, GroupElement c1Prime, GroupElement c2Prime) {
+        var sha = new SHA256HashFunction();
+        var hashAccumulator = new ByteArrayAccumulator();
+        hashAccumulator.escapeAndAppend(c0Prime);
+        hashAccumulator.escapeAndAppend(c1Prime);
+        hashAccumulator.escapeAndAppend(c2Prime);
+        return sha.hash(hashAccumulator.extractBytes());
+    }
+
+    private static MessageBlock constructEarnCouponMessageBlock(BigInteger promotionId, Vector<BigInteger> deltaK, byte[] h) {
+        return new MessageBlock(
+                new ByteArrayImplementation("earn".getBytes()),
+                new ByteArrayImplementation(promotionId.toByteArray()),
+                new MessageBlock(deltaK.map((k) -> new ByteArrayImplementation(k.toByteArray())).toList()),
+                new ByteArrayImplementation(h)
+        );
+    }
+
     /**
      * wrapper for the provider key generation method in Setup
      *
@@ -88,6 +106,10 @@ public class IncentiveSystem {
         return Setup.userPreKeyGen(this.pp);
     }
 
+    /*
+     * Registration
+     */
+
     public StoreKeyPair generateStoreKeyPair() {
         return Setup.storeKeyGen();
     }
@@ -96,10 +118,6 @@ public class IncentiveSystem {
     public PromotionParameters legacyPromotionParameters() {
         return new PromotionParameters(BigInteger.ONE, 1);
     }
-
-    /*
-     * Registration
-     */
 
     /**
      * Issue a ECDSA signature on a {@code (upk, id-info)} tuple and return an object containing all data, the signature
@@ -123,7 +141,7 @@ public class IncentiveSystem {
     /**
      * Verify the registration coupon signature and its public key
      *
-     * @param registrationCoupon the registration coupon to verify
+     * @param registrationCoupon  the registration coupon to verify
      * @param verificationHandler some callback method to verify the public key
      * @return whether the signature is valid and trusted
      */
@@ -177,12 +195,17 @@ public class IncentiveSystem {
                 pp.getW());
     }
 
+
+    /*
+     * implementation of the Issue {@literal <}-{@literal >}Join protocol
+     */
+
     /**
      * Verify the registration token signature.
      *
      * @param providerPublicKey          the public key of the provider used for verification
      * @param registrationTokenSignature the registration token signature
-     * @param userPublicKey the user public key that is signed in this registration token
+     * @param userPublicKey              the user public key that is signed in this registration token
      * @return whether the signature is valid
      */
     public boolean verifyRegistrationToken(ProviderPublicKey providerPublicKey,
@@ -209,12 +232,6 @@ public class IncentiveSystem {
                                            RegistrationCoupon registrationCoupon) {
         return verifyRegistrationToken(providerPublicKey, registrationTokenSignature, registrationCoupon.getUserPublicKey());
     }
-
-
-    /*
-     * implementation of the Issue {@literal <}-{@literal >}Join protocol
-     */
-
 
     /**
      * functionality of the first part of the Issue algorithm of the Cryptimeleon incentive system
@@ -261,6 +278,10 @@ public class IncentiveSystem {
                 new JoinRequest(c0Pre, c1Pre, cwfProof, blindedUpk, blindedW, blindedRegistrationSignature)
         );
     }
+
+    /*
+     * end of the implementation of the Issue {@literal <}-{@literal >}Join protocol
+     */
 
     /**
      * Implements the functionality of the Issue algorithm of the Cryptimeleon incentive system, i.e. handles a join request by signing the
@@ -357,16 +378,12 @@ public class IncentiveSystem {
         return new Token(finalCommitment0, finalCommitment1, R.dsidUser.add(jRes.getDsidProv()), R.dsrnd, R.z, R.t, promotionParameters.getPromotionId(), zeros, finalCert);
     }
 
-    /*
-     * end of the implementation of the Issue {@literal <}-{@literal >}Join protocol
-     */
-
     /**
      * Generate the request to the store for getting an 'earn coupon' for a specific promotion and basket.
      *
-     * @param token earn points for this token
+     * @param token       earn points for this token
      * @param userKeyPair only required for pseudorandomness
-     * @param basketId the id of the basket that this earn-request will be associated to
+     * @param basketId    the id of the basket that this earn-request will be associated to
      * @param promotionId the id of the promotion of this token and earn request
      * @return a request that can be processed by the store
      */
@@ -389,9 +406,9 @@ public class IncentiveSystem {
      * It needs to be verified that the basket is not yet redeemed for a request with different hash (we allow re-requesting
      * the same update in case of failure). Further, the basket needs to be marked as redeemed by this request.
      *
-     * @param storeKeyPair the keypair of the store required to issue the signature of the coupon
-     * @param deltaK a verified amount of points the user is eligible to earn for the request
-     * @param earnStoreRequest the users request containing all necessary data for the store to verify the request and issue the coupon
+     * @param storeKeyPair               the keypair of the store required to issue the signature of the coupon
+     * @param deltaK                     a verified amount of points the user is eligible to earn for the request
+     * @param earnStoreRequest           the users request containing all necessary data for the store to verify the request and issue the coupon
      * @param storeBasketRedeemedHandler a callback to 1) Check that this basket can be redeemed with this request 2) Marks this basket as redeemed for this request
      * @return the 'coupon', which is essentially a signature on the earn update data under the stores ECDSA key
      */
@@ -399,8 +416,8 @@ public class IncentiveSystem {
                                                    Vector<BigInteger> deltaK,
                                                    EarnStoreRequest earnStoreRequest,
                                                    IStoreBasketRedeemedHandler storeBasketRedeemedHandler) {
-        boolean issueSignature = storeBasketRedeemedHandler.verifyAndStorePromotionIdAndHashForBasket(earnStoreRequest.getBasketId(), earnStoreRequest.getPromotionId(), earnStoreRequest.getH());
-        if (!issueSignature) {
+        IStoreBasketRedeemedHandler.BasketRedeemState issueSignature = storeBasketRedeemedHandler.verifyAndRedeemBasketEarn(earnStoreRequest.getBasketId(), earnStoreRequest.getPromotionId(), earnStoreRequest.getH());
+        if (issueSignature.equals(IStoreBasketRedeemedHandler.BasketRedeemState.BASKET_REDEEMED_ABORT)) {
             throw new RuntimeException(String.format("Basket %s already redeemed with different hash than %s!", earnStoreRequest.getBasketId().toString(), Arrays.toString(earnStoreRequest.getH())));
         }
 
@@ -438,11 +455,11 @@ public class IncentiveSystem {
     /**
      * Generate a earn request that uses a earn coupon signed by a store as a proof that one is eligigble to earn points.
      *
-     * @param token the token to update, must be the same as used for the coupon
-     * @param providerPublicKey the public key of the provider required for blinding the tokens signature
-     * @param userKeyPair the user keypair
-     * @param promotionId the promotion id of the token
-     * @param deltaK the vector of points that shall be added to the tokens points. Must match the amount signed by the {@literal earnStoreCouponSignature}
+     * @param token                    the token to update, must be the same as used for the coupon
+     * @param providerPublicKey        the public key of the provider required for blinding the tokens signature
+     * @param userKeyPair              the user keypair
+     * @param promotionId              the promotion id of the token
+     * @param deltaK                   the vector of points that shall be added to the tokens points. Must match the amount signed by the {@literal earnStoreCouponSignature}
      * @param earnStoreCouponSignature the signature of a trusted store admitting this earn request
      * @return the request to send to the provider
      */
@@ -472,6 +489,7 @@ public class IncentiveSystem {
                 token.getCommitment1().pow(s).compute()
         );
     }
+    // TODO remove promotionId and basketId from all crypto-requests! Sent alongside such that services can lookup stuff
 
     /**
      * Providers logic for handling a earn request. Does the following:
@@ -488,9 +506,10 @@ public class IncentiveSystem {
      * @param storePublicKeyVerificationHandler a callback for verifying that the store's key used to authenticate the request is trusted
      * @return the blindly updated signature
      */
-    public SPSEQSignature generateEarnResponse(EarnRequestECDSA earnRequestECDSA, PromotionParameters promotionParameters,
+    public SPSEQSignature generateEarnResponse(EarnRequestECDSA earnRequestECDSA,
+                                               PromotionParameters promotionParameters,
                                                ProviderKeyPair providerKeyPair,
-                                               IClearingDBHandler clearingDBHandler,
+                                               ITransactionDBHandler clearingDBHandler,
                                                IStorePublicKeyVerificationHandler storePublicKeyVerificationHandler) {
         // Blinded token
         var c0Prime = earnRequestECDSA.getcPrime0();
@@ -530,12 +549,12 @@ public class IncentiveSystem {
     /**
      * Obtains the updated token with more points from the blinded updated signature retrieved from the provider.
      *
-     * @param earnRequest the request sent to the provider
-     * @param changedSignature the response signature
+     * @param earnRequest         the request sent to the provider
+     * @param changedSignature    the response signature
      * @param promotionParameters the parameters of this promotion
-     * @param token the old token
-     * @param userKeyPair the user keypair
-     * @param providerPublicKey the provider's public key
+     * @param token               the old token
+     * @param userKeyPair         the user keypair
+     * @param providerPublicKey   the provider's public key
      * @return the updated token with more points
      */
     public Token handleEarnResponse(EarnRequestECDSA earnRequest,
@@ -584,29 +603,10 @@ public class IncentiveSystem {
         );
     }
 
-    private static byte[] computeEarnHash(GroupElement c0Prime, GroupElement c1Prime, GroupElement c2Prime) {
-        var sha = new SHA256HashFunction();
-        var hashAccumulator = new ByteArrayAccumulator();
-        hashAccumulator.escapeAndAppend(c0Prime);
-        hashAccumulator.escapeAndAppend(c1Prime);
-        hashAccumulator.escapeAndAppend(c2Prime);
-        return sha.hash(hashAccumulator.extractBytes());
-    }
-
-    private static MessageBlock constructEarnCouponMessageBlock(BigInteger promotionId, Vector<BigInteger> deltaK, byte[] h) {
-        return new MessageBlock(
-                new ByteArrayImplementation("earn".getBytes()),
-                new ByteArrayImplementation(promotionId.toByteArray()),
-                new MessageBlock(deltaK.map((k) -> new ByteArrayImplementation(k.toByteArray())).toList()),
-                new ByteArrayImplementation(h)
-        );
-    }
-
 
     /*
      * implementation of the Credit {@literal <}-{@literal >}Earn protocol
      */
-
 
     /**
      * Generate an earn request that blinds the token and signature such that the provider can compute a signature on
@@ -745,8 +745,14 @@ public class IncentiveSystem {
      * implementation of the Deduct {@literal <}-{@literal >}Spend protocol
      */
 
-    public SpendCouponRequest generateStoreSpendRequest(Token token, UserKeyPair userKeyPair, Vector<BigInteger> newPoints, ProviderPublicKey providerPublicKey, PromotionParameters promotionParameters, UUID basketId, SpendDeductTree spendDeductTree) {
-        // TODO context=spendDeductTree?
+    public SpendCouponRequest generateStoreSpendRequest(Token token,
+                                                        UserKeyPair userKeyPair,
+                                                        Vector<BigInteger> newPoints,
+                                                        ProviderPublicKey providerPublicKey,
+                                                        PromotionParameters promotionParameters,
+                                                        UUID basketId,
+                                                        SpendDeductTree spendDeductTree,
+                                                        UniqueByteRepresentable context) {
         var R = computeSpendDeductRandomness(userKeyPair.getSk(), token);
         var zp = pp.getBg().getZn();
         var usk = userKeyPair.getSk().getUsk();
@@ -759,7 +765,7 @@ public class IncentiveSystem {
         var cPre1 = pp.getG1Generator().pow(R.uS).compute();
         var cPre2 = pp.getG1Generator().pow(R.uS).pow(promotionParameters.getPromotionId()).compute();
 
-        var gamma = Util.hashGamma(zp, token.getDoubleSpendingId(), basketId, cPre0, cPre1, cPre2); // TODO include all user choices
+        var gamma = Util.hashGamma(zp, token.getDoubleSpendingId(), basketId, cPre0, cPre1, cPre2, context);
         var c = usk.mul(gamma).add(token.getDoubleSpendRandomness());
 
         var spendDeductZkp = new SpendDeductBooleanZkp(spendDeductTree, pp, promotionParameters, providerPublicKey);
@@ -777,7 +783,9 @@ public class IncentiveSystem {
                                             PromotionParameters promotionParameters,
                                             SpendCouponRequest spendCouponRequest,
                                             SpendDeductTree spendDeductTree,
-                                            IStoreBasketRedeemedHandler iStoreBasketRedeemedHandler
+                                            IStoreBasketRedeemedHandler iStoreBasketRedeemedHandler,
+                                            IDsidBlacklistHandler dsidBlacklistHandler,
+                                            UniqueByteRepresentable context
     ) {
         var zp = pp.getBg().getZn();
 
@@ -796,7 +804,7 @@ public class IncentiveSystem {
         var cPre1 = spendCouponRequest.getCPre1();
         var cPre2 = cPre1.pow(promotionParameters.getPromotionId()).compute();
 
-        var gamma = Util.hashGamma(zp, spendCouponRequest.getDsid(), basketId, cPre0, cPre1, cPre2); // TODO include all user choices
+        var gamma = Util.hashGamma(zp, spendCouponRequest.getDsid(), basketId, cPre0, cPre1, cPre2, context); // TODO include all user choices
 
         // Verify proof
         var spendDeductZkp = new SpendDeductBooleanZkp(spendDeductTree, pp, promotionParameters, providerPublicKey);
@@ -813,18 +821,18 @@ public class IncentiveSystem {
         var signature = (ECDSASignature) ecdsa.sign(spendCouponMessageBlock, storeKeyPair.getSk().getEcdsaSigningKey());
         var spendCouponSignature = new SpendCouponSignature(signature, storeKeyPair.getPk());
 
-        // TODO (optional): Check if dsid already used at provider => direct rejection)
-
-        var redeemResult = iStoreBasketRedeemedHandler.verifyAndRedeemBasket(basketId, promotionParameters.getPromotionId(), gamma, spendCouponSignature);
-        if (redeemResult instanceof IStoreBasketRedeemedHandler.BasketRedeemedForDifferentGamma) {
-            throw new RuntimeException("Basket already redeemed for different request!");
-        }
-        if (redeemResult instanceof IStoreBasketRedeemedHandler.BasketRedeemedForSameGamma) {
-            // TODO there might be a nicer way around this?
-            return ((IStoreBasketRedeemedHandler.BasketRedeemedForSameGamma) redeemResult).spendStoreOutput;
-        }
-        if (redeemResult instanceof IStoreBasketRedeemedHandler.BasketNotRedeemed) {
-            // pass, everything allright
+        var redeemResult = iStoreBasketRedeemedHandler.verifyAndRedeemBasketSpend(basketId, promotionParameters.getPromotionId(), gamma);
+        switch (redeemResult) {
+            case BASKET_NOT_REDEEMED:
+                if (dsidBlacklistHandler.containsDsidWithDifferentGamma(commonInput.dsid, gamma)) {
+                    throw new RuntimeException("Token with dsid already spent with different basket!");
+                }
+                break;
+            case BASKET_REDEEMED_ABORT:
+                throw new RuntimeException("Basket already redeemed for different request!");
+            case BASKED_REDEEMED_RETRY:
+                // Retry, just perform the protocol again
+                break;
         }
 
         // 3. Blacklist dsid at provider and send clearing data => Provider finds users that perform double-spending attack!
@@ -836,6 +844,7 @@ public class IncentiveSystem {
                 signature,
                 storeKeyPair.getPk(),
                 spendCouponRequest.getC(),
+                gamma,
                 spendCouponRequest.getC0(),
                 spendCouponRequest.getCPre0(),
                 spendCouponRequest.getCPre1(),
@@ -859,13 +868,20 @@ public class IncentiveSystem {
                                                                  SpendRequestECDSA spendRequestECDSA,
                                                                  PromotionParameters promotionParameters,
                                                                  IStorePublicKeyVerificationHandler storePublicKeyVerificationHandler,
-                                                                 IDoubleSpendingHandler doubleSpendingHandler,
-                                                                 SpendDeductTree spendDeductTree) {
+                                                                 IDsidBlacklistHandler doubleSpendingHandler,
+                                                                 SpendDeductTree spendDeductTree,
+                                                                 UniqueByteRepresentable context) {
 
-        // 0. Check if this is a retry
-        if (doubleSpendingHandler.containsDsid(spendRequestECDSA.getDoubleSpendingId())) {
-            DoubleSpendingDbEntry doubleSpendingDbEntry = doubleSpendingHandler.getEntryForDsid(spendRequestECDSA.getDoubleSpendingId()).get();
-            return new SpendResponseECDSA(doubleSpendingDbEntry.getSignature(), doubleSpendingDbEntry.getDsidProvStar());
+        // 0. Check if this is a doublespending attempt.
+        var gamma = Util.hashGamma(pp.getBg().getZn(),
+                spendRequestECDSA.getDoubleSpendingId(),
+                spendRequestECDSA.getBasketId(),
+                spendRequestECDSA.getcPre0(),
+                spendRequestECDSA.getcPre1(),
+                spendRequestECDSA.getcPre1().pow(promotionParameters.getPromotionId()),
+                context);
+        if (doubleSpendingHandler.containsDsidWithDifferentGamma(spendRequestECDSA.getDoubleSpendingId(), gamma)) {
+            throw new RuntimeException("Illegal retry, dsid already used for different request!");
         }
 
         // 1. Verify Store ECDSA public key is trusted
@@ -889,21 +905,15 @@ public class IncentiveSystem {
         var spendDeductZkp = new SpendDeductBooleanZkp(spendDeductTree, pp, promotionParameters, providerKeyPair.getPk());
         var fiatShamirProofSystem = new FiatShamirProofSystem(spendDeductZkp);
         // using tid as user choice TODO change this once user choice generation is properly implemented, see issue 75
-        var gamma = Util.hashGamma(pp.getBg().getZn(), spendRequestECDSA.getDoubleSpendingId(), spendRequestECDSA.getBasketId(), spendRequestECDSA.getcPre0(), spendRequestECDSA.getcPre1(), spendRequestECDSA.getcPre1().pow(promotionParameters.getPromotionId()));
         var commonInput = new SpendDeductZkpCommonInput(spendRequestECDSA, gamma);
         var proofValid = fiatShamirProofSystem.checkProof(commonInput, spendRequestECDSA.getProof());
         if (!proofValid) {
             throw new IllegalArgumentException("ZKP of the request is not valid!");
         }
 
-        // 5. dsid_prov^*
+        // 5. dsid_prov^*=prf('dsid', gamma)
         var preimage = new ByteArrayAccumulator();
-        // TODO prf(coupon_signature) instead?
-        preimage.escapeAndSeparate(spendRequestECDSA.getDoubleSpendingId());
-        preimage.escapeAndSeparate(spendRequestECDSA.getBasketId().toString());
-        preimage.escapeAndSeparate(spendRequestECDSA.getPromotionId().toByteArray());
-        preimage.escapeAndSeparate(commonInput.c0Pre);
-        preimage.escapeAndSeparate(commonInput.c1Pre);
+        preimage.escapeAndSeparate(gamma);
         var dsidStarProv = pp.getPrfToZn().hashThenPrfToZn(providerKeyPair.getSk().getBetaProv(), new ByteArrayImplementation(preimage.extractBytes()), "dsid");
 
         // 6. Create signature for new token
@@ -919,7 +929,7 @@ public class IncentiveSystem {
 
         // 7. Add to DoubleSpending DB
         DoubleSpendingDbEntry doubleSpendingDbEntry = new DoubleSpendingDbEntry(spendRequestECDSA.getDoubleSpendingId(), new DoubleSpendingTag(spendRequestECDSA.getC(), gamma), spendRequestECDSA.getTokenSignature(), dsidStarProv);
-        doubleSpendingHandler.addEntry(spendRequestECDSA.getDoubleSpendingId(), doubleSpendingDbEntry);
+        doubleSpendingHandler.addEntryIfDsidNotPresent(spendRequestECDSA.getDoubleSpendingId(), gamma);
 
         return new SpendResponseECDSA(updatedTokenSignature, dsidStarProv);
     }

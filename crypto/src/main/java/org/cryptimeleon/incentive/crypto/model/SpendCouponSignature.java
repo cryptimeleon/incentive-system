@@ -14,6 +14,7 @@ public class SpendCouponSignature implements Representable {
     private ECDSASignature signature;
     @Represented
     private StorePublicKey storePublicKey;
+
     public SpendCouponSignature(ECDSASignature signature, StorePublicKey storePublicKey) {
         this.signature = signature;
         this.storePublicKey = storePublicKey;

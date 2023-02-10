@@ -12,6 +12,7 @@ import org.cryptimeleon.incentive.crypto.model.keys.store.StorePublicKey;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkpCommonInput;
+import org.cryptimeleon.math.hash.UniqueByteRepresentable;
 import org.cryptimeleon.math.serialization.*;
 import org.cryptimeleon.math.structures.groups.Group;
 import org.cryptimeleon.math.structures.groups.GroupElement;
@@ -30,6 +31,7 @@ public class SpendClearingData implements Representable {
     private final ECDSASignature couponSignature;
     private final StorePublicKey storePublicKey;
     private final Zn.ZnElement c;
+    private final Zn.ZnElement gamma;
     private final GroupElement c0;
     private final GroupElement cPre0;
     private final GroupElement cPre1;
@@ -42,6 +44,7 @@ public class SpendClearingData implements Representable {
                              ECDSASignature couponSignature,
                              StorePublicKey storePublicKey,
                              Zn.ZnElement c,
+                             Zn.ZnElement gamma,
                              GroupElement c0,
                              GroupElement cPre0,
                              GroupElement cPre1,
@@ -53,13 +56,14 @@ public class SpendClearingData implements Representable {
         this.couponSignature = couponSignature;
         this.storePublicKey = storePublicKey;
         this.c = c;
+        this.gamma = gamma;
         this.c0 = c0;
         this.cPre0 = cPre0;
         this.cPre1 = cPre1;
         this.proof = proof;
     }
 
-    public SpendClearingData(Representation representation, IncentivePublicParameters pp, PromotionParameters promotionParameters, SpendDeductTree spendDeductTree, ProviderPublicKey providerPublicKey) {
+    public SpendClearingData(Representation representation, IncentivePublicParameters pp, PromotionParameters promotionParameters, SpendDeductTree spendDeductTree, ProviderPublicKey providerPublicKey, UniqueByteRepresentable context) {
         ListRepresentation listRepresentation = (ListRepresentation) representation;
 
         SPSEQSignatureScheme spseqSignatureScheme = pp.getSpsEq();
@@ -74,17 +78,65 @@ public class SpendClearingData implements Representable {
         this.couponSignature = (ECDSASignature) ecdsaSignatureScheme.restoreSignature(listRepresentation.get(4));
         this.storePublicKey = new StorePublicKey(listRepresentation.get(5));
         this.c = zn.restoreElement(listRepresentation.get(6));
-        this.c0 = group.restoreElement(listRepresentation.get(7));
-        this.cPre0 = group.restoreElement(listRepresentation.get(8));
-        this.cPre1 = group.restoreElement(listRepresentation.get(9));
+        this.gamma = zn.restoreElement(listRepresentation.get(7));
+        this.c0 = group.restoreElement(listRepresentation.get(8));
+        this.cPre0 = group.restoreElement(listRepresentation.get(9));
+        this.cPre1 = group.restoreElement(listRepresentation.get(10));
 
         // Kinda nasty deserialization of zkp
-        var gamma = Util.hashGamma(pp.getBg().getZn(), dsid, basketId, cPre0, cPre1, cPre1.pow(promotionParameters.getPromotionId())); // TODO include all user choices
+        var gamma = Util.hashGamma(pp.getBg().getZn(), dsid, basketId, cPre0, cPre1, cPre1.pow(promotionParameters.getPromotionId()), context);
         var spendDeductCommonInput = new SpendDeductZkpCommonInput(gamma, c, dsid, cPre0, cPre1, c0);
         var fiatShamirProofSystem = new FiatShamirProofSystem(new SpendDeductBooleanZkp(spendDeductTree, pp, promotionParameters, providerPublicKey));
-        this.proof = fiatShamirProofSystem.restoreProof(spendDeductCommonInput, listRepresentation.get(10));
+        this.proof = fiatShamirProofSystem.restoreProof(spendDeductCommonInput, listRepresentation.get(11));
     }
 
+    public BigInteger getPromotionId() {
+        return promotionId;
+    }
+
+    public Zn.ZnElement getDsid() {
+        return dsid;
+    }
+
+    public UUID getBasketId() {
+        return basketId;
+    }
+
+    public SPSEQSignature getTokenSignature() {
+        return tokenSignature;
+    }
+
+    public ECDSASignature getCouponSignature() {
+        return couponSignature;
+    }
+
+    public StorePublicKey getStorePublicKey() {
+        return storePublicKey;
+    }
+
+    public Zn.ZnElement getC() {
+        return c;
+    }
+
+    public Zn.ZnElement getGamma() {
+        return gamma;
+    }
+
+    public GroupElement getC0() {
+        return c0;
+    }
+
+    public GroupElement getcPre0() {
+        return cPre0;
+    }
+
+    public GroupElement getcPre1() {
+        return cPre1;
+    }
+
+    public FiatShamirProof getProof() {
+        return proof;
+    }
 
     @Override
     public Representation getRepresentation() {
@@ -96,6 +148,7 @@ public class SpendClearingData implements Representable {
                 couponSignature.getRepresentation(),
                 storePublicKey.getRepresentation(),
                 c.getRepresentation(),
+                gamma.getRepresentation(),
                 c0.getRepresentation(),
                 cPre0.getRepresentation(),
                 cPre1.getRepresentation(),
@@ -108,11 +161,11 @@ public class SpendClearingData implements Representable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         SpendClearingData that = (SpendClearingData) o;
-        return Objects.equals(promotionId, that.promotionId) && Objects.equals(dsid, that.dsid) && Objects.equals(basketId, that.basketId) && Objects.equals(tokenSignature, that.tokenSignature) && Objects.equals(couponSignature, that.couponSignature) && Objects.equals(c, that.c) && Objects.equals(c0, that.c0) && Objects.equals(cPre0, that.cPre0) && Objects.equals(cPre1, that.cPre1) && Objects.equals(proof, that.proof);
+        return Objects.equals(promotionId, that.promotionId) && Objects.equals(dsid, that.dsid) && Objects.equals(basketId, that.basketId) && Objects.equals(tokenSignature, that.tokenSignature) && Objects.equals(couponSignature, that.couponSignature) && Objects.equals(storePublicKey, that.storePublicKey) && Objects.equals(c, that.c) && Objects.equals(gamma, that.gamma) && Objects.equals(c0, that.c0) && Objects.equals(cPre0, that.cPre0) && Objects.equals(cPre1, that.cPre1) && Objects.equals(proof, that.proof);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(promotionId, dsid, basketId, tokenSignature, couponSignature, c, c0, cPre0, cPre1, proof);
+        return Objects.hash(promotionId, dsid, basketId, tokenSignature, couponSignature, storePublicKey, c, gamma, c0, cPre0, cPre1, proof);
     }
 }

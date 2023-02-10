@@ -52,12 +52,12 @@ public class SpendHelper {
      * ^ newLowerLimits <= newPoints <= newUpperLimits
      * ^ for all i: newPoints_i = a_i * oldPoints_i + b_i
      *
-     * @param lowerLimits         vector of lower limits for the old points, null means not checked
-     * @param upperLimits         vector of upper limits for the old points, null means not checked
-     * @param newLowerLimits      vector of lower limits for the new points, null means not checked
-     * @param newUpperLimits      vector of upper limits for the new points, null means not checked
-     * @param aVector             vector of factors a_i for the linear relation proof. Ignore if null
-     * @param bVector             vector of summands b_i for the linear relation proof. Ignore if null
+     * @param lowerLimits    vector of lower limits for the old points, null means not checked
+     * @param upperLimits    vector of upper limits for the old points, null means not checked
+     * @param newLowerLimits vector of lower limits for the new points, null means not checked
+     * @param newUpperLimits vector of upper limits for the new points, null means not checked
+     * @param aVector        vector of factors a_i for the linear relation proof. Ignore if null
+     * @param bVector        vector of summands b_i for the linear relation proof. Ignore if null
      * @return SpendDeductZkp for the upper statement
      */
     public static SpendDeductTree generateTestTree(Vector<BigInteger> lowerLimits,

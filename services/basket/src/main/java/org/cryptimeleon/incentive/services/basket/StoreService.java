@@ -3,7 +3,6 @@ package org.cryptimeleon.incentive.services.basket;
 import org.cryptimeleon.incentive.crypto.callback.IStoreBasketRedeemedHandler;
 import org.cryptimeleon.incentive.crypto.model.EarnStoreRequest;
 import org.cryptimeleon.incentive.crypto.model.RegistrationCoupon;
-import org.cryptimeleon.incentive.crypto.model.SpendCouponSignature;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentive.promotion.Promotion;
 import org.cryptimeleon.incentive.promotion.model.Basket;
@@ -15,13 +14,11 @@ import org.cryptimeleon.incentive.services.basket.storage.BasketRepository;
 import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.cartesian.Vector;
-import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -62,17 +59,7 @@ public class StoreService {
                 deltaK,
                 earnStoreRequest,
                 // TODO implement this properly
-                new IStoreBasketRedeemedHandler() {
-                    @Override
-                    public boolean verifyAndStorePromotionIdAndHashForBasket(UUID basketId, BigInteger promotionId, byte[] hash) {
-                        return true;
-                    }
-
-                    @Override
-                    public BasketRedeemedResult verifyAndRedeemBasket(UUID basketId, BigInteger promotionId, Zn.ZnElement gamma, SpendCouponSignature signature) {
-                        return new IStoreBasketRedeemedHandler.BasketNotRedeemed();
-                    }
-                }
+                (basketId, promotionId, hash) -> IStoreBasketRedeemedHandler.BasketRedeemState.BASKET_NOT_REDEEMED
         );
 
         return jsonConverter.serialize(signedEarnCoupon.getRepresentation());

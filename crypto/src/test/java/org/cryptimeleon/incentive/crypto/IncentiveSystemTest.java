@@ -4,7 +4,6 @@ import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSyst
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentive.crypto.callback.IRegistrationCouponDBHandler;
 import org.cryptimeleon.incentive.crypto.callback.IStorePublicKeyVerificationHandler;
-import org.cryptimeleon.incentive.crypto.crypto.TestSuite;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.store.StoreKeyPair;
@@ -61,7 +60,7 @@ public class IncentiveSystemTest {
                 iRegistrationCouponDBHandler
         );
 
-        assertThat(incSys.verifyRegistrationCoupon(registrationCoupon, (s)-> true)).isTrue();
+        assertThat(incSys.verifyRegistrationCoupon(registrationCoupon, (s) -> true)).isTrue();
         assertThat(registrationCouponList).hasSize(1);
         assertThat(incSys.verifyRegistrationToken(pkp.getPk(), registrationToken, registrationCoupon)).isTrue();
 
