@@ -142,8 +142,8 @@ public class IncentiveController {
     }
 
     @GetMapping("/earn")
-    public String earn(@RequestHeader(name = "earn-request") String serializedEarnRequest) {
-        return incentiveService.handleEarn(serializedEarnRequest);
+    public String earn(@RequestHeader(name = "promotion-id") BigInteger promotionId, @RequestHeader(name = "earn-request") String serializedEarnRequest) {
+        return incentiveService.handleEarn(serializedEarnRequest, promotionId);
     }
 
     /**

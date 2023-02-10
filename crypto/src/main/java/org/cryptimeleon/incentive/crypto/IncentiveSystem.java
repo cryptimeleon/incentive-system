@@ -457,7 +457,6 @@ public class IncentiveSystem {
      * @param token                    the token to update, must be the same as used for the coupon
      * @param providerPublicKey        the public key of the provider required for blinding the tokens signature
      * @param userKeyPair              the user keypair
-     * @param promotionId              the promotion id of the token
      * @param deltaK                   the vector of points that shall be added to the tokens points. Must match the amount signed by the {@literal earnStoreCouponSignature}
      * @param earnStoreCouponSignature the signature of a trusted store admitting this earn request
      * @return the request to send to the provider
@@ -466,7 +465,6 @@ public class IncentiveSystem {
             Token token,
             ProviderPublicKey providerPublicKey,
             UserKeyPair userKeyPair,
-            BigInteger promotionId,
             Vector<BigInteger> deltaK,
             EarnStoreCouponSignature earnStoreCouponSignature
     ) {
@@ -476,7 +474,6 @@ public class IncentiveSystem {
         // Blind commitments and change representation of signature such that it is valid for blinded commitments
         // The blinded commitments and signature are sent to the provider
         return new EarnRequestECDSA(
-                promotionId,
                 deltaK,
                 earnStoreCouponSignature,
                 (SPSEQSignature) pp.getSpsEq().chgRep(
@@ -513,7 +510,7 @@ public class IncentiveSystem {
         // Blinded token
         var c0Prime = earnRequestECDSA.getcPrime0();
         var c1Prime = earnRequestECDSA.getcPrime1();
-        var c2Prime = earnRequestECDSA.getcPrime1().pow(earnRequestECDSA.getPromotionId());
+        var c2Prime = earnRequestECDSA.getcPrime1().pow(promotionParameters.getPromotionId());
 
         // Compute hash h
         var h = computeEarnHash(c0Prime, c1Prime, c2Prime);
@@ -525,7 +522,7 @@ public class IncentiveSystem {
 
         // Verify ECDSA
         ECDSASignatureScheme ecdsaSignatureScheme = new ECDSASignatureScheme();
-        var message = constructEarnCouponMessageBlock(earnRequestECDSA.getPromotionId(), earnRequestECDSA.getDeltaK(), h);
+        var message = constructEarnCouponMessageBlock(promotionParameters.getPromotionId(), earnRequestECDSA.getDeltaK(), h);
         var ecdsaValid = ecdsaSignatureScheme.verify(message, earnRequestECDSA.getEarnStoreCoupon().getSignature(), earnRequestECDSA.getEarnStoreCoupon().getStorePublicKey().getEcdsaVerificationKey());
         if (!ecdsaValid) throw new RuntimeException("ECDSA signature invalid");
 

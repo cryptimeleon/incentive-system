@@ -38,7 +38,7 @@ public class EarnTest {
         assertThat(incSys.verifyEarnCoupon(storeReq, earnAmount, storeRes, storePublicKey -> true))
                 .isTrue();
 
-        var providerReq = incSys.generateEarnRequest(token, TestSuite.providerKeyPair.getPk(), TestSuite.userKeyPair, promotionParameters.getPromotionId(), earnAmount, storeRes);
+        var providerReq = incSys.generateEarnRequest(token, TestSuite.providerKeyPair.getPk(), TestSuite.userKeyPair, earnAmount, storeRes);
         var providerRes = incSys.generateEarnResponse(providerReq, promotionParameters, TestSuite.providerKeyPair, transactionDbHandler, (a) -> true);
 
         var updatedToken = incSys.handleEarnResponse(providerReq, providerRes, promotionParameters, token, TestSuite.userKeyPair, TestSuite.providerKeyPair.getPk());
@@ -56,7 +56,7 @@ public class EarnTest {
         assertThat(incSys.verifyEarnCoupon(storeReq, earnAmount, storeRes, storePublicKey -> true))
                 .isTrue();
 
-        var providerReq = incSys.generateEarnRequest(token, TestSuite.providerKeyPair.getPk(), TestSuite.userKeyPair, promotionParameters.getPromotionId(), invalidEarnAmount, storeRes);
+        var providerReq = incSys.generateEarnRequest(token, TestSuite.providerKeyPair.getPk(), TestSuite.userKeyPair, invalidEarnAmount, storeRes);
 
         assertThatThrownBy(() -> incSys.generateEarnResponse(providerReq, promotionParameters, TestSuite.providerKeyPair, transactionDbHandler, (a) -> true))
                 .isInstanceOf(RuntimeException.class);
@@ -92,7 +92,7 @@ public class EarnTest {
         assertThat(incSys.verifyEarnCoupon(storeReq, earnAmount, storeRes, storePublicKey -> true))
                 .isTrue();
 
-        var providerReq = incSys.generateEarnRequest(tokenWithDoubledPoints, TestSuite.providerKeyPair.getPk(), TestSuite.userKeyPair, promotionParameters.getPromotionId(), earnAmount, storeRes);
+        var providerReq = incSys.generateEarnRequest(tokenWithDoubledPoints, TestSuite.providerKeyPair.getPk(), TestSuite.userKeyPair, earnAmount, storeRes);
         assertThatThrownBy(() -> incSys.generateEarnResponse(providerReq, promotionParameters, TestSuite.providerKeyPair, transactionDbHandler, (a) -> true))
                 .isInstanceOf(RuntimeException.class);
     }
@@ -120,7 +120,7 @@ public class EarnTest {
     void earnRequestECDSARepresentationTest() {
         var storeReq = incSys.generateEarnCouponRequest(token, TestSuite.userKeyPair, basketId, promotionId);
         EarnStoreCouponSignature earnStoreCouponSignature = incSys.signEarnCoupon(TestSuite.storeKeyPair, earnAmount, storeReq, testRedeemedHandler);
-        EarnRequestECDSA earnRequestECDSA = incSys.generateEarnRequest(token, TestSuite.providerKeyPair.getPk(), TestSuite.userKeyPair, promotionId, Vector.of(BigInteger.ONE), earnStoreCouponSignature);
+        EarnRequestECDSA earnRequestECDSA = incSys.generateEarnRequest(token, TestSuite.providerKeyPair.getPk(), TestSuite.userKeyPair, Vector.of(BigInteger.ONE), earnStoreCouponSignature);
 
         EarnRequestECDSA deserializedEarnRequestECDSA = new EarnRequestECDSA(earnRequestECDSA.getRepresentation(), TestSuite.pp);
 

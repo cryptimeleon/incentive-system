@@ -119,8 +119,8 @@ public class FullWorkflowTest extends TransactionTestPreparation {
         assertThat(incentiveSystem.verifyEarnCoupon(earnCouponRequest, pointsToEarn, earnCoupon, storePublicKey -> true))
                 .isTrue();
 
-        var earnRequest = incentiveSystem.generateEarnRequest(token, cryptoAssets.getProviderKeyPair().getPk(), cryptoAssets.getUserKeyPair(), promotion.getPromotionParameters().getPromotionId(), pointsToEarn, earnCoupon);
-        var serializedEarnResponse = incentiveClient.sendEarnRequest(earnRequest);
+        var earnRequest = incentiveSystem.generateEarnRequest(token, cryptoAssets.getProviderKeyPair().getPk(), cryptoAssets.getUserKeyPair(), pointsToEarn, earnCoupon);
+        var serializedEarnResponse = incentiveClient.sendEarnRequest(earnRequest, promotion.getPromotionParameters().getPromotionId());
         SPSEQSignature updatedSignature = new SPSEQSignature(jsonConverter.deserialize(serializedEarnResponse), cryptoAssets.getPublicParameters().getBg().getG1(), cryptoAssets.getPublicParameters().getBg().getG2());
         return incentiveSystem.handleEarnResponse(earnRequest, updatedSignature, promotion.getPromotionParameters(), token, cryptoAssets.getUserKeyPair(), cryptoAssets.getProviderKeyPair().getPk());
     }

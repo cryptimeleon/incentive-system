@@ -346,9 +346,9 @@ public class IncentiveService {
         ).collect(Collectors.toList());
     }
 
-    public String handleEarn(String serializedEarnRequest) {
+    public String handleEarn(String serializedEarnRequest, BigInteger promotionId) {
         EarnRequestECDSA earnRequestECDSA = new EarnRequestECDSA(jsonConverter.deserialize(serializedEarnRequest), cryptoRepository.getPublicParameters());
-        Promotion promotion = promotionRepository.getPromotion(earnRequestECDSA.getPromotionId()).orElseThrow(() -> new IncentiveServiceException("Promotion not fount"));
+        Promotion promotion = promotionRepository.getPromotion(promotionId).orElseThrow(() -> new IncentiveServiceException("Promotion not fount"));
 
         // Callbacks for crypto implementation.
         // TODO: Currently, we allow the message to be signed under any store public key
