@@ -28,9 +28,9 @@ public class Util {
                         userPreKeyPair.getPsk().getUsk(),
                         userPreKeyPair.getPsk().getPrfKey(),
                         (SPSEQSignature) pp.getSpsEq().sign(
-                            providerKeyPair.getSk().getRegistrationSpsEqSk(),
-                            userPreKeyPair.getPk().getUpk(),
-                            pp.getW()
+                                providerKeyPair.getSk().getRegistrationSpsEqSk(),
+                                userPreKeyPair.getPk().getUpk(),
+                                pp.getW()
                         )
                 )
         );
@@ -58,13 +58,15 @@ public class Util {
         return hashfunction.hash(accumulator.extractBytes());
     }
 
-    static Zn.ZnElement hashGamma(Zn zn, Zn.ZnElement dsid, UUID basketId, GroupElement cPre0, GroupElement cPre1) {
+    public static Zn.ZnElement hashGamma(Zn zn, Zn.ZnElement dsid, UUID basketId, GroupElement cPre0, GroupElement cPre1, GroupElement cPre2, UniqueByteRepresentable context) {
         var hashfunction = new HashIntoZn(zn);
         var accumulator = new ByteArrayAccumulator();
         accumulator.escapeAndSeparate(dsid.getUniqueByteRepresentation());
         accumulator.escapeAndSeparate(basketId.toString());
         accumulator.escapeAndSeparate(cPre0.getUniqueByteRepresentation());
         accumulator.escapeAndSeparate(cPre1.getUniqueByteRepresentation());
+        accumulator.escapeAndSeparate(cPre2.getUniqueByteRepresentation());
+        accumulator.escapeAndSeparate(context);
         return hashfunction.hash(accumulator.extractBytes());
     }
 

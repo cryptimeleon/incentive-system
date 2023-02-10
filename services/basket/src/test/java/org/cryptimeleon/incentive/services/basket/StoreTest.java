@@ -1,6 +1,6 @@
 package org.cryptimeleon.incentive.services.basket;
 
-import org.cryptimeleon.incentive.crypto.crypto.TestSuite;
+import org.cryptimeleon.incentive.crypto.TestSuite;
 import org.cryptimeleon.incentive.crypto.model.EarnStoreCouponSignature;
 import org.cryptimeleon.incentive.crypto.model.EarnStoreRequest;
 import org.cryptimeleon.incentive.crypto.model.RegistrationCoupon;
@@ -29,8 +29,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.cryptimeleon.incentive.crypto.crypto.TestSuite.incentiveSystem;
-import static org.cryptimeleon.incentive.crypto.crypto.TestSuite.userKeyPair;
+import static org.cryptimeleon.incentive.crypto.TestSuite.incentiveSystem;
+import static org.cryptimeleon.incentive.crypto.TestSuite.userKeyPair;
 import static org.mockito.Mockito.when;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -87,12 +87,14 @@ public class StoreTest {
         Promotion promotion = TestSuiteWithPromotion.promotion;
         Token token = TestSuiteWithPromotion.generateToken(promotion.getPromotionParameters());
         // TODO implement and test store side locking mechanism
-        EarnStoreRequest earnStoreRequest = incentiveSystem.generateEarnCouponRequest(token, userKeyPair, basketId, promotion.getPromotionParameters().getPromotionId());
+        EarnStoreRequest earnStoreRequest = incentiveSystem.generateEarnCouponRequest(token, userKeyPair);
 
 
         String serializedStoreEarnCoupon = webTestClient.get()
                 .uri("/earn")
                 .header("earn-store-request", jsonConverter.serialize(earnStoreRequest.getRepresentation()))
+                .header("promotion-id", String.valueOf(promotion.getPromotionParameters().getPromotionId()))
+                .header("basket-id", String.valueOf(basketId))
                 .exchange()
                 .expectStatus()
                 .isEqualTo(HttpStatus.OK)
@@ -103,9 +105,11 @@ public class StoreTest {
 
         Vector<BigInteger> deltaK = promotion.computeEarningsForBasket(StoreService.promotionBasketFromBasketEntity(basket));
         assertThat(TestSuiteWithPromotion.incentiveSystem.verifyEarnCoupon(
-                earnStoreRequest, deltaK,
+                earnStoreRequest,
+                promotion.getPromotionParameters().getPromotionId(),
+                deltaK,
                 earnStoreCouponSignature,
-                        storePublicKey -> true
+                storePublicKey -> true
                 )
         ).isTrue();
     }

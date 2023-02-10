@@ -1,6 +1,6 @@
 package org.cryptimeleon.incentive.promotion;
 
-import org.cryptimeleon.incentive.crypto.crypto.TestSuite;
+import org.cryptimeleon.incentive.crypto.TestSuite;
 import org.cryptimeleon.incentive.promotion.hazel.HazelPromotion;
 import org.cryptimeleon.incentive.promotion.hazel.HazelTokenUpdate;
 import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect;

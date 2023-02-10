@@ -1,23 +1,31 @@
 package org.cryptimeleon.incentive.services.incentive.repository;
 
+import org.cryptimeleon.incentive.crypto.callback.ITransactionDBHandler;
 import org.cryptimeleon.incentive.crypto.model.EarnRequestECDSA;
+import org.cryptimeleon.incentive.crypto.model.SpendTransactionData;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Repository
-public class ClearingRepository {
+public class ClearingRepository implements ITransactionDBHandler {
     // Some data could appear twice bc. users can re-do earn without gaining an advantage. Filter by the hash h / ecdsa signature
     private final List<EarnClearingData> earnClearingData = new ArrayList<>();
 
-    public void addEarnClearingData(EarnRequestECDSA earnRequestECDSA, byte[] h) {
+    public List<EarnClearingData> getEarnClearingData() {
+        return earnClearingData;
+    }
+
+    @Override
+    public void addEarnData(EarnRequestECDSA earnRequestECDSA, byte[] h) {
         var dataToInsert = new EarnClearingData(h, earnRequestECDSA);
         earnClearingData.add(dataToInsert);
     }
 
-    public List<EarnClearingData> getEarnClearingData() {
-        return earnClearingData;
+    @Override
+    public void addSpendData(SpendTransactionData spendTransactionData) {
+
     }
 
 

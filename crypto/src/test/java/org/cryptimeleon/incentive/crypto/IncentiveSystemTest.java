@@ -4,7 +4,6 @@ import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSyst
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentive.crypto.callback.IRegistrationCouponDBHandler;
 import org.cryptimeleon.incentive.crypto.callback.IStorePublicKeyVerificationHandler;
-import org.cryptimeleon.incentive.crypto.crypto.TestSuite;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.store.StoreKeyPair;
@@ -14,7 +13,6 @@ import org.cryptimeleon.incentive.crypto.proof.spend.SpendHelper;
 import org.cryptimeleon.incentive.crypto.proof.spend.leaf.TokenUpdateLeaf;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
-import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellformednessProtocol;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.rings.RingElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
@@ -62,7 +60,7 @@ public class IncentiveSystemTest {
                 iRegistrationCouponDBHandler
         );
 
-        assertThat(incSys.verifyRegistrationCoupon(registrationCoupon, (s)-> true)).isTrue();
+        assertThat(incSys.verifyRegistrationCoupon(registrationCoupon, (s) -> true)).isTrue();
         assertThat(registrationCouponList).hasSize(1);
         assertThat(incSys.verifyRegistrationToken(pkp.getPk(), registrationToken, registrationCoupon)).isTrue();
 
@@ -101,8 +99,7 @@ public class IncentiveSystemTest {
 
         // serialize and deserialize join request to ensure serialization does not break anything
         var serializedJoinRequest = generateIssueJoinOutput.getJoinRequest().getRepresentation();
-        FiatShamirProofSystem cwfProofSystem = new FiatShamirProofSystem(new CommitmentWellformednessProtocol(incSys.getPp(), pkp.getPk()));
-        var deserializedJoinRequest = new JoinRequest(serializedJoinRequest, incSys.getPp(), cwfProofSystem);
+        var deserializedJoinRequest = new JoinRequest(serializedJoinRequest, incSys.getPp(), pkp.getPk());
 
         // provider handles join request and generates join response
         var joinResponse = incSys.generateJoinRequestResponse(promotionParameters, pkp, deserializedJoinRequest);

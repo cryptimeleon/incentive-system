@@ -22,9 +22,6 @@ public class Token implements Representable, UniqueByteRepresentable {
     @Represented(restorer = "G1")
     private GroupElement commitment0; // the first part of the Pedersen commitment computed from the bases and the exponents, representing the actual token
 
-    @Represented(restorer = "G1")
-    private GroupElement commitment1; // the second part of the Pedersen commitment computed from the bases and the exponents, representing the actual token
-
     @Represented(restorer = "Zn")
     private ZnElement doubleSpendingId; // nonce that is published when this token is invalidated
     @Represented(restorer = "Zn")
@@ -53,9 +50,8 @@ public class Token implements Representable, UniqueByteRepresentable {
                 .deserialize(repr);
     }
 
-    public Token(GroupElement commitment0, GroupElement commitment1, ZnElement doubleSpendingId, ZnElement doubleSpendRandomness, ZnElement z, ZnElement t, BigInteger promotionId, RingElementVector points, SPSEQSignature signature) {
+    public Token(GroupElement commitment0, ZnElement doubleSpendingId, ZnElement doubleSpendRandomness, ZnElement z, ZnElement t, BigInteger promotionId, RingElementVector points, SPSEQSignature signature) {
         this.commitment0 = commitment0;
-        this.commitment1 = commitment1;
         this.doubleSpendingId = doubleSpendingId;
         this.doubleSpendRandomness = doubleSpendRandomness;
         this.z = z;
@@ -74,7 +70,6 @@ public class Token implements Representable, UniqueByteRepresentable {
     public ByteAccumulator updateAccumulator(ByteAccumulator accumulator) {
         points.stream().forEachOrdered(k -> accumulator.escapeAndSeparate(k.getUniqueByteRepresentation()));
         accumulator.escapeAndSeparate(this.commitment0.getUniqueByteRepresentation());
-        accumulator.escapeAndSeparate(this.commitment1.getUniqueByteRepresentation());
         accumulator.escapeAndSeparate(this.doubleSpendRandomness.getUniqueByteRepresentation());
         accumulator.escapeAndSeparate(this.signature.getUniqueByteRepresentation());
         accumulator.escapeAndSeparate(this.promotionId.toByteArray());
@@ -85,10 +80,6 @@ public class Token implements Representable, UniqueByteRepresentable {
 
     public GroupElement getCommitment0() {
         return this.commitment0;
-    }
-
-    public GroupElement getCommitment1() {
-        return this.commitment1;
     }
 
     public ZnElement getDoubleSpendingId() {
@@ -124,11 +115,11 @@ public class Token implements Representable, UniqueByteRepresentable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Token token = (Token) o;
-        return Objects.equals(commitment0, token.commitment0) && Objects.equals(commitment1, token.commitment1) && Objects.equals(doubleSpendingId, token.doubleSpendingId) && Objects.equals(doubleSpendRandomness, token.doubleSpendRandomness) && Objects.equals(z, token.z) && Objects.equals(t, token.t) && Objects.equals(promotionId, token.promotionId) && Objects.equals(points, token.points) && Objects.equals(signature, token.signature);
+        return Objects.equals(commitment0, token.commitment0) && Objects.equals(doubleSpendingId, token.doubleSpendingId) && Objects.equals(doubleSpendRandomness, token.doubleSpendRandomness) && Objects.equals(z, token.z) && Objects.equals(t, token.t) && Objects.equals(promotionId, token.promotionId) && Objects.equals(points, token.points) && Objects.equals(signature, token.signature);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(commitment0, commitment1, doubleSpendingId, doubleSpendRandomness, z, t, promotionId, points, signature);
+        return Objects.hash(commitment0, doubleSpendingId, doubleSpendRandomness, z, t, promotionId, points, signature);
     }
 }

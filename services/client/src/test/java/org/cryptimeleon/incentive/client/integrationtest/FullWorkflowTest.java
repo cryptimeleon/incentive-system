@@ -113,14 +113,14 @@ public class FullWorkflowTest extends TransactionTestPreparation {
 
     private Token runEarnProtocol(Token token, org.cryptimeleon.incentive.promotion.model.Basket basket, Promotion promotion) {
         var pointsToEarn = promotion.computeEarningsForBasket(basket);
-        var earnCouponRequest = incentiveSystem.generateEarnCouponRequest(token, cryptoAssets.getUserKeyPair(), basket.getBasketId(), promotion.getPromotionParameters().getPromotionId());
-        var serializedEarnCoupon  = basketClient.requestEarnCoupon(earnCouponRequest);
+        var earnCouponRequest = incentiveSystem.generateEarnCouponRequest(token, cryptoAssets.getUserKeyPair());
+        var serializedEarnCoupon  = basketClient.requestEarnCoupon(earnCouponRequest, basket.getBasketId(), promotion.getPromotionParameters().getPromotionId());
         var earnCoupon = new EarnStoreCouponSignature(jsonConverter.deserialize(serializedEarnCoupon));
-        assertThat(incentiveSystem.verifyEarnCoupon(earnCouponRequest, pointsToEarn, earnCoupon, storePublicKey -> true))
+        assertThat(incentiveSystem.verifyEarnCoupon(earnCouponRequest, promotion.getPromotionParameters().getPromotionId(), pointsToEarn, earnCoupon, storePublicKey -> true))
                 .isTrue();
 
-        var earnRequest = incentiveSystem.generateEarnRequest(token, cryptoAssets.getProviderKeyPair().getPk(), cryptoAssets.getUserKeyPair(), promotion.getPromotionParameters().getPromotionId(), pointsToEarn, earnCoupon);
-        var serializedEarnResponse = incentiveClient.sendEarnRequest(earnRequest);
+        var earnRequest = incentiveSystem.generateEarnRequest(token, cryptoAssets.getProviderKeyPair().getPk(), cryptoAssets.getUserKeyPair(), pointsToEarn, earnCoupon);
+        var serializedEarnResponse = incentiveClient.sendEarnRequest(earnRequest, promotion.getPromotionParameters().getPromotionId());
         SPSEQSignature updatedSignature = new SPSEQSignature(jsonConverter.deserialize(serializedEarnResponse), cryptoAssets.getPublicParameters().getBg().getG1(), cryptoAssets.getPublicParameters().getBg().getG2());
         return incentiveSystem.handleEarnResponse(earnRequest, updatedSignature, promotion.getPromotionParameters(), token, cryptoAssets.getUserKeyPair(), cryptoAssets.getProviderKeyPair().getPk());
     }

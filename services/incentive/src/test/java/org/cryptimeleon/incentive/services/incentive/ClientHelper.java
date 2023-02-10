@@ -247,10 +247,11 @@ public class ClientHelper {
                                               Vector<BigInteger> pointsToEarn,
                                               EarnStoreCouponSignature earnStoreCouponSignature,
                                               PromotionParameters promotionParameters) {
-        var earnRequest = incentiveSystem.generateEarnRequest(token, pkp.getPk(), ukp, promotionParameters.getPromotionId(), pointsToEarn, earnStoreCouponSignature);
+        var earnRequest = incentiveSystem.generateEarnRequest(token, pkp.getPk(), ukp, pointsToEarn, earnStoreCouponSignature);
         var serializedEarnResponse = webClient.get()
                 .uri("/earn")
                 .header("earn-request", jsonConverter.serialize(earnRequest.getRepresentation()))
+                .header("promotion-id", String.valueOf(promotionParameters.getPromotionId()))
                 .exchange()
                 .expectStatus()
                 .isOk()

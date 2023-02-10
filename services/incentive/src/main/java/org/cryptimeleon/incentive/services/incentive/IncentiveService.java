@@ -9,7 +9,6 @@ import org.cryptimeleon.incentive.crypto.callback.IStorePublicKeyVerificationHan
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
-import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellformednessProtocol;
 import org.cryptimeleon.incentive.promotion.Promotion;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdate;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
@@ -100,8 +99,7 @@ public class IncentiveService {
         var providerSecretKey = cryptoRepository.getProviderSecretKey();
         var incentiveSystem = cryptoRepository.getIncentiveSystem();
         // generate a join request
-        FiatShamirProofSystem cwfProofSystem = new FiatShamirProofSystem(new CommitmentWellformednessProtocol(pp, providerPublicKey));
-        JoinRequest joinRequest = new JoinRequest(jsonConverter.deserialize(serializedJoinRequest), pp, cwfProofSystem);
+        JoinRequest joinRequest = new JoinRequest(jsonConverter.deserialize(serializedJoinRequest), pp, providerPublicKey);
         // run Issue algorithm to obtain a join response
         ProviderKeyPair providerKeyPair = new ProviderKeyPair(providerSecretKey, providerPublicKey);
         JoinResponse joinResponse = incentiveSystem.generateJoinRequestResponse(promotion.getPromotionParameters(), providerKeyPair, joinRequest);
@@ -348,9 +346,9 @@ public class IncentiveService {
         ).collect(Collectors.toList());
     }
 
-    public String handleEarn(String serializedEarnRequest) {
+    public String handleEarn(String serializedEarnRequest, BigInteger promotionId) {
         EarnRequestECDSA earnRequestECDSA = new EarnRequestECDSA(jsonConverter.deserialize(serializedEarnRequest), cryptoRepository.getPublicParameters());
-        Promotion promotion = promotionRepository.getPromotion(earnRequestECDSA.getPromotionId()).orElseThrow(() -> new IncentiveServiceException("Promotion not fount"));
+        Promotion promotion = promotionRepository.getPromotion(promotionId).orElseThrow(() -> new IncentiveServiceException("Promotion not fount"));
 
         // Callbacks for crypto implementation.
         // TODO: Currently, we allow the message to be signed under any store public key
@@ -359,7 +357,7 @@ public class IncentiveService {
         SPSEQSignature updatedSignature = cryptoRepository.getIncentiveSystem().generateEarnResponse(
                 earnRequestECDSA, promotion.getPromotionParameters(),
                 new ProviderKeyPair(cryptoRepository.getProviderSecretKey(), cryptoRepository.getProviderPublicKey()),
-                clearingRepository::addEarnClearingData,
+                clearingRepository,
                 verificationHandler
         );
         return jsonConverter.serialize(updatedSignature.getRepresentation());

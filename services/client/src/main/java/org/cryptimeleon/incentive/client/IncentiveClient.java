@@ -99,9 +99,10 @@ public class IncentiveClient implements AliveEndpoint {
                 .block();
     }
 
-    public String sendEarnRequest(EarnRequestECDSA earnRequest) {
+    public String sendEarnRequest(EarnRequestECDSA earnRequest, BigInteger promotionId) {
         return incentiveClient.get()
                 .uri("/earn")
+                .header("promotion-id", String.valueOf(promotionId))
                 .header("earn-request", jsonConverter.serialize(earnRequest.getRepresentation()))
                 .retrieve()
                 .bodyToMono((new ParameterizedTypeReference<String>() {}))

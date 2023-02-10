@@ -1,5 +1,6 @@
 package org.cryptimeleon.incentive.services.basket;
 
+import org.cryptimeleon.incentive.crypto.callback.IStoreBasketRedeemedHandler;
 import org.cryptimeleon.incentive.crypto.model.EarnStoreRequest;
 import org.cryptimeleon.incentive.crypto.model.RegistrationCoupon;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
@@ -43,12 +44,12 @@ public class StoreService {
         return jsonConverter.serialize(registrationCoupon.getRepresentation());
     }
 
-    public String earn(String serializedEarnStoreRequest) {
+    public String earn(String serializedEarnStoreRequest, UUID basketId, BigInteger promotionId) {
         EarnStoreRequest earnStoreRequest = new EarnStoreRequest(jsonConverter.deserialize(serializedEarnStoreRequest));
-        Promotion promotion = promotionRepository.getPromotion(earnStoreRequest.getPromotionId())
-                .orElseThrow(() -> new StoreException(String.format("Cannot find promotion with id %s", earnStoreRequest.getPromotionId())));
-        BasketEntity basketEntity = basketRepository.findById(earnStoreRequest.getBasketId())
-                .orElseThrow(() -> new StoreException(String.format("Cannot find basket with id %s", earnStoreRequest.getBasketId())));
+        Promotion promotion = promotionRepository.getPromotion(promotionId)
+                .orElseThrow(() -> new StoreException(String.format("Cannot find promotion with id %s", promotionId)));
+        BasketEntity basketEntity = basketRepository.findById(basketId)
+                .orElseThrow(() -> new StoreException(String.format("Cannot find basket with id %s", basketId)));
         Basket basket = promotionBasketFromBasketEntity(basketEntity);
 
 
@@ -58,10 +59,10 @@ public class StoreService {
                 cryptoRepository.getStoreKeyPair(),
                 deltaK,
                 earnStoreRequest,
-                (UUID basketId, BigInteger promotionId, byte[] hash) -> {
-                    // TODO implement this!
-                    return true;
-                }
+                basketId,
+                promotionId,
+                // TODO implement this properly
+                (b, p, h) -> IStoreBasketRedeemedHandler.BasketRedeemState.BASKET_NOT_REDEEMED
         );
 
         return jsonConverter.serialize(signedEarnCoupon.getRepresentation());

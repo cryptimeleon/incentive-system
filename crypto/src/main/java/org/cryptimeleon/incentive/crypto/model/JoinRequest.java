@@ -3,7 +3,9 @@ package org.cryptimeleon.incentive.crypto.model;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProof;
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
+import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellformednessCommonInput;
+import org.cryptimeleon.incentive.crypto.proof.wellformedness.CommitmentWellformednessProtocol;
 import org.cryptimeleon.math.serialization.ListRepresentation;
 import org.cryptimeleon.math.serialization.Representable;
 import org.cryptimeleon.math.serialization.Representation;
@@ -29,7 +31,7 @@ public class JoinRequest implements Representable {
     private final SPSEQSignature blindedRegistrationSignature;
 
 
-    public JoinRequest(Representation repr, IncentivePublicParameters pp, FiatShamirProofSystem fsps) {
+    public JoinRequest(Representation repr, IncentivePublicParameters pp, ProviderPublicKey providerPublicKey) {
         // force passed representation into a list representation (does not throw class cast exception in intended use cases)
         var list = (ListRepresentation) repr;
 
@@ -43,7 +45,8 @@ public class JoinRequest implements Representable {
         this.blindedW = usedG1.restoreElement(list.get(3));
         this.blindedRegistrationSignature = pp.getSpsEq().restoreSignature(list.get(4));
         var cwfProofCommonInput = new CommitmentWellformednessCommonInput(preCommitment0, preCommitment1, blindedUpk, blindedW); // recompute cwf proof common input
-        this.cwfProof = fsps.restoreProof(cwfProofCommonInput, list.get(5));
+        var fiatShamirProofSystem = new FiatShamirProofSystem(new CommitmentWellformednessProtocol(pp, providerPublicKey));
+        this.cwfProof = fiatShamirProofSystem.restoreProof(cwfProofCommonInput, list.get(5));
     }
 
     public JoinRequest(GroupElement preCommitment0, GroupElement preCommitment1, FiatShamirProof cwfProof, GroupElement blindedUpk, GroupElement blindedW, SPSEQSignature blindedRegistrationSignature) {

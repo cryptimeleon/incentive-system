@@ -6,7 +6,7 @@ import org.cryptimeleon.incentive.client.dto.inc.SpendRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.TokenUpdateResultsDto;
 import org.cryptimeleon.incentive.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
-import org.cryptimeleon.incentive.crypto.crypto.TestSuite;
+import org.cryptimeleon.incentive.crypto.TestSuite;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
@@ -187,7 +187,7 @@ public class IncentiveServiceTest {
         // add promotion that is used for tests to the system
         addPromotion(webClient, testPromotion, providerSecret, HttpStatus.OK);
         Token token = TestSuite.generateToken(testPromotion.getPromotionParameters());
-        EarnStoreCouponSignature earnStoreCouponSignature = TestSuite.getEarnCouponForPromotion(testPromotion.getPromotionParameters(), token, testBasket.getBasketId(), testEarnAmount);
+        EarnStoreCouponSignature earnStoreCouponSignature = TestSuite.getEarnCouponForPromotion(token, testEarnAmount, testBasket.getBasketId(), testPromotion.getPromotionParameters().getPromotionId());
 
         // generate earn request and pretend like the test user sent it to you
         var updatedToken = earnWithProviderECDSA(
