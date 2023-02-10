@@ -357,7 +357,7 @@ public class IncentiveService {
         SPSEQSignature updatedSignature = cryptoRepository.getIncentiveSystem().generateEarnResponse(
                 earnRequestECDSA, promotion.getPromotionParameters(),
                 new ProviderKeyPair(cryptoRepository.getProviderSecretKey(), cryptoRepository.getProviderPublicKey()),
-                clearingRepository::addEarnClearingData,
+                clearingRepository,
                 verificationHandler
         );
         return jsonConverter.serialize(updatedSignature.getRepresentation());
