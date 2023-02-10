@@ -78,7 +78,6 @@ public class EarnTest {
     public void earnTestInvalidSPSEQForToken() {
         var tokenWithDoubledPoints = new Token(
                 token.getCommitment0().pow(2),
-                token.getCommitment1(),
                 token.getDoubleSpendingId(),
                 token.getDoubleSpendRandomness(),
                 token.getZ(),

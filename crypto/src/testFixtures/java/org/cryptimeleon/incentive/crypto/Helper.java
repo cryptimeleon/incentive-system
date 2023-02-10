@@ -52,7 +52,6 @@ public class Helper {
 
         return new Token(
                 c1,
-                c2,
                 dsid,
                 dsrd,
                 z,

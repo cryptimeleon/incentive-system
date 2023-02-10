@@ -369,13 +369,12 @@ public class IncentiveSystem {
         // change representation of token-certificate pair
         SPSEQSignature finalCert = (SPSEQSignature) usedSpsEq.chgRep(preCert, R.u.inv(), pk.getPkSpsEq()); // adapt signature
         GroupElement finalCommitment0 = c0PreWithDsidProv.pow(R.u.inv()); // need to adapt message manually (entry by entry), used equivalence relation is R_exp
-        GroupElement finalCommitment1 = pp.getG1Generator();
 
         // assemble and return token
         Zn usedZn = pp.getBg().getZn();
         RingElementVector zeros = RingElementVector.generate(usedZn::getZeroElement, promotionParameters.getPointsVectorSize());
 
-        return new Token(finalCommitment0, finalCommitment1, R.dsidUser.add(jRes.getDsidProv()), R.dsrnd, R.z, R.t, promotionParameters.getPromotionId(), zeros, finalCert);
+        return new Token(finalCommitment0, R.dsidUser.add(jRes.getDsidProv()), R.dsrnd, R.z, R.t, promotionParameters.getPromotionId(), zeros, finalCert);
     }
 
     /**
@@ -393,7 +392,7 @@ public class IncentiveSystem {
         var s = pp.getPrfToZn().hashThenPrfToZn(userKeyPair.getSk().getPrfKey(), token, "CreditEarn");
 
         var c0Prime = token.getCommitment0().pow(s).compute();
-        var c1Prime = token.getCommitment1().pow(s).compute();
+        var c1Prime = pp.getG1Generator().pow(s).compute();
         var c2Prime = c1Prime.pow(token.getPromotionId()).compute();
 
         byte[] h = computeEarnHash(c0Prime, c1Prime, c2Prime);
@@ -486,7 +485,7 @@ public class IncentiveSystem {
                         providerPublicKey.getPkSpsEq()
                 ),
                 token.getCommitment0().pow(s).compute(),  // Compute for concurrent computation
-                token.getCommitment1().pow(s).compute()
+                pp.getG1Generator().pow(s).compute()
         );
     }
     // TODO remove promotionId and basketId from all crypto-requests! Sent alongside such that services can lookup stuff
@@ -592,7 +591,6 @@ public class IncentiveSystem {
         // Assemble new token
         return new Token(
                 blindedNewC0.pow(s.inv()).compute(), // Un-blind commitment
-                blindedNewC1.pow(s.inv()).compute(), // see above
                 token.getDoubleSpendingId(),
                 token.getDoubleSpendRandomness(),
                 token.getZ(),
@@ -632,7 +630,7 @@ public class IncentiveSystem {
                         providerPublicKey.getPkSpsEq()
                 ),
                 token.getCommitment0().pow(s).compute(),  // Compute for concurrent computation
-                token.getCommitment1().pow(s).compute()
+                pp.getG1Generator().pow(s).compute()
         );
     }
 
@@ -722,7 +720,6 @@ public class IncentiveSystem {
         // Assemble new token
         return new Token(
                 blindedNewC0.pow(s.inv()).compute(), // Un-blind commitment
-                blindedNewC1.pow(s.inv()).compute(), // see above
                 token.getDoubleSpendingId(),
                 token.getDoubleSpendRandomness(),
                 token.getZ(),
@@ -1018,7 +1015,6 @@ public class IncentiveSystem {
         // Build new token
         return new Token(
                 blindedCStar0.pow(R.uS.inv()),
-                pp.getG1Generator(),
                 R.dsidUserS.add(spendResponseECDSA.getDsidStarProv()),
                 R.dsrndS,
                 R.zS,
@@ -1218,7 +1214,7 @@ public class IncentiveSystem {
         // Build new token
         return new Token(
                 blindedCStar0.pow(R.uS.inv()), // Unblind commitment
-                pp.getG1Generator(), // Same as unblinded CStar1
+                // Same as unblinded CStar1
                 R.dsidUserS.add(spendResponse.getEskProvStar()),
                 R.dsrndS,
                 R.zS,
