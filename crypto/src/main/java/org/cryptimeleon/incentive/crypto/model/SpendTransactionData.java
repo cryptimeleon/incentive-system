@@ -19,6 +19,7 @@ import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 import java.math.BigInteger;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -85,30 +86,30 @@ public class SpendTransactionData implements Representable {
     }
 
     public SpendTransactionData(Representation representation, IncentivePublicParameters pp, PromotionParameters promotionParameters, SpendDeductTree spendDeductTree, ProviderPublicKey providerPublicKey, UniqueByteRepresentable context) {
-        ListRepresentation listRepresentation = (ListRepresentation) representation;
+        Iterator<Representation> representationIterator = ((ListRepresentation) representation).iterator();
 
         SPSEQSignatureScheme spseqSignatureScheme = pp.getSpsEq();
         ECDSASignatureScheme ecdsaSignatureScheme = new ECDSASignatureScheme();
         Group group = pp.getBg().getG1();
         Zn zn = pp.getBg().getZn();
 
-        this.promotionId = ((BigIntegerRepresentation) listRepresentation.get(0)).get();
-        this.dsid = zn.restoreElement(listRepresentation.get(1));
-        this.basketId = UUID.fromString(((StringRepresentation) listRepresentation.get(2)).get());
-        this.tokenSignature = spseqSignatureScheme.restoreSignature(listRepresentation.get(3));
-        this.couponSignature = (ECDSASignature) ecdsaSignatureScheme.restoreSignature(listRepresentation.get(4));
-        this.storePublicKey = new StorePublicKey(listRepresentation.get(5));
-        this.c = zn.restoreElement(listRepresentation.get(6));
-        this.gamma = zn.restoreElement(listRepresentation.get(7));
-        this.c0 = group.restoreElement(listRepresentation.get(8));
-        this.cPre0 = group.restoreElement(listRepresentation.get(9));
-        this.cPre1 = group.restoreElement(listRepresentation.get(10));
+        this.promotionId = ((BigIntegerRepresentation) representationIterator.next()).get();
+        this.dsid = zn.restoreElement(representationIterator.next());
+        this.basketId = UUID.fromString(((StringRepresentation) representationIterator.next()).get());
+        this.tokenSignature = spseqSignatureScheme.restoreSignature(representationIterator.next());
+        this.couponSignature = (ECDSASignature) ecdsaSignatureScheme.restoreSignature(representationIterator.next());
+        this.storePublicKey = new StorePublicKey(representationIterator.next());
+        this.c = zn.restoreElement(representationIterator.next());
+        this.gamma = zn.restoreElement(representationIterator.next());
+        this.c0 = group.restoreElement(representationIterator.next());
+        this.cPre0 = group.restoreElement(representationIterator.next());
+        this.cPre1 = group.restoreElement(representationIterator.next());
 
         // Kinda nasty deserialization of zkp
         var gamma = Util.hashGamma(pp.getBg().getZn(), dsid, basketId, cPre0, cPre1, cPre1.pow(promotionParameters.getPromotionId()), context);
         var spendDeductCommonInput = new SpendDeductZkpCommonInput(gamma, c, dsid, cPre0, cPre1, c0);
         var fiatShamirProofSystem = new FiatShamirProofSystem(new SpendDeductBooleanZkp(spendDeductTree, pp, promotionParameters, providerPublicKey));
-        this.proof = fiatShamirProofSystem.restoreProof(spendDeductCommonInput, listRepresentation.get(11));
+        this.proof = fiatShamirProofSystem.restoreProof(spendDeductCommonInput, representationIterator.next());
     }
 
     public BigInteger getPromotionId() {

@@ -905,6 +905,7 @@ public class IncentiveSystem {
     public SpendResponseECDSA verifySpendRequestAndIssueNewToken(ProviderKeyPair providerKeyPair,
                                                                  PromotionParameters promotionParameters,
                                                                  SpendRequestECDSA spendRequestECDSA,
+                                                                 UUID basketId,
                                                                  SpendDeductTree spendDeductTree,
                                                                  UniqueByteRepresentable context,
                                                                  IStorePublicKeyVerificationHandler storePublicKeyVerificationHandler,
@@ -913,7 +914,7 @@ public class IncentiveSystem {
         // 0. Check if this is a doublespending attempt.
         var gamma = Util.hashGamma(pp.getBg().getZn(),
                 spendRequestECDSA.getDoubleSpendingId(),
-                spendRequestECDSA.getBasketId(),
+                basketId,
                 spendRequestECDSA.getcPre0(),
                 spendRequestECDSA.getcPre1(),
                 spendRequestECDSA.getcPre1().pow(promotionParameters.getPromotionId()),
@@ -929,7 +930,7 @@ public class IncentiveSystem {
 
         // 2. Verify ECDSA
         ECDSASignatureScheme ecdsaSignatureScheme = new ECDSASignatureScheme();
-        MessageBlock messageBlock = constructSpendCouponMessageBlock(promotionParameters.getPromotionId(), spendRequestECDSA.getDoubleSpendingId(), spendRequestECDSA.getBasketId());
+        MessageBlock messageBlock = constructSpendCouponMessageBlock(promotionParameters.getPromotionId(), spendRequestECDSA.getDoubleSpendingId(), basketId);
         boolean ecdsaValid = ecdsaSignatureScheme.verify(messageBlock, spendRequestECDSA.getCouponSignature(), spendRequestECDSA.getStorePublicKey().getEcdsaVerificationKey());
         if (!ecdsaValid) {
             throw new RuntimeException("Invalid ECDSA signature!");

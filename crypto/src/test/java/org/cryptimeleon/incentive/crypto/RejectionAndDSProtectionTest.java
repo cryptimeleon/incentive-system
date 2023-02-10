@@ -159,8 +159,12 @@ public class RejectionAndDSProtectionTest {
                                                              ITransactionDBHandler transactionDBHandler) {
         SpendDeductTree spendDeductTree = SpendHelper.generateSimpleTestSpendDeductTree(promotionParameters, pointDifference);
         SpendCouponRequest spendCouponRequest = incSys.generateStoreSpendRequest(
-                TestSuite.userKeyPair, TestSuite.providerKeyPair.getPk(), token,
-                promotionParameters, basketId, pointsAfterSpend,
+                TestSuite.userKeyPair,
+                TestSuite.providerKeyPair.getPk(),
+                token,
+                promotionParameters,
+                basketId,
+                pointsAfterSpend,
                 spendDeductTree,
                 TestSuite.context
         );
@@ -177,11 +181,15 @@ public class RejectionAndDSProtectionTest {
         );
         Assertions.assertTrue(incSys.verifySpendCouponSignature(spendCouponRequest, spendCouponSignature, promotionParameters, basketId));
 
-        SpendRequestECDSA spendRequest = new SpendRequestECDSA(spendCouponRequest, spendCouponSignature, promotionParameters, basketId);
+        SpendRequestECDSA spendRequest = new SpendRequestECDSA(spendCouponRequest, spendCouponSignature);
         return incSys.verifySpendRequestAndIssueNewToken(
                 TestSuite.providerKeyPair,
-                promotionParameters, spendRequest,
-                spendDeductTree, TestSuite.context, (z) -> true,
+                promotionParameters,
+                spendRequest,
+                basketId,
+                spendDeductTree,
+                TestSuite.context,
+                (z) -> true,
                 providerBlacklist
         );
     }

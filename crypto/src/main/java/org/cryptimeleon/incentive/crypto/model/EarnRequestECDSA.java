@@ -10,6 +10,7 @@ import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 
 import java.math.BigInteger;
+import java.util.Iterator;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -34,12 +35,13 @@ public class EarnRequestECDSA implements Representable {
     }
 
     public EarnRequestECDSA(Representation representation, IncentivePublicParameters pp) {
-        ListRepresentation listRepresentation = (ListRepresentation) representation;
-        this.deltaK = new Vector<>(((ListRepresentation) listRepresentation.get(0)).stream().map(r -> new BigInteger(((ByteArrayRepresentation) r).get())).collect(Collectors.toList()));
-        this.earnStoreCouponSignature = new EarnStoreCouponSignature(listRepresentation.get(1));
-        this.spseqSignature = new SPSEQSignature(listRepresentation.get(2), pp.getBg().getG1(), pp.getBg().getG2());
-        this.cPrime0 = pp.getBg().getG1().restoreElement(listRepresentation.get(3));
-        this.cPrime1 = pp.getBg().getG1().restoreElement(listRepresentation.get(4));
+        Iterator<Representation> representationIterator = ((ListRepresentation) representation).iterator();
+
+        this.deltaK = new Vector<>(((ListRepresentation) representationIterator.next()).stream().map(r -> new BigInteger(((ByteArrayRepresentation) r).get())).collect(Collectors.toList()));
+        this.earnStoreCouponSignature = new EarnStoreCouponSignature(representationIterator.next());
+        this.spseqSignature = new SPSEQSignature(representationIterator.next(), pp.getBg().getG1(), pp.getBg().getG2());
+        this.cPrime0 = pp.getBg().getG1().restoreElement(representationIterator.next());
+        this.cPrime1 = pp.getBg().getG1().restoreElement(representationIterator.next());
     }
 
     public Vector<BigInteger> getDeltaK() {

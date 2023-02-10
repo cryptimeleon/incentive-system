@@ -7,6 +7,7 @@ import org.cryptimeleon.math.serialization.Representable;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
+import java.util.Iterator;
 import java.util.Objects;
 
 public class SpendResponseECDSA implements Representable {
@@ -19,10 +20,11 @@ public class SpendResponseECDSA implements Representable {
     }
 
     public SpendResponseECDSA(Representation representation, IncentivePublicParameters pp) {
-        ListRepresentation listRepresentation = (ListRepresentation) representation;
+        Iterator<Representation> representationIterator = ((ListRepresentation) representation).iterator();
         SPSEQSignatureScheme spseqSignatureScheme = pp.getSpsEq();
-        this.signature = spseqSignatureScheme.restoreSignature(listRepresentation.get(0));
-        this.dsidStarProv = pp.getBg().getZn().restoreElement(listRepresentation.get(1));
+
+        this.signature = spseqSignatureScheme.restoreSignature(representationIterator.next());
+        this.dsidStarProv = pp.getBg().getZn().restoreElement(representationIterator.next());
     }
 
     public SPSEQSignature getSignature() {
