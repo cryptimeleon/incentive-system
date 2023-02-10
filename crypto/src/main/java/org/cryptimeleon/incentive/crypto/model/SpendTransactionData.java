@@ -22,7 +22,7 @@ import java.math.BigInteger;
 import java.util.Objects;
 import java.util.UUID;
 
-public class SpendClearingData implements Representable {
+public class SpendTransactionData implements Representable {
 
     private final BigInteger promotionId;
     private final Zn.ZnElement dsid;
@@ -37,18 +37,18 @@ public class SpendClearingData implements Representable {
     private final GroupElement cPre1;
     private final FiatShamirProof proof;
 
-    public SpendClearingData(BigInteger promotionId,
-                             Zn.ZnElement dsid,
-                             UUID basketId,
-                             SPSEQSignature tokenSignature,
-                             ECDSASignature couponSignature,
-                             StorePublicKey storePublicKey,
-                             Zn.ZnElement c,
-                             Zn.ZnElement gamma,
-                             GroupElement c0,
-                             GroupElement cPre0,
-                             GroupElement cPre1,
-                             FiatShamirProof proof) {
+    public SpendTransactionData(BigInteger promotionId,
+                                Zn.ZnElement dsid,
+                                UUID basketId,
+                                SPSEQSignature tokenSignature,
+                                ECDSASignature couponSignature,
+                                StorePublicKey storePublicKey,
+                                Zn.ZnElement c,
+                                Zn.ZnElement gamma,
+                                GroupElement c0,
+                                GroupElement cPre0,
+                                GroupElement cPre1,
+                                FiatShamirProof proof) {
         this.promotionId = promotionId;
         this.dsid = dsid;
         this.basketId = basketId;
@@ -63,7 +63,7 @@ public class SpendClearingData implements Representable {
         this.proof = proof;
     }
 
-    public SpendClearingData(Representation representation, IncentivePublicParameters pp, PromotionParameters promotionParameters, SpendDeductTree spendDeductTree, ProviderPublicKey providerPublicKey, UniqueByteRepresentable context) {
+    public SpendTransactionData(Representation representation, IncentivePublicParameters pp, PromotionParameters promotionParameters, SpendDeductTree spendDeductTree, ProviderPublicKey providerPublicKey, UniqueByteRepresentable context) {
         ListRepresentation listRepresentation = (ListRepresentation) representation;
 
         SPSEQSignatureScheme spseqSignatureScheme = pp.getSpsEq();
@@ -160,7 +160,7 @@ public class SpendClearingData implements Representable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        SpendClearingData that = (SpendClearingData) o;
+        SpendTransactionData that = (SpendTransactionData) o;
         return Objects.equals(promotionId, that.promotionId) && Objects.equals(dsid, that.dsid) && Objects.equals(basketId, that.basketId) && Objects.equals(tokenSignature, that.tokenSignature) && Objects.equals(couponSignature, that.couponSignature) && Objects.equals(storePublicKey, that.storePublicKey) && Objects.equals(c, that.c) && Objects.equals(gamma, that.gamma) && Objects.equals(c0, that.c0) && Objects.equals(cPre0, that.cPre0) && Objects.equals(cPre1, that.cPre1) && Objects.equals(proof, that.proof);
     }
 

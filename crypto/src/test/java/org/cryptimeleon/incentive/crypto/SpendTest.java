@@ -1,5 +1,6 @@
 package org.cryptimeleon.incentive.crypto;
 
+import org.cryptimeleon.incentive.crypto.callback.IDsidBlacklistHandler;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.proof.spend.SpendHelper;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
@@ -21,6 +22,8 @@ public class SpendTest {
 
     Token token = TestSuite.generateToken(promotionParameters, pointsBeforeSpend);
     TestRedeemedHandler testRedeemedHandler = new TestRedeemedHandler();
+    IDsidBlacklistHandler dsidBlacklistHandler = new TestSuite.TestDsidBlacklist();
+    TestSuite.TestTransactionDbHandler transactionDbHandler = new TestSuite.TestTransactionDbHandler();
 
     @Test
     void spendFullTest() {
@@ -35,7 +38,7 @@ public class SpendTest {
                 spendDeductTree,
                 TestSuite.context
         );
-        SpendStoreOutput spendStoreOutput = incSys.signSpendCoupon(
+        SpendCouponSignature spendCouponSignature = incSys.signSpendCoupon(
                 TestSuite.storeKeyPair,
                 TestSuite.providerKeyPair.getPk(),
                 basketId,
@@ -43,10 +46,10 @@ public class SpendTest {
                 spendCouponRequest,
                 spendDeductTree,
                 testRedeemedHandler,
-                new TestSuite.TestDsidBlacklist(),
+                dsidBlacklistHandler,
+                transactionDbHandler,
                 TestSuite.context
         );
-        SpendCouponSignature spendCouponSignature = spendStoreOutput.spendCouponSignature;
         Assertions.assertTrue(incSys.verifySpendCouponSignature(spendCouponRequest, spendCouponSignature, promotionParameters, basketId));
 
         SpendRequestECDSA spendRequest = new SpendRequestECDSA(spendCouponRequest, spendCouponSignature, promotionParameters, basketId);
@@ -55,7 +58,7 @@ public class SpendTest {
                 spendRequest,
                 promotionParameters,
                 (z) -> true,
-                new TestSuite.TestDsidBlacklist(),
+                dsidBlacklistHandler,
                 spendDeductTree,
                 TestSuite.context
         );
@@ -76,21 +79,20 @@ public class SpendTest {
                 spendDeductTree,
                 TestSuite.context
         );
-        SpendStoreOutput spendStoreOutput = incSys.signSpendCoupon(
+        SpendCouponSignature spendCouponSignature = incSys.signSpendCoupon(
                 TestSuite.storeKeyPair,
                 TestSuite.providerKeyPair.getPk(),
                 basketId,
                 promotionParameters,
                 spendCouponRequest,
                 spendDeductTree,
-                new TestRedeemedHandler(),
-                new TestSuite.TestDsidBlacklist(),
+                testRedeemedHandler,
+                dsidBlacklistHandler,
+                transactionDbHandler,
                 TestSuite.context
         );
 
-        SpendCouponSignature spendCouponSignature = spendStoreOutput.spendCouponSignature;
-        SpendClearingData spendClearingData = spendStoreOutput.spendClearingData;
-
+        SpendTransactionData spendTransactionData = transactionDbHandler.spendData.get(0);
         SpendRequestECDSA spendRequest = new SpendRequestECDSA(spendCouponRequest, spendCouponSignature, promotionParameters, basketId);
         SpendResponseECDSA spendResponse = incSys.verifySpendRequestAndIssueNewToken(
                 TestSuite.providerKeyPair,
@@ -103,7 +105,7 @@ public class SpendTest {
         );
 
         SpendCouponSignature deserializedSpendCouponSignature = new SpendCouponSignature(spendCouponSignature.getRepresentation());
-        SpendClearingData deserializedSpendClearingData = new SpendClearingData(spendClearingData.getRepresentation(),
+        SpendTransactionData deserializedSpendTransactionData = new SpendTransactionData(spendTransactionData.getRepresentation(),
                 incSys.pp,
                 promotionParameters,
                 spendDeductTree,
@@ -128,7 +130,7 @@ public class SpendTest {
 
         Assertions.assertEquals(spendCouponRequest, deserialzedSpendCouponRequest);
         Assertions.assertEquals(spendCouponSignature, deserializedSpendCouponSignature);
-        Assertions.assertEquals(spendClearingData, deserializedSpendClearingData);
+        Assertions.assertEquals(spendTransactionData, deserializedSpendTransactionData);
         Assertions.assertEquals(spendRequest, deserializedSpendRequest);
         Assertions.assertEquals(spendResponse, deserializedSpendResponse);
     }

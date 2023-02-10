@@ -502,14 +502,14 @@ public class IncentiveSystem {
      * @param promotionParameters               the parameters associated to the promotion from the user's request. Can be identified
      *                                          by the promotionId in the request
      * @param providerKeyPair                   the keys of the provider
-     * @param clearingDBHandler                 a callback for adding all relevant data to the clearing db
+     * @param transactionDBHandler                 a callback for adding all relevant data to the clearing db
      * @param storePublicKeyVerificationHandler a callback for verifying that the store's key used to authenticate the request is trusted
      * @return the blindly updated signature
      */
     public SPSEQSignature generateEarnResponse(EarnRequestECDSA earnRequestECDSA,
                                                PromotionParameters promotionParameters,
                                                ProviderKeyPair providerKeyPair,
-                                               ITransactionDBHandler clearingDBHandler,
+                                               ITransactionDBHandler transactionDBHandler,
                                                IStorePublicKeyVerificationHandler storePublicKeyVerificationHandler) {
         // Blinded token
         var c0Prime = earnRequestECDSA.getcPrime0();
@@ -536,7 +536,7 @@ public class IncentiveSystem {
         if (!blindedSpseqValid) throw new RuntimeException("(Blinded) SPSEQ signature invalid");
 
         // Add to clearing DB
-        clearingDBHandler.addEarningDataToClearingDB(earnRequestECDSA, h);
+        transactionDBHandler.addEarnData(earnRequestECDSA, h);
 
         // Blind-sign update
         var Q = providerKeyPair.getSk().getTokenPointsQ(promotionParameters);
@@ -777,7 +777,7 @@ public class IncentiveSystem {
         return new SpendCouponRequest(token.getDoubleSpendingId(), c, token.getSignature(), token.getCommitment0(), cPre0, cPre1, proof);
     }
 
-    public SpendStoreOutput signSpendCoupon(StoreKeyPair storeKeyPair,
+    public SpendCouponSignature signSpendCoupon(StoreKeyPair storeKeyPair,
                                             ProviderPublicKey providerPublicKey,
                                             UUID basketId,
                                             PromotionParameters promotionParameters,
@@ -785,6 +785,7 @@ public class IncentiveSystem {
                                             SpendDeductTree spendDeductTree,
                                             IStoreBasketRedeemedHandler iStoreBasketRedeemedHandler,
                                             IDsidBlacklistHandler dsidBlacklistHandler,
+                                            ITransactionDBHandler transactionDBHandler,
                                             UniqueByteRepresentable context
     ) {
         var zp = pp.getBg().getZn();
@@ -821,6 +822,7 @@ public class IncentiveSystem {
         var signature = (ECDSASignature) ecdsa.sign(spendCouponMessageBlock, storeKeyPair.getSk().getEcdsaSigningKey());
         var spendCouponSignature = new SpendCouponSignature(signature, storeKeyPair.getPk());
 
+        // Check if basket and request qualify this request
         var redeemResult = iStoreBasketRedeemedHandler.verifyAndRedeemBasketSpend(basketId, promotionParameters.getPromotionId(), gamma);
         switch (redeemResult) {
             case BASKET_NOT_REDEEMED:
@@ -831,12 +833,12 @@ public class IncentiveSystem {
             case BASKET_REDEEMED_ABORT:
                 throw new RuntimeException("Basket already redeemed for different request!");
             case BASKED_REDEEMED_RETRY:
-                // Retry, just perform the protocol again
+                // Retry, just perform the protocol again, no need to add it to dsid blacklist
                 break;
         }
 
         // 3. Blacklist dsid at provider and send clearing data => Provider finds users that perform double-spending attack!
-        var spendClearingData = new SpendClearingData(
+        var spendClearingData = new SpendTransactionData(
                 promotionParameters.getPromotionId(),
                 spendCouponRequest.getDsid(),
                 basketId,
@@ -850,12 +852,13 @@ public class IncentiveSystem {
                 spendCouponRequest.getCPre1(),
                 spendCouponRequest.getSpendZkp()
         );
+        transactionDBHandler.addSpendData(spendClearingData);
 
         // 1. Offline: Wait for payment
         // 2. Issue reward
         // 3. Give coupon signature to user
 
-        return new SpendStoreOutput(spendCouponSignature, spendClearingData);
+        return spendCouponSignature;
     }
 
     public boolean verifySpendCouponSignature(SpendCouponRequest spendCouponRequest, SpendCouponSignature spendCouponSignature, PromotionParameters promotionParameters, UUID basketId) {
@@ -928,7 +931,6 @@ public class IncentiveSystem {
         );
 
         // 7. Add to DoubleSpending DB
-        DoubleSpendingDbEntry doubleSpendingDbEntry = new DoubleSpendingDbEntry(spendRequestECDSA.getDoubleSpendingId(), new DoubleSpendingTag(spendRequestECDSA.getC(), gamma), spendRequestECDSA.getTokenSignature(), dsidStarProv);
         doubleSpendingHandler.addEntryIfDsidNotPresent(spendRequestECDSA.getDoubleSpendingId(), gamma);
 
         return new SpendResponseECDSA(updatedTokenSignature, dsidStarProv);

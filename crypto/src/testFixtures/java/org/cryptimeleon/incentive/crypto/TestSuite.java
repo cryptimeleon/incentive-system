@@ -1,6 +1,7 @@
 package org.cryptimeleon.incentive.crypto;
 
 import org.cryptimeleon.incentive.crypto.callback.IDsidBlacklistHandler;
+import org.cryptimeleon.incentive.crypto.callback.ITransactionDBHandler;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.store.StoreKeyPair;
@@ -12,6 +13,7 @@ import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -59,6 +61,21 @@ public class TestSuite {
         @Override
         public void addEntryIfDsidNotPresent(Zn.ZnElement doubleSpendingId, Zn.ZnElement gamma) {
             dsMap.putIfAbsent(doubleSpendingId, gamma);
+        }
+    }
+
+    public static class TestTransactionDbHandler implements ITransactionDBHandler {
+        HashMap<EarnRequestECDSA, byte[]> earnData = new HashMap<>();
+        ArrayList<SpendTransactionData> spendData = new ArrayList<>();
+
+        @Override
+        public void addEarnData(EarnRequestECDSA earnRequestECDSA, byte[] h) {
+            earnData.put(earnRequestECDSA, h);
+        }
+
+        @Override
+        public void addSpendData(SpendTransactionData spendTransactionData) {
+            spendData.add(spendTransactionData);
         }
     }
 }
