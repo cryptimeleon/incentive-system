@@ -45,9 +45,9 @@ public class TestSuite {
         return Helper.generateToken(pp, userKeyPair, providerKeyPair, promotionParameters, points);
     }
 
-    public static EarnStoreCouponSignature getEarnCouponForPromotion(PromotionParameters promotionParameters, Token token, UUID basketId, Vector<BigInteger> earnAmount) {
-        EarnStoreRequest earnStoreRequest = incentiveSystem.generateEarnCouponRequest(token, userKeyPair, basketId, promotionParameters.getPromotionId());
-        return incentiveSystem.signEarnCoupon(storeKeyPair, earnAmount, earnStoreRequest, new TestRedeemedHandler());
+    public static EarnStoreCouponSignature getEarnCouponForPromotion(Token token, Vector<BigInteger> earnAmount, UUID basketId, BigInteger promotionId) {
+        EarnStoreRequest earnStoreRequest = incentiveSystem.generateEarnCouponRequest(token, userKeyPair);
+        return incentiveSystem.signEarnCoupon(storeKeyPair, earnAmount, earnStoreRequest, basketId, promotionId, new TestRedeemedHandler());
     }
 
     public static class TestDsidBlacklist implements IDsidBlacklistHandler {

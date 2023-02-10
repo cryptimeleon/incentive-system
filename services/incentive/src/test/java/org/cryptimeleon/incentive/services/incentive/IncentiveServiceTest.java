@@ -187,7 +187,7 @@ public class IncentiveServiceTest {
         // add promotion that is used for tests to the system
         addPromotion(webClient, testPromotion, providerSecret, HttpStatus.OK);
         Token token = TestSuite.generateToken(testPromotion.getPromotionParameters());
-        EarnStoreCouponSignature earnStoreCouponSignature = TestSuite.getEarnCouponForPromotion(testPromotion.getPromotionParameters(), token, testBasket.getBasketId(), testEarnAmount);
+        EarnStoreCouponSignature earnStoreCouponSignature = TestSuite.getEarnCouponForPromotion(token, testEarnAmount, testBasket.getBasketId(), testPromotion.getPromotionParameters().getPromotionId());
 
         // generate earn request and pretend like the test user sent it to you
         var updatedToken = earnWithProviderECDSA(

@@ -251,6 +251,7 @@ public class ClientHelper {
         var serializedEarnResponse = webClient.get()
                 .uri("/earn")
                 .header("earn-request", jsonConverter.serialize(earnRequest.getRepresentation()))
+                .header("promotion-id", String.valueOf(promotionParameters.getPromotionId()))
                 .exchange()
                 .expectStatus()
                 .isOk()

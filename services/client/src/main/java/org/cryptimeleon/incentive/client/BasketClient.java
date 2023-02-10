@@ -10,6 +10,7 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -144,11 +145,13 @@ public class BasketClient implements AliveEndpoint {
                 .bodyToMono(String.class).block();
     }
 
-    public String requestEarnCoupon(EarnStoreRequest earnStoreRequest) {
+    public String requestEarnCoupon(EarnStoreRequest earnStoreRequest, UUID basketId, BigInteger promotionId) {
         return basketClient
                 .get()
                 .uri("/earn")
                 .header("earn-store-request", jsonConverter.serialize(earnStoreRequest.getRepresentation()))
+                .header("basket-id", String.valueOf(basketId))
+                .header("promotion-id", String.valueOf(promotionId))
                 .retrieve()
                 .bodyToMono(String.class).block();
     }

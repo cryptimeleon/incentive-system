@@ -382,11 +382,9 @@ public class IncentiveSystem {
      *
      * @param token       earn points for this token
      * @param userKeyPair only required for pseudorandomness
-     * @param basketId    the id of the basket that this earn-request will be associated to
-     * @param promotionId the id of the promotion of this token and earn request
      * @return a request that can be processed by the store
      */
-    public EarnStoreRequest generateEarnCouponRequest(Token token, UserKeyPair userKeyPair, UUID basketId, BigInteger promotionId) {
+    public EarnStoreRequest generateEarnCouponRequest(Token token, UserKeyPair userKeyPair){
         // Compute pseudorandom value from the token that is used to blind the commitment
         // This makes this algorithm deterministic
         var s = pp.getPrfToZn().hashThenPrfToZn(userKeyPair.getSk().getPrfKey(), token, "CreditEarn");
@@ -397,7 +395,7 @@ public class IncentiveSystem {
 
         byte[] h = computeEarnHash(c0Prime, c1Prime, c2Prime);
 
-        return new EarnStoreRequest(h, basketId, promotionId);
+        return new EarnStoreRequest(h);
     }
 
     /**
@@ -414,14 +412,16 @@ public class IncentiveSystem {
     public EarnStoreCouponSignature signEarnCoupon(StoreKeyPair storeKeyPair,
                                                    Vector<BigInteger> deltaK,
                                                    EarnStoreRequest earnStoreRequest,
+                                                   UUID basketId,
+                                                   BigInteger promotionId,
                                                    IStoreBasketRedeemedHandler storeBasketRedeemedHandler) {
-        IStoreBasketRedeemedHandler.BasketRedeemState issueSignature = storeBasketRedeemedHandler.verifyAndRedeemBasketEarn(earnStoreRequest.getBasketId(), earnStoreRequest.getPromotionId(), earnStoreRequest.getH());
+        IStoreBasketRedeemedHandler.BasketRedeemState issueSignature = storeBasketRedeemedHandler.verifyAndRedeemBasketEarn(basketId, promotionId, earnStoreRequest.getH());
         if (issueSignature.equals(IStoreBasketRedeemedHandler.BasketRedeemState.BASKET_REDEEMED_ABORT)) {
-            throw new RuntimeException(String.format("Basket %s already redeemed with different hash than %s!", earnStoreRequest.getBasketId().toString(), Arrays.toString(earnStoreRequest.getH())));
+            throw new RuntimeException(String.format("Basket %s already redeemed with different hash than %s!", basketId.toString(), Arrays.toString(earnStoreRequest.getH())));
         }
 
         ECDSASignatureScheme ecdsaSignatureScheme = new ECDSASignatureScheme();
-        var message = constructEarnCouponMessageBlock(earnStoreRequest.getPromotionId(), deltaK, earnStoreRequest.getH());
+        var message = constructEarnCouponMessageBlock(promotionId, deltaK, earnStoreRequest.getH());
         var signature = (ECDSASignature) ecdsaSignatureScheme.sign(message, storeKeyPair.getSk().getEcdsaSigningKey());
 
         return new EarnStoreCouponSignature(signature, storeKeyPair.getPk());
@@ -437,6 +437,7 @@ public class IncentiveSystem {
      * @return true if all checks pass
      */
     public boolean verifyEarnCoupon(EarnStoreRequest earnStoreRequest,
+                                    BigInteger promotionId,
                                     Vector<BigInteger> deltaK,
                                     EarnStoreCouponSignature earnStoreCouponSignature,
                                     IStorePublicKeyVerificationHandler storePublicKeyVerificationHandler) {
@@ -447,7 +448,7 @@ public class IncentiveSystem {
         }
 
         ECDSASignatureScheme ecdsaSignatureScheme = new ECDSASignatureScheme();
-        var message = constructEarnCouponMessageBlock(earnStoreRequest.getPromotionId(), deltaK, earnStoreRequest.getH());
+        var message = constructEarnCouponMessageBlock(promotionId, deltaK, earnStoreRequest.getH());
         return ecdsaSignatureScheme.verify(message, earnStoreCouponSignature.getSignature(), earnStoreCouponSignature.getStorePublicKey().getEcdsaVerificationKey());
     }
 

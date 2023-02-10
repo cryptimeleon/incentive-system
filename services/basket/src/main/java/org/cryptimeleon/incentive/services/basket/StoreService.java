@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -43,12 +44,12 @@ public class StoreService {
         return jsonConverter.serialize(registrationCoupon.getRepresentation());
     }
 
-    public String earn(String serializedEarnStoreRequest) {
+    public String earn(String serializedEarnStoreRequest, UUID basketId, BigInteger promotionId) {
         EarnStoreRequest earnStoreRequest = new EarnStoreRequest(jsonConverter.deserialize(serializedEarnStoreRequest));
-        Promotion promotion = promotionRepository.getPromotion(earnStoreRequest.getPromotionId())
-                .orElseThrow(() -> new StoreException(String.format("Cannot find promotion with id %s", earnStoreRequest.getPromotionId())));
-        BasketEntity basketEntity = basketRepository.findById(earnStoreRequest.getBasketId())
-                .orElseThrow(() -> new StoreException(String.format("Cannot find basket with id %s", earnStoreRequest.getBasketId())));
+        Promotion promotion = promotionRepository.getPromotion(promotionId)
+                .orElseThrow(() -> new StoreException(String.format("Cannot find promotion with id %s", promotionId)));
+        BasketEntity basketEntity = basketRepository.findById(basketId)
+                .orElseThrow(() -> new StoreException(String.format("Cannot find basket with id %s", basketId)));
         Basket basket = promotionBasketFromBasketEntity(basketEntity);
 
 
@@ -58,8 +59,10 @@ public class StoreService {
                 cryptoRepository.getStoreKeyPair(),
                 deltaK,
                 earnStoreRequest,
+                basketId,
+                promotionId,
                 // TODO implement this properly
-                (basketId, promotionId, hash) -> IStoreBasketRedeemedHandler.BasketRedeemState.BASKET_NOT_REDEEMED
+                (b, p, h) -> IStoreBasketRedeemedHandler.BasketRedeemState.BASKET_NOT_REDEEMED
         );
 
         return jsonConverter.serialize(signedEarnCoupon.getRepresentation());

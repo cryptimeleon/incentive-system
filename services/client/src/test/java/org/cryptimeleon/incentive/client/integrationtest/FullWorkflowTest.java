@@ -113,10 +113,10 @@ public class FullWorkflowTest extends TransactionTestPreparation {
 
     private Token runEarnProtocol(Token token, org.cryptimeleon.incentive.promotion.model.Basket basket, Promotion promotion) {
         var pointsToEarn = promotion.computeEarningsForBasket(basket);
-        var earnCouponRequest = incentiveSystem.generateEarnCouponRequest(token, cryptoAssets.getUserKeyPair(), basket.getBasketId(), promotion.getPromotionParameters().getPromotionId());
-        var serializedEarnCoupon  = basketClient.requestEarnCoupon(earnCouponRequest);
+        var earnCouponRequest = incentiveSystem.generateEarnCouponRequest(token, cryptoAssets.getUserKeyPair());
+        var serializedEarnCoupon  = basketClient.requestEarnCoupon(earnCouponRequest, basket.getBasketId(), promotion.getPromotionParameters().getPromotionId());
         var earnCoupon = new EarnStoreCouponSignature(jsonConverter.deserialize(serializedEarnCoupon));
-        assertThat(incentiveSystem.verifyEarnCoupon(earnCouponRequest, pointsToEarn, earnCoupon, storePublicKey -> true))
+        assertThat(incentiveSystem.verifyEarnCoupon(earnCouponRequest, promotion.getPromotionParameters().getPromotionId(), pointsToEarn, earnCoupon, storePublicKey -> true))
                 .isTrue();
 
         var earnRequest = incentiveSystem.generateEarnRequest(token, cryptoAssets.getProviderKeyPair().getPk(), cryptoAssets.getUserKeyPair(), pointsToEarn, earnCoupon);

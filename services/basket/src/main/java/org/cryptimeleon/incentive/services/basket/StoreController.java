@@ -7,7 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigInteger;
 import java.util.List;
+import java.util.UUID;
 
 @Controller
 public class StoreController {
@@ -36,8 +38,12 @@ public class StoreController {
      * Verify a user's earn request and issue an earn coupon.
      */
     @GetMapping("/earn")
-    ResponseEntity<String> registerUserAndReturnSerializedRegistrationCoupon(@RequestHeader("earn-store-request") String serializedEarnStoreRequest) {
-        return new ResponseEntity<>(storeService.earn(serializedEarnStoreRequest), HttpStatus.OK);
+    ResponseEntity<String> registerUserAndReturnSerializedRegistrationCoupon(
+            @RequestHeader("earn-store-request") String serializedEarnStoreRequest,
+            @RequestHeader("basket-id") UUID basketId,
+            @RequestHeader("promotion-id") BigInteger promotionId
+    ) {
+        return new ResponseEntity<>(storeService.earn(serializedEarnStoreRequest, basketId, promotionId), HttpStatus.OK);
     }
 
     /**
