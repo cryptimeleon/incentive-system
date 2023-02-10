@@ -112,6 +112,10 @@ public class SpendTransactionData implements Representable {
         this.proof = fiatShamirProofSystem.restoreProof(spendDeductCommonInput, representationIterator.next());
     }
 
+    public DoubleSpendingTag computeDsTag() {
+        return new DoubleSpendingTag(c, gamma);
+    }
+
     public BigInteger getPromotionId() {
         return promotionId;
     }

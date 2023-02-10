@@ -10,15 +10,33 @@ import java.util.UUID;
  */
 public interface IStoreBasketRedeemedHandler {
 
+    /**
+     * Default method with same functionality as {@link #verifyAndRedeemRequestWithHash(UUID, BigInteger, byte[]) verifyAndRedeemRequestWithHash}
+     * to be used in Earn.
+     * <p>
+     * Do not overwrite this!
+     */
     default BasketRedeemState verifyAndRedeemBasketEarn(UUID basketId, BigInteger promotionId, byte[] hash) {
         return verifyAndRedeemRequestWithHash(basketId, promotionId, hash);
     }
 
-    // Compare the promotionId, gamma tuple at basket
+
+    /**
+     * Default method with same functionality as {@link #verifyAndRedeemRequestWithHash(UUID, BigInteger, byte[]) verifyAndRedeemRequestWithHash}
+     * but with type ZnElement for {@literal gamma}.
+     * <p>
+     * Do not overwrite this!
+     */
     default BasketRedeemState verifyAndRedeemBasketSpend(UUID basketId, BigInteger promotionId, Zn.ZnElement gamma) {
         return verifyAndRedeemRequestWithHash(basketId, promotionId, gamma.getUniqueByteRepresentation());
     }
 
+    /**
+     * Checks whether there is already some hash associated with a (basket, promotionId) tuple.
+     * If not, it returns {@link BasketRedeemState#BASKET_NOT_REDEEMED}.
+     * Otherwise, the hash is compared with the parameter {@literal  hash}. If they are the same, return
+     * {@link BasketRedeemState#BASKED_REDEEMED_RETRY}, else {@link BasketRedeemState#BASKET_REDEEMED_ABORT}.
+     */
     BasketRedeemState verifyAndRedeemRequestWithHash(UUID basketId, BigInteger promotionId, byte[] hash);
 
     enum BasketRedeemState {
