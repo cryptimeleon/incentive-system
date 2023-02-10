@@ -745,12 +745,26 @@ public class IncentiveSystem {
      * implementation of the Deduct {@literal <}-{@literal >}Spend protocol
      */
 
-    public SpendCouponRequest generateStoreSpendRequest(Token token,
-                                                        UserKeyPair userKeyPair,
-                                                        Vector<BigInteger> newPoints,
+    /**
+     * Generate a request to spend points of the token such that the remaining points are equal to {@literal newPoints}
+     * and the update adheres to the {@literal spendDeductTree}.
+     *
+     * @param userKeyPair         the user key pair
+     * @param providerPublicKey   the public key of the provider
+     * @param token               the token to spend
+     * @param promotionParameters the parameters of the promotion this token and update belong to
+     * @param basketId            the id of the basket this operation belongs to
+     * @param newPoints           the points the token will have after this operation
+     * @param spendDeductTree     a boolean formula represented by a tree that must be satisfied
+     * @param context             information that uniquely identify this updates parameters/rules.
+     * @return the request to send to the store
+     */
+    public SpendCouponRequest generateStoreSpendRequest(UserKeyPair userKeyPair,
                                                         ProviderPublicKey providerPublicKey,
+                                                        Token token,
                                                         PromotionParameters promotionParameters,
                                                         UUID basketId,
+                                                        Vector<BigInteger> newPoints,
                                                         SpendDeductTree spendDeductTree,
                                                         UniqueByteRepresentable context) {
         var R = computeSpendDeductRandomness(userKeyPair.getSk(), token);
@@ -777,16 +791,35 @@ public class IncentiveSystem {
         return new SpendCouponRequest(token.getDoubleSpendingId(), c, token.getSignature(), token.getCommitment0(), cPre0, cPre1, proof);
     }
 
+    /**
+     * Verify a spend request for a basket and issue a ECDSA signature to authorize the request at the provider.
+     * After that, do the following steps before giving the signature to users:
+     * 1. Wait for payment
+     * 2. Issue reward
+     *
+     * @param storeKeyPair          the store key pair
+     * @param providerPublicKey     the public key of the provider
+     * @param basketId              the id of the basket this request belongs to
+     * @param promotionParameters   the parameters that are associated to the promotions of this request
+     * @param spendCouponRequest    the request of the user
+     * @param spendDeductTree       a boolean formula that must be satisfied by the user's request
+     * @param context               information that uniquely identify this updates parameters/rules.
+     * @param basketRedeemedHandler some instance that provides functionality for associating requests to baskets,
+     *                              checking if the basket was already redeemed, etc.
+     * @param dsidBlacklistHandler  an instance that provides functionality for blacklisting dsids and allowing retries
+     * @param transactionDBHandler  an instance for functionality for storing this transactions data
+     * @return the ECDSA signature
+     */
     public SpendCouponSignature signSpendCoupon(StoreKeyPair storeKeyPair,
-                                            ProviderPublicKey providerPublicKey,
-                                            UUID basketId,
-                                            PromotionParameters promotionParameters,
-                                            SpendCouponRequest spendCouponRequest,
-                                            SpendDeductTree spendDeductTree,
-                                            IStoreBasketRedeemedHandler iStoreBasketRedeemedHandler,
-                                            IDsidBlacklistHandler dsidBlacklistHandler,
-                                            ITransactionDBHandler transactionDBHandler,
-                                            UniqueByteRepresentable context
+                                                ProviderPublicKey providerPublicKey,
+                                                UUID basketId,
+                                                PromotionParameters promotionParameters,
+                                                SpendCouponRequest spendCouponRequest,
+                                                SpendDeductTree spendDeductTree,
+                                                UniqueByteRepresentable context,
+                                                IStoreBasketRedeemedHandler basketRedeemedHandler,
+                                                IDsidBlacklistHandler dsidBlacklistHandler,
+                                                ITransactionDBHandler transactionDBHandler
     ) {
         var zp = pp.getBg().getZn();
 
@@ -823,7 +856,7 @@ public class IncentiveSystem {
         var spendCouponSignature = new SpendCouponSignature(signature, storeKeyPair.getPk());
 
         // Check if basket and request qualify this request
-        var redeemResult = iStoreBasketRedeemedHandler.verifyAndRedeemBasketSpend(basketId, promotionParameters.getPromotionId(), gamma);
+        var redeemResult = basketRedeemedHandler.verifyAndRedeemBasketSpend(basketId, promotionParameters.getPromotionId(), gamma);
         switch (redeemResult) {
             case BASKET_NOT_REDEEMED:
                 if (dsidBlacklistHandler.containsDsidWithDifferentGamma(commonInput.dsid, gamma)) {
@@ -837,43 +870,50 @@ public class IncentiveSystem {
                 break;
         }
 
-        // 3. Blacklist dsid at provider and send clearing data => Provider finds users that perform double-spending attack!
-        var spendClearingData = new SpendTransactionData(
-                promotionParameters.getPromotionId(),
-                spendCouponRequest.getDsid(),
-                basketId,
-                spendCouponRequest.getSigma(),
-                signature,
-                storeKeyPair.getPk(),
-                spendCouponRequest.getC(),
-                gamma,
-                spendCouponRequest.getC0(),
-                spendCouponRequest.getCPre0(),
-                spendCouponRequest.getCPre1(),
-                spendCouponRequest.getSpendZkp()
-        );
+        // Blacklist dsid at provider and send clearing data => Provider finds users that perform double-spending attack!
+        var spendClearingData = new SpendTransactionData(spendCouponRequest, promotionParameters.getPromotionId(), basketId, signature, storeKeyPair.getPk(), gamma);
         transactionDBHandler.addSpendData(spendClearingData);
-
-        // 1. Offline: Wait for payment
-        // 2. Issue reward
-        // 3. Give coupon signature to user
 
         return spendCouponSignature;
     }
 
+    /**
+     * Verify the spend coupon signature.
+     * Does not verify the store's public key!
+     *
+     * @param spendCouponRequest the request sent to obtain the signature
+     * @param spendCouponSignature the signature + public key
+     * @param promotionParameters the parameters of the promotion this signature belongs to
+     * @param basketId the id the corresponding basket
+     * @return whether the signature is valid
+     */
     public boolean verifySpendCouponSignature(SpendCouponRequest spendCouponRequest, SpendCouponSignature spendCouponSignature, PromotionParameters promotionParameters, UUID basketId) {
         ECDSASignatureScheme ecdsaSignatureScheme = new ECDSASignatureScheme();
         MessageBlock messageBlock = constructSpendCouponMessageBlock(promotionParameters.getPromotionId(), spendCouponRequest.getDsid(), basketId);
         return ecdsaSignatureScheme.verify(messageBlock, spendCouponSignature.getSignature(), spendCouponSignature.getStorePublicKey().getEcdsaVerificationKey());
     }
 
+    /**
+     * Verify a spend request at provider side and issue a new token.
+     * Checks if the request was authorized by a trusted store, and ensures only one remainder token is issued
+     * (assuming the dsidBlacklistHandler has consistent data at all time).
+     *
+     * @param providerKeyPair                   the key pair of the provider
+     * @param promotionParameters               the parameter of the promotion this request belongs to
+     * @param spendRequestECDSA                 the spend request sent by the user
+     * @param spendDeductTree                   a boolean formula that must be satisfied by the user's request
+     * @param context                           information that uniquely identify this updates parameters/rules.
+     * @param storePublicKeyVerificationHandler an instance that provides functionality for verifying a store pulic key
+     * @param dsidBlacklistHandler              an instance that provides functionality for dsid blacklisting and retrying
+     * @return a response containing a SPSEQ signature and the provider's part of the new dsid
+     */
     public SpendResponseECDSA verifySpendRequestAndIssueNewToken(ProviderKeyPair providerKeyPair,
-                                                                 SpendRequestECDSA spendRequestECDSA,
                                                                  PromotionParameters promotionParameters,
-                                                                 IStorePublicKeyVerificationHandler storePublicKeyVerificationHandler,
-                                                                 IDsidBlacklistHandler doubleSpendingHandler,
+                                                                 SpendRequestECDSA spendRequestECDSA,
                                                                  SpendDeductTree spendDeductTree,
-                                                                 UniqueByteRepresentable context) {
+                                                                 UniqueByteRepresentable context,
+                                                                 IStorePublicKeyVerificationHandler storePublicKeyVerificationHandler,
+                                                                 IDsidBlacklistHandler dsidBlacklistHandler) {
 
         // 0. Check if this is a doublespending attempt.
         var gamma = Util.hashGamma(pp.getBg().getZn(),
@@ -883,7 +923,7 @@ public class IncentiveSystem {
                 spendRequestECDSA.getcPre1(),
                 spendRequestECDSA.getcPre1().pow(promotionParameters.getPromotionId()),
                 context);
-        if (doubleSpendingHandler.containsDsidWithDifferentGamma(spendRequestECDSA.getDoubleSpendingId(), gamma)) {
+        if (dsidBlacklistHandler.containsDsidWithDifferentGamma(spendRequestECDSA.getDoubleSpendingId(), gamma)) {
             throw new RuntimeException("Illegal retry, dsid already used for different request!");
         }
 
@@ -931,18 +971,30 @@ public class IncentiveSystem {
         );
 
         // 7. Add to DoubleSpending DB
-        doubleSpendingHandler.addEntryIfDsidNotPresent(spendRequestECDSA.getDoubleSpendingId(), gamma);
+        dsidBlacklistHandler.addEntryIfDsidNotPresent(spendRequestECDSA.getDoubleSpendingId(), gamma);
 
         return new SpendResponseECDSA(updatedTokenSignature, dsidStarProv);
     }
 
-    public Token retrieveUpdatedTokenFromSpendResponse(SpendRequestECDSA spendRequestECDSA,
-                                                       SpendResponseECDSA spendResponseECDSA,
-                                                       Vector<BigInteger> newPoints,
-                                                       UserKeyPair userKeyPair,
-                                                       Token token,
+    /**
+     * Process a providers spend response to obtain the new token
+     *
+     * @param userKeyPair         the keypair of the user
+     * @param providerPublicKey   the public key of the provider
+     * @param token               the old token
+     * @param promotionParameters the parameters of the promotion this token belongs to
+     * @param newPoints           the point vector the new token should have, must satisfy the constraints of the update
+     * @param spendRequestECDSA   the request sent to the provider
+     * @param spendResponseECDSA  the response sent by the provider
+     * @return a new token with new dsid
+     */
+    public Token retrieveUpdatedTokenFromSpendResponse(UserKeyPair userKeyPair,
                                                        ProviderPublicKey providerPublicKey,
-                                                       PromotionParameters promotionParameters) {
+                                                       Token token,
+                                                       PromotionParameters promotionParameters,
+                                                       Vector<BigInteger> newPoints,
+                                                       SpendRequestECDSA spendRequestECDSA,
+                                                       SpendResponseECDSA spendResponseECDSA) {
         var newPointsVector = RingElementVector.fromStream(newPoints.stream().map(e -> pp.getBg().getZn().createZnElement(e)));
 
         // Re-compute pseudorandom values

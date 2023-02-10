@@ -63,6 +63,27 @@ public class SpendTransactionData implements Representable {
         this.proof = proof;
     }
 
+    public SpendTransactionData(SpendCouponRequest spendCouponRequest,
+                                BigInteger promotionId,
+                                UUID basketId,
+                                ECDSASignature couponSignature,
+                                StorePublicKey storePublicKey,
+                                Zn.ZnElement gamma) {
+        this(promotionId,
+                spendCouponRequest.getDsid(),
+                basketId,
+                spendCouponRequest.getSigma(),
+                couponSignature,
+                storePublicKey,
+                spendCouponRequest.getC(),
+                gamma,
+                spendCouponRequest.getC0(),
+                spendCouponRequest.getCPre0(),
+                spendCouponRequest.getCPre1(),
+                spendCouponRequest.getSpendZkp()
+        );
+    }
+
     public SpendTransactionData(Representation representation, IncentivePublicParameters pp, PromotionParameters promotionParameters, SpendDeductTree spendDeductTree, ProviderPublicKey providerPublicKey, UniqueByteRepresentable context) {
         ListRepresentation listRepresentation = (ListRepresentation) representation;
 

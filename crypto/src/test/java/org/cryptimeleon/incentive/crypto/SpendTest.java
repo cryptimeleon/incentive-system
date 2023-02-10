@@ -29,12 +29,8 @@ public class SpendTest {
     void spendFullTest() {
         SpendDeductTree spendDeductTree = SpendHelper.generateSimpleTestSpendDeductTree(promotionParameters, pointDifference);
         SpendCouponRequest spendCouponRequest = incSys.generateStoreSpendRequest(
-                token,
-                TestSuite.userKeyPair,
-                pointsAfterSpend,
-                TestSuite.providerKeyPair.getPk(),
-                promotionParameters,
-                basketId,
+                TestSuite.userKeyPair, TestSuite.providerKeyPair.getPk(), token,
+                promotionParameters, basketId, pointsAfterSpend,
                 spendDeductTree,
                 TestSuite.context
         );
@@ -45,24 +41,20 @@ public class SpendTest {
                 promotionParameters,
                 spendCouponRequest,
                 spendDeductTree,
-                testRedeemedHandler,
+                TestSuite.context, testRedeemedHandler,
                 dsidBlacklistHandler,
-                transactionDbHandler,
-                TestSuite.context
+                transactionDbHandler
         );
         Assertions.assertTrue(incSys.verifySpendCouponSignature(spendCouponRequest, spendCouponSignature, promotionParameters, basketId));
 
         SpendRequestECDSA spendRequest = new SpendRequestECDSA(spendCouponRequest, spendCouponSignature, promotionParameters, basketId);
         SpendResponseECDSA spendResponse = incSys.verifySpendRequestAndIssueNewToken(
                 TestSuite.providerKeyPair,
-                spendRequest,
-                promotionParameters,
-                (z) -> true,
-                dsidBlacklistHandler,
-                spendDeductTree,
-                TestSuite.context
+                promotionParameters, spendRequest,
+                spendDeductTree, TestSuite.context, (z) -> true,
+                dsidBlacklistHandler
         );
-        Token updatedToken = incSys.retrieveUpdatedTokenFromSpendResponse(spendRequest, spendResponse, pointsAfterSpend, TestSuite.userKeyPair, token, TestSuite.providerKeyPair.getPk(), promotionParameters);
+        Token updatedToken = incSys.retrieveUpdatedTokenFromSpendResponse(TestSuite.userKeyPair, TestSuite.providerKeyPair.getPk(), token, promotionParameters, pointsAfterSpend, spendRequest, spendResponse);
         Assertions.assertEquals(updatedToken.getPoints().map(RingElement::asInteger), pointsAfterSpend);
     }
 
@@ -70,12 +62,8 @@ public class SpendTest {
     void representationTests() {
         SpendDeductTree spendDeductTree = SpendHelper.generateSimpleTestSpendDeductTree(promotionParameters, pointDifference);
         SpendCouponRequest spendCouponRequest = incSys.generateStoreSpendRequest(
-                token,
-                TestSuite.userKeyPair,
-                pointsAfterSpend,
-                TestSuite.providerKeyPair.getPk(),
-                promotionParameters,
-                basketId,
+                TestSuite.userKeyPair, TestSuite.providerKeyPair.getPk(), token,
+                promotionParameters, basketId, pointsAfterSpend,
                 spendDeductTree,
                 TestSuite.context
         );
@@ -86,22 +74,18 @@ public class SpendTest {
                 promotionParameters,
                 spendCouponRequest,
                 spendDeductTree,
-                testRedeemedHandler,
+                TestSuite.context, testRedeemedHandler,
                 dsidBlacklistHandler,
-                transactionDbHandler,
-                TestSuite.context
+                transactionDbHandler
         );
 
         SpendTransactionData spendTransactionData = transactionDbHandler.spendData.get(0);
         SpendRequestECDSA spendRequest = new SpendRequestECDSA(spendCouponRequest, spendCouponSignature, promotionParameters, basketId);
         SpendResponseECDSA spendResponse = incSys.verifySpendRequestAndIssueNewToken(
                 TestSuite.providerKeyPair,
-                spendRequest,
-                promotionParameters,
-                (z) -> true,
-                new TestSuite.TestDsidBlacklist(),
-                spendDeductTree,
-                TestSuite.context
+                promotionParameters, spendRequest,
+                spendDeductTree, TestSuite.context, (z) -> true,
+                new TestSuite.TestDsidBlacklist()
         );
 
         SpendCouponSignature deserializedSpendCouponSignature = new SpendCouponSignature(spendCouponSignature.getRepresentation());
