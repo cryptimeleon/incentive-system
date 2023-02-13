@@ -3,13 +3,15 @@ package org.cryptimeleon.incentive.client.integrationtest;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.EarnRequestDto;
-import org.cryptimeleon.incentive.crypto.model.EarnStoreCouponSignature;
-import org.cryptimeleon.incentive.crypto.model.JoinResponse;
-import org.cryptimeleon.incentive.crypto.model.RegistrationCoupon;
-import org.cryptimeleon.incentive.crypto.model.Token;
+import org.cryptimeleon.incentive.crypto.model.*;
+import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
+import org.cryptimeleon.incentive.promotion.ContextManager;
 import org.cryptimeleon.incentive.promotion.Promotion;
+import org.cryptimeleon.incentive.promotion.ZkpTokenUpdate;
+import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
 import org.cryptimeleon.incentive.promotion.model.Basket;
 import org.cryptimeleon.incentive.promotion.model.BasketItem;
+import org.cryptimeleon.math.hash.UniqueByteRepresentable;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.rings.RingElement;
 import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
@@ -84,6 +86,19 @@ public class FullWorkflowTest extends TransactionTestPreparation {
     }
 
     @Test
+    void spendTest() {
+        Token token = generateToken(testPromotion.getPromotionParameters(), Vector.of(BigInteger.valueOf(25)));
+        var basket = createBasketWithItems();
+
+        // TODO add providers part
+        runSpendProtocol(token, basket, testPromotion, testTokenUpdate);
+
+        var basketAfterSpend = basketClient.getBasket(basket.getBasketId()).block();
+        assert basketAfterSpend != null;
+        org.assertj.core.api.Assertions.assertThat(basketAfterSpend.getRewardItems()).hasSize(1).allMatch(rewardItemDto -> rewardItemDto.getId().equals(REWARD_ID));
+    }
+
+    @Test
     void spendRewardsAddedToBasketTest() {
         Token token = generateToken(testPromotion.getPromotionParameters(), Vector.of(BigInteger.valueOf(20)));
         var basketId = createBasket();
@@ -113,16 +128,51 @@ public class FullWorkflowTest extends TransactionTestPreparation {
 
     private Token runEarnProtocol(Token token, org.cryptimeleon.incentive.promotion.model.Basket basket, Promotion promotion) {
         var pointsToEarn = promotion.computeEarningsForBasket(basket);
+
+        // Communication with store
+        // Send request
         var earnCouponRequest = incentiveSystem.generateEarnCouponRequest(token, cryptoAssets.getUserKeyPair());
-        var serializedEarnCoupon  = basketClient.requestEarnCoupon(earnCouponRequest, basket.getBasketId(), promotion.getPromotionParameters().getPromotionId());
-        var earnCoupon = new EarnStoreCouponSignature(jsonConverter.deserialize(serializedEarnCoupon));
+        assertThat(basketClient.sendEarn(basket.getBasketId(), promotion.getPromotionParameters().getPromotionId(), earnCouponRequest).getStatusCode().is2xxSuccessful())
+                .isTrue();
+
+        // Pay basket
+        basketClient.payBasket(basket.getBasketId(), paySecret);
+
+        // Obtain response
+        var batchResponse = basketClient.retrieveBulkResponse(basket.getBasketId());
+        var earnCoupon = new EarnStoreCouponSignature(jsonConverter.deserialize(batchResponse.getEarnResults().get(0).getSerializedEarnCouponSignature()));
         assertThat(incentiveSystem.verifyEarnCoupon(earnCouponRequest, promotion.getPromotionParameters().getPromotionId(), pointsToEarn, earnCoupon, storePublicKey -> true))
                 .isTrue();
 
+        // Communication with provider
         var earnRequest = incentiveSystem.generateEarnRequest(token, cryptoAssets.getProviderKeyPair().getPk(), cryptoAssets.getUserKeyPair(), pointsToEarn, earnCoupon);
         var serializedEarnResponse = incentiveClient.sendEarnRequest(earnRequest, promotion.getPromotionParameters().getPromotionId());
         SPSEQSignature updatedSignature = new SPSEQSignature(jsonConverter.deserialize(serializedEarnResponse), cryptoAssets.getPublicParameters().getBg().getG1(), cryptoAssets.getPublicParameters().getBg().getG2());
         return incentiveSystem.handleEarnResponse(earnRequest, updatedSignature, promotion.getPromotionParameters(), token, cryptoAssets.getUserKeyPair(), cryptoAssets.getProviderKeyPair().getPk());
+    }
+
+    private Token runSpendProtocol(Token token, Basket basket, Promotion promotion, ZkpTokenUpdate tokenUpdate) {
+        // Prepare request
+        ZkpTokenUpdateMetadata metadata = promotion.generateMetadataForUpdate();
+        Vector<BigInteger> basketPoints = promotion.computeEarningsForBasket(basket);
+        Vector<BigInteger> pointsAfterSpend = tokenUpdate.computeSatisfyingNewPointsVector(token.getPoints().map(RingElement::asInteger), basketPoints, metadata).get();
+        SpendDeductTree tree = tokenUpdate.generateRelationTree(basketPoints);
+        UniqueByteRepresentable context = ContextManager.computeContext(tokenUpdate.getTokenUpdateId(), metadata);
+        var spendStoreRequest = incentiveSystem.generateStoreSpendRequest(cryptoAssets.getUserKeyPair(), cryptoAssets.getProviderKeyPair().getPk(), token, promotion.getPromotionParameters(), basket.getBasketId(), pointsAfterSpend, tree, context);
+
+        // Send request
+        assertThat(basketClient.sendSpend(basket.getBasketId(), promotion.getPromotionParameters().getPromotionId(), tokenUpdate.getTokenUpdateId(), spendStoreRequest, metadata).getStatusCode().is2xxSuccessful())
+                .isTrue();
+
+        // Pay basket
+        basketClient.payBasket(basket.getBasketId(), paySecret);
+
+        // Obtain response
+        var batchResponse = basketClient.retrieveBulkResponse(basket.getBasketId());
+        var spendCouponSignature = new SpendCouponSignature(jsonConverter.deserialize(batchResponse.getSpendResults().get(0).getSerializedSpendCouponSignature()));
+        assertThat(incentiveSystem.verifySpendCouponSignature(spendStoreRequest, spendCouponSignature, promotion.getPromotionParameters(), basket.getBasketId()))
+                .isTrue();
+        return null;
     }
 
     @Deprecated
@@ -130,7 +180,7 @@ public class FullWorkflowTest extends TransactionTestPreparation {
         var earnRequest = incentiveSystem.generateEarnRequest(token, cryptoAssets.getProviderKeyPair().getPk(), cryptoAssets.getUserKeyPair());
         var serializedEarnRequest = jsonConverter.serialize(earnRequest.getRepresentation());
         incentiveClient.sendBulkUpdates(basket.getBasketId(), new BulkRequestDto(List.of(new EarnRequestDto(testPromotion.getPromotionParameters().getPromotionId(), serializedEarnRequest)), Collections.emptyList())).block();
-        basketClient.payBasket(basket.getBasketId(), basket.computeBasketValue(), paySecret).block();
+        basketClient.payBasket(basket.getBasketId(), paySecret);
         var serializedSignature = incentiveClient.retrieveBulkResults(basket.getBasketId()).block().getEarnTokenUpdateResultDtoList().get(0).getSerializedEarnResponse();
         var signature = new SPSEQSignature(jsonConverter.deserialize(serializedSignature), cryptoAssets.getPublicParameters().getBg().getG1(), cryptoAssets.getPublicParameters().getBg().getG2());
         return incentiveSystem.handleEarnRequestResponse(testPromotion.getPromotionParameters(), earnRequest, signature, basketValueForPromotion, token, cryptoAssets.getProviderKeyPair().getPk(), cryptoAssets.getUserKeyPair());

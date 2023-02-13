@@ -49,7 +49,7 @@ public class BasketTest extends TransactionTestPreparation {
         log.info("Redeeming not paid basket throws exception");
         var redeemRequest = new PostRedeemBasketDto(basketId, "Some request", basket.getValue());
         assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> basketClient.redeemBasket(redeemRequest, redeemSecret).block());
-        basketClient.payBasket(basketId, basket.getValue(), paymentSecret).block();
+        basketClient.payBasket(basketId, paymentSecret);
         log.info("Paid basket can be redeemed");
         basketClient.redeemBasket(redeemRequest, redeemSecret).block();
         basket = basketClient.getBasket(basketId).block();
