@@ -1,12 +1,8 @@
 package org.cryptimeleon.incentive.services.basket;
 
-import org.cryptimeleon.incentive.client.dto.store.BulkRequestStoreDto;
-import org.cryptimeleon.incentive.client.dto.store.EarnRequestStoreDto;
-import org.cryptimeleon.incentive.client.dto.store.SpendRequestStoreDto;
+import org.cryptimeleon.incentive.client.dto.store.*;
 import org.cryptimeleon.incentive.crypto.callback.IStoreBasketRedeemedHandler;
-import org.cryptimeleon.incentive.crypto.model.EarnStoreRequest;
-import org.cryptimeleon.incentive.crypto.model.RegistrationCoupon;
-import org.cryptimeleon.incentive.crypto.model.SpendCouponRequest;
+import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.incentive.promotion.ContextManager;
@@ -15,10 +11,7 @@ import org.cryptimeleon.incentive.promotion.ZkpTokenUpdate;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
 import org.cryptimeleon.incentive.promotion.model.Basket;
 import org.cryptimeleon.incentive.promotion.model.BasketItem;
-import org.cryptimeleon.incentive.services.basket.repository.CryptoRepository;
-import org.cryptimeleon.incentive.services.basket.repository.DsidBlacklistRepository;
-import org.cryptimeleon.incentive.services.basket.repository.PromotionRepository;
-import org.cryptimeleon.incentive.services.basket.repository.TransactionRepository;
+import org.cryptimeleon.incentive.services.basket.repository.*;
 import org.cryptimeleon.incentive.services.basket.storage.BasketEntity;
 import org.cryptimeleon.incentive.services.basket.storage.BasketRepository;
 import org.cryptimeleon.math.hash.UniqueByteRepresentable;
@@ -43,18 +36,36 @@ public class StoreService {
     private final BasketRepository basketRepository;
     private final DsidBlacklistRepository dsidBlacklistRepository;
     private final TransactionRepository transactionRepository;
+    private final BulkResponseRepository bulkResponseRepository;
 
     @Autowired
     private StoreService(CryptoRepository cryptoRepository,
                          PromotionRepository promotionRepository,
                          BasketRepository basketRepository,
                          DsidBlacklistRepository dsidBlacklistRepository,
-                         TransactionRepository transactionRepository) {
+                         TransactionRepository transactionRepository,
+                         BulkResponseRepository bulkResponseRepository
+    ) {
         this.cryptoRepository = cryptoRepository;
         this.promotionRepository = promotionRepository;
         this.basketRepository = basketRepository;
         this.dsidBlacklistRepository = dsidBlacklistRepository;
         this.transactionRepository = transactionRepository;
+        this.bulkResponseRepository = bulkResponseRepository;
+    }
+
+    public static Basket promotionBasketFromBasketEntity(BasketEntity basketEntity) {
+        return new Basket(
+                basketEntity.getBasketID(),
+                basketEntity.getBasketItems().stream().map(itemInBasketEntity ->
+                        new BasketItem(
+                                itemInBasketEntity.getItem().getId(),
+                                itemInBasketEntity.getItem().getTitle(),
+                                Math.toIntExact(itemInBasketEntity.getItem().getPrice()),
+                                itemInBasketEntity.getCount()
+                        )
+                ).collect(Collectors.toList())
+        );
     }
 
     public String registerUserAndReturnSerializedRegistrationCoupon(String serializedUserPublicKey, String userInfo) {
@@ -73,31 +84,40 @@ public class StoreService {
         basketEntity.setLocked(true);
         basketRepository.save(basketEntity);
 
-        // Redeemed handling in individual requests
-
-        // Process all earn and spend requests and store results(TODO in parallel?, check if duplicate promotionIds?)
         Basket basket = promotionBasketFromBasketEntity(basketEntity);
-        bulkRequestStoreDto.getEarnRequestStoreDtoList().forEach(earnRequestStoreDto ->
-            earn(earnRequestStoreDto, basket)
-        );
-        bulkRequestStoreDto.getSpendRequestStoreDtoList().forEach(spendRequestStoreDto->
-                spend(spendRequestStoreDto, basket)
-        );
+        // Process all earn and spend requests and store results(TODO in parallel?, check if duplicate promotionIds?)
+        // Earn
+        List<EarnResultStoreDto> earnResultStoreDtoList = bulkRequestStoreDto.getEarnRequestStoreDtoList().stream().map(earnRequestStoreDto -> {
+            EarnStoreCouponSignature signature = earn(earnRequestStoreDto, basket);
+            return new EarnResultStoreDto(earnRequestStoreDto.getPromotionId(), jsonConverter.serialize(signature.getRepresentation()));
+        }).collect(Collectors.toList());
+
+        // Spend
+        List<SpendResultsStoreDto> spendResultsStoreDtoList = bulkRequestStoreDto.getSpendRequestStoreDtoList().stream().map(spendRequestStoreDto -> {
+                    var signature = spend(spendRequestStoreDto, basket);
+                    return new SpendResultsStoreDto(spendRequestStoreDto.getPromotionId(), jsonConverter.serialize(signature.getRepresentation()));
+                }
+        ).collect(Collectors.toList());
+
+        bulkResponseRepository.addBulkResult(basketId, new BulkResultsStoreDto(earnResultStoreDtoList, spendResultsStoreDtoList));
+
+        // TODO add rewards to basket
     }
 
-    public void bulkResponses(UUID basketId) {
+    public BulkResultsStoreDto bulkResponses(UUID basketId) {
         // Verification
         BasketEntity basketEntity = basketRepository.findById(basketId)
                 .orElseThrow(() -> new StoreException(String.format("Cannot find basket with id %s", basketId)));
 
-        if (basketEntity.isPaid()) {
+        if (!basketEntity.isPaid()) {
             throw new StoreException("This basket is not paid!");
         }
 
         // Return results
-
+        return bulkResponseRepository.removeBulkResultFor(basketId);
     }
-    public void earn(EarnRequestStoreDto earnRequestStoreDto, Basket basket) {
+
+    public EarnStoreCouponSignature earn(EarnRequestStoreDto earnRequestStoreDto, Basket basket) {
         var promotionId = earnRequestStoreDto.getPromotionId();
         EarnStoreRequest earnStoreRequest = new EarnStoreRequest(jsonConverter.deserialize(earnRequestStoreDto.getSerializedRequest()));
         Promotion promotion = promotionRepository.getPromotion(promotionId)
@@ -105,7 +125,7 @@ public class StoreService {
 
         Vector<BigInteger> deltaK = promotion.computeEarningsForBasket(basket);
 
-        var signedEarnCoupon = cryptoRepository.getIncentiveSystem().signEarnCoupon(
+        return cryptoRepository.getIncentiveSystem().signEarnCoupon(
                 cryptoRepository.getStoreKeyPair(),
                 deltaK,
                 earnStoreRequest,
@@ -113,12 +133,10 @@ public class StoreService {
                 promotionId,
                 this::checkBasketStateAndRedeem
         );
-        var result = jsonConverter.serialize(signedEarnCoupon.getRepresentation());
-        // TODO store this
     }
 
-    public void spend(SpendRequestStoreDto spendRequestStoreDto, Basket basket) {
-        var serializedSpendStoreRequest =  spendRequestStoreDto.getSerializedRequest();
+    public SpendCouponSignature spend(SpendRequestStoreDto spendRequestStoreDto, Basket basket) {
+        var serializedSpendStoreRequest = spendRequestStoreDto.getSerializedRequest();
         var promotionId = spendRequestStoreDto.getPromotionId();
         UUID tokenUpdateId = spendRequestStoreDto.getTokenUpdateId();
         String serializedZkpTokenUpdateMetadata = spendRequestStoreDto.getSerializedTokenUpdateMetadata();
@@ -128,7 +146,7 @@ public class StoreService {
                 .orElseThrow(() -> new StoreException(String.format("Cannot find promotion with id %s", promotionId)));
         ZkpTokenUpdateMetadata zkpTokenUpdateMetadata = (ZkpTokenUpdateMetadata) ((RepresentableRepresentation) jsonConverter.deserialize(serializedZkpTokenUpdateMetadata)).recreateRepresentable();
 
-        ZkpTokenUpdate requestedTokenUpdate =promotion.getZkpTokenUpdates().stream().filter(zkpTokenUpdate -> zkpTokenUpdate.getTokenUpdateId().equals(tokenUpdateId)).findAny()
+        ZkpTokenUpdate requestedTokenUpdate = promotion.getZkpTokenUpdates().stream().filter(zkpTokenUpdate -> zkpTokenUpdate.getTokenUpdateId().equals(tokenUpdateId)).findAny()
                 .orElseThrow(() -> new StoreException(String.format("Cannot find token update with id %s in promotion with id %s", tokenUpdateId, promotion)));
 
         // Include value of basket into spend, i.e. users need to spend fewer points from the token if their basket is worth some
@@ -144,7 +162,7 @@ public class StoreService {
                 relationTree,
                 context);
 
-        var result = cryptoRepository.getIncentiveSystem().signSpendCoupon(
+        return cryptoRepository.getIncentiveSystem().signSpendCoupon(
                 cryptoRepository.getStoreKeyPair(),
                 cryptoRepository.getProviderPublicKey(),
                 basket.getBasketId(),
@@ -156,7 +174,6 @@ public class StoreService {
                 dsidBlacklistRepository,
                 transactionRepository
         );
-        // TODO store this
     }
 
     IStoreBasketRedeemedHandler.BasketRedeemState checkBasketStateAndRedeem(UUID basketId, BigInteger promotionId, byte[] hash) {
@@ -174,20 +191,6 @@ public class StoreService {
         } else {
             return IStoreBasketRedeemedHandler.BasketRedeemState.BASKET_REDEEMED_ABORT;
         }
-    }
-
-    public static Basket promotionBasketFromBasketEntity(BasketEntity basketEntity) {
-        return new Basket(
-                basketEntity.getBasketID(),
-                basketEntity.getBasketItems().stream().map(itemInBasketEntity ->
-                        new BasketItem(
-                                itemInBasketEntity.getItem().getId(),
-                                itemInBasketEntity.getItem().getTitle(),
-                                Math.toIntExact(itemInBasketEntity.getItem().getPrice()),
-                                itemInBasketEntity.getCount()
-                        )
-                ).collect(Collectors.toList())
-        );
     }
 
     public String[] getPromotions() {

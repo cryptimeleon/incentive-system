@@ -76,10 +76,12 @@ public class BasketEntity {
         this.paid = paid;
     }
 
+    @Deprecated
     public boolean isRedeemed() {
         return redeemed;
     }
 
+    @Deprecated
     public void setRedeemed(boolean redeemed) {
         this.redeemed = redeemed;
     }
@@ -92,10 +94,12 @@ public class BasketEntity {
         this.locked = locked;
     }
 
+    @Deprecated
     public String getRedeemRequest() {
         return redeemRequest;
     }
 
+    @Deprecated
     public void setRedeemRequest(String redeemRequest) {
         this.redeemRequest = redeemRequest;
     }
