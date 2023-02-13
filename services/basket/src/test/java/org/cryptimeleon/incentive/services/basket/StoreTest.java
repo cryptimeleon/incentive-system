@@ -13,11 +13,14 @@ import org.cryptimeleon.incentive.promotion.ContextManager;
 import org.cryptimeleon.incentive.promotion.Promotion;
 import org.cryptimeleon.incentive.promotion.TestSuiteWithPromotion;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
+import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect;
 import org.cryptimeleon.incentive.services.basket.repository.CryptoRepository;
 import org.cryptimeleon.incentive.services.basket.repository.DsidBlacklistRepository;
 import org.cryptimeleon.incentive.services.basket.repository.PromotionRepository;
 import org.cryptimeleon.incentive.services.basket.storage.BasketEntity;
 import org.cryptimeleon.incentive.services.basket.storage.BasketRepository;
+import org.cryptimeleon.incentive.services.basket.storage.RewardItemEntity;
+import org.cryptimeleon.incentive.services.basket.storage.RewardItemRepository;
 import org.cryptimeleon.math.hash.UniqueByteRepresentable;
 import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
@@ -44,8 +47,8 @@ import static org.mockito.Mockito.when;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class StoreTest {
     private final UUID basketId = UUID.randomUUID();
-    private final BasketEntity basket = new BasketEntity(basketId, Collections.emptySet(), Collections.emptySet(), false, false, true, "", new HashMap<>());
-    private final BasketEntity paidBasket = new BasketEntity(basketId, Collections.emptySet(), Collections.emptySet(), true, false, true, "", new HashMap<>());
+    private final BasketEntity basket = new BasketEntity(basketId, new HashSet<>(), new HashSet<>(), false, false, true, "", new HashMap<>());
+    private final BasketEntity paidBasket = new BasketEntity(basketId, new HashSet<>(), new HashSet<>(), true, false, true, "", new HashMap<>());
     private final JSONConverter jsonConverter = new JSONConverter();
     private final Promotion promotion = TestSuiteWithPromotion.promotion;
     private final UserKeyPair userKeyPair = TestSuite.userKeyPair;
@@ -53,6 +56,8 @@ public class StoreTest {
     private CryptoRepository cryptoRepository;
     @MockBean
     private BasketRepository basketRepository;
+    @MockBean
+    private RewardItemRepository rewardItemRepository;
     @MockBean
     private PromotionRepository promotionRepository;
     @MockBean
@@ -74,9 +79,10 @@ public class StoreTest {
         when(basketRepository.findById(basketId)).thenReturn(Optional.of(basket));
         when(promotionRepository.getPromotion(TestSuiteWithPromotion.promotion.getPromotionParameters().getPromotionId()))
                 .thenReturn(Optional.of(TestSuiteWithPromotion.promotion));
+        var id = ((RewardSideEffect) TestSuiteWithPromotion.spendTokenUpdate.getSideEffect()).getRewardId();
+        when(rewardItemRepository.findById(id)).thenReturn(Optional.of(new RewardItemEntity(id, "Test Reward")));
 
         token = TestSuiteWithPromotion.generateToken(promotion.getPromotionParameters(), TestSuiteWithPromotion.pointsBeforeSpend);
-
         metadata = TestSuiteWithPromotion.promotion.generateMetadataForUpdate();
         tree = TestSuiteWithPromotion.spendTokenUpdate.generateRelationTree(Vector.of(BigInteger.ZERO), metadata);
         context = ContextManager.computeContext(TestSuiteWithPromotion.spendTokenUpdateId, metadata);
@@ -223,6 +229,9 @@ public class StoreTest {
                 .exchange()
                 .expectStatus()
                 .isEqualTo(HttpStatus.OK);
+
+        // Check that reward items are added to basket
+        assertThat(basket.getRewardItems()).hasSize(1);
 
         // Not paid yet
         getBulkResponseSpec(webTestClient, basketId)

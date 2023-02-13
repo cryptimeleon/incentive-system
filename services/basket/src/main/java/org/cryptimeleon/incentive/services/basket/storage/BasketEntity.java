@@ -68,6 +68,10 @@ public class BasketEntity {
         return rewardItems;
     }
 
+    public void addRewardItems(List<RewardItemEntity> rewardItemEntities) {
+        rewardItems.addAll(rewardItemEntities);
+    }
+
     public boolean isPaid() {
         return paid;
     }

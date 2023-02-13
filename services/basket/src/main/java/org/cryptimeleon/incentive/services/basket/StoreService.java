@@ -11,9 +11,12 @@ import org.cryptimeleon.incentive.promotion.ZkpTokenUpdate;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
 import org.cryptimeleon.incentive.promotion.model.Basket;
 import org.cryptimeleon.incentive.promotion.model.BasketItem;
+import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect;
 import org.cryptimeleon.incentive.services.basket.repository.*;
 import org.cryptimeleon.incentive.services.basket.storage.BasketEntity;
 import org.cryptimeleon.incentive.services.basket.storage.BasketRepository;
+import org.cryptimeleon.incentive.services.basket.storage.RewardItemEntity;
+import org.cryptimeleon.incentive.services.basket.storage.RewardItemRepository;
 import org.cryptimeleon.math.hash.UniqueByteRepresentable;
 import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
@@ -24,6 +27,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -37,6 +41,7 @@ public class StoreService {
     private final DsidBlacklistRepository dsidBlacklistRepository;
     private final TransactionRepository transactionRepository;
     private final BulkResponseRepository bulkResponseRepository;
+    private final RewardItemRepository rewardItemRepository;
 
     @Autowired
     private StoreService(CryptoRepository cryptoRepository,
@@ -44,14 +49,15 @@ public class StoreService {
                          BasketRepository basketRepository,
                          DsidBlacklistRepository dsidBlacklistRepository,
                          TransactionRepository transactionRepository,
-                         BulkResponseRepository bulkResponseRepository
-    ) {
+                         BulkResponseRepository bulkResponseRepository,
+                         RewardItemRepository rewardItemRepository) {
         this.cryptoRepository = cryptoRepository;
         this.promotionRepository = promotionRepository;
         this.basketRepository = basketRepository;
         this.dsidBlacklistRepository = dsidBlacklistRepository;
         this.transactionRepository = transactionRepository;
         this.bulkResponseRepository = bulkResponseRepository;
+        this.rewardItemRepository = rewardItemRepository;
     }
 
     public static Basket promotionBasketFromBasketEntity(BasketEntity basketEntity) {
@@ -101,7 +107,24 @@ public class StoreService {
 
         bulkResponseRepository.addBulkResult(basketId, new BulkResultsStoreDto(earnResultStoreDtoList, spendResultsStoreDtoList));
 
-        // TODO add rewards to basket
+        // Add reward items to basket
+        List<RewardItemEntity> rewardItemEntities= bulkRequestStoreDto.getSpendRequestStoreDtoList().stream()
+                .map(spendRequestStoreDto -> {
+                    Promotion promotion = promotionRepository.getPromotion(spendRequestStoreDto.getPromotionId())
+                            .orElseThrow(() -> new StoreException(String.format("Cannot find promotion with id %s", spendRequestStoreDto.getPromotionId())));
+                    ZkpTokenUpdate requestedTokenUpdate = promotion.getZkpTokenUpdates().stream().filter(zkpTokenUpdate -> zkpTokenUpdate.getTokenUpdateId().equals(spendRequestStoreDto.getTokenUpdateId())).findAny()
+                            .orElseThrow(() -> new StoreException(String.format("Cannot find token update with id %s in promotion with id %s", spendRequestStoreDto.getTokenUpdateId(), promotion)));
+                    return requestedTokenUpdate.getSideEffect();
+                })
+                .filter(sideEffect -> sideEffect instanceof RewardSideEffect)
+                .map(sideEffect -> (RewardSideEffect) sideEffect)
+                .map(rewardSideEffect -> rewardItemRepository.findById(rewardSideEffect.getRewardId()))
+                .filter(Optional::isPresent) // TODO or throw if not found?
+                .map(Optional::get)
+                .collect(Collectors.toList());
+
+        basketEntity.addRewardItems(rewardItemEntities);
+        basketRepository.save(basketEntity);
     }
 
     public BulkResultsStoreDto bulkResponses(UUID basketId) {
