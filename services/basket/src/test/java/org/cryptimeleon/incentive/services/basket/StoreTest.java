@@ -1,17 +1,25 @@
 package org.cryptimeleon.incentive.services.basket;
 
+import org.cryptimeleon.incentive.client.dto.store.BulkRequestStoreDto;
+import org.cryptimeleon.incentive.client.dto.store.EarnRequestStoreDto;
+import org.cryptimeleon.incentive.client.dto.store.SpendRequestStoreDto;
 import org.cryptimeleon.incentive.crypto.TestSuite;
-import org.cryptimeleon.incentive.crypto.model.EarnStoreCouponSignature;
 import org.cryptimeleon.incentive.crypto.model.EarnStoreRequest;
 import org.cryptimeleon.incentive.crypto.model.RegistrationCoupon;
+import org.cryptimeleon.incentive.crypto.model.SpendCouponRequest;
 import org.cryptimeleon.incentive.crypto.model.Token;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
+import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
+import org.cryptimeleon.incentive.promotion.ContextManager;
 import org.cryptimeleon.incentive.promotion.Promotion;
 import org.cryptimeleon.incentive.promotion.TestSuiteWithPromotion;
+import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
 import org.cryptimeleon.incentive.services.basket.repository.CryptoRepository;
 import org.cryptimeleon.incentive.services.basket.repository.PromotionRepository;
 import org.cryptimeleon.incentive.services.basket.storage.BasketEntity;
 import org.cryptimeleon.incentive.services.basket.storage.BasketRepository;
+import org.cryptimeleon.math.hash.UniqueByteRepresentable;
+import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,15 +30,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.web.reactive.function.BodyInserters;
 
 import java.math.BigInteger;
-import java.util.Collections;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.cryptimeleon.incentive.crypto.TestSuite.incentiveSystem;
-import static org.cryptimeleon.incentive.crypto.TestSuite.userKeyPair;
+import static org.cryptimeleon.incentive.crypto.TestSuite.*;
 import static org.mockito.Mockito.when;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -44,7 +50,7 @@ public class StoreTest {
     @MockBean
     private PromotionRepository promotionRepository;
     private final UUID basketId = UUID.randomUUID();
-    private final BasketEntity basket = new BasketEntity(basketId, Collections.emptySet(), Collections.emptySet(), false, false, true, "");
+    private final BasketEntity basket = new BasketEntity(basketId, Collections.emptySet(), Collections.emptySet(), false, false, true, "", new HashMap<>());
     private final JSONConverter jsonConverter = new JSONConverter();
 
     @BeforeEach
@@ -88,19 +94,19 @@ public class StoreTest {
         Token token = TestSuiteWithPromotion.generateToken(promotion.getPromotionParameters());
         // TODO implement and test store side locking mechanism
         EarnStoreRequest earnStoreRequest = incentiveSystem.generateEarnCouponRequest(token, userKeyPair);
+        BulkRequestStoreDto bulkRequestStoreDto = new BulkRequestStoreDto(basketId,
+                List.of(new EarnRequestStoreDto(promotion.getPromotionParameters().getPromotionId(), jsonConverter.serialize(earnStoreRequest.getRepresentation()))),
+                Collections.emptyList());
 
-
-        String serializedStoreEarnCoupon = webTestClient.get()
-                .uri("/earn")
-                .header("earn-store-request", jsonConverter.serialize(earnStoreRequest.getRepresentation()))
-                .header("promotion-id", String.valueOf(promotion.getPromotionParameters().getPromotionId()))
-                .header("basket-id", String.valueOf(basketId))
+        webTestClient.post()
+                .uri("/bulk")
+                .body(BodyInserters.fromValue(bulkRequestStoreDto))
                 .exchange()
                 .expectStatus()
-                .isEqualTo(HttpStatus.OK)
-                .expectBody(String.class)
-                .returnResult()
-                .getResponseBody();
+                .isEqualTo(HttpStatus.OK);
+
+        /*
+        String serializedStoreEarnCoupon = ""; // TODO obtain results after payment
         EarnStoreCouponSignature earnStoreCouponSignature = new EarnStoreCouponSignature(jsonConverter.deserialize(serializedStoreEarnCoupon));
 
         Vector<BigInteger> deltaK = promotion.computeEarningsForBasket(StoreService.promotionBasketFromBasketEntity(basket));
@@ -112,5 +118,39 @@ public class StoreTest {
                 storePublicKey -> true
                 )
         ).isTrue();
+        */
+    }
+
+    @Test
+    void spendPointsTest(@Autowired WebTestClient webTestClient) {
+        Promotion promotion = TestSuiteWithPromotion.promotion;
+        Token token = TestSuiteWithPromotion.generateToken(promotion.getPromotionParameters(), TestSuiteWithPromotion.pointsBeforeSpend);
+        // TODO implement and test store side locking mechanism
+
+        ZkpTokenUpdateMetadata metadata = TestSuiteWithPromotion.promotion.generateMetadataForUpdate();
+        SpendDeductTree tree = TestSuiteWithPromotion.spendTokenUpdate.generateRelationTree(Vector.of(BigInteger.ZERO), metadata);
+        UniqueByteRepresentable context = ContextManager.computeContext(TestSuiteWithPromotion.spendTokenUpdateId, metadata);
+        SpendCouponRequest spendCouponRequest = incentiveSystem.generateStoreSpendRequest(
+                userKeyPair,
+                providerKeyPair.getPk(),
+                token,
+                promotion.getPromotionParameters(),
+                basketId,
+                TestSuiteWithPromotion.pointsAfterSpend,
+                tree,
+                context);
+
+
+        BulkRequestStoreDto bulkRequestStoreDto = new BulkRequestStoreDto(basketId,
+                Collections.emptyList(),
+                List.of(new SpendRequestStoreDto(jsonConverter.serialize(spendCouponRequest.getRepresentation()), promotion.getPromotionParameters().getPromotionId(), TestSuiteWithPromotion.spendTokenUpdateId, jsonConverter.serialize(new RepresentableRepresentation(metadata))))
+        );
+
+        webTestClient.post()
+                .uri("/bulk")
+                .body(BodyInserters.fromValue(bulkRequestStoreDto))
+                .exchange()
+                .expectStatus()
+                .isEqualTo(HttpStatus.OK);
     }
 }

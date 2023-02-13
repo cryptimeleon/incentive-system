@@ -1,15 +1,14 @@
 package org.cryptimeleon.incentive.services.basket;
 
 import io.swagger.annotations.ApiOperation;
+import org.cryptimeleon.incentive.client.dto.store.BulkRequestStoreDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigInteger;
 import java.util.List;
-import java.util.UUID;
 
 @Controller
 public class StoreController {
@@ -34,16 +33,10 @@ public class StoreController {
         return new ResponseEntity<>(storeService.registerUserAndReturnSerializedRegistrationCoupon(serializedUserPublicKey, userInfo), HttpStatus.OK);
     }
 
-    /**
-     * Verify a user's earn request and issue an earn coupon.
-     */
-    @GetMapping("/earn")
-    ResponseEntity<String> registerUserAndReturnSerializedRegistrationCoupon(
-            @RequestHeader("earn-store-request") String serializedEarnStoreRequest,
-            @RequestHeader("basket-id") UUID basketId,
-            @RequestHeader("promotion-id") BigInteger promotionId
-    ) {
-        return new ResponseEntity<>(storeService.earn(serializedEarnStoreRequest, basketId, promotionId), HttpStatus.OK);
+    @PostMapping("/bulk")
+    ResponseEntity<Void> bulk(@RequestBody BulkRequestStoreDto bulkRequestStoreDto) {
+        storeService.bulk(bulkRequestStoreDto);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     /**
