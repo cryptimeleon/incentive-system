@@ -17,6 +17,21 @@ public class ItemEntity {
     @OneToMany
     private Set<ItemInBasketEntity> basketItems = new HashSet<>();
 
+    @SuppressWarnings("unused")
+    public ItemEntity() {
+    }
+
+    @SuppressWarnings("unused")
+    public ItemEntity(String id, String title, Long price, Set<ItemInBasketEntity> basketItems) {
+        this.id = id;
+        this.title = title;
+        this.price = price;
+        this.basketItems = basketItems;
+    }
+
+    @SuppressWarnings("unused")
+
+
     public String getTitle() {
         return title;
     }

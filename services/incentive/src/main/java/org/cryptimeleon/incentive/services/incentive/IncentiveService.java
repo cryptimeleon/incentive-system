@@ -1,14 +1,15 @@
 package org.cryptimeleon.incentive.services.incentive;
 
 import org.cryptimeleon.craco.protocols.arguments.fiatshamir.FiatShamirProofSystem;
-import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentive.client.dto.inc.*;
+import org.cryptimeleon.incentive.client.dto.provider.*;
 import org.cryptimeleon.incentive.crypto.IncentiveSystemRestorer;
 import org.cryptimeleon.incentive.crypto.callback.IRegistrationCouponDBHandler;
 import org.cryptimeleon.incentive.crypto.callback.IStorePublicKeyVerificationHandler;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
+import org.cryptimeleon.incentive.promotion.ContextManager;
 import org.cryptimeleon.incentive.promotion.Promotion;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdate;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
@@ -54,7 +55,8 @@ public class IncentiveService {
     private final TokenUpdateResultRepository tokenUpdateResultRepository;
     private final DSPRepository offlineDspRepository;
     private final RegistrationCouponRepository registrationCouponRepository;
-    private final ClearingRepository clearingRepository;
+    private final TransactionRepository transactionRepository;
+    private final DsidBlacklistRepository dsidBlacklistRepository;
 
     @Autowired
     private IncentiveService(CryptoRepository cryptoRepository,
@@ -63,18 +65,20 @@ public class IncentiveService {
                              TokenUpdateResultRepository tokenUpdateResultRepository,
                              DSPRepository offlineDspRepository,
                              RegistrationCouponRepository registrationCouponRepository,
-                             ClearingRepository clearingRepository) {
+                             TransactionRepository transactionRepository, DsidBlacklistRepository dsidBlacklistRepository) {
         this.cryptoRepository = cryptoRepository;
         this.promotionRepository = promotionRepository;
         this.basketRepository = basketRepository;
         this.tokenUpdateResultRepository = tokenUpdateResultRepository;
         this.offlineDspRepository = offlineDspRepository;
         this.registrationCouponRepository = registrationCouponRepository;
-        this.clearingRepository = clearingRepository;
+        this.transactionRepository = transactionRepository;
+        this.dsidBlacklistRepository = dsidBlacklistRepository;
     }
 
     /**
      * Returns a list of all promotions in the system.
+     *
      * @return array of strings (string representations of promotions)
      */
     public String[] getPromotions() {
@@ -144,11 +148,12 @@ public class IncentiveService {
     /**
      * Processes a single spend request and returns a description of the side effect that occured during the transaction
      * (usually what reward the user chose or that she was caught double-spending).
-     * @param promotionId identifier for the promotion the user issuing the spend request wants to take part in
-     * @param basketId identifier for the basket the user used
-     * @param rewardId identifier for the reward the user wants to claim with this spend transaction
+     *
+     * @param promotionId            identifier for the promotion the user issuing the spend request wants to take part in
+     * @param basketId               identifier for the basket the user used
+     * @param rewardId               identifier for the reward the user wants to claim with this spend transaction
      * @param serializedSpendRequest serialized representation of the spend request
-     * @param serializedMetadata serialized metadata of this request
+     * @param serializedMetadata     serialized metadata of this request
      * @return side effect description (SideEffect object)
      */
     private SideEffect handleSpendRequest(BigInteger promotionId, UUID basketId, UUID rewardId, String serializedSpendRequest, String serializedMetadata) {
@@ -181,34 +186,34 @@ public class IncentiveService {
         FiatShamirProofSystem spendDeductProofSystem = new FiatShamirProofSystem(new SpendDeductBooleanZkp(spendDeductTree, pp, promotion.getPromotionParameters(), providerPublicKey));
         var spendRequest = new SpendRequest(jsonConverter.deserialize(serializedSpendRequest), pp, spendDeductProofSystem, tid, tid);
         /*
-        * run Deduct
-        * using tid as user choice TODO change this once user choice generation is properly implemented, see issue 75
-        */
+         * run Deduct
+         * using tid as user choice TODO change this once user choice generation is properly implemented, see issue 75
+         */
         DeductOutput deductOutput = incentiveSystem.generateSpendRequestResponse(promotion.getPromotionParameters(), spendRequest, new ProviderKeyPair(providerSecretKey, providerPublicKey), tid, spendDeductTree, tid // user choice
         );
         /*
-        * Incentive service queries double-spending protection service for whether dsid of spent token is already contained.
-        * If yes: abort transaction (since trivially identified as double-spending) and return dedicated caught-double-spending side effect.
-        * Else: spend request is answered as normal, transaction is recorded into the database as soon as possible
-        *
-        * If dsp service is down at the time of the above query (due to a simulated dos attack), the transaction is recorded in the database regardless of the used dsid.
-        *
-        * Note that the above check is one-sided, i.e. while it never wrongly identifies a transaction as double-spending,
-        * it cannot identify all invalid transactions.
-        * An example scenario where the check does not notice an invalid transaction would be the following:
-        * 1. Customer spends token t1 in store A, obtaining remainder token t1'.
-        * 2. Store B is temporarily disconnected from the double-spending protection service
-        * 3. Customer spends token t1 in store B, obtaining remainder token t1''.
-        * 4. Customer spends token t1'' in store C.
-        * 5. Store B reconnects to the dsprotection service and syncs transaction into database.
-        *    => it was not known to dsprotection service (thus also to the incentive service) in step 4 that the spent token resulted from a double-spending transaction
-        *    => transaction was recorded in step 4 despite it is invalid
-        *    => needs to be invalidated now
-        *
-        * For the invalidation in step 5 to be possible,
-        * it is critical that transactions that occured during dsp service downtime are always recorded in the database,
-        * no matter whether dsid was already known.
-        */
+         * Incentive service queries double-spending protection service for whether dsid of spent token is already contained.
+         * If yes: abort transaction (since trivially identified as double-spending) and return dedicated caught-double-spending side effect.
+         * Else: spend request is answered as normal, transaction is recorded into the database as soon as possible
+         *
+         * If dsp service is down at the time of the above query (due to a simulated dos attack), the transaction is recorded in the database regardless of the used dsid.
+         *
+         * Note that the above check is one-sided, i.e. while it never wrongly identifies a transaction as double-spending,
+         * it cannot identify all invalid transactions.
+         * An example scenario where the check does not notice an invalid transaction would be the following:
+         * 1. Customer spends token t1 in store A, obtaining remainder token t1'.
+         * 2. Store B is temporarily disconnected from the double-spending protection service
+         * 3. Customer spends token t1 in store B, obtaining remainder token t1''.
+         * 4. Customer spends token t1'' in store C.
+         * 5. Store B reconnects to the dsprotection service and syncs transaction into database.
+         *    => it was not known to dsprotection service (thus also to the incentive service) in step 4 that the spent token resulted from a double-spending transaction
+         *    => transaction was recorded in step 4 despite it is invalid
+         *    => needs to be invalidated now
+         *
+         * For the invalidation in step 5 to be possible,
+         * it is critical that transactions that occured during dsp service downtime are always recorded in the database,
+         * no matter whether dsid was already known.
+         */
         Zn.ZnElement usedTokenDsid = spendRequest.getDsid();
 
         // TODO this has to be updated to new architecture!
@@ -239,6 +244,7 @@ public class IncentiveService {
 
     /**
      * Restores a promotion from its serialized representation.
+     *
      * @param serializedPromotion serialized representation of a promotion
      * @return promotion object (see promotion package)
      */
@@ -256,6 +262,7 @@ public class IncentiveService {
 
     /**
      * Processes a bulk of spend and earn requests that is specified by the passed data transfer object (DTO).
+     *
      * @param basketId ID of the basket to apply the spends/earns to
      */
     public void handleBulk(UUID basketId, BulkRequestDto bulkRequestDto) {
@@ -266,16 +273,16 @@ public class IncentiveService {
         }
         log.info("Start bulk proofs");
         /*
-        * Initialize empty list of granted rewards.
-        * Rewards are only granted to user after basket is paid, so they need to be saved for later.
-        */
+         * Initialize empty list of granted rewards.
+         * Rewards are only granted to user after basket is paid, so they need to be saved for later.
+         */
         var rewardIds = new ArrayList<String>();
         // process spend requests
         for (SpendRequestDto spendRequestDto : bulkRequestDto.getSpendRequestDtoList()) {
             /*
-            * Handles spend request and synchronizes occured transaction into double-spending database.
-            * Computes effect of spend transaction.
-            */
+             * Handles spend request and synchronizes occured transaction into double-spending database.
+             * Computes effect of spend transaction.
+             */
             var sideEffect = handleSpendRequest(spendRequestDto.getPromotionId(), basketId, spendRequestDto.getTokenUpdateId(), spendRequestDto.getSerializedSpendRequest(), spendRequestDto.getSerializedMetadata());
             // if side effect is granting some reward: add respective reward ID to list
             if (sideEffect instanceof RewardSideEffect) {
@@ -301,6 +308,7 @@ public class IncentiveService {
     /**
      * Obtain all earn responses that are currently unapplied for the basket identified by the passed basket ID.
      * If the specified basket is not paid, an exception occurs.
+     *
      * @return DTO containing earn responses (= token updates)
      */
     public TokenUpdateResultsDto retrieveBulkResults(UUID basketId) {
@@ -316,7 +324,7 @@ public class IncentiveService {
 
     public String registerUser(String serializedRegistrationCoupon) {
         var pp = cryptoRepository.getPublicParameters();
-        var providerKeyPair = new ProviderKeyPair(cryptoRepository.getProviderSecretKey(), cryptoRepository.getProviderPublicKey());
+        var providerKeyPair = cryptoRepository.getProviderKeyPair();
         var registrationCoupon = new RegistrationCoupon(jsonConverter.deserialize(serializedRegistrationCoupon), new IncentiveSystemRestorer(pp));
 
         // Callbacks for crypto implementation.
@@ -337,29 +345,75 @@ public class IncentiveService {
 
     public List<RegistrationCouponJSON> getRegistrationCoupons() {
         return registrationCouponRepository.getAllCoupons().stream().map((coupon) ->
-            new RegistrationCouponJSON(
-                    coupon.getUserInfo(),
-                    jsonConverter.serialize(coupon.getUserPublicKey().getRepresentation()),
-                    jsonConverter.serialize(coupon.getSignature().getRepresentation()),
-                    jsonConverter.serialize(coupon.getStorePublicKey().getRepresentation())
-            )
+                new RegistrationCouponJSON(
+                        coupon.getUserInfo(),
+                        jsonConverter.serialize(coupon.getUserPublicKey().getRepresentation()),
+                        jsonConverter.serialize(coupon.getSignature().getRepresentation()),
+                        jsonConverter.serialize(coupon.getStorePublicKey().getRepresentation())
+                )
         ).collect(Collectors.toList());
     }
 
-    public String handleEarn(String serializedEarnRequest, BigInteger promotionId) {
-        EarnRequestECDSA earnRequestECDSA = new EarnRequestECDSA(jsonConverter.deserialize(serializedEarnRequest), cryptoRepository.getPublicParameters());
-        Promotion promotion = promotionRepository.getPromotion(promotionId).orElseThrow(() -> new IncentiveServiceException("Promotion not fount"));
+    public BulkResultsProviderDto bulk(BulkRequestProviderDto bulkRequestProviderDto) {
+        var serializedEarnResults = bulkRequestProviderDto.getEarnRequests().stream()
+                .map(this::earn)
+                .collect(Collectors.toList());
 
-        // Callbacks for crypto implementation.
-        // TODO: Currently, we allow the message to be signed under any store public key
-        IStorePublicKeyVerificationHandler verificationHandler = (storePublicKey) -> true;
+        var serializedSpendResults = bulkRequestProviderDto.getSpendRequests().stream()
+                .map(this::spend)
+                .collect(Collectors.toList());
 
-        SPSEQSignature updatedSignature = cryptoRepository.getIncentiveSystem().generateEarnResponse(
-                earnRequestECDSA, promotion.getPromotionParameters(),
-                new ProviderKeyPair(cryptoRepository.getProviderSecretKey(), cryptoRepository.getProviderPublicKey()),
-                clearingRepository,
-                verificationHandler
+        return new BulkResultsProviderDto(serializedEarnResults, serializedSpendResults);
+    }
+
+    private EarnResultProviderDto earn(EarnRequestProviderDto earnRequestProviderDto) {
+        var promotion = promotionRepository.getPromotion(earnRequestProviderDto.getPromotionId())
+                .orElseThrow(() -> new IncentiveServiceException(String.format("Promotion with id %s not found!", earnRequestProviderDto.getPromotionId())));
+        var earnRequestEcdsa = new EarnRequestECDSA(
+                jsonConverter.deserialize(earnRequestProviderDto.getSerializedEarnRequestECDSA()),
+                cryptoRepository.getPublicParameters()
         );
-        return jsonConverter.serialize(updatedSignature.getRepresentation());
+        var earnResult = cryptoRepository.getIncentiveSystem().generateEarnResponse(
+                earnRequestEcdsa,
+                promotion.getPromotionParameters(),
+                cryptoRepository.getProviderKeyPair(),
+                transactionRepository,
+                storePublicKey -> true
+        );
+        return new EarnResultProviderDto(promotion.getPromotionParameters().getPromotionId(), jsonConverter.serialize(earnResult.getRepresentation()));
+    }
+
+    private SpendResultsProviderDto spend(SpendRequestProviderDto spendRequestProviderDto) {
+        var promotion = promotionRepository.getPromotion(spendRequestProviderDto.getPromotionId())
+                .orElseThrow(() -> new IncentiveServiceException(String.format("Promotion with id %s not found!", spendRequestProviderDto.getPromotionId())));
+        var tokenUpdate = promotion.getZkpTokenUpdates().stream()
+                .filter(x -> x.getTokenUpdateId().equals(spendRequestProviderDto.getTokenUpdateId()))
+                .findAny()
+                .orElseThrow(() -> new IncentiveServiceException(String.format("Token update with id %s for promotion of id %s not found!", spendRequestProviderDto.getTokenUpdateId(), spendRequestProviderDto.getPromotionId())));
+        ZkpTokenUpdateMetadata zkpTokenUpdateMetadata = (ZkpTokenUpdateMetadata) ((RepresentableRepresentation) jsonConverter.deserialize(spendRequestProviderDto.getSerializedTokenUpdateMetadata())).recreateRepresentable();
+        Vector<BigInteger> basketPoints = new Vector<>(spendRequestProviderDto.getBasketPoints());
+        var tree = tokenUpdate.generateRelationTree(basketPoints, zkpTokenUpdateMetadata);
+
+        var context = ContextManager.computeContext(spendRequestProviderDto.getTokenUpdateId(), basketPoints, zkpTokenUpdateMetadata);
+        var spendRequest = new SpendRequestECDSA(
+                jsonConverter.deserialize(spendRequestProviderDto.getSerializedSpendRequest()),
+                cryptoRepository.getPublicParameters(),
+                promotion.getPromotionParameters(),
+                spendRequestProviderDto.getBasketId(),
+                tree,
+                cryptoRepository.getProviderPublicKey(),
+                context
+        );
+        var spendResult = cryptoRepository.getIncentiveSystem().verifySpendRequestAndIssueNewToken(
+                cryptoRepository.getProviderKeyPair(),
+                promotion.getPromotionParameters(),
+                spendRequest,
+                spendRequestProviderDto.getBasketId(),
+                tree,
+                context,
+                s -> true,
+                dsidBlacklistRepository
+        );
+        return new SpendResultsProviderDto(promotion.getPromotionParameters().getPromotionId(), jsonConverter.serialize(spendResult.getRepresentation()));
     }
 }

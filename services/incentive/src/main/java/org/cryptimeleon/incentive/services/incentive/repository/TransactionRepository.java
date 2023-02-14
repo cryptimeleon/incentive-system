@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Repository
-public class ClearingRepository implements ITransactionDBHandler {
+public class TransactionRepository implements ITransactionDBHandler {
     // Some data could appear twice bc. users can re-do earn without gaining an advantage. Filter by the hash h / ecdsa signature
     private final List<EarnClearingData> earnClearingData = new ArrayList<>();
 

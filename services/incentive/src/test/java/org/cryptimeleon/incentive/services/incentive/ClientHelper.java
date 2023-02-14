@@ -4,11 +4,17 @@ import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.EarnRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.TokenUpdateResultsDto;
+import org.cryptimeleon.incentive.client.dto.provider.BulkRequestProviderDto;
+import org.cryptimeleon.incentive.client.dto.provider.BulkResultsProviderDto;
+import org.cryptimeleon.incentive.client.dto.provider.EarnRequestProviderDto;
+import org.cryptimeleon.incentive.client.dto.provider.SpendRequestProviderDto;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentive.promotion.Promotion;
+import org.cryptimeleon.incentive.promotion.ZkpTokenUpdate;
+import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
 import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.cartesian.Vector;
@@ -236,36 +242,47 @@ public class ClientHelper {
     }
 
 
-    /**
-     * Generate an earn request based on parameters, run earn with service and compute updated token.
-     */
-    public static Token earnWithProviderECDSA(WebTestClient webClient,
-                                              IncentiveSystem incentiveSystem,
-                                              ProviderKeyPair pkp,
-                                              UserKeyPair ukp,
-                                              Token token,
-                                              Vector<BigInteger> pointsToEarn,
-                                              EarnStoreCouponSignature earnStoreCouponSignature,
-                                              PromotionParameters promotionParameters) {
+    public static Token earn(WebTestClient webClient, IncentiveSystem incentiveSystem, ProviderKeyPair pkp, UserKeyPair ukp, Token token, Vector<BigInteger> pointsToEarn, EarnStoreCouponSignature earnStoreCouponSignature, PromotionParameters promotionParameters) {
         var earnRequest = incentiveSystem.generateEarnRequest(token, pkp.getPk(), ukp, pointsToEarn, earnStoreCouponSignature);
-        var serializedEarnResponse = webClient.get()
-                .uri("/earn")
-                .header("earn-request", jsonConverter.serialize(earnRequest.getRepresentation()))
-                .header("promotion-id", String.valueOf(promotionParameters.getPromotionId()))
-                .exchange()
-                .expectStatus()
-                .isOk()
-                .expectBody(String.class)
-                .returnResult()
-                .getResponseBody();
+        var earnDto = new EarnRequestProviderDto(promotionParameters.getPromotionId(), jsonConverter.serialize(earnRequest.getRepresentation()));
+        BulkRequestProviderDto bulkRequestProviderDto = new BulkRequestProviderDto(Collections.emptyList(), List.of(earnDto));
+        BulkResultsProviderDto bulkResultsProviderDto = bulkWithProvider(webClient, bulkRequestProviderDto);
+        var serializedEarnResponse = bulkResultsProviderDto.getEarnResults().get(0).getSerializedEarnResponse();
         var earnResponse = new SPSEQSignature(jsonConverter.deserialize(serializedEarnResponse), incentiveSystem.pp.getBg().getG1(), incentiveSystem.pp.getBg().getG2());
         return incentiveSystem.handleEarnResponse(earnRequest, earnResponse, promotionParameters, token, ukp, pkp.getPk());
     }
 
+    public static SpendResponseECDSA spend(WebTestClient webClient, IncentiveSystem incentiveSystem, PromotionParameters promotionParameters, ZkpTokenUpdate tokenUpdate, SpendRequestECDSA spendRequestECDSA, ZkpTokenUpdateMetadata metadata, UUID basketId, List<BigInteger> basketPoints) {
+        var spendRequestDto = new SpendRequestProviderDto(promotionParameters.getPromotionId(),
+                jsonConverter.serialize(spendRequestECDSA.getRepresentation()),
+                jsonConverter.serialize(new RepresentableRepresentation(metadata)),
+                basketId,
+                tokenUpdate.getTokenUpdateId(),
+                basketPoints);
+        BulkRequestProviderDto bulkRequestProviderDto = new BulkRequestProviderDto(List.of(spendRequestDto), Collections.emptyList());
+        BulkResultsProviderDto bulkResultsProviderDto = bulkWithProvider(webClient, bulkRequestProviderDto);
+        var serializedSpendResponse = bulkResultsProviderDto.getSpendResults().get(0).getSerializedSpendResult();
+        var spendResponse = new SpendResponseECDSA(jsonConverter.deserialize(serializedSpendResponse), incentiveSystem.pp);
+        return spendResponse;
+    }
+
+    public static BulkResultsProviderDto bulkWithProvider(WebTestClient webClient,
+                                                          BulkRequestProviderDto bulkRequestProviderDto) {
+        return webClient.post()
+                .uri("/bulk")
+                .body(BodyInserters.fromValue(bulkRequestProviderDto))
+                .exchange()
+                .expectStatus()
+                .isOk()
+                .expectBody(BulkResultsProviderDto.class)
+                .returnResult()
+                .getResponseBody();
+    }
+
 
     /*
-    * helper methods
-    */
+     * helper methods
+     */
 
     /**
      * Computes a serialized representation of a promotion object.

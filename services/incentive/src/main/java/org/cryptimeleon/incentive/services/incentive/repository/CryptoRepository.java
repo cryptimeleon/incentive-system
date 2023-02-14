@@ -3,6 +3,7 @@ package org.cryptimeleon.incentive.services.incentive.repository;
 import org.cryptimeleon.incentive.client.InfoClient;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
+import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderSecretKey;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
@@ -103,5 +104,9 @@ public class CryptoRepository {
 
     public ProviderPublicKey getProviderPublicKey() {
         return this.providerPublicKey;
+    }
+
+    public ProviderKeyPair getProviderKeyPair() {
+        return new ProviderKeyPair(this.providerSecretKey, this.providerPublicKey);
     }
 }

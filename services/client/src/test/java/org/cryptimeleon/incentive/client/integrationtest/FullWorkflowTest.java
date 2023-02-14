@@ -157,7 +157,7 @@ public class FullWorkflowTest extends TransactionTestPreparation {
         Vector<BigInteger> basketPoints = promotion.computeEarningsForBasket(basket);
         Vector<BigInteger> pointsAfterSpend = tokenUpdate.computeSatisfyingNewPointsVector(token.getPoints().map(RingElement::asInteger), basketPoints, metadata).get();
         SpendDeductTree tree = tokenUpdate.generateRelationTree(basketPoints);
-        UniqueByteRepresentable context = ContextManager.computeContext(tokenUpdate.getTokenUpdateId(), metadata);
+        UniqueByteRepresentable context = ContextManager.computeContext(tokenUpdate.getTokenUpdateId(), pointsAfterSpend, metadata);
         var spendStoreRequest = incentiveSystem.generateStoreSpendRequest(cryptoAssets.getUserKeyPair(), cryptoAssets.getProviderKeyPair().getPk(), token, promotion.getPromotionParameters(), basket.getBasketId(), pointsAfterSpend, tree, context);
 
         // Send request

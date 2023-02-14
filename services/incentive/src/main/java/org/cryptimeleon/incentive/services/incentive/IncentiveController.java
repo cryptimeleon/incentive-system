@@ -3,6 +3,8 @@ package org.cryptimeleon.incentive.services.incentive;
 import io.swagger.annotations.ApiOperation;
 import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.TokenUpdateResultsDto;
+import org.cryptimeleon.incentive.client.dto.provider.BulkRequestProviderDto;
+import org.cryptimeleon.incentive.client.dto.provider.BulkResultsProviderDto;
 import org.cryptimeleon.incentive.services.incentive.api.RegistrationCouponJSON;
 import org.cryptimeleon.incentive.services.incentive.error.BasketAlreadyPaidException;
 import org.cryptimeleon.incentive.services.incentive.error.BasketNotPaidException;
@@ -141,9 +143,9 @@ public class IncentiveController {
         return new ResponseEntity<>(incentiveService.joinPromotion(promotionId, serializedJoinRequest), HttpStatus.OK);
     }
 
-    @GetMapping("/earn")
-    public String earn(@RequestHeader(name = "promotion-id") BigInteger promotionId, @RequestHeader(name = "earn-request") String serializedEarnRequest) {
-        return incentiveService.handleEarn(serializedEarnRequest, promotionId);
+    @PostMapping("/bulk")
+    public BulkResultsProviderDto bulk(@RequestBody BulkRequestProviderDto bulkRequestProviderDto) {
+        return incentiveService.bulk(bulkRequestProviderDto);
     }
 
     /**

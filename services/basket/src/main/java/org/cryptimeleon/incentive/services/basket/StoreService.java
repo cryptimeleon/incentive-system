@@ -175,7 +175,7 @@ public class StoreService {
         // Include value of basket into spend, i.e. users need to spend fewer points from the token if their basket is worth some
         Vector<BigInteger> basketValueForUpdate = promotion.computeEarningsForBasket(basket);
         SpendDeductTree relationTree = requestedTokenUpdate.generateRelationTree(basketValueForUpdate, zkpTokenUpdateMetadata);
-        UniqueByteRepresentable context = ContextManager.computeContext(tokenUpdateId, zkpTokenUpdateMetadata);
+        UniqueByteRepresentable context = ContextManager.computeContext(tokenUpdateId, basketValueForUpdate, zkpTokenUpdateMetadata);
 
         SpendCouponRequest spendCouponRequest = new SpendCouponRequest(jsonConverter.deserialize(serializedSpendStoreRequest),
                 cryptoRepository.getPublicParameters(),

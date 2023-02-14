@@ -38,7 +38,6 @@ public class StoreController {
     @PostMapping("/bulk")
     ResponseEntity<Void> bulk(@RequestBody BulkRequestStoreDto bulkRequestStoreDto) {
         storeService.bulk(bulkRequestStoreDto);
-        // TODO need to add rewards to basket!
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

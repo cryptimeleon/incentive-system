@@ -2,6 +2,8 @@ package org.cryptimeleon.incentive.client;
 
 import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.TokenUpdateResultsDto;
+import org.cryptimeleon.incentive.client.dto.provider.BulkRequestProviderDto;
+import org.cryptimeleon.incentive.client.dto.provider.BulkResultsProviderDto;
 import org.cryptimeleon.incentive.crypto.model.EarnRequestECDSA;
 import org.cryptimeleon.incentive.crypto.model.RegistrationCoupon;
 import org.cryptimeleon.incentive.promotion.Promotion;
@@ -60,6 +62,7 @@ public class IncentiveClient implements AliveEndpoint {
                 .bodyToMono(String.class);
     }
 
+    @Deprecated
     public Mono<Void> sendBulkUpdates(UUID basketId, BulkRequestDto bulkRequestDto) {
         return incentiveClient.post()
                 .uri("/bulk-token-updates")
@@ -69,12 +72,22 @@ public class IncentiveClient implements AliveEndpoint {
                 .bodyToMono(Void.class);
     }
 
+    @Deprecated
     public Mono<TokenUpdateResultsDto> retrieveBulkResults(UUID basketId) {
         return incentiveClient.post()
                 .uri("/bulk-token-update-results")
                 .header("basket-id", basketId.toString())
                 .retrieve()
                 .bodyToMono(TokenUpdateResultsDto.class);
+    }
+
+    public BulkResultsProviderDto sendBulkRequest(BulkRequestProviderDto bulkRequestProviderDto) {
+        return incentiveClient.post()
+                .uri("/bulk")
+                .body(BodyInserters.fromValue(bulkRequestProviderDto))
+                .retrieve()
+                .bodyToMono(BulkResultsProviderDto.class)
+                .block();
     }
 
     public Mono<ResponseEntity<Void>> addPromotions(List<Promotion> promotions, String providerSecret) {
