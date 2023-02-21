@@ -143,6 +143,12 @@ public class IncentiveController {
         return new ResponseEntity<>(incentiveService.joinPromotion(promotionId, serializedJoinRequest), HttpStatus.OK);
     }
 
+    /**
+     * Handle a set of earn and spend token update requests together and return all results.
+     *
+     * @param bulkRequestProviderDto a DTO containing all requests
+     * @return a DTO containing all responses
+     */
     @PostMapping("/bulk")
     public BulkResultsProviderDto bulk(@RequestBody BulkRequestProviderDto bulkRequestProviderDto) {
         return incentiveService.bulk(bulkRequestProviderDto);
@@ -157,6 +163,7 @@ public class IncentiveController {
      * @param basketId       ID of the basket to apply the updates to
      * @param bulkRequestDto data transfer object (DTO) containing spend and earn requests
      */
+    @Deprecated
     @PostMapping("/bulk-token-updates")
     public void bulkUpdates(@RequestHeader(name = "basket-id") UUID basketId, @RequestBody BulkRequestDto bulkRequestDto) {
         incentiveService.handleBulk(basketId, bulkRequestDto);
