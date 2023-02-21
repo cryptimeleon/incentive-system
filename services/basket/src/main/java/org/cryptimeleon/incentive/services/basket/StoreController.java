@@ -35,15 +35,26 @@ public class StoreController {
         return new ResponseEntity<>(storeService.registerUserAndReturnSerializedRegistrationCoupon(serializedUserPublicKey, userInfo), HttpStatus.OK);
     }
 
+    /**
+     * Send a bulk request, i.e., a bundle of earn and spend requests associated to the same basket.
+     * The requests are processed, but the results held back until the corresponding basket is paid.
+     *
+     * @param bulkRequestStoreDto a dto containing all individual token update requests
+     */
     @PostMapping("/bulk")
-    ResponseEntity<Void> bulk(@RequestBody BulkRequestStoreDto bulkRequestStoreDto) {
+    void bulkRequest(@RequestBody BulkRequestStoreDto bulkRequestStoreDto) {
         storeService.bulk(bulkRequestStoreDto);
-        return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    /**
+     * Obtain the bulk results for some basket if present and the basket is paid.
+     *
+     * @param basketId the id of the basket
+     * @return a DTO containing serialized results
+     */
     @GetMapping("/bulk-results")
-    ResponseEntity<BulkResultsStoreDto> bulk(@RequestHeader("basket-id") UUID basketId) {
-        return new ResponseEntity<>(storeService.bulkResponses(basketId), HttpStatus.OK);
+    BulkResultsStoreDto bulkResponse(@RequestHeader("basket-id") UUID basketId) {
+        return storeService.bulkResponses(basketId);
     }
 
     /**
