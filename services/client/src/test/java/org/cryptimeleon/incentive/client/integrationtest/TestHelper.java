@@ -26,7 +26,7 @@ public class TestHelper {
         IncentivePublicParameters pp = new IncentivePublicParameters(jsonConverter.deserialize(infoClient.querySerializedPublicParameters().block()));
         ProviderSecretKey providerSecretKey = new ProviderSecretKey(jsonConverter.deserialize(infoClient.querySerializedProviderSecretKey(providerSharedSecret).block()), pp);
         ProviderPublicKey providerPublicKey = new ProviderPublicKey(jsonConverter.deserialize(infoClient.querySerializedProviderPublicKey().block()), pp);
-        StorePublicKey storePublicKey  = new StorePublicKey(jsonConverter.deserialize(infoClient.querySerializedStorePublicKey().block()));
+        StorePublicKey storePublicKey = new StorePublicKey(jsonConverter.deserialize(infoClient.querySerializedStorePublicKey().block()));
         StoreSecretKey storeSecretKey = new StoreSecretKey(jsonConverter.deserialize(infoClient.querySerializedStoreSecretKey(storeSharedSecret).block()));
         ProviderKeyPair providerKeyPair = new ProviderKeyPair(providerSecretKey, providerPublicKey);
         StoreKeyPair storeKeyPair = new StoreKeyPair(storeSecretKey, storePublicKey);

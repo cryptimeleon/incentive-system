@@ -19,8 +19,8 @@ public class BasketEntity {
     private String redeemRequest;
 
     @ElementCollection
-    @MapKeyColumn(name="key", columnDefinition = "DECIMAL(50,0)") // Allow more digits than default for key (19)
-    private Map<BigInteger, byte[]> redeemRequestHashes  = new HashMap<>();
+    @MapKeyColumn(name = "key", columnDefinition = "DECIMAL(50,0)") // Allow more digits than default for key (19)
+    private Map<BigInteger, byte[]> redeemRequestHashes = new HashMap<>();
 
     public BasketEntity() {
         this.basketID = UUID.randomUUID();

@@ -49,65 +49,6 @@ public class PromotionTest {
     private CryptoRepository cryptoRepository;
 
     /**
-     * Deletes all promotions that currently exist in the system.
-     * Annotation leads to this being executed before every single test
-     * to ensure a fresh + well-defined test scenario that is independent of previous tests.
-     *
-     * @param webTestClient test client used to make the DELETE request
-     */
-    @BeforeEach
-    public void clearPromotionRepository(@Autowired WebTestClient webTestClient) {
-        deleteAllPromotions(webTestClient, basketServiceProviderSecret, HttpStatus.OK);
-    }
-
-    @Test
-    public void addPromotionTest(@Autowired WebTestClient webTestClient) {
-        addPromotion(webTestClient, firstTestPromotion, basketServiceProviderSecret, HttpStatus.OK);
-        addPromotion(webTestClient, secondTestPromotion, basketServiceProviderSecret, HttpStatus.OK);
-        var promotions = getPromotions(webTestClient);
-
-        assertThat(promotions).containsExactly(firstTestPromotion, secondTestPromotion);
-    }
-
-    @Test
-    public void addPromotionAuthenticationTest(@Autowired WebTestClient webTestClient) {
-        addPromotion(webTestClient, firstTestPromotion, "", HttpStatus.UNAUTHORIZED);
-        var promotions = getPromotions(webTestClient);
-
-        assertThat(promotions).isEmpty();
-    }
-
-    @Test
-    public void addPromotionNoDuplicateTest(@Autowired WebTestClient webTestClient) {
-        addPromotion(webTestClient, firstTestPromotion, basketServiceProviderSecret, HttpStatus.OK);
-        addPromotion(webTestClient, firstTestPromotion, basketServiceProviderSecret, HttpStatus.BAD_REQUEST);
-        var promotions = getPromotions(webTestClient);
-
-        assertThat(promotions).hasSize(1);
-    }
-
-    @Test
-    public void deleteAllTest(@Autowired WebTestClient webTestClient) {
-        addPromotion(webTestClient, firstTestPromotion, basketServiceProviderSecret, HttpStatus.OK);
-        addPromotion(webTestClient, secondTestPromotion, basketServiceProviderSecret, HttpStatus.OK);
-
-        deleteAllPromotions(webTestClient, basketServiceProviderSecret, HttpStatus.OK);
-        var promotionsAfterDelete = getPromotions(webTestClient);
-
-        assertThat(promotionsAfterDelete).isEmpty();
-    }
-
-    @Test
-    public void deleteAllAuthenticationTest(@Autowired WebTestClient webTestClient) {
-        addPromotion(webTestClient, secondTestPromotion, basketServiceProviderSecret, HttpStatus.OK);
-
-        deleteAllPromotions(webTestClient, "", HttpStatus.UNAUTHORIZED);
-        var promotionsAfterDelete = getPromotions(webTestClient);
-
-        assertThat(promotionsAfterDelete).hasSize(1).containsExactly(secondTestPromotion);
-    }
-
-    /**
      * Wrapper for request to add-promotion endpoint of incentive server.
      *
      * @param webClient      test client used to make request to server
@@ -179,5 +120,64 @@ public class PromotionTest {
      */
     private static List<String> serializePromotionsWithType(Promotion promotionToAdd) {
         return List.of(jsonConverter.serialize(new RepresentableRepresentation(promotionToAdd)));
+    }
+
+    /**
+     * Deletes all promotions that currently exist in the system.
+     * Annotation leads to this being executed before every single test
+     * to ensure a fresh + well-defined test scenario that is independent of previous tests.
+     *
+     * @param webTestClient test client used to make the DELETE request
+     */
+    @BeforeEach
+    public void clearPromotionRepository(@Autowired WebTestClient webTestClient) {
+        deleteAllPromotions(webTestClient, basketServiceProviderSecret, HttpStatus.OK);
+    }
+
+    @Test
+    public void addPromotionTest(@Autowired WebTestClient webTestClient) {
+        addPromotion(webTestClient, firstTestPromotion, basketServiceProviderSecret, HttpStatus.OK);
+        addPromotion(webTestClient, secondTestPromotion, basketServiceProviderSecret, HttpStatus.OK);
+        var promotions = getPromotions(webTestClient);
+
+        assertThat(promotions).containsExactly(firstTestPromotion, secondTestPromotion);
+    }
+
+    @Test
+    public void addPromotionAuthenticationTest(@Autowired WebTestClient webTestClient) {
+        addPromotion(webTestClient, firstTestPromotion, "", HttpStatus.UNAUTHORIZED);
+        var promotions = getPromotions(webTestClient);
+
+        assertThat(promotions).isEmpty();
+    }
+
+    @Test
+    public void addPromotionNoDuplicateTest(@Autowired WebTestClient webTestClient) {
+        addPromotion(webTestClient, firstTestPromotion, basketServiceProviderSecret, HttpStatus.OK);
+        addPromotion(webTestClient, firstTestPromotion, basketServiceProviderSecret, HttpStatus.BAD_REQUEST);
+        var promotions = getPromotions(webTestClient);
+
+        assertThat(promotions).hasSize(1);
+    }
+
+    @Test
+    public void deleteAllTest(@Autowired WebTestClient webTestClient) {
+        addPromotion(webTestClient, firstTestPromotion, basketServiceProviderSecret, HttpStatus.OK);
+        addPromotion(webTestClient, secondTestPromotion, basketServiceProviderSecret, HttpStatus.OK);
+
+        deleteAllPromotions(webTestClient, basketServiceProviderSecret, HttpStatus.OK);
+        var promotionsAfterDelete = getPromotions(webTestClient);
+
+        assertThat(promotionsAfterDelete).isEmpty();
+    }
+
+    @Test
+    public void deleteAllAuthenticationTest(@Autowired WebTestClient webTestClient) {
+        addPromotion(webTestClient, secondTestPromotion, basketServiceProviderSecret, HttpStatus.OK);
+
+        deleteAllPromotions(webTestClient, "", HttpStatus.UNAUTHORIZED);
+        var promotionsAfterDelete = getPromotions(webTestClient);
+
+        assertThat(promotionsAfterDelete).hasSize(1).containsExactly(secondTestPromotion);
     }
 }

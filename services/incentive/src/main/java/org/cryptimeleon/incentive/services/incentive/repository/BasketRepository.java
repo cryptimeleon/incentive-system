@@ -22,9 +22,9 @@ import java.util.stream.Collectors;
 @Repository
 public class BasketRepository {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BasketRepository.class);
+    private final BasketClient basketClient;
     @Value("${basket-service.redeem-secret}")
     private String redeemSecret;
-    private final BasketClient basketClient;
 
     @Autowired
     public BasketRepository(BasketClient basketClient) {

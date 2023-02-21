@@ -39,6 +39,13 @@ public class IncentiveController {
     @Value("${incentive-service.provider-secret}")
     private String providerSecret;
 
+    /*
+     * endpoints for managing promotions in the system
+     */
+    public IncentiveController(final IncentiveService incentiveService) {
+        this.incentiveService = incentiveService;
+    }
+
     /**
      * Checks if shared secret for privileged actions is set properly.
      * Throws an exception if not.
@@ -59,15 +66,9 @@ public class IncentiveController {
         return new ResponseEntity<>("Hello from incentive service!", HttpStatus.OK);
     }
 
-    /*
-     * endpoints for managing promotions in the system
-     */
-    public IncentiveController(final IncentiveService incentiveService) {
-        this.incentiveService = incentiveService;
-    }
-
     /**
      * HTTP endpoint for obtaining list of all promotions in the system.
+     *
      * @return response entity that holds list of strings
      */
     @GetMapping("/promotions")
@@ -79,6 +80,7 @@ public class IncentiveController {
     /**
      * HTTP endpoint for adding new promotions (sent via a list of strings (serialized representations) in request body) to the system.
      * Authorized action, requires passing the provider secret via a header in the HTTP request.
+     *
      * @param providerSecretHeader password sent via a header (is compared to provider secret)
      * @param serializedPromotions list of strings
      * @return void response entity
@@ -170,8 +172,8 @@ public class IncentiveController {
     }
 
     /*
-    * end of endpoints for user to interact with provider of incentive system
-    */
+     * end of endpoints for user to interact with provider of incentive system
+     */
 
     /**
      * HTTP endpoint for obtaining all points and rewards for a paid basket identified by the passed ID.

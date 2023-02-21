@@ -56,7 +56,7 @@ public class IncentiveClient implements AliveEndpoint {
     /**
      * Creates a join request.
      *
-     * @param serializedJoinRequest   the serialized join request
+     * @param serializedJoinRequest the serialized join request
      * @return mono of the server's answer
      */
     public Mono<String> sendJoinRequest(BigInteger promotionId, String serializedJoinRequest) {
@@ -114,7 +114,8 @@ public class IncentiveClient implements AliveEndpoint {
                 .uri("/register-with-coupon")
                 .header("registration-coupon", jsonConverter.serialize(registrationCoupon.getRepresentation()))
                 .retrieve()
-                .bodyToMono((new ParameterizedTypeReference<String>() {}))
+                .bodyToMono((new ParameterizedTypeReference<String>() {
+                }))
                 .block();
     }
 

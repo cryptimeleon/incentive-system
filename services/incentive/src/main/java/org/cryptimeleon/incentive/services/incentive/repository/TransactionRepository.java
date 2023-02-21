@@ -33,6 +33,7 @@ public class TransactionRepository implements ITransactionDBHandler {
 
         private final byte[] h;
         private final EarnRequestECDSA earnRequestECDSA;
+
         public EarnClearingData(byte[] h, EarnRequestECDSA earnRequestECDSA) {
             this.h = h;
             this.earnRequestECDSA = earnRequestECDSA;

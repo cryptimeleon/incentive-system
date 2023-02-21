@@ -25,20 +25,17 @@ import java.time.Duration;
 public class CryptoRepository {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CryptoRepository.class);
     private static final int MAX_TRIES = 5;
+    private final InfoClient infoClient;
     private IncentiveSystem incentiveSystem;
     private IncentivePublicParameters publicParameters;
     private ProviderPublicKey providerPublicKey;
     private StoreSecretKey storeSecretKey;
     private StorePublicKey storePublicKey;
-
+    // Will be set via dependency injection
     @Value("${store.shared-secret}")
     private String storeSharedSecret; // used to authenticate the request for the store secret key (set via environment variable)
-    // Will be set via dependency injection
-
     @Value("${spring.profiles.active}")
     private String activeProfiles;
-
-    private final InfoClient infoClient;
 
     @Autowired
     public CryptoRepository(InfoClient infoClient) {

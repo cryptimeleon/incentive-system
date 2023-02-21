@@ -50,10 +50,10 @@ public class FullWorkflowTest extends TransactionTestPreparation {
         var serializedRegistrationCoupon = basketClient.registerUser(serializedUserPublicKey, "Some User Name");
         var registrationCoupon = new RegistrationCoupon(jsonConverter.deserialize(serializedRegistrationCoupon), incentiveRestorer);
 
-        assertThat(incentiveSystem.verifyRegistrationCoupon(registrationCoupon, (s)->true)).isTrue();
+        assertThat(incentiveSystem.verifyRegistrationCoupon(registrationCoupon, (s) -> true)).isTrue();
 
         // Send coupon to provider/incentive service and retrieve SPSEQ
-        var serializedRegistrationSignature= incentiveClient.registerUserWithCoupon(registrationCoupon);
+        var serializedRegistrationSignature = incentiveClient.registerUserWithCoupon(registrationCoupon);
         var registrationSignature = new SPSEQSignature(jsonConverter.deserialize(serializedRegistrationSignature), cryptoAssets.getPublicParameters().getBg().getG1(), cryptoAssets.getPublicParameters().getBg().getG2());
 
         assertThat(incentiveSystem.verifyRegistrationToken(cryptoAssets.getProviderKeyPair().getPk(), registrationSignature, registrationCoupon)).isTrue();

@@ -108,7 +108,7 @@ public class StoreService {
         bulkResponseRepository.addBulkResult(basketId, new BulkResultsStoreDto(earnResultStoreDtoList, spendResultsStoreDtoList));
 
         // Add reward items to basket
-        List<RewardItemEntity> rewardItemEntities= bulkRequestStoreDto.getSpendRequestStoreDtoList().stream()
+        List<RewardItemEntity> rewardItemEntities = bulkRequestStoreDto.getSpendRequestStoreDtoList().stream()
                 .map(spendRequestStoreDto -> {
                     Promotion promotion = promotionRepository.getPromotion(spendRequestStoreDto.getPromotionId())
                             .orElseThrow(() -> new StoreException(String.format("Cannot find promotion with id %s", spendRequestStoreDto.getPromotionId())));

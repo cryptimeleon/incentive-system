@@ -76,6 +76,75 @@ public class IncentiveServiceTest {
     private DSPRepository offlineDSPRepository;
     private ArrayList<Zn.ZnElement> dsids;
 
+    private static Token generateToken() {
+        return Helper.generateToken(
+                pp,
+                TestSuiteWithPromotion.userKeyPair,
+                TestSuiteWithPromotion.providerKeyPair,
+                TestSuiteWithPromotion.promotion.getPromotionParameters(),
+                TestSuiteWithPromotion.pointsBeforeSpend
+        );
+    }
+
+    private static Token retrieveUpdatedTokenFromResponse(Token token, SpendRequestECDSA spendRequestECDSA, SpendResponseECDSA spendResponseECDSA) {
+        return incentiveSystem.retrieveUpdatedTokenFromSpendResponse(
+                TestSuiteWithPromotion.userKeyPair,
+                TestSuiteWithPromotion.providerKeyPair.getPk(),
+                token,
+                TestSuiteWithPromotion.promotion.getPromotionParameters(),
+                TestSuiteWithPromotion.pointsAfterSpend,
+                spendRequestECDSA,
+                spendResponseECDSA);
+    }
+
+    private static SpendResponseECDSA runSpendWithService(WebTestClient webClient, SpendRequestECDSA spendRequestECDSA) {
+        return runSpendWithService(webClient, spendRequestECDSA, TestSuiteWithPromotion.basket);
+    }
+
+    private static SpendResponseECDSA runSpendWithService(WebTestClient webClient, SpendRequestECDSA spendRequestECDSA, Basket basket) {
+        return spend(webClient,
+                incentiveSystem,
+                TestSuiteWithPromotion.promotion.getPromotionParameters(),
+                TestSuiteWithPromotion.spendTokenUpdate,
+                spendRequestECDSA,
+                TestSuiteWithPromotion.metadata,
+                basket.getBasketId(),
+                TestSuiteWithPromotion.basketPoints.toList());
+    }
+
+    private static SpendCouponSignature generateSpendCouponSignature(SpendCouponRequest spendCouponRequest) {
+        return generateSpendCouponSignature(spendCouponRequest, TestSuiteWithPromotion.basket);
+    }
+
+    private static SpendCouponSignature generateSpendCouponSignature(SpendCouponRequest spendCouponRequest, Basket basket) {
+        return incentiveSystem.signSpendCoupon(
+                TestSuiteWithPromotion.storeKeyPair,
+                TestSuiteWithPromotion.providerKeyPair.getPk(),
+                basket.getBasketId(),
+                TestSuiteWithPromotion.promotion.getPromotionParameters(),
+                spendCouponRequest,
+                TestSuiteWithPromotion.tree,
+                TestSuiteWithPromotion.context,
+                (basketId, promotionId, hash) -> IStoreBasketRedeemedHandler.BasketRedeemState.BASKET_NOT_REDEEMED,
+                new TestSuite.TestDsidBlacklist(),
+                new TestSuite.TestTransactionDbHandler());
+    }
+
+    private static SpendCouponRequest generateSpendCouponRequest(Token token) {
+        return generateSpendCouponRequest(token, TestSuiteWithPromotion.basket);
+    }
+
+    private static SpendCouponRequest generateSpendCouponRequest(Token token, Basket basket) {
+        return incentiveSystem.generateStoreSpendRequest(
+                TestSuiteWithPromotion.userKeyPair,
+                TestSuiteWithPromotion.providerKeyPair.getPk(),
+                token,
+                TestSuiteWithPromotion.promotion.getPromotionParameters(),
+                basket.getBasketId(),
+                TestSuiteWithPromotion.pointsAfterSpend,
+                TestSuiteWithPromotion.tree,
+                TestSuiteWithPromotion.context);
+    }
 
     @BeforeEach
     public void mock(@Autowired WebTestClient webTestClient) {
@@ -94,7 +163,7 @@ public class IncentiveServiceTest {
 
         dsids = new ArrayList<>();
         when(offlineDSPRepository.containsDsid(any())).thenAnswer(invocation ->
-            dsids.contains(invocation.getArgument(0, Zn.ZnElement.class))
+                dsids.contains(invocation.getArgument(0, Zn.ZnElement.class))
         );
 
         // clear all promotions for clean test starting state
@@ -246,7 +315,6 @@ public class IncentiveServiceTest {
                 HttpStatus.BAD_REQUEST);
     }
 
-
     @Test
     public void spendTestECDSA(@Autowired WebTestClient webClient) {
         addPromotion(webClient, TestSuiteWithPromotion.promotion, providerSecret, HttpStatus.OK);
@@ -304,76 +372,6 @@ public class IncentiveServiceTest {
 
         // TODO this is not super nice, expect a specific error!
         assertThatThrownBy(() -> runSpendWithService(webClient, spendRequestECDSA)).isInstanceOf(AssertionError.class);
-    }
-
-    private static Token generateToken() {
-        return Helper.generateToken(
-                pp,
-                TestSuiteWithPromotion.userKeyPair,
-                TestSuiteWithPromotion.providerKeyPair,
-                TestSuiteWithPromotion.promotion.getPromotionParameters(),
-                TestSuiteWithPromotion.pointsBeforeSpend
-        );
-    }
-
-    private static Token retrieveUpdatedTokenFromResponse(Token token, SpendRequestECDSA spendRequestECDSA, SpendResponseECDSA spendResponseECDSA) {
-        return incentiveSystem.retrieveUpdatedTokenFromSpendResponse(
-                TestSuiteWithPromotion.userKeyPair,
-                TestSuiteWithPromotion.providerKeyPair.getPk(),
-                token,
-                TestSuiteWithPromotion.promotion.getPromotionParameters(),
-                TestSuiteWithPromotion.pointsAfterSpend,
-                spendRequestECDSA,
-                spendResponseECDSA);
-    }
-
-    private static SpendResponseECDSA runSpendWithService(WebTestClient webClient, SpendRequestECDSA spendRequestECDSA) {
-        return runSpendWithService(webClient, spendRequestECDSA, TestSuiteWithPromotion.basket);
-    }
-
-    private static SpendResponseECDSA runSpendWithService(WebTestClient webClient, SpendRequestECDSA spendRequestECDSA, Basket basket) {
-        return spend(webClient,
-                incentiveSystem,
-                TestSuiteWithPromotion.promotion.getPromotionParameters(),
-                TestSuiteWithPromotion.spendTokenUpdate,
-                spendRequestECDSA,
-                TestSuiteWithPromotion.metadata,
-                basket.getBasketId(),
-                TestSuiteWithPromotion.basketPoints.toList());
-    }
-
-    private static SpendCouponSignature generateSpendCouponSignature(SpendCouponRequest spendCouponRequest) {
-        return generateSpendCouponSignature(spendCouponRequest, TestSuiteWithPromotion.basket);
-    }
-
-    private static SpendCouponSignature generateSpendCouponSignature(SpendCouponRequest spendCouponRequest, Basket basket) {
-        return incentiveSystem.signSpendCoupon(
-                TestSuiteWithPromotion.storeKeyPair,
-                TestSuiteWithPromotion.providerKeyPair.getPk(),
-                basket.getBasketId(),
-                TestSuiteWithPromotion.promotion.getPromotionParameters(),
-                spendCouponRequest,
-                TestSuiteWithPromotion.tree,
-                TestSuiteWithPromotion.context,
-                (basketId, promotionId, hash) -> IStoreBasketRedeemedHandler.BasketRedeemState.BASKET_NOT_REDEEMED,
-                new TestSuite.TestDsidBlacklist(),
-                new TestSuite.TestTransactionDbHandler());
-    }
-
-    private static SpendCouponRequest generateSpendCouponRequest(Token token) {
-        return generateSpendCouponRequest(token, TestSuiteWithPromotion.basket);
-    }
-
-    private static SpendCouponRequest generateSpendCouponRequest(Token token, Basket basket) {
-        return incentiveSystem.generateStoreSpendRequest(
-                TestSuiteWithPromotion.userKeyPair,
-                TestSuiteWithPromotion.providerKeyPair.getPk(),
-                token,
-                TestSuiteWithPromotion.promotion.getPromotionParameters(),
-                basket.getBasketId(),
-                TestSuiteWithPromotion.pointsAfterSpend,
-                TestSuiteWithPromotion.tree,
-                TestSuiteWithPromotion.context);
     }
 
     private SPSEQSignature retrieveRegistrationSignatureForCoupon(WebTestClient webClient, RegistrationCoupon registrationCoupon) {

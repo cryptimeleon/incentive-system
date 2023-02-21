@@ -54,6 +54,19 @@ public class StoreTest {
     private DsidBlacklistRepository dsidBlacklistRepository;
     private Token token;
 
+    private static BasketEntity constructBasketEntity() {
+        var b = new BasketEntity(TestSuiteWithPromotion.basket.getBasketId(), new HashSet<>(), new HashSet<>(), false, false, true, "", new HashMap<>());
+        b.getBasketItems().addAll(
+                TestSuiteWithPromotion.basket.getBasketItemList().stream().map(basketItem -> {
+                            var e = new ItemInBasketEntity(b, new ItemEntity(basketItem.getItemId(), basketItem.getTitle(), (long) basketItem.getPrice(), new HashSet<>()));
+                            e.setCount(basketItem.getCount());
+                            return e;
+                        }
+                ).collect(Collectors.toList())
+        );
+        return b;
+    }
+
     @BeforeEach
     public void mock() {
         // program hard-coded return values for the crypto and basket repositories using mockito
@@ -345,18 +358,5 @@ public class StoreTest {
                 .uri("/bulk-results")
                 .header("basket-id", String.valueOf(basketId))
                 .exchange();
-    }
-
-    private static BasketEntity constructBasketEntity() {
-        var b = new BasketEntity(TestSuiteWithPromotion.basket.getBasketId(), new HashSet<>(), new HashSet<>(), false, false, true, "", new HashMap<>());
-        b.getBasketItems().addAll(
-                TestSuiteWithPromotion.basket.getBasketItemList().stream().map(basketItem -> {
-                            var e = new ItemInBasketEntity(b, new ItemEntity(basketItem.getItemId(), basketItem.getTitle(), (long) basketItem.getPrice(), new HashSet<>()));
-                            e.setCount(basketItem.getCount());
-                            return e;
-                        }
-                ).collect(Collectors.toList())
-        );
-        return b;
     }
 }

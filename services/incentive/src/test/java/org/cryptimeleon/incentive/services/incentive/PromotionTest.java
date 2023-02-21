@@ -28,11 +28,11 @@ public class PromotionTest {
     private final Promotion secondTestPromotion = TestSuiteWithPromotion.alternativePromotion;
 
     /*
-    * Declares the crypto repository field as an attribute that is mocked
-    * (i.e. replaced by an object providing the same API but possibly with different implementation).
-    * This is done to prevent the crypto repository from attempting to connect to the info service
-    * which allows testing in environments where no info service is running.
-    */
+     * Declares the crypto repository field as an attribute that is mocked
+     * (i.e. replaced by an object providing the same API but possibly with different implementation).
+     * This is done to prevent the crypto repository from attempting to connect to the info service
+     * which allows testing in environments where no info service is running.
+     */
     @MockBean
     private CryptoRepository cryptoRepository;
 
@@ -44,6 +44,7 @@ public class PromotionTest {
      * Deletes all promotions that currently exist in the system.
      * Annotation leads to this being executed before every single test
      * to ensure a fresh + well-defined test scenario that is independent of previous tests.
+     *
      * @param webTestClient test client used to make the DELETE request
      */
     @BeforeEach

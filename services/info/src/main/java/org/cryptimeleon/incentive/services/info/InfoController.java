@@ -10,6 +10,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class InfoController {
     private final InfoService infoService; // Automatically injects an instance of the service
 
+    public InfoController(final InfoService infoService) {
+        this.infoService = infoService;
+    }
+
     /*
      * Endpoint for alive testing etc.
      */
@@ -47,9 +51,5 @@ public class InfoController {
             return new ResponseEntity<>(infoService.getSerializedStoreSecretKey(), HttpStatus.OK);
         }
         return new ResponseEntity<>("", HttpStatus.UNAUTHORIZED);
-    }
-
-    public InfoController(final InfoService infoService) {
-        this.infoService = infoService;
     }
 }

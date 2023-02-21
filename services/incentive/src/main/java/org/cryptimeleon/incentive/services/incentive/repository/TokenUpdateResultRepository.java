@@ -13,7 +13,7 @@ import java.util.UUID;
 /**
  * Repository that caches the results of token updates.
  * These updates are generated upon Spend time and held back until the user pays the basket.
- *
+ * <p>
  * There are two types of such updates:
  * - earn updates: points that the user has earned for her basket
  * - ZKP token updates: rewards that the user has claimed using saved points
@@ -21,9 +21,9 @@ import java.util.UUID;
 @Repository
 public class TokenUpdateResultRepository {
     /*
-    * Token updates a stored as a map that maps baskets to applicable updates.
-    * These applicable updates are again modelled as a map that maps promotion IDs to token updates.
-    */
+     * Token updates a stored as a map that maps baskets to applicable updates.
+     * These applicable updates are again modelled as a map that maps promotion IDs to token updates.
+     */
     private final Map<UUID, Map<BigInteger, TokenUpdateResult>> tokenUpdateResultMap;
 
     /**
