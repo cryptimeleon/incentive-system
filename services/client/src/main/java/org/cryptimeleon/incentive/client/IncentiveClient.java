@@ -4,11 +4,16 @@ import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.TokenUpdateResultsDto;
 import org.cryptimeleon.incentive.client.dto.provider.BulkRequestProviderDto;
 import org.cryptimeleon.incentive.client.dto.provider.BulkResultsProviderDto;
+import org.cryptimeleon.incentive.client.dto.provider.EarnRequestProviderDto;
+import org.cryptimeleon.incentive.client.dto.provider.SpendRequestProviderDto;
 import org.cryptimeleon.incentive.crypto.model.EarnRequestECDSA;
 import org.cryptimeleon.incentive.crypto.model.RegistrationCoupon;
+import org.cryptimeleon.incentive.crypto.model.SpendRequestECDSA;
 import org.cryptimeleon.incentive.promotion.Promotion;
+import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
 import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
+import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -16,6 +21,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.math.BigInteger;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -113,12 +119,34 @@ public class IncentiveClient implements AliveEndpoint {
     }
 
     public String sendEarnRequest(EarnRequestECDSA earnRequest, BigInteger promotionId) {
-        return incentiveClient.get()
-                .uri("/earn")
-                .header("promotion-id", String.valueOf(promotionId))
-                .header("earn-request", jsonConverter.serialize(earnRequest.getRepresentation()))
-                .retrieve()
-                .bodyToMono((new ParameterizedTypeReference<String>() {}))
-                .block();
+        var earnRequestDto = new EarnRequestProviderDto(promotionId, jsonConverter.serialize(earnRequest.getRepresentation()));
+        var bulkRequest = new BulkRequestProviderDto(
+                Collections.emptyList(),
+                List.of(earnRequestDto)
+        );
+        var bulkResponse = sendBulkRequest(bulkRequest);
+        var earnResponse = bulkResponse.getEarnResults().get(0);
+        return earnResponse.getSerializedEarnResponse();
+    }
+
+    public String sendSpendRequest(SpendRequestECDSA spendRequest,
+                                   BigInteger promotionId,
+                                   ZkpTokenUpdateMetadata metadata,
+                                   UUID basketId,
+                                   UUID tokenUpdateId,
+                                   Vector<BigInteger> basketPoints) {
+        var spendRequestProviderDto = new SpendRequestProviderDto(promotionId,
+                jsonConverter.serialize(spendRequest.getRepresentation()),
+                jsonConverter.serialize(new RepresentableRepresentation(metadata)),
+                basketId,
+                tokenUpdateId,
+                basketPoints.toList());
+        var bulkRequest = new BulkRequestProviderDto(
+                List.of(spendRequestProviderDto),
+                Collections.emptyList()
+        );
+        var bulkResponse = sendBulkRequest(bulkRequest);
+        var spendResponse = bulkResponse.getSpendResults().get(0);
+        return spendResponse.getSerializedSpendResult();
     }
 }

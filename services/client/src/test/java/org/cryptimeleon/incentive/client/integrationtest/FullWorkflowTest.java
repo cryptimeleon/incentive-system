@@ -3,6 +3,7 @@ package org.cryptimeleon.incentive.client.integrationtest;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.EarnRequestDto;
+import org.cryptimeleon.incentive.client.dto.store.BulkResultsStoreDto;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.incentive.promotion.ContextManager;
@@ -90,8 +91,15 @@ public class FullWorkflowTest extends TransactionTestPreparation {
         Token token = generateToken(testPromotion.getPromotionParameters(), Vector.of(BigInteger.valueOf(25)));
         var basket = createBasketWithItems();
 
-        // TODO add providers part
-        runSpendProtocol(token, basket, testPromotion, testTokenUpdate);
+        assertThat(cryptoAssets.getPublicParameters().getSpsEq().verify(
+                cryptoAssets.getProviderKeyPair().getPk().getPkSpsEq(),
+                token.getSignature(),
+                token.getCommitment0(),
+                cryptoAssets.getPublicParameters().getG1Generator(),
+                cryptoAssets.getPublicParameters().getG1Generator().pow(testPromotion.getPromotionParameters().getPromotionId())
+        )).isTrue();
+
+        var updatedToken = runSpendProtocol(token, basket, testPromotion, testTokenUpdate);
 
         var basketAfterSpend = basketClient.getBasket(basket.getBasketId()).block();
         assert basketAfterSpend != null;
@@ -157,8 +165,8 @@ public class FullWorkflowTest extends TransactionTestPreparation {
         Vector<BigInteger> basketPoints = promotion.computeEarningsForBasket(basket);
         Vector<BigInteger> pointsAfterSpend = tokenUpdate.computeSatisfyingNewPointsVector(token.getPoints().map(RingElement::asInteger), basketPoints, metadata).get();
         SpendDeductTree tree = tokenUpdate.generateRelationTree(basketPoints);
-        UniqueByteRepresentable context = ContextManager.computeContext(tokenUpdate.getTokenUpdateId(), pointsAfterSpend, metadata);
-        var spendStoreRequest = incentiveSystem.generateStoreSpendRequest(cryptoAssets.getUserKeyPair(), cryptoAssets.getProviderKeyPair().getPk(), token, promotion.getPromotionParameters(), basket.getBasketId(), pointsAfterSpend, tree, context);
+        UniqueByteRepresentable context = ContextManager.computeContext(tokenUpdate.getTokenUpdateId(), basketPoints, metadata);
+        SpendCouponRequest spendStoreRequest = incentiveSystem.generateStoreSpendRequest(cryptoAssets.getUserKeyPair(), cryptoAssets.getProviderKeyPair().getPk(), token, promotion.getPromotionParameters(), basket.getBasketId(), pointsAfterSpend, tree, context);
 
         // Send request
         assertThat(basketClient.sendSpend(basket.getBasketId(), promotion.getPromotionParameters().getPromotionId(), tokenUpdate.getTokenUpdateId(), spendStoreRequest, metadata).getStatusCode().is2xxSuccessful())
@@ -168,11 +176,15 @@ public class FullWorkflowTest extends TransactionTestPreparation {
         basketClient.payBasket(basket.getBasketId(), paySecret);
 
         // Obtain response
-        var batchResponse = basketClient.retrieveBulkResponse(basket.getBasketId());
-        var spendCouponSignature = new SpendCouponSignature(jsonConverter.deserialize(batchResponse.getSpendResults().get(0).getSerializedSpendCouponSignature()));
+        BulkResultsStoreDto batchResponse = basketClient.retrieveBulkResponse(basket.getBasketId());
+        SpendCouponSignature spendCouponSignature = new SpendCouponSignature(jsonConverter.deserialize(batchResponse.getSpendResults().get(0).getSerializedSpendCouponSignature()));
         assertThat(incentiveSystem.verifySpendCouponSignature(spendStoreRequest, spendCouponSignature, promotion.getPromotionParameters(), basket.getBasketId()))
                 .isTrue();
-        return null;
+
+        SpendRequestECDSA spendRequestECDSA = new SpendRequestECDSA(spendStoreRequest, spendCouponSignature);
+        String serializedSpendResponse = incentiveClient.sendSpendRequest(spendRequestECDSA, promotion.getPromotionParameters().getPromotionId(), metadata, basket.getBasketId(), tokenUpdate.getTokenUpdateId(), basketPoints);
+        SpendResponseECDSA spendResponseECDSA = new SpendResponseECDSA(jsonConverter.deserialize(serializedSpendResponse), cryptoAssets.getPublicParameters());
+        return incentiveSystem.retrieveUpdatedTokenFromSpendResponse(cryptoAssets.getUserKeyPair(), cryptoAssets.getProviderKeyPair().getPk(), token, promotion.getPromotionParameters(), pointsAfterSpend, spendRequestECDSA, spendResponseECDSA);
     }
 
     @Deprecated

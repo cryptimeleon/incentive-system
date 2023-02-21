@@ -41,7 +41,13 @@ test {
     exclude '**/benchmark/run/**'
 }
 
-tasks.register('benchmark') {
+def benchmark = sourceSets.create('benchmark')
+
+configurations[benchmark.implementationConfigurationName].extendsFrom(configurations.testImplementation)
+configurations[benchmark.runtimeOnlyConfigurationName].extendsFrom(configurations.testRuntimeOnly)
+
+
+def benchmarkTask = tasks.register('benchmark', Test) {
     useJUnitPlatform()
     testLogging {
         outputs.upToDateWhen { false }
