@@ -80,7 +80,7 @@ public class StoreService {
         return jsonConverter.serialize(registrationCoupon.getRepresentation());
     }
 
-    public void bulk(BulkRequestStoreDto bulkRequestStoreDto) {
+    public void processBulkRequest(BulkRequestStoreDto bulkRequestStoreDto) {
         // Verification
         UUID basketId = bulkRequestStoreDto.getBasketId();
         BasketEntity basketEntity = basketRepository.findById(basketId)

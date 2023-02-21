@@ -43,7 +43,7 @@ public class StoreController {
      */
     @PostMapping("/bulk")
     void bulkRequest(@RequestBody BulkRequestStoreDto bulkRequestStoreDto) {
-        storeService.bulk(bulkRequestStoreDto);
+        storeService.processBulkRequest(bulkRequestStoreDto);
     }
 
     /**
