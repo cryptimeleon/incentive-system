@@ -6,6 +6,9 @@ import org.springframework.stereotype.Repository;
 
 import java.util.HashMap;
 
+/**
+ * Store (double-spending-id, hash) tuples to prevent double-spending attacks but enable retries (same hash).
+ */
 @Repository
 public class DsidBlacklistRepository implements IDsidBlacklistHandler {
     HashMap<Zn.ZnElement, Zn.ZnElement> dsMap = new HashMap<>();

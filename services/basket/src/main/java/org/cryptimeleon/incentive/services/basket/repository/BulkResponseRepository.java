@@ -7,6 +7,9 @@ import org.springframework.stereotype.Repository;
 import java.util.HashMap;
 import java.util.UUID;
 
+/**
+ * Essentially a cache for the earn/spend responses that are held back until the corresponding basket is paid.
+ */
 @Repository
 public class BulkResponseRepository {
     private final HashMap<UUID, BulkResultsStoreDto> responseForBasketMap = new HashMap<>();

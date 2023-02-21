@@ -9,10 +9,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Store all transaction data for clearing and offline double-spending detection.
+ * TODO: Send them to provider
+ */
 @Repository
 public class TransactionRepository implements ITransactionDBHandler {
-    // TODO sync with provider?
-
     Map<EarnRequestECDSA, byte[]> earnData = new HashMap<>();
     ArrayList<SpendTransactionData>  spendData = new ArrayList<>();
 
