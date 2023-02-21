@@ -3,6 +3,8 @@ package org.cryptimeleon.incentive.services.incentive;
 import io.swagger.annotations.ApiOperation;
 import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.TokenUpdateResultsDto;
+import org.cryptimeleon.incentive.client.dto.provider.BulkRequestProviderDto;
+import org.cryptimeleon.incentive.client.dto.provider.BulkResultsProviderDto;
 import org.cryptimeleon.incentive.services.incentive.api.RegistrationCouponJSON;
 import org.cryptimeleon.incentive.services.incentive.error.BasketAlreadyPaidException;
 import org.cryptimeleon.incentive.services.incentive.error.BasketNotPaidException;
@@ -37,6 +39,13 @@ public class IncentiveController {
     @Value("${incentive-service.provider-secret}")
     private String providerSecret;
 
+    /*
+     * endpoints for managing promotions in the system
+     */
+    public IncentiveController(final IncentiveService incentiveService) {
+        this.incentiveService = incentiveService;
+    }
+
     /**
      * Checks if shared secret for privileged actions is set properly.
      * Throws an exception if not.
@@ -57,15 +66,9 @@ public class IncentiveController {
         return new ResponseEntity<>("Hello from incentive service!", HttpStatus.OK);
     }
 
-    /*
-     * endpoints for managing promotions in the system
-     */
-    public IncentiveController(final IncentiveService incentiveService) {
-        this.incentiveService = incentiveService;
-    }
-
     /**
      * HTTP endpoint for obtaining list of all promotions in the system.
+     *
      * @return response entity that holds list of strings
      */
     @GetMapping("/promotions")
@@ -77,6 +80,7 @@ public class IncentiveController {
     /**
      * HTTP endpoint for adding new promotions (sent via a list of strings (serialized representations) in request body) to the system.
      * Authorized action, requires passing the provider secret via a header in the HTTP request.
+     *
      * @param providerSecretHeader password sent via a header (is compared to provider secret)
      * @param serializedPromotions list of strings
      * @return void response entity
@@ -141,9 +145,15 @@ public class IncentiveController {
         return new ResponseEntity<>(incentiveService.joinPromotion(promotionId, serializedJoinRequest), HttpStatus.OK);
     }
 
-    @GetMapping("/earn")
-    public String earn(@RequestHeader(name = "promotion-id") BigInteger promotionId, @RequestHeader(name = "earn-request") String serializedEarnRequest) {
-        return incentiveService.handleEarn(serializedEarnRequest, promotionId);
+    /**
+     * Handle a set of earn and spend token update requests together and return all results.
+     *
+     * @param bulkRequestProviderDto a DTO containing all requests
+     * @return a DTO containing all responses
+     */
+    @PostMapping("/bulk")
+    public BulkResultsProviderDto bulk(@RequestBody BulkRequestProviderDto bulkRequestProviderDto) {
+        return incentiveService.bulk(bulkRequestProviderDto);
     }
 
     /**
@@ -155,14 +165,15 @@ public class IncentiveController {
      * @param basketId       ID of the basket to apply the updates to
      * @param bulkRequestDto data transfer object (DTO) containing spend and earn requests
      */
+    @Deprecated
     @PostMapping("/bulk-token-updates")
     public void bulkUpdates(@RequestHeader(name = "basket-id") UUID basketId, @RequestBody BulkRequestDto bulkRequestDto) {
         incentiveService.handleBulk(basketId, bulkRequestDto);
     }
 
     /*
-    * end of endpoints for user to interact with provider of incentive system
-    */
+     * end of endpoints for user to interact with provider of incentive system
+     */
 
     /**
      * HTTP endpoint for obtaining all points and rewards for a paid basket identified by the passed ID.

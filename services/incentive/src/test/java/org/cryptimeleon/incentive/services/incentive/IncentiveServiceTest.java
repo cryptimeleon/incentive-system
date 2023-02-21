@@ -1,25 +1,17 @@
 package org.cryptimeleon.incentive.services.incentive;
 
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
-import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
-import org.cryptimeleon.incentive.client.dto.inc.SpendRequestDto;
-import org.cryptimeleon.incentive.client.dto.inc.TokenUpdateResultsDto;
 import org.cryptimeleon.incentive.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.TestSuite;
+import org.cryptimeleon.incentive.crypto.callback.IStoreBasketRedeemedHandler;
 import org.cryptimeleon.incentive.crypto.model.*;
-import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
-import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
-import org.cryptimeleon.incentive.promotion.Promotion;
 import org.cryptimeleon.incentive.promotion.TestSuiteWithPromotion;
-import org.cryptimeleon.incentive.promotion.hazel.HazelTokenUpdate;
 import org.cryptimeleon.incentive.promotion.model.Basket;
-import org.cryptimeleon.incentive.promotion.model.BasketItem;
 import org.cryptimeleon.incentive.services.incentive.api.RegistrationCouponJSON;
 import org.cryptimeleon.incentive.services.incentive.repository.BasketRepository;
 import org.cryptimeleon.incentive.services.incentive.repository.CryptoRepository;
 import org.cryptimeleon.incentive.services.incentive.repository.DSPRepository;
-import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.rings.RingElement;
@@ -33,15 +25,16 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import org.springframework.web.reactive.function.BodyInserters;
 
 import java.math.BigInteger;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.cryptimeleon.incentive.services.incentive.ClientHelper.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 /**
  * Tests all the functionality of the incentive service.
@@ -61,33 +54,10 @@ public class IncentiveServiceTest {
     // public parameters, incentive system and key pairs from crypto.testFixtures
     private static final IncentivePublicParameters pp = TestSuite.pp;
     private static final IncentiveSystem incentiveSystem = TestSuite.incentiveSystem;
-    private static final ProviderKeyPair pkp = TestSuite.providerKeyPair;
-    private static final UserKeyPair ukp = TestSuite.userKeyPair;
 
     // JSON converter for marshalling/de-marshalling of query data
     private static final JSONConverter jsonConverter = new JSONConverter();
 
-    // hard-coded baskets that the mock basket repo is set up with
-    private final Basket testBasket = new Basket(
-            UUID.randomUUID(),
-            List.of(
-                    new BasketItem(UUID.randomUUID().toString(), "Hazelnut Spread", 200, 5),
-                    new BasketItem(UUID.randomUUID().toString(), "Large Hazelnut Spread", 100, 3)
-            )
-    );
-    private final Basket emptyTestBasket = new Basket(
-            UUID.randomUUID(),
-            List.of()
-    );
-    // For DSP testing
-    private final Basket emptyTestBasketTwo = new Basket(
-            UUID.randomUUID(),
-            List.of()
-    );
-
-    // hard-coded token update
-    private final Promotion testPromotion = TestSuiteWithPromotion.promotion;
-    private final HazelTokenUpdate testTokenUpdate = (HazelTokenUpdate) testPromotion.getZkpTokenUpdates().get(0);
     private final Vector<BigInteger> testEarnAmount = Vector.of(BigInteger.valueOf(12L));
 
     // shared secret for authenticated queries
@@ -106,24 +76,94 @@ public class IncentiveServiceTest {
     private DSPRepository offlineDSPRepository;
     private ArrayList<Zn.ZnElement> dsids;
 
+    private static Token generateToken() {
+        return Helper.generateToken(
+                pp,
+                TestSuiteWithPromotion.userKeyPair,
+                TestSuiteWithPromotion.providerKeyPair,
+                TestSuiteWithPromotion.promotion.getPromotionParameters(),
+                TestSuiteWithPromotion.pointsBeforeSpend
+        );
+    }
+
+    private static Token retrieveUpdatedTokenFromResponse(Token token, SpendRequestECDSA spendRequestECDSA, SpendResponseECDSA spendResponseECDSA) {
+        return incentiveSystem.retrieveUpdatedTokenFromSpendResponse(
+                TestSuiteWithPromotion.userKeyPair,
+                TestSuiteWithPromotion.providerKeyPair.getPk(),
+                token,
+                TestSuiteWithPromotion.promotion.getPromotionParameters(),
+                TestSuiteWithPromotion.pointsAfterSpend,
+                spendRequestECDSA,
+                spendResponseECDSA);
+    }
+
+    private static SpendResponseECDSA runSpendWithService(WebTestClient webClient, SpendRequestECDSA spendRequestECDSA) {
+        return runSpendWithService(webClient, spendRequestECDSA, TestSuiteWithPromotion.basket);
+    }
+
+    private static SpendResponseECDSA runSpendWithService(WebTestClient webClient, SpendRequestECDSA spendRequestECDSA, Basket basket) {
+        return spend(webClient,
+                incentiveSystem,
+                TestSuiteWithPromotion.promotion.getPromotionParameters(),
+                TestSuiteWithPromotion.spendTokenUpdate,
+                spendRequestECDSA,
+                TestSuiteWithPromotion.metadata,
+                basket.getBasketId(),
+                TestSuiteWithPromotion.basketPoints.toList());
+    }
+
+    private static SpendCouponSignature generateSpendCouponSignature(SpendCouponRequest spendCouponRequest) {
+        return generateSpendCouponSignature(spendCouponRequest, TestSuiteWithPromotion.basket);
+    }
+
+    private static SpendCouponSignature generateSpendCouponSignature(SpendCouponRequest spendCouponRequest, Basket basket) {
+        return incentiveSystem.signSpendCoupon(
+                TestSuiteWithPromotion.storeKeyPair,
+                TestSuiteWithPromotion.providerKeyPair.getPk(),
+                basket.getBasketId(),
+                TestSuiteWithPromotion.promotion.getPromotionParameters(),
+                spendCouponRequest,
+                TestSuiteWithPromotion.tree,
+                TestSuiteWithPromotion.context,
+                (basketId, promotionId, hash) -> IStoreBasketRedeemedHandler.BasketRedeemState.BASKET_NOT_REDEEMED,
+                new TestSuite.TestDsidBlacklist(),
+                new TestSuite.TestTransactionDbHandler());
+    }
+
+    private static SpendCouponRequest generateSpendCouponRequest(Token token) {
+        return generateSpendCouponRequest(token, TestSuiteWithPromotion.basket);
+    }
+
+    private static SpendCouponRequest generateSpendCouponRequest(Token token, Basket basket) {
+        return incentiveSystem.generateStoreSpendRequest(
+                TestSuiteWithPromotion.userKeyPair,
+                TestSuiteWithPromotion.providerKeyPair.getPk(),
+                token,
+                TestSuiteWithPromotion.promotion.getPromotionParameters(),
+                basket.getBasketId(),
+                TestSuiteWithPromotion.pointsAfterSpend,
+                TestSuiteWithPromotion.tree,
+                TestSuiteWithPromotion.context);
+    }
 
     @BeforeEach
     public void mock(@Autowired WebTestClient webTestClient) {
         // program hard-coded return values for the crypto and basket repositories using mockito
         when(cryptoRepository.getPublicParameters()).thenReturn(pp);
         when(cryptoRepository.getIncentiveSystem()).thenReturn(incentiveSystem);
-        when(cryptoRepository.getProviderPublicKey()).thenReturn(pkp.getPk());
-        when(cryptoRepository.getProviderSecretKey()).thenReturn(pkp.getSk());
-        when(basketRepository.getBasket(testBasket.getBasketId())).thenReturn(testBasket);
-        when(basketRepository.isBasketPaid(testBasket.getBasketId())).thenReturn(false);
-        when(basketRepository.getBasket(emptyTestBasket.getBasketId())).thenReturn(emptyTestBasket);
-        when(basketRepository.isBasketPaid(emptyTestBasket.getBasketId())).thenReturn(false);
-        when(basketRepository.getBasket(emptyTestBasketTwo.getBasketId())).thenReturn(emptyTestBasketTwo);
-        when(basketRepository.isBasketPaid(emptyTestBasketTwo.getBasketId())).thenReturn(false);
+        when(cryptoRepository.getProviderPublicKey()).thenReturn(TestSuite.providerKeyPair.getPk());
+        when(cryptoRepository.getProviderSecretKey()).thenReturn(TestSuite.providerKeyPair.getSk());
+        when(cryptoRepository.getProviderKeyPair()).thenReturn(TestSuite.providerKeyPair);
+        when(basketRepository.getBasket(TestSuiteWithPromotion.basket.getBasketId())).thenReturn(TestSuiteWithPromotion.basket);
+        when(basketRepository.isBasketPaid(TestSuiteWithPromotion.basket.getBasketId())).thenReturn(false);
+        when(basketRepository.getBasket(TestSuiteWithPromotion.emptyBasket.getBasketId())).thenReturn(TestSuiteWithPromotion.emptyBasket);
+        when(basketRepository.isBasketPaid(TestSuiteWithPromotion.emptyBasket.getBasketId())).thenReturn(false);
+        when(basketRepository.getBasket(TestSuiteWithPromotion.emptyBasketTwo.getBasketId())).thenReturn(TestSuiteWithPromotion.emptyBasketTwo);
+        when(basketRepository.isBasketPaid(TestSuiteWithPromotion.emptyBasketTwo.getBasketId())).thenReturn(false);
 
         dsids = new ArrayList<>();
         when(offlineDSPRepository.containsDsid(any())).thenAnswer(invocation ->
-            dsids.contains(invocation.getArgument(0, Zn.ZnElement.class))
+                dsids.contains(invocation.getArgument(0, Zn.ZnElement.class))
         );
 
         // clear all promotions for clean test starting state
@@ -143,7 +183,7 @@ public class IncentiveServiceTest {
         SPSEQSignature signature = retrieveRegistrationSignatureForCoupon(webClient, registrationCoupon);
 
         // assert that signature verifies under the providers SPS-EQ key
-        assertThat(pp.getSpsEq().verify(pkp.getPk().getRegistrationSpsEqPk(), signature, userPreKeyPair.getPk().getUpk(), pp.getW()))
+        assertThat(pp.getSpsEq().verify(TestSuite.providerKeyPair.getPk().getRegistrationSpsEqPk(), signature, userPreKeyPair.getPk().getUpk(), pp.getW()))
                 .isTrue();
     }
 
@@ -163,10 +203,10 @@ public class IncentiveServiceTest {
     @Test
     public void joinTest(@Autowired WebTestClient webClient) {
         // add the promotion used for tests to the system
-        addPromotion(webClient, testPromotion, providerSecret, HttpStatus.OK);
+        addPromotion(webClient, TestSuiteWithPromotion.promotion, providerSecret, HttpStatus.OK);
 
         // actual Issue execution
-        Token token = joinPromotion(webClient, incentiveSystem, pkp, ukp, testPromotion, HttpStatus.OK);
+        Token token = joinPromotion(webClient, incentiveSystem, TestSuite.providerKeyPair, TestSuite.userKeyPair, TestSuiteWithPromotion.promotion, HttpStatus.OK);
 
         // verify that a token was generated
         assertThat(token).isNotNull();
@@ -178,27 +218,27 @@ public class IncentiveServiceTest {
     @Test
     public void joinNonExistingPromotionTest(@Autowired WebTestClient webClient) {
         assertThatThrownBy(
-                () -> joinPromotion(webClient, incentiveSystem, pkp, ukp, testPromotion, HttpStatus.BAD_REQUEST)
+                () -> joinPromotion(webClient, incentiveSystem, TestSuite.providerKeyPair, TestSuite.userKeyPair, TestSuiteWithPromotion.promotion, HttpStatus.BAD_REQUEST)
         ).hasStackTraceContaining("Promotion");
     }
 
     @Test
     public void earnTest(@Autowired WebTestClient webClient) {
         // add promotion that is used for tests to the system
-        addPromotion(webClient, testPromotion, providerSecret, HttpStatus.OK);
-        Token token = TestSuite.generateToken(testPromotion.getPromotionParameters());
-        EarnStoreCouponSignature earnStoreCouponSignature = TestSuite.getEarnCouponForPromotion(token, testEarnAmount, testBasket.getBasketId(), testPromotion.getPromotionParameters().getPromotionId());
+        addPromotion(webClient, TestSuiteWithPromotion.promotion, providerSecret, HttpStatus.OK);
+        Token token = TestSuite.generateToken(TestSuiteWithPromotion.promotion.getPromotionParameters());
+        EarnStoreCouponSignature earnStoreCouponSignature = TestSuite.getEarnCouponForPromotion(token, testEarnAmount, TestSuiteWithPromotion.basket.getBasketId(), TestSuiteWithPromotion.promotion.getPromotionParameters().getPromotionId());
 
         // generate earn request and pretend like the test user sent it to you
-        var updatedToken = earnWithProviderECDSA(
+        var updatedToken = earn(
                 webClient,
                 incentiveSystem,
-                pkp,
-                ukp,
+                TestSuite.providerKeyPair,
+                TestSuite.userKeyPair,
                 token,
                 testEarnAmount,
                 earnStoreCouponSignature,
-                testPromotion.getPromotionParameters()
+                TestSuiteWithPromotion.promotion.getPromotionParameters()
         );
 
         assertThat(updatedToken.getPoints().map(RingElement::asInteger)).isEqualTo(testEarnAmount);
@@ -207,39 +247,39 @@ public class IncentiveServiceTest {
     @Test
     public void earnTestOld(@Autowired WebTestClient webClient) {
         // add promotion that is used for tests to the system
-        addPromotion(webClient, testPromotion, providerSecret, HttpStatus.OK);
+        addPromotion(webClient, TestSuiteWithPromotion.promotion, providerSecret, HttpStatus.OK);
 
         // execute Issue to generate a token for the test promotion for the test user
-        Token token = joinPromotion(webClient, incentiveSystem, pkp, ukp, testPromotion, HttpStatus.OK);
+        Token token = joinPromotion(webClient, incentiveSystem, TestSuite.providerKeyPair, TestSuite.userKeyPair, TestSuiteWithPromotion.promotion, HttpStatus.OK);
 
         // evaluate test basket to determine how many points the user earns
-        var pointsToEarn = testPromotion.computeEarningsForBasket(testBasket);
+        var pointsToEarn = TestSuiteWithPromotion.promotion.computeEarningsForBasket(TestSuiteWithPromotion.basket);
 
         // generate earn request and pretend like the test user sent it to you
         var earnRequest = generateAndSendEarnRequest(
                 webClient,
                 incentiveSystem,
-                pkp,
-                ukp,
+                TestSuite.providerKeyPair,
+                TestSuite.userKeyPair,
                 token,
-                testPromotion.getPromotionParameters().getPromotionId(),
-                testBasket.getBasketId(),
+                TestSuiteWithPromotion.promotion.getPromotionParameters().getPromotionId(),
+                TestSuiteWithPromotion.basket.getBasketId(),
                 HttpStatus.OK
         );
 
         // test basket is considered paid now (-> change this in hard-coded mock repo)
-        when(basketRepository.isBasketPaid(testBasket.getBasketId())).thenReturn(true);
+        when(basketRepository.isBasketPaid(TestSuiteWithPromotion.basket.getBasketId())).thenReturn(true);
 
 
         retrieveTokenAfterEarn(
                 webClient,
                 incentiveSystem,
-                testPromotion,
-                pkp,
-                ukp,
+                TestSuiteWithPromotion.promotion,
+                TestSuite.providerKeyPair,
+                TestSuite.userKeyPair,
                 token,
                 earnRequest,
-                testBasket.getBasketId(),
+                TestSuiteWithPromotion.basket.getBasketId(),
                 pointsToEarn,
                 HttpStatus.OK
         );
@@ -247,28 +287,28 @@ public class IncentiveServiceTest {
 
     @Test
     public void earnWrongBasketTest(@Autowired WebTestClient webClient) {
-        addPromotion(webClient, testPromotion, providerSecret, HttpStatus.OK);
-        Token token = joinPromotion(webClient, incentiveSystem, pkp, ukp, testPromotion, HttpStatus.OK);
+        addPromotion(webClient, TestSuiteWithPromotion.promotion, providerSecret, HttpStatus.OK);
+        Token token = joinPromotion(webClient, incentiveSystem, TestSuite.providerKeyPair, TestSuite.userKeyPair, TestSuiteWithPromotion.promotion, HttpStatus.OK);
 
         generateAndSendEarnRequest(webClient,
                 incentiveSystem,
-                pkp,
-                ukp,
+                TestSuite.providerKeyPair,
+                TestSuite.userKeyPair,
                 token,
-                testPromotion.getPromotionParameters().getPromotionId(),
+                TestSuiteWithPromotion.promotion.getPromotionParameters().getPromotionId(),
                 UUID.randomUUID(),
                 HttpStatus.BAD_REQUEST);
     }
 
     @Test
     public void earnInvalidPromotionIdTest(@Autowired WebTestClient webClient) {
-        addPromotion(webClient, testPromotion, providerSecret, HttpStatus.OK);
-        Token token = joinPromotion(webClient, incentiveSystem, pkp, ukp, testPromotion, HttpStatus.OK);
+        addPromotion(webClient, TestSuiteWithPromotion.promotion, providerSecret, HttpStatus.OK);
+        Token token = joinPromotion(webClient, incentiveSystem, TestSuite.providerKeyPair, TestSuite.userKeyPair, TestSuiteWithPromotion.promotion, HttpStatus.OK);
 
         generateAndSendEarnRequest(webClient,
                 incentiveSystem,
-                pkp,
-                ukp,
+                TestSuite.providerKeyPair,
+                TestSuite.userKeyPair,
                 token,
                 BigInteger.valueOf(14),
                 UUID.randomUUID(),
@@ -276,120 +316,62 @@ public class IncentiveServiceTest {
     }
 
     @Test
-    void spendTest(@Autowired WebTestClient webTestClient) {
-        addPromotion(webTestClient, testPromotion, providerSecret, HttpStatus.OK);
-        var tokenPoints = Vector.of(BigInteger.valueOf(35));
-        var basketPoints = Vector.of(BigInteger.valueOf(0));
-        var pointsAfterSpend = testTokenUpdate.computeSatisfyingNewPointsVector(tokenPoints, basketPoints).orElseThrow();
-        var token = Helper.generateToken(
-                pp,
-                ukp,
-                pkp,
-                testPromotion.getPromotionParameters(),
-                tokenPoints
-        );
+    public void spendTestECDSA(@Autowired WebTestClient webClient) {
+        addPromotion(webClient, TestSuiteWithPromotion.promotion, providerSecret, HttpStatus.OK);
 
-        SpendRequest spendRequest = sendSingleSpendRequest(webTestClient, basketPoints, pointsAfterSpend, token, emptyTestBasket, HttpStatus.OK);
-        when(basketRepository.isBasketPaid(emptyTestBasket.getBasketId())).thenReturn(true);
-        retrieveTokenAfterSpend(webTestClient, token, pointsAfterSpend, spendRequest, emptyTestBasket);
+        var token = generateToken();
+        SpendCouponRequest spendCouponRequest = generateSpendCouponRequest(token);
+        SpendCouponSignature spendCouponSignature = generateSpendCouponSignature(spendCouponRequest);
+        SpendRequestECDSA spendRequestECDSA = new SpendRequestECDSA(spendCouponRequest, spendCouponSignature);
+
+        // Request
+        SpendResponseECDSA spendResponseECDSA = runSpendWithService(webClient, spendRequestECDSA);
+
+        Token updatedToken = retrieveUpdatedTokenFromResponse(token, spendRequestECDSA, spendResponseECDSA);
+        assertThat(updatedToken.getPoints().map(RingElement::asInteger)).isEqualTo(TestSuiteWithPromotion.pointsAfterSpend);
     }
 
     @Test
-    void spendWithoutPaymentTest(@Autowired WebTestClient webTestClient) {
-        addPromotion(webTestClient, testPromotion, providerSecret, HttpStatus.OK);
-        var tokenPoints = Vector.of(BigInteger.valueOf(35));
-        var basketPoints = Vector.of(BigInteger.valueOf(0));
-        var pointsAfterSpend = testTokenUpdate.computeSatisfyingNewPointsVector(tokenPoints, basketPoints).orElseThrow();
-        var token = Helper.generateToken(
-                pp,
-                ukp,
-                pkp,
-                testPromotion.getPromotionParameters(),
-                tokenPoints
-        );
+    public void spendTestTwiceECDSA(@Autowired WebTestClient webClient) {
+        addPromotion(webClient, TestSuiteWithPromotion.promotion, providerSecret, HttpStatus.OK);
 
-        // transaction shall not be synced into db in this test case
-        sendSingleSpendRequest(webTestClient, basketPoints, pointsAfterSpend, token, emptyTestBasket, HttpStatus.OK);
+        var token = generateToken();
+        SpendCouponRequest spendCouponRequest = generateSpendCouponRequest(token);
+        SpendCouponSignature spendCouponSignature = generateSpendCouponSignature(spendCouponRequest);
+        SpendRequestECDSA spendRequestECDSA = new SpendRequestECDSA(spendCouponRequest, spendCouponSignature);
 
-        // Not paid yet
-        webTestClient.post()
-                .uri(uriBuilder -> uriBuilder.path("/bulk-token-update-results").build())
-                .header("basket-id", String.valueOf(emptyTestBasket.getBasketId()))
-                .exchange()
-                .expectStatus()
-                .isEqualTo(HttpStatus.BAD_REQUEST);
+        SpendCouponRequest spendCouponRequest2 = generateSpendCouponRequest(token, TestSuiteWithPromotion.basketButWithDifferentId);
+        SpendCouponSignature spendCouponSignature2 = generateSpendCouponSignature(spendCouponRequest2, TestSuiteWithPromotion.basketButWithDifferentId);
+        SpendRequestECDSA spendRequestECDSA2 = new SpendRequestECDSA(spendCouponRequest2, spendCouponSignature2);
+
+        // Request
+        SpendResponseECDSA spendResponseECDSA = runSpendWithService(webClient, spendRequestECDSA);
+        retrieveUpdatedTokenFromResponse(token, spendRequestECDSA, spendResponseECDSA);
+
+        // TODO this is not super nice, expect a specific error code!
+        assertThatThrownBy(() -> runSpendWithService(webClient, spendRequestECDSA2, TestSuiteWithPromotion.basketButWithDifferentId)).isInstanceOf(AssertionError.class);
     }
 
     @Test
-    void emptyBulkRequestTest(@Autowired WebTestClient webTestClient) {
-        sendBulkRequests(webTestClient, new BulkRequestDto(List.of(), List.of()), emptyTestBasket, HttpStatus.OK); // transaction shall not be synced into DB in this test case
-    }
+    public void spendTestInvalidECDSA(@Autowired WebTestClient webClient) {
+        addPromotion(webClient, TestSuiteWithPromotion.promotion, providerSecret, HttpStatus.OK);
 
-    /**
-     * Generates and returns a single spend request and sends it to the incentive service using the passed WebTestClient.
-     *
-     * @param webTestClient the client used for sending the request
-     * @param basketPoints vector representing the points that the user can earn for his basket
-     * @param pointsAfterSpend remaining points in the token after the spend transaction
-     * @param token spent token
-     * @param expectedStatus an exception is thrown if the HTTPResponse status code differs from this one
-     * @return spend request crypto object
-     */
-    private SpendRequest sendSingleSpendRequest(WebTestClient webTestClient, Vector<BigInteger> basketPoints, Vector<BigInteger> pointsAfterSpend, Token token, Basket basket, HttpStatus expectedStatus) {
-        var metadata = testPromotion.generateMetadataForUpdate();
-        var spendDeductTree = testTokenUpdate.generateRelationTree(basketPoints, metadata);
-        var tid = basket.getBasketId(pp.getBg().getZn());
-        SpendRequest spendRequest = incentiveSystem.generateSpendRequest(
-                testPromotion.getPromotionParameters(),
-                token,
-                pkp.getPk(),
-                pointsAfterSpend,
-                ukp,
-                tid,
-                spendDeductTree
+        var token = generateToken();
+        SpendCouponRequest spendCouponRequest = generateSpendCouponRequest(token);
+        SpendCouponSignature spendCouponSignature = generateSpendCouponSignature(spendCouponRequest);
+        var manipulatedSpendCouponRequest = new SpendCouponRequest(
+                spendCouponRequest.getDsid().add(pp.getBg().getZn().valueOf(1)),
+                spendCouponRequest.getC(),
+                spendCouponRequest.getSigma(),
+                spendCouponRequest.getC0(),
+                spendCouponRequest.getCPre0(),
+                spendCouponRequest.getCPre1(),
+                spendCouponRequest.getSpendZkp()
         );
-        var bulkRequestDto = new BulkRequestDto(
-                Collections.emptyList(),
-                List.of(new SpendRequestDto(
-                        testPromotion.getPromotionParameters().getPromotionId(),
-                        testTokenUpdate.getTokenUpdateId(),
-                        jsonConverter.serialize(spendRequest.getRepresentation()),
-                        jsonConverter.serialize(new RepresentableRepresentation(metadata))
-                )));
-        sendBulkRequests(webTestClient, bulkRequestDto, basket, expectedStatus);
-        return spendRequest;
-    }
+        SpendRequestECDSA spendRequestECDSA = new SpendRequestECDSA(manipulatedSpendCouponRequest, spendCouponSignature);
 
-    /**
-     * Sends a bulk of multiple earn and spend requests to the incentive server using the WebTestClient.
-     * @param webTestClient the client used to send the request bulk to the server
-     * @param bulkRequestDto bulk of Earn and Spend requests
-     * @param testBasket basket the user earns points for
-     * @param expectedStatus an exception if the HTTPResponse status code differs from this one
-     */
-    private void sendBulkRequests(WebTestClient webTestClient, BulkRequestDto bulkRequestDto, Basket testBasket, HttpStatus expectedStatus) {
-        webTestClient.post()
-                .uri(uriBuilder -> uriBuilder.path("/bulk-token-updates").build())
-                .header("basket-id", String.valueOf(testBasket.getBasketId()))
-                .body(BodyInserters.fromValue(bulkRequestDto))
-                .exchange()
-                .expectStatus()
-                .isEqualTo(expectedStatus);
-    }
-
-    private Token retrieveTokenAfterSpend(WebTestClient webTestClient, Token token, Vector<BigInteger> pointsAfterSpend, SpendRequest spendRequest, Basket basket) {
-        var resultsDto = webTestClient.post()
-                .uri(uriBuilder -> uriBuilder.path("/bulk-token-update-results").build())
-                .header("basket-id", String.valueOf(basket.getBasketId()))
-                .exchange()
-                .expectStatus()
-                .isOk()
-                .expectBody(TokenUpdateResultsDto.class)
-                .returnResult().getResponseBody();
-        assert resultsDto != null;
-        var serializedSpendResponse = resultsDto.getZkpTokenUpdateResultDtoList().get(0).getSerializedResponse();
-        SpendResponse spendResponse = new SpendResponse(jsonConverter.deserialize(serializedSpendResponse), pp.getBg().getZn(), pp.getSpsEq());
-        return incentiveSystem.handleSpendRequestResponse(testPromotion.getPromotionParameters(), spendResponse, spendRequest, token, pointsAfterSpend, pkp.getPk(), ukp);
+        // TODO this is not super nice, expect a specific error!
+        assertThatThrownBy(() -> runSpendWithService(webClient, spendRequestECDSA)).isInstanceOf(AssertionError.class);
     }
 
     private SPSEQSignature retrieveRegistrationSignatureForCoupon(WebTestClient webClient, RegistrationCoupon registrationCoupon) {

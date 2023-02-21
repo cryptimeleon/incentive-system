@@ -1,23 +1,24 @@
 package org.cryptimeleon.incentive.services.basket;
 
 import io.swagger.annotations.ApiOperation;
+import org.cryptimeleon.incentive.client.dto.store.BulkRequestStoreDto;
+import org.cryptimeleon.incentive.client.dto.store.BulkResultsStoreDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigInteger;
 import java.util.List;
 import java.util.UUID;
 
 @Controller
 public class StoreController {
+    // Will be set via dependency injection
+    private final StoreService storeService;
     @Value("${basket-service.provider-secret}")
     private String basketServiceProviderSecret; // used to authenticate the request for the store secret key (set via environment variable)
 
-    // Will be set via dependency injection
-    private final StoreService storeService;
     public StoreController(StoreService storeService) {
         this.storeService = storeService;
     }
@@ -26,7 +27,7 @@ public class StoreController {
      * This would happen after somebody at a store verifies the userInfo, e.g. an id.
      *
      * @param serializedUserPublicKey the public key of the user that wants to register
-     * @param userInfo some information that allows identifying a user in the real world
+     * @param userInfo                some information that allows identifying a user in the real world
      * @return a serialized registration coupon consisting of the signed data and the verification key
      */
     @GetMapping("/register-user-and-obtain-serialized-registration-coupon")
@@ -35,19 +36,31 @@ public class StoreController {
     }
 
     /**
-     * Verify a user's earn request and issue an earn coupon.
+     * Send a bulk request, i.e., a bundle of earn and spend requests associated to the same basket.
+     * The requests are processed, but the results held back until the corresponding basket is paid.
+     *
+     * @param bulkRequestStoreDto a dto containing all individual token update requests
      */
-    @GetMapping("/earn")
-    ResponseEntity<String> registerUserAndReturnSerializedRegistrationCoupon(
-            @RequestHeader("earn-store-request") String serializedEarnStoreRequest,
-            @RequestHeader("basket-id") UUID basketId,
-            @RequestHeader("promotion-id") BigInteger promotionId
-    ) {
-        return new ResponseEntity<>(storeService.earn(serializedEarnStoreRequest, basketId, promotionId), HttpStatus.OK);
+    @PostMapping("/bulk")
+    ResponseEntity<Void> bulkRequest(@RequestBody BulkRequestStoreDto bulkRequestStoreDto) {
+        storeService.processBulkRequest(bulkRequestStoreDto);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    /**
+     * Obtain the bulk results for some basket if present and the basket is paid.
+     *
+     * @param basketId the id of the basket
+     * @return a DTO containing serialized results
+     */
+    @GetMapping("/bulk-results")
+    ResponseEntity<BulkResultsStoreDto> bulkResponse(@RequestHeader("basket-id") UUID basketId) {
+        return new ResponseEntity<>(storeService.bulkResponses(basketId), HttpStatus.OK);
     }
 
     /**
      * HTTP endpoint for obtaining list of all promotions in the system.
+     *
      * @return response entity that holds list of strings
      */
     @GetMapping("/promotions")
@@ -59,7 +72,8 @@ public class StoreController {
     /**
      * HTTP endpoint for adding new promotions (sent via a list of strings (serialized representations) in request body) to the system.
      * Authorized action, requires passing the provider secret via a header in the HTTP request.
-     * @param storeSecretHeader password sent via a header (is compared to provider secret)
+     *
+     * @param storeSecretHeader    password sent via a header (is compared to provider secret)
      * @param serializedPromotions list of strings
      * @return void response entity
      */

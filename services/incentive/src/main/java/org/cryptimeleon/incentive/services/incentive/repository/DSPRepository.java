@@ -3,13 +3,15 @@ package org.cryptimeleon.incentive.services.incentive.repository;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.springframework.stereotype.Repository;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 
 @Repository
 public class DSPRepository {
     private final Set<Zn.ZnElement> dsidSet = new HashSet<>();
 
-    public DSPRepository() {}
+    public DSPRepository() {
+    }
 
     // TODO here is some work that needs to be done soon!
 

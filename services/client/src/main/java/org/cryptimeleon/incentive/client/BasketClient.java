@@ -1,8 +1,14 @@
 package org.cryptimeleon.incentive.client;
 
 import org.cryptimeleon.incentive.client.dto.*;
+import org.cryptimeleon.incentive.client.dto.store.BulkRequestStoreDto;
+import org.cryptimeleon.incentive.client.dto.store.BulkResultsStoreDto;
+import org.cryptimeleon.incentive.client.dto.store.EarnRequestStoreDto;
+import org.cryptimeleon.incentive.client.dto.store.SpendRequestStoreDto;
 import org.cryptimeleon.incentive.crypto.model.EarnStoreRequest;
+import org.cryptimeleon.incentive.crypto.model.SpendCouponRequest;
 import org.cryptimeleon.incentive.promotion.Promotion;
+import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
 import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +18,7 @@ import reactor.core.publisher.Mono;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -90,17 +97,14 @@ public class BasketClient implements AliveEndpoint {
                 .bodyToMono(Void.class);
     }
 
-    public Mono<Void> payBasket(UUID basketId, long value, String paymentSecret) {
-        return payBasket(basketId, paymentSecret);
-    }
-
-    public Mono<Void> payBasket(UUID basketId, String paymentSecret) {
-        return basketClient.post()
+    public void payBasket(UUID basketId, String paymentSecret) {
+        basketClient.post()
                 .uri("/basket/pay")
                 .header("pay-secret", paymentSecret)
                 .header("basket-id", String.valueOf(basketId))
                 .retrieve()
-                .bodyToMono(Void.class);
+                .bodyToMono(Void.class)
+                .block();
     }
 
     public Mono<Void> redeemBasket(PostRedeemBasketDto postRedeemBasketDto, String redeemSecret) {
@@ -142,9 +146,11 @@ public class BasketClient implements AliveEndpoint {
                 .header("user-public-key", userPublicKey)
                 .header("user-info", userInfo)
                 .retrieve()
-                .bodyToMono(String.class).block();
+                .bodyToMono(String.class)
+                .block();
     }
 
+    @Deprecated
     public String requestEarnCoupon(EarnStoreRequest earnStoreRequest, UUID basketId, BigInteger promotionId) {
         return basketClient
                 .get()
@@ -153,7 +159,43 @@ public class BasketClient implements AliveEndpoint {
                 .header("basket-id", String.valueOf(basketId))
                 .header("promotion-id", String.valueOf(promotionId))
                 .retrieve()
-                .bodyToMono(String.class).block();
+                .bodyToMono(String.class)
+                .block();
+    }
+
+    public ResponseEntity<Void> sendEarn(UUID basketId, BigInteger promotionId, EarnStoreRequest earnStoreRequest) {
+        var earnRequestDto = new EarnRequestStoreDto(promotionId, jsonConverter.serialize(earnStoreRequest.getRepresentation()));
+        return sendBulkEarnAndSpend(new BulkRequestStoreDto(basketId, List.of(earnRequestDto), Collections.emptyList()));
+    }
+
+    public ResponseEntity<Void> sendSpend(UUID basketId, BigInteger promotionId, UUID tokenUpdateId, SpendCouponRequest spendStoreRequest, ZkpTokenUpdateMetadata metadata) {
+        var spendRequestDto = new SpendRequestStoreDto(jsonConverter.serialize(spendStoreRequest.getRepresentation()),
+                promotionId,
+                tokenUpdateId,
+                jsonConverter.serialize(new RepresentableRepresentation(metadata)));
+        return sendBulkEarnAndSpend(
+                new BulkRequestStoreDto(basketId,
+                        Collections.emptyList(),
+                        List.of(spendRequestDto)));
+    }
+
+    public ResponseEntity<Void> sendBulkEarnAndSpend(BulkRequestStoreDto bulkRequestStore) {
+        return basketClient.post()
+                .uri("/bulk")
+                .body(BodyInserters.fromValue(bulkRequestStore))
+                .retrieve()
+                .toBodilessEntity()
+                .block();
+    }
+
+    public BulkResultsStoreDto retrieveBulkResponse(UUID basketId) {
+        return basketClient.get()
+                .uri("/bulk-results")
+                .header("basket-id", String.valueOf(basketId))
+                .retrieve()
+                .bodyToMono(BulkResultsStoreDto.class)
+                .block();
+
     }
 
     public Mono<ResponseEntity<Void>> addPromotions(List<Promotion> promotions, String providerSecret) {

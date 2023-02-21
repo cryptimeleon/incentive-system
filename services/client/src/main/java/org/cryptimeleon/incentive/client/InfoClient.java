@@ -79,6 +79,7 @@ public class InfoClient implements AliveEndpoint {
                 .retrieve()
                 .bodyToMono(String.class);
     }
+
     public Mono<String> querySerializedStoreSecretKey(String storeSharedSecret) {
         return infoClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/store-secret-key")

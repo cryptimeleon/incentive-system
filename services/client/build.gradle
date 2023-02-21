@@ -13,6 +13,10 @@ dependencies {
     implementation 'org.cryptimeleon.incentive:crypto'
     implementation 'org.cryptimeleon.incentive:promotion'
     testImplementation testFixtures('org.cryptimeleon.incentive:promotion')
+
+    // M1 mac fix
+    implementation 'io.netty:netty-all'
+    implementation "io.netty:netty-resolver-dns-native-macos:4.1.72.Final:osx-aarch_64"
 }
 
 bootJar {

@@ -23,6 +23,7 @@ public class PromotionRepository {
 
     /**
      * Returns the promotion with the passed promotion ID if it exists.
+     *
      * @return Optional
      */
     public Optional<Promotion> getPromotion(BigInteger promotionId) {
@@ -31,6 +32,7 @@ public class PromotionRepository {
 
     /**
      * Adds the passed promotion to the system if its promotion ID is not used yet.
+     *
      * @param promotion promotion object
      */
     public void addPromotion(Promotion promotion) {

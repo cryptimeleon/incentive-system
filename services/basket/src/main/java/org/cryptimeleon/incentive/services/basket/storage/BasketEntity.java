@@ -1,9 +1,8 @@
 package org.cryptimeleon.incentive.services.basket.storage;
 
 import javax.persistence.*;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.math.BigInteger;
+import java.util.*;
 
 @Entity
 @Table(name = "baskets")
@@ -18,13 +17,16 @@ public class BasketEntity {
     private boolean redeemed;
     private boolean locked;
     private String redeemRequest;
-    // private long value;
+
+    @ElementCollection
+    @MapKeyColumn(name = "key", columnDefinition = "DECIMAL(50,0)") // Allow more digits than default for key (19)
+    private Map<BigInteger, byte[]> redeemRequestHashes = new HashMap<>();
 
     public BasketEntity() {
         this.basketID = UUID.randomUUID();
     }
 
-    public BasketEntity(UUID basketID, Set<ItemInBasketEntity> basketItems, Set<RewardItemEntity> rewardItems, boolean paid, boolean redeemed, boolean locked, String redeemRequest) {
+    public BasketEntity(UUID basketID, Set<ItemInBasketEntity> basketItems, Set<RewardItemEntity> rewardItems, boolean paid, boolean redeemed, boolean locked, String redeemRequest, HashMap<BigInteger, byte[]> redeemRequestHashes) {
         this.basketID = basketID;
         this.basketItems = basketItems;
         this.rewardItems = rewardItems;
@@ -32,6 +34,7 @@ public class BasketEntity {
         this.redeemed = redeemed;
         this.locked = locked;
         this.redeemRequest = redeemRequest;
+        this.redeemRequestHashes = redeemRequestHashes;
     }
 
     public UUID getBasketID() {
@@ -66,6 +69,10 @@ public class BasketEntity {
         return rewardItems;
     }
 
+    public void addRewardItems(List<RewardItemEntity> rewardItemEntities) {
+        rewardItems.addAll(rewardItemEntities);
+    }
+
     public boolean isPaid() {
         return paid;
     }
@@ -74,10 +81,12 @@ public class BasketEntity {
         this.paid = paid;
     }
 
+    @Deprecated
     public boolean isRedeemed() {
         return redeemed;
     }
 
+    @Deprecated
     public void setRedeemed(boolean redeemed) {
         this.redeemed = redeemed;
     }
@@ -90,11 +99,22 @@ public class BasketEntity {
         this.locked = locked;
     }
 
+    @Deprecated
     public String getRedeemRequest() {
         return redeemRequest;
     }
 
+    @Deprecated
     public void setRedeemRequest(String redeemRequest) {
         this.redeemRequest = redeemRequest;
+    }
+
+    public Optional<byte[]> getRedeemHashForPromotionId(BigInteger promotionId) {
+        if (redeemRequestHashes.containsKey(promotionId)) return Optional.of(redeemRequestHashes.get(promotionId));
+        return Optional.empty();
+    }
+
+    public void setRedeemHashForPromotionId(BigInteger promotionId, byte[] hash) {
+        redeemRequestHashes.put(promotionId, hash);
     }
 }

@@ -123,7 +123,7 @@ public class TransactionTestPreparation extends IncentiveSystemIntegrationTest {
         incentiveClient.sendBulkUpdates(basketId, bulkRequestDto).block();
 
         // pay basket
-        basketClient.payBasket(basketId, paySecret).block();
+        basketClient.payBasket(basketId, paySecret);
 
         // retrieve spend response and handle it
         var bulkResponseDto = incentiveClient.retrieveBulkResults(basketId).block();
