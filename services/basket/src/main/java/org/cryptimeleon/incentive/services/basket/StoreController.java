@@ -42,8 +42,9 @@ public class StoreController {
      * @param bulkRequestStoreDto a dto containing all individual token update requests
      */
     @PostMapping("/bulk")
-    void bulkRequest(@RequestBody BulkRequestStoreDto bulkRequestStoreDto) {
+    ResponseEntity<Void> bulkRequest(@RequestBody BulkRequestStoreDto bulkRequestStoreDto) {
         storeService.processBulkRequest(bulkRequestStoreDto);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     /**
@@ -53,8 +54,8 @@ public class StoreController {
      * @return a DTO containing serialized results
      */
     @GetMapping("/bulk-results")
-    BulkResultsStoreDto bulkResponse(@RequestHeader("basket-id") UUID basketId) {
-        return storeService.bulkResponses(basketId);
+    ResponseEntity<BulkResultsStoreDto> bulkResponse(@RequestHeader("basket-id") UUID basketId) {
+        return new ResponseEntity<>(storeService.bulkResponses(basketId), HttpStatus.OK);
     }
 
     /**
