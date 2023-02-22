@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.map
 import org.cryptimeleon.incentive.app.data.database.crypto.CryptoDao
 import org.cryptimeleon.incentive.app.data.database.crypto.CryptoMaterialEntity
 import org.cryptimeleon.incentive.app.data.database.crypto.CryptoTokenEntity
-import org.cryptimeleon.incentive.app.data.network.CryptoApiService
+import org.cryptimeleon.incentive.app.data.network.ProviderApiService
 import org.cryptimeleon.incentive.app.data.network.InfoApiService
 import org.cryptimeleon.incentive.app.data.network.StoreApiService
 import org.cryptimeleon.incentive.app.domain.DSException
@@ -39,7 +39,7 @@ import java.util.*
  */
 class CryptoRepository(
     private val infoApiService: InfoApiService,
-    private val cryptoApiService: CryptoApiService,
+    private val providerApiService: ProviderApiService,
     private val cryptoDao: CryptoDao,
     private val storeApiService: StoreApiService,
 ) : ICryptoRepository {
@@ -73,7 +73,7 @@ class CryptoRepository(
 
         val generateIssueJoinOutput =
             incentiveSystem.generateJoinRequest(providerPublicKey, userKeyPair)
-        val joinResponse = cryptoApiService.runIssueJoin(
+        val joinResponse = providerApiService.runIssueJoin(
             jsonConverter.serialize(generateIssueJoinOutput.joinRequest.representation),
             promotionParameters.promotionId.toString()
         )
@@ -102,7 +102,7 @@ class CryptoRepository(
         basketId: UUID,
         bulkRequestDto: BulkRequestDto
     ) {
-        val response = cryptoApiService.sendTokenUpdatesBatch(basketId, bulkRequestDto)
+        val response = providerApiService.sendTokenUpdatesBatch(basketId, bulkRequestDto)
         if (!response.isSuccessful) {
             Timber.e(response.raw().toString())
             if (response.code() == 418) {
@@ -114,7 +114,7 @@ class CryptoRepository(
     }
 
     override suspend fun retrieveTokenUpdatesResults(basketId: UUID): BulkResponseDto {
-        val response = cryptoApiService.retrieveTokenUpdatesResults(basketId)
+        val response = providerApiService.retrieveTokenUpdatesResults(basketId)
         if (!response.isSuccessful || response.body() == null) {
             Timber.e(response.raw().toString())
             throw PayRedeemException(response.code(), response.errorBody()?.string() ?: "")
@@ -167,7 +167,7 @@ class CryptoRepository(
         assert(incentiveSystem.verifyRegistrationCoupon(registrationCoupon) { true })
 
         val signatureResponse =
-            cryptoApiService.retrieveRegistrationSignatureFor(serializedRegistrationCoupon)
+            providerApiService.retrieveRegistrationSignatureFor(serializedRegistrationCoupon)
         if (!signatureResponse.isSuccessful) {
             throw RuntimeException("Signature Request failed!")
         }

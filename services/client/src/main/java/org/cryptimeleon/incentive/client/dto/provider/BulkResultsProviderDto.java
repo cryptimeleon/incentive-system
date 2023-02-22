@@ -4,12 +4,12 @@ import java.util.List;
 
 public class BulkResultsProviderDto {
     private List<EarnResultProviderDto> earnResults;
-    private List<SpendResultsProviderDto> spendResults;
+    private List<SpendResultProviderDto> spendResults;
 
     public BulkResultsProviderDto() {
     }
 
-    public BulkResultsProviderDto(List<EarnResultProviderDto> earnResults, List<SpendResultsProviderDto> spendResults) {
+    public BulkResultsProviderDto(List<EarnResultProviderDto> earnResults, List<SpendResultProviderDto> spendResults) {
         this.earnResults = earnResults;
         this.spendResults = spendResults;
     }
@@ -18,7 +18,7 @@ public class BulkResultsProviderDto {
         return earnResults;
     }
 
-    public List<SpendResultsProviderDto> getSpendResults() {
+    public List<SpendResultProviderDto> getSpendResults() {
         return spendResults;
     }
 }

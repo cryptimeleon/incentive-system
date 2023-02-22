@@ -108,7 +108,7 @@ class HiltApiModule {
 
     @Singleton
     @Provides
-    fun provideCryptoApiService(urlConfig: UrlConfig): CryptoApiService {
+    fun provideCryptoApiService(urlConfig: UrlConfig): ProviderApiService {
         val okHttpClient =
             OkHttpClient.Builder() // Increase timeouts for batch proofs during development
                 .connectTimeout(1, TimeUnit.MINUTES)
@@ -121,7 +121,7 @@ class HiltApiModule {
             .addConverterFactory(GsonConverterFactory.create())
             .baseUrl(urlConfig.promotion_url)
             .build()
-            .create(CryptoApiService::class.java)
+            .create(ProviderApiService::class.java)
     }
 }
 
@@ -162,13 +162,13 @@ class HiltRepositoryModule {
     @Provides
     fun provideCryptoRepository(
         infoApiService: InfoApiService,
-        cryptoApiService: CryptoApiService,
+        providerApiService: ProviderApiService,
         cryptoDatabase: CryptoDatabase,
         storeApiService: StoreApiService,
     ): ICryptoRepository =
         CryptoRepository(
             infoApiService,
-            cryptoApiService,
+            providerApiService,
             cryptoDatabase.cryptoDatabaseDao(),
             storeApiService,
         )
