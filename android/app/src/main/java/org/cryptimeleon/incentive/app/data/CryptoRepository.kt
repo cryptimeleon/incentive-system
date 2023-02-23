@@ -15,9 +15,7 @@ import org.cryptimeleon.incentive.app.domain.DSException
 import org.cryptimeleon.incentive.app.domain.ICryptoRepository
 import org.cryptimeleon.incentive.app.domain.PayRedeemException
 import org.cryptimeleon.incentive.app.domain.RefreshCryptoMaterialException
-import org.cryptimeleon.incentive.app.domain.model.BulkRequestDto
-import org.cryptimeleon.incentive.app.domain.model.BulkResponseDto
-import org.cryptimeleon.incentive.app.domain.model.CryptoMaterial
+import org.cryptimeleon.incentive.app.domain.model.*
 import org.cryptimeleon.incentive.crypto.IncentiveSystem
 import org.cryptimeleon.incentive.crypto.IncentiveSystemRestorer
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters
@@ -98,6 +96,7 @@ class CryptoRepository(
         }
     }
 
+    @Deprecated("Old api")
     override suspend fun sendTokenUpdatesBatch(
         basketId: UUID,
         bulkRequestDto: BulkRequestDto
@@ -113,11 +112,51 @@ class CryptoRepository(
         }
     }
 
+    @Deprecated("Old api")
     override suspend fun retrieveTokenUpdatesResults(basketId: UUID): BulkResponseDto {
         val response = providerApiService.retrieveTokenUpdatesResults(basketId)
         if (!response.isSuccessful || response.body() == null) {
             Timber.e(response.raw().toString())
             throw PayRedeemException(response.code(), response.errorBody()?.string() ?: "")
+        }
+        return response.body()!!
+    }
+
+    override suspend fun sendTokenUpdatesBatchToStore(
+        basketId: UUID,
+        bulkRequestStoreDto: BulkRequestStoreDto
+    ) {
+        val response = storeApiService.sendBulkRequest(bulkRequestStoreDto)
+        if (!response.isSuccessful) {
+            Timber.e(response.raw().toString())
+            if (response.code() == 418) {
+                // TODO add error codes once implemented
+                throw DSException()
+            } else {
+                throw PayRedeemException(response.code(), response.errorBody()?.string() ?: "")
+            }
+        }
+    }
+
+    override suspend fun retrieveTokenUpdatesBatchStoreResults(basketId: UUID): BulkResultStoreDto {
+        val response = storeApiService.retrieveBulkResponse(basketId)
+        if (!response.isSuccessful || response.body() == null) {
+            Timber.e(response.raw().toString())
+            throw PayRedeemException(response.code(), response.errorBody()?.string() ?: "")
+        }
+        return response.body()!!
+    }
+
+    override suspend fun sendTokenUpdatesBatchToProvider(bulkRequestProviderDto: BulkRequestProviderDto): BulkResultsProviderDto {
+        val response = providerApiService.bulkRequest(bulkRequestProviderDto)
+        if (!response.isSuccessful || response.body() == null) {
+            Timber.e(response.raw().toString())
+            if (response.code() == 418) {
+                // TODO add error codes once implemented
+                throw DSException()
+            } else {
+                throw PayRedeemException(response.code(), response.errorBody()?.string() ?: "")
+            }
         }
         return response.body()!!
     }

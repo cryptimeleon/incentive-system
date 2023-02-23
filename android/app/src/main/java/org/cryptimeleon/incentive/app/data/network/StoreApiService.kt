@@ -7,6 +7,7 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
+import java.util.UUID
 
 interface StoreApiService {
     @GET("register-user-and-obtain-serialized-registration-coupon")
@@ -19,5 +20,5 @@ interface StoreApiService {
     suspend fun sendBulkRequest(@Body bulkDto: BulkRequestStoreDto) : Response<Void>
 
     @GET("bulk-results")
-    suspend fun retrieveBulkResponse() : Response<BulkResultStoreDto>
+    suspend fun retrieveBulkResponse(@Header("basket-id") basketId: UUID) : Response<BulkResultStoreDto>
 }

@@ -35,8 +35,7 @@ class CheckoutViewModel @Inject constructor(
         PayAndRedeemUseCase(
             promotionRepository,
             cryptoRepository,
-            basketRepository,
-            preferencesRepository
+            basketRepository
         )
 
     private val _checkoutStep = MutableStateFlow(CheckoutStep.SUMMARY)
