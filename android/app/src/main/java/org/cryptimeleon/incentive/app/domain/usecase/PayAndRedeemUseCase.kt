@@ -7,6 +7,7 @@ import org.cryptimeleon.incentive.app.domain.model.*
 import org.cryptimeleon.incentive.app.util.toBigIntVector
 import org.cryptimeleon.incentive.crypto.IncentiveSystem
 import org.cryptimeleon.incentive.crypto.model.*
+import org.cryptimeleon.incentive.promotion.ContextManager
 import org.cryptimeleon.incentive.promotion.Promotion
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata
 import org.cryptimeleon.math.serialization.RepresentableRepresentation
@@ -68,8 +69,7 @@ class PayAndRedeemUseCase(
                     basket,
                     incentiveSystem,
                     cryptoMaterial,
-                    basketId,
-                    pp
+                    basketId
                 )
             cryptoRepository.sendTokenUpdatesBatchToStore(
                 basketId, BulkRequestStoreDto(
@@ -127,10 +127,13 @@ class PayAndRedeemUseCase(
             Timber.i("Finished Pay and Redeem")
             return PayAndRedeemStatus.Success
         } catch (e: DSException) {
+            Timber.e(e)
             return PayAndRedeemStatus.DSDetected
         } catch (e: PayRedeemException) {
+            Timber.e(e)
             return PayAndRedeemStatus.Error(e)
         } catch (e: Exception) {
+            Timber.e(e)
             return PayAndRedeemStatus.Error(e)
         }
     }
@@ -247,7 +250,7 @@ class PayAndRedeemUseCase(
             promotion.promotionParameters.promotionId,
             earnAmount,
             earnStoreCouponSignature,
-        ) { storePublicKey -> true }
+        ) { true }
 
         if (!couponValid) {
             throw PayRedeemException(
@@ -284,8 +287,7 @@ class PayAndRedeemUseCase(
         basket: Basket,
         incentiveSystem: IncentiveSystem,
         cryptoMaterial: CryptoMaterial,
-        basketId: UUID,
-        pp: IncentivePublicParameters
+        basketId: UUID
     ) = userTokenUpdates.mapNotNull {
         when (it.userUpdateChoice) {
             is ZKP -> {
@@ -303,6 +305,7 @@ class PayAndRedeemUseCase(
                     basketValue,
                     metadata
                 ).get()
+                val context = ContextManager.computeContext(update.tokenUpdateId, basketValue, metadata)
                 val zkpRequest = incentiveSystem.generateStoreSpendRequest(
                     cryptoMaterial.ukp,
                     cryptoMaterial.ppk,
@@ -311,7 +314,7 @@ class PayAndRedeemUseCase(
                     basketId,
                     newPointsVector,
                     update.generateRelationTree(basketValue, metadata),
-                    basket.toPromotionBasket().getBasketId(pp.bg.zn)
+                    context
                 )
 
                 Pair(

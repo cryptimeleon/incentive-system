@@ -3,9 +3,7 @@ package org.cryptimeleon.incentive.app.data
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.cryptimeleon.incentive.app.domain.ICryptoRepository
-import org.cryptimeleon.incentive.app.domain.model.BulkRequestDto
-import org.cryptimeleon.incentive.app.domain.model.BulkResponseDto
-import org.cryptimeleon.incentive.app.domain.model.CryptoMaterial
+import org.cryptimeleon.incentive.app.domain.model.*
 import org.cryptimeleon.incentive.crypto.IncentiveSystem
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters
@@ -78,6 +76,21 @@ class FakeCryptoRepository(
     }
 
     override suspend fun deleteAll() {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun sendTokenUpdatesBatchToStore(
+        basketId: UUID,
+        bulkRequestStoreDto: BulkRequestStoreDto
+    ) {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun retrieveTokenUpdatesBatchStoreResults(basketId: UUID): BulkResultStoreDto {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun sendTokenUpdatesBatchToProvider(bulkRequestProviderDto: BulkRequestProviderDto): BulkResultsProviderDto {
         TODO("Not yet implemented")
     }
 }

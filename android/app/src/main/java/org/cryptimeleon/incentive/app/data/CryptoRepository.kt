@@ -77,7 +77,7 @@ class CryptoRepository(
         )
 
         if (!joinResponse.isSuccessful) {
-            Timber.e(joinResponse.raw().toString())
+            Timber.e("Error: ${joinResponse.code()}, ${joinResponse.errorBody().toString()}")
             throw RuntimeException(
                 "Join not successful"
             )
@@ -103,7 +103,7 @@ class CryptoRepository(
     ) {
         val response = providerApiService.sendTokenUpdatesBatch(basketId, bulkRequestDto)
         if (!response.isSuccessful) {
-            Timber.e(response.raw().toString())
+            Timber.e("Error: ${response.code()}, ${response.errorBody()}")
             if (response.code() == 418) {
                 throw DSException()
             } else {
@@ -116,7 +116,7 @@ class CryptoRepository(
     override suspend fun retrieveTokenUpdatesResults(basketId: UUID): BulkResponseDto {
         val response = providerApiService.retrieveTokenUpdatesResults(basketId)
         if (!response.isSuccessful || response.body() == null) {
-            Timber.e(response.raw().toString())
+            Timber.e("Error: ${response.code()}, ${response.errorBody()}")
             throw PayRedeemException(response.code(), response.errorBody()?.string() ?: "")
         }
         return response.body()!!
@@ -128,7 +128,7 @@ class CryptoRepository(
     ) {
         val response = storeApiService.sendBulkRequest(bulkRequestStoreDto)
         if (!response.isSuccessful) {
-            Timber.e(response.raw().toString())
+            Timber.e("Error: ${response.code()}, ${response.errorBody()}")
             if (response.code() == 418) {
                 // TODO add error codes once implemented
                 throw DSException()
@@ -141,7 +141,7 @@ class CryptoRepository(
     override suspend fun retrieveTokenUpdatesBatchStoreResults(basketId: UUID): BulkResultStoreDto {
         val response = storeApiService.retrieveBulkResponse(basketId)
         if (!response.isSuccessful || response.body() == null) {
-            Timber.e(response.raw().toString())
+            Timber.e("Error: ${response.code()}, ${response.errorBody()}")
             throw PayRedeemException(response.code(), response.errorBody()?.string() ?: "")
         }
         return response.body()!!
@@ -150,7 +150,7 @@ class CryptoRepository(
     override suspend fun sendTokenUpdatesBatchToProvider(bulkRequestProviderDto: BulkRequestProviderDto): BulkResultsProviderDto {
         val response = providerApiService.bulkRequest(bulkRequestProviderDto)
         if (!response.isSuccessful || response.body() == null) {
-            Timber.e(response.raw().toString())
+            Timber.e("Error: ${response.code()}, ${response.errorBody()}")
             if (response.code() == 418) {
                 // TODO add error codes once implemented
                 throw DSException()
