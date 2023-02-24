@@ -10,9 +10,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
 import org.cryptimeleon.incentive.crypto.BilinearGroupChoice
-import org.cryptimeleon.incentive.crypto.IncentiveSystem
-import org.cryptimeleon.incentive.crypto.Setup
-import org.cryptimeleon.incentive.crypto.Util
 import org.cryptimeleon.incentive.crypto.benchmark.Benchmark
 import org.cryptimeleon.incentive.crypto.benchmark.BenchmarkConfig
 import org.cryptimeleon.incentive.crypto.benchmark.BenchmarkResult
@@ -53,36 +50,17 @@ class BenchmarkViewModel @Inject constructor(application: Application) :
     fun runBenchmark() {
         viewModelScope.launch {
             withContext(Dispatchers.Default) {
-                Timber.i("Generating public parameters")
+                Timber.i("Setup")
                 state.postValue(
                     state.value!!.copy(
                         state = BenchmarkViewState.SETUP
                     )
                 )
 
-                val pp =
-                    Setup.trustedSetup(SECURITY_PARAMETER, BENCHMARK_GROUP)
-
-                val incentiveSystem = IncentiveSystem(pp)
-
-                Timber.i("Provider Provider keys")
-                val providerKeyPair = incentiveSystem.generateProviderKeyPair()
-
-                Timber.i("Generating Pre User keys")
-                val userPreKeyPair = incentiveSystem.generateUserPreKeyPair()
-                val userKeyPair =
-                    Util.addRegistrationSignatureToUserPreKeys(userPreKeyPair, providerKeyPair, pp)
-
-                Timber.i("Generation finished")
-
                 val benchmarkConfig = BenchmarkConfig(
                     BENCHMARK_ITERATIONS,
-                    incentiveSystem,
-                    pp,
-                    providerKeyPair.pk,
-                    providerKeyPair.sk,
-                    userKeyPair.pk,
-                    userKeyPair.sk
+                    SECURITY_PARAMETER,
+                    BENCHMARK_GROUP
                 )
 
                 // Stop at this point if cancelled
@@ -120,19 +98,6 @@ class BenchmarkViewModel @Inject constructor(application: Application) :
                 // Stop at this point if cancelled
                 yield()
 
-                // Log the result arrays for debugging
-                Timber.i(benchmarkResult.joinRequestTime.toString())
-                Timber.i(benchmarkResult.joinResponseTime.toString())
-                Timber.i(benchmarkResult.joinHandleResponseTime.toString())
-
-                Timber.i(benchmarkResult.earnRequestTime.toString())
-                Timber.i(benchmarkResult.earnResponseTime.toString())
-                Timber.i(benchmarkResult.earnHandleResponseTime.toString())
-
-                Timber.i(benchmarkResult.spendRequestTime.toString())
-                Timber.i(benchmarkResult.spendResponseTime.toString())
-                Timber.i(benchmarkResult.spendHandleResponseTime.toString())
-
                 // Log the results
                 benchmarkResult.printReport()
 
@@ -165,41 +130,41 @@ data class BenchmarkState(
     val joinText = benchmarkResult?.let {
         protocolText(
             it.joinTotalAvg,
-            it.joinRequestAvg,
-            it.joinResponseAvg,
+            it.joinStoreRequestAvg,
+            it.joinProviderRequestAvg,
             it.joinHandleResponseAvg
         )
     }
     val earnText = benchmarkResult?.let {
         protocolText(
             it.earnTotalAvg,
-            it.earnRequestAvg,
-            it.earnResponseAvg,
+            it.earnStoreRequestAvg,
+            it.earnProviderRequestAvg,
             it.earnHandleResponseAvg
         )
     }
     val spendText = benchmarkResult?.let {
         protocolText(
             it.spendTotalAvg,
-            it.spendRequestAvg,
-            it.spendResponseAvg,
+            it.spendStoreRequestAvg,
+            it.spendProviderRequestAvg,
             it.spendHandleResponseAvg
         )
     }
-    val totalText = benchmarkResult?.let { benchmarkResult.totalAvg.toString() }
+    val totalText = benchmarkResult?.let { benchmarkResult.totalAvg.format(3) + "ms" }
 
     /**
      * Function for assembling the result string for each protocol
      */
     private fun protocolText(
         total: Double,
-        request: Double,
-        response: Double,
+        storeRequest: Double,
+        providerRequest: Double,
         handleResponse: Double
     ): String {
-        return "Total: ${total.format(2)}\nRequest: ${request.format(2)}\nResponse: ${
-            response.format(2)
-        }\nHandle Response: ${handleResponse.format(2)}"
+        return "Total: ${total.format(3)}ms\nStore Request: ${storeRequest.format(3)}ms\nProvider Request: ${
+            providerRequest.format(3)
+        }ms\nHandle Response: ${handleResponse.format(2)}ms"
     }
 
     /**

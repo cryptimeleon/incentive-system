@@ -7,6 +7,8 @@ import org.cryptimeleon.incentive.crypto.Util;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderSecretKey;
+import org.cryptimeleon.incentive.crypto.model.keys.store.StorePublicKey;
+import org.cryptimeleon.incentive.crypto.model.keys.store.StoreSecretKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserSecretKey;
 
@@ -21,9 +23,11 @@ public class BenchmarkConfig {
     ProviderSecretKey psk;
     UserPublicKey upk;
     UserSecretKey usk;
+    StorePublicKey spk;
+    StoreSecretKey ssk;
 
     /**
-     * Create benchmark config with with defined number of iterations, security parameters and group.
+     * Create benchmark config with defined number of iterations, security parameters and group.
      * Generates fresh incentive system parameters and keys.
      *
      * @param iterations          number of iterations for each protocol.
@@ -33,16 +37,6 @@ public class BenchmarkConfig {
     public BenchmarkConfig(int iterations, int securityParameter, BilinearGroupChoice bilinearGroupChoice) {
         this.iterations = iterations;
         this.manualSetup(securityParameter, bilinearGroupChoice);
-    }
-
-    public BenchmarkConfig(int iterations, IncentiveSystem incentiveSystem, IncentivePublicParameters pp, ProviderPublicKey ppk, ProviderSecretKey psk, UserPublicKey upk, UserSecretKey usk) {
-        this.iterations = iterations;
-        this.incentiveSystem = incentiveSystem;
-        this.pp = pp;
-        this.ppk = ppk;
-        this.psk = psk;
-        this.upk = upk;
-        this.usk = usk;
     }
 
     /**
@@ -56,10 +50,13 @@ public class BenchmarkConfig {
         var providerKeys = Setup.providerKeyGen(pp);
         var userPreKeys = Setup.userPreKeyGen(pp);
         var userKeys = Util.addRegistrationSignatureToUserPreKeys(userPreKeys, providerKeys, pp);
+        var storeKeys = Setup.storeKeyGen();
         this.upk = userKeys.getPk();
         this.usk = userKeys.getSk();
         this.ppk = providerKeys.getPk();
         this.psk = providerKeys.getSk();
+        this.spk = storeKeys.getPk();
+        this.ssk = storeKeys.getSk();
         this.incentiveSystem = new IncentiveSystem(pp);
     }
 }
