@@ -16,13 +16,14 @@ import org.cryptimeleon.incentive.crypto.benchmark.BenchmarkResult
 import timber.log.Timber
 import javax.inject.Inject
 
-private const val BENCHMARK_ITERATIONS = 10
+private const val BENCHMARK_ITERATIONS = 100
 private val BENCHMARK_GROUP = BilinearGroupChoice.Herumi_MCL
 const val SECURITY_PARAMETER = 128
 
 enum class BenchmarkViewState {
     NOT_STARTED,
     SETUP,
+    REGISTRATION,
     ISSUE_JOIN,
     CREDIT_EARN,
     SPEND_DEDUCT,
@@ -36,7 +37,7 @@ enum class BenchmarkViewState {
 class BenchmarkViewModel @Inject constructor(application: Application) :
     AndroidViewModel(application) {
 
-    val state = MutableLiveData<BenchmarkState>(
+    val state = MutableLiveData(
         BenchmarkState(
             BenchmarkViewState.NOT_STARTED,
             0,
@@ -71,6 +72,13 @@ class BenchmarkViewModel @Inject constructor(application: Application) :
                     Benchmark.runBenchmark(benchmarkConfig) { benchmarkState, iteration ->
                         when (benchmarkState) {
                             null -> Timber.e("Benchmark State is null")
+                            org.cryptimeleon.incentive.crypto.benchmark.BenchmarkState.REGISTRATION ->
+                                state.postValue(
+                                    state.value!!.copy(
+                                        state = BenchmarkViewState.REGISTRATION,
+                                        iteration = iteration
+                                    )
+                                )
                             org.cryptimeleon.incentive.crypto.benchmark.BenchmarkState.ISSUE_JOIN ->
                                 state.postValue(
                                     state.value!!.copy(
@@ -99,6 +107,7 @@ class BenchmarkViewModel @Inject constructor(application: Application) :
                 yield()
 
                 // Log the results
+                benchmarkResult.printCSV()
                 benchmarkResult.printReport()
 
                 // This triggers the navigation
@@ -121,12 +130,21 @@ data class BenchmarkState(
     val stateText = when (state) {
         BenchmarkViewState.FINISHED -> "Done"
         BenchmarkViewState.SETUP -> "Setup of System"
+        BenchmarkViewState.REGISTRATION-> "Running registration ($iteration of $BENCHMARK_ITERATIONS)"
         BenchmarkViewState.ISSUE_JOIN -> "Running issue-join ($iteration of $BENCHMARK_ITERATIONS)"
         BenchmarkViewState.CREDIT_EARN -> "Running credit-earn ($iteration of $BENCHMARK_ITERATIONS)"
         BenchmarkViewState.SPEND_DEDUCT -> "Running spend-deduct ($iteration of $BENCHMARK_ITERATIONS)"
         else -> "Other state"
     }
 
+    val registrationText = benchmarkResult?.let {
+        protocolText(
+            it.registrationTotalAvg,
+            it.registrationStoreRequestAvg,
+            it.registrationProviderRequestAvg,
+            it.registrationHandleResponseAvg
+        )
+    }
     val joinText = benchmarkResult?.let {
         protocolText(
             it.joinTotalAvg,

@@ -33,6 +33,7 @@ public class Benchmark {
      * Increase/decrease used for earn/spend in benchmark
      */
     private static final Vector<BigInteger> EARN_SPEND_AMOUNT = Vector.of(BigInteger.valueOf(10L), BigInteger.valueOf(10L));
+    private static final String userInfo = "Benchmark User #1";
 
     /**
      * Run a benchmark with the given benchmarkConfig
@@ -62,8 +63,15 @@ public class Benchmark {
             BenchmarkConfig benchmarkConfig,
             BiConsumer<BenchmarkState, Integer> feedbackFunction
     ) {
-        long[] tJoinRequest = new long[benchmarkConfig.iterations];
-        long[] tJoinResponse = new long[benchmarkConfig.iterations];
+        long[] tRegistrationStoreRequest = new long[benchmarkConfig.iterations];
+        long[] tRegistrationStoreResponse = new long[benchmarkConfig.iterations];
+        long[] tRegistrationProviderRequest = new long[benchmarkConfig.iterations];
+        long[] tRegistrationProviderResponse = new long[benchmarkConfig.iterations];
+        long[] tRegistrationHandleResponse = new long[benchmarkConfig.iterations];
+        long[] tJoinStoreRequest = new long[benchmarkConfig.iterations];
+        long[] tJoinStoreResponse = new long[benchmarkConfig.iterations];
+        long[] tJoinProviderRequest = new long[benchmarkConfig.iterations];
+        long[] tJoinProviderResponse = new long[benchmarkConfig.iterations];
         long[] tJoinHandleResponse = new long[benchmarkConfig.iterations];
         long[] tEarnStoreRequest = new long[benchmarkConfig.iterations];
         long[] tEarnStoreResponse = new long[benchmarkConfig.iterations];
@@ -108,14 +116,63 @@ public class Benchmark {
         Instant start, finish;
 
         for (int i = 0; i < benchmarkConfig.iterations; i++) {
+            feedbackFunction.accept(BenchmarkState.REGISTRATION, i);
+
+            // Nothing to do here, just send upb+userInfo
+            tRegistrationStoreRequest[i] = 0;
+
+            start = Instant.now();
+            var registrationCoupon = incentiveSystem.signRegistrationCoupon(
+                    storeKeyPair,
+                    upk,
+                    userInfo
+            );
+            finish = Instant.now();
+            tRegistrationStoreResponse[i] = Duration.between(start, finish).toNanos();
+
+            start = Instant.now();
+            incentiveSystem.verifyRegistrationCoupon(
+                    registrationCoupon,
+                    (storePublicKey) -> true
+            );
+            finish = Instant.now();
+            tRegistrationProviderRequest[i] = Duration.between(start, finish).toNanos();
+
+            start = Instant.now();
+            var registrationToken = incentiveSystem.verifyRegistrationCouponAndIssueRegistrationToken(
+                    providerKeyPair,
+                    registrationCoupon,
+                    storePublicKey -> true,
+                    registrationCoupon1 -> {
+                    }
+            );
+            finish = Instant.now();
+            tRegistrationProviderResponse[i] = Duration.between(start, finish).toNanos();
+
+            start = Instant.now();
+            incentiveSystem.verifyRegistrationToken(
+                    ppk,
+                    registrationToken,
+                    upk
+            );
+            finish = Instant.now();
+            tRegistrationHandleResponse[i] = Duration.between(start, finish).toNanos();
+        }
+
+        for (int i = 0; i < benchmarkConfig.iterations; i++) {
             feedbackFunction.accept(BenchmarkState.ISSUE_JOIN, i);
+
+            tJoinStoreRequest[i] = 0;
+            tJoinStoreResponse[i] = 0;
+
             start = Instant.now();
             joinFirstStepOutput = incentiveSystem.generateJoinRequest(
                     ppk,
                     userKeyPair
             );
             finish = Instant.now();
-            tJoinRequest[i] = Duration.between(start, finish).toNanos();
+            tJoinProviderRequest[i] = Duration.between(start, finish).toNanos();
+
             start = Instant.now();
             joinResponse =
                     incentiveSystem.generateJoinRequestResponse(
@@ -124,7 +181,8 @@ public class Benchmark {
                             joinFirstStepOutput.getJoinRequest()
                     );
             finish = Instant.now();
-            tJoinResponse[i] = Duration.between(start, finish).toNanos();
+            tJoinProviderResponse[i] = Duration.between(start, finish).toNanos();
+
             start = Instant.now();
             token = incentiveSystem.handleJoinRequestResponse(
                     promotionParameters,
@@ -260,9 +318,17 @@ public class Benchmark {
             finish = Instant.now();
             tSpendHandleResponse[i] = Duration.between(start, finish).toNanos();
         }
+
         return new BenchmarkResult(
-                tJoinRequest,
-                tJoinResponse,
+                tRegistrationStoreRequest,
+                tRegistrationStoreResponse,
+                tRegistrationProviderRequest,
+                tRegistrationProviderResponse,
+                tRegistrationHandleResponse,
+                tJoinStoreRequest,
+                tJoinStoreResponse,
+                tJoinProviderRequest,
+                tJoinProviderResponse,
                 tJoinHandleResponse,
                 tEarnStoreRequest,
                 tEarnStoreResponse,

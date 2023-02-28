@@ -13,8 +13,9 @@ import org.junit.jupiter.api.Test;
 public class BenchmarkTask {
     @Test
     void runBenchmark() {
-        BenchmarkConfig benchmarkConfig = new BenchmarkConfig(100, 128, BilinearGroupChoice.Herumi_MCL);
+        BenchmarkConfig benchmarkConfig = new BenchmarkConfig(1000, 128, BilinearGroupChoice.Herumi_MCL);
         BenchmarkResult benchmarkResult = Benchmark.runBenchmark(benchmarkConfig);
+        benchmarkResult.printCSV();
         benchmarkResult.printReport();
     }
 }
