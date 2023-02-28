@@ -55,7 +55,11 @@ public class BenchmarkResult implements Serializable {
     public double joinTotalAvg;
     public double earnTotalAvg;
     public double spendTotalAvg;
-    public double totalAvg;
+    
+    public double registrationAppAvg;
+    public double joinAppAvg;
+    public double earnAppAvg;
+    public double spendAppAvg;
 
     /**
      * Constructor that takes benchmark timing data as arrays containing the time for a step in nanoseconds.
@@ -144,7 +148,11 @@ public class BenchmarkResult implements Serializable {
         joinTotalAvg = joinStoreRequestAvg + joinStoreResponseAvg + joinProviderRequestAvg + joinProviderResponseAvg + joinHandleResponseAvg;
         earnTotalAvg = earnStoreRequestAvg + earnStoreResponseAvg + earnProviderRequestAvg + earnProviderResponseAvg + earnHandleResponseAvg;
         spendTotalAvg = spendStoreRequestAvg + spendStoreResponseAvg + spendProviderRequestAvg + spendProviderResponseAvg + spendHandleResponseAvg;
-        totalAvg = registrationTotalAvg + joinTotalAvg + earnTotalAvg + spendTotalAvg;
+
+        registrationAppAvg = registrationStoreRequestAvg + registrationProviderRequestAvg + registrationHandleResponseAvg;
+        joinAppAvg = joinStoreRequestAvg + joinProviderRequestAvg + joinHandleResponseAvg;
+        earnAppAvg = earnStoreRequestAvg + earnProviderRequestAvg + earnHandleResponseAvg;
+        spendAppAvg = spendStoreRequestAvg + spendProviderRequestAvg + spendHandleResponseAvg;
     }
 
     /**
@@ -152,7 +160,6 @@ public class BenchmarkResult implements Serializable {
      */
     public void printReport() {
         System.out.println("****************************************************************************************************");
-        System.out.printf(Locale.ENGLISH, "** Total ** %.3fms%n", totalAvg);
         System.out.printf(Locale.ENGLISH, "** Registration ** Total: %.3fms, A1: %.3fms, S: %.3fms, A2: %.3fms, P: %.3fms, A3: %.3fms%n", registrationTotalAvg, registrationStoreRequestAvg, registrationStoreResponseAvg, registrationProviderRequestAvg, registrationProviderResponseAvg, registrationHandleResponseAvg);
         System.out.printf(Locale.ENGLISH, "** Join         ** Total: %.3fms, A1: %.3fms, S: %.3fms, A2: %.3fms, P: %.3fms, A3: %.3fms%n", joinTotalAvg, joinStoreRequestAvg, joinStoreResponseAvg, joinProviderRequestAvg, joinProviderResponseAvg, joinHandleResponseAvg);
         System.out.printf(Locale.ENGLISH, "** Earn         ** Total: %.3fms, A1: %.3fms, S: %.3fms, A2: %.3fms, P: %.3fms, A3: %.3fms%n", earnTotalAvg, earnStoreRequestAvg, earnStoreResponseAvg, earnProviderRequestAvg, earnProviderResponseAvg, earnHandleResponseAvg);

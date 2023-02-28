@@ -139,7 +139,7 @@ data class BenchmarkState(
 
     val registrationText = benchmarkResult?.let {
         protocolText(
-            it.registrationTotalAvg,
+            it.registrationAppAvg,
             it.registrationStoreRequestAvg,
             it.registrationProviderRequestAvg,
             it.registrationHandleResponseAvg
@@ -147,7 +147,7 @@ data class BenchmarkState(
     }
     val joinText = benchmarkResult?.let {
         protocolText(
-            it.joinTotalAvg,
+            it.joinAppAvg,
             it.joinStoreRequestAvg,
             it.joinProviderRequestAvg,
             it.joinHandleResponseAvg
@@ -155,7 +155,7 @@ data class BenchmarkState(
     }
     val earnText = benchmarkResult?.let {
         protocolText(
-            it.earnTotalAvg,
+            it.earnAppAvg,
             it.earnStoreRequestAvg,
             it.earnProviderRequestAvg,
             it.earnHandleResponseAvg
@@ -163,13 +163,12 @@ data class BenchmarkState(
     }
     val spendText = benchmarkResult?.let {
         protocolText(
-            it.spendTotalAvg,
+            it.spendAppAvg,
             it.spendStoreRequestAvg,
             it.spendProviderRequestAvg,
             it.spendHandleResponseAvg
         )
     }
-    val totalText = benchmarkResult?.let { benchmarkResult.totalAvg.format(3) + "ms" }
 
     /**
      * Function for assembling the result string for each protocol
@@ -194,6 +193,6 @@ data class BenchmarkState(
      * Assemble String that is sent via the share button.
      */
     fun shareData(): String {
-        return "Total:\n$totalText\nIssueJoin:\n$joinText\nCreditEarn\n$earnText\nSpendDeduct\n$spendText"
+        return "Total:\nRegistration:\n$registrationText\nIssueJoin:\n$joinText\nCreditEarn\n$earnText\nSpendDeduct\n$spendText"
     }
 }
