@@ -14,7 +14,6 @@ public class WebClientHelper {
         return WebClient
                 .builder()
                 .baseUrl(url)
-                //.filter(ExchangeFilterFunctions.statusError(HttpStatus::isError, clientResponse -> new IncentiveClientException()))
                 .build();
     }
 }

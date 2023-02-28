@@ -1,12 +1,17 @@
 package org.cryptimeleon.incentive.crypto.benchmark;
 
 
+import org.cryptimeleon.craco.common.ByteArrayImplementation;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
+import org.cryptimeleon.incentive.crypto.callback.IStoreBasketRedeemedHandler;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderSecretKey;
+import org.cryptimeleon.incentive.crypto.model.keys.store.StoreKeyPair;
+import org.cryptimeleon.incentive.crypto.model.keys.store.StorePublicKey;
+import org.cryptimeleon.incentive.crypto.model.keys.store.StoreSecretKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserSecretKey;
@@ -16,6 +21,7 @@ import org.cryptimeleon.math.structures.cartesian.Vector;
 import java.math.BigInteger;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.UUID;
 import java.util.function.BiConsumer;
 
 /**
@@ -27,6 +33,7 @@ public class Benchmark {
      * Increase/decrease used for earn/spend in benchmark
      */
     private static final Vector<BigInteger> EARN_SPEND_AMOUNT = Vector.of(BigInteger.valueOf(10L), BigInteger.valueOf(10L));
+    private static final String userInfo = "Benchmark User #1";
 
     /**
      * Run a benchmark with the given benchmarkConfig
@@ -56,29 +63,47 @@ public class Benchmark {
             BenchmarkConfig benchmarkConfig,
             BiConsumer<BenchmarkState, Integer> feedbackFunction
     ) {
-        long[] tJoinRequest = new long[benchmarkConfig.iterations];
-        long[] tJoinResponse = new long[benchmarkConfig.iterations];
+        long[] tRegistrationStoreRequest = new long[benchmarkConfig.iterations];
+        long[] tRegistrationStoreResponse = new long[benchmarkConfig.iterations];
+        long[] tRegistrationProviderRequest = new long[benchmarkConfig.iterations];
+        long[] tRegistrationProviderResponse = new long[benchmarkConfig.iterations];
+        long[] tRegistrationHandleResponse = new long[benchmarkConfig.iterations];
+        long[] tJoinStoreRequest = new long[benchmarkConfig.iterations];
+        long[] tJoinStoreResponse = new long[benchmarkConfig.iterations];
+        long[] tJoinProviderRequest = new long[benchmarkConfig.iterations];
+        long[] tJoinProviderResponse = new long[benchmarkConfig.iterations];
         long[] tJoinHandleResponse = new long[benchmarkConfig.iterations];
-        long[] tEarnRequest = new long[benchmarkConfig.iterations];
-        long[] tEarnResponse = new long[benchmarkConfig.iterations];
+        long[] tEarnStoreRequest = new long[benchmarkConfig.iterations];
+        long[] tEarnStoreResponse = new long[benchmarkConfig.iterations];
+        long[] tEarnProviderRequest = new long[benchmarkConfig.iterations];
+        long[] tEarnProviderResponse = new long[benchmarkConfig.iterations];
         long[] tEarnHandleResponse = new long[benchmarkConfig.iterations];
-        long[] tSpendRequest = new long[benchmarkConfig.iterations];
-        long[] tSpendResponse = new long[benchmarkConfig.iterations];
+        long[] tSpendStoreRequest = new long[benchmarkConfig.iterations];
+        long[] tSpendStoreResponse = new long[benchmarkConfig.iterations];
+        long[] tSpendProviderRequest = new long[benchmarkConfig.iterations];
+        long[] tSpendProviderResponse = new long[benchmarkConfig.iterations];
         long[] tSpendHandleResponse = new long[benchmarkConfig.iterations];
 
         JoinFirstStepOutput joinFirstStepOutput;
         JoinResponse joinResponse;
-        EarnRequest earnRequest;
+        EarnStoreRequest earnStoreRequest;
+        EarnRequestECDSA earnRequestECDSA;
+        EarnStoreCouponSignature earnStoreCouponSignature;
         SPSEQSignature earnResponse;
-        SpendRequest spendRequest;
-        DeductOutput spendResponseTuple;
+        SpendCouponRequest spendStoreRequest;
+        SpendCouponSignature spendCouponSignature;
+        SpendRequestECDSA spendProviderRequest;
+        SpendResponseECDSA spendProviderResponse;
         Token token = null;
+        UUID basketId = UUID.randomUUID();
 
         IncentiveSystem incentiveSystem = benchmarkConfig.incentiveSystem;
         ProviderPublicKey ppk = benchmarkConfig.ppk;
         ProviderSecretKey psk = benchmarkConfig.psk;
         UserPublicKey upk = benchmarkConfig.upk;
         UserSecretKey usk = benchmarkConfig.usk;
+        StorePublicKey spk = benchmarkConfig.spk;
+        StoreSecretKey ssk = benchmarkConfig.ssk;
         PromotionParameters promotionParameters = IncentiveSystem.generatePromotionParameters(EARN_SPEND_AMOUNT.length());
         SpendDeductTree spendDeductTree = BenchmarkSpendDeductZkp.getBenchmarkSpendDeductTree(
                 promotionParameters,
@@ -86,17 +111,68 @@ public class Benchmark {
 
         var userKeyPair = new UserKeyPair(upk, usk);
         var providerKeyPair = new ProviderKeyPair(psk, ppk);
+        var storeKeyPair = new StoreKeyPair(ssk, spk);
+        var context = new ByteArrayImplementation("Context".getBytes());
         Instant start, finish;
 
         for (int i = 0; i < benchmarkConfig.iterations; i++) {
+            feedbackFunction.accept(BenchmarkState.REGISTRATION, i);
+
+            // Nothing to do here, just send upb+userInfo
+            tRegistrationStoreRequest[i] = 0;
+
+            start = Instant.now();
+            var registrationCoupon = incentiveSystem.signRegistrationCoupon(
+                    storeKeyPair,
+                    upk,
+                    userInfo
+            );
+            finish = Instant.now();
+            tRegistrationStoreResponse[i] = Duration.between(start, finish).toNanos();
+
+            start = Instant.now();
+            incentiveSystem.verifyRegistrationCoupon(
+                    registrationCoupon,
+                    (storePublicKey) -> true
+            );
+            finish = Instant.now();
+            tRegistrationProviderRequest[i] = Duration.between(start, finish).toNanos();
+
+            start = Instant.now();
+            var registrationToken = incentiveSystem.verifyRegistrationCouponAndIssueRegistrationToken(
+                    providerKeyPair,
+                    registrationCoupon,
+                    storePublicKey -> true,
+                    registrationCoupon1 -> {
+                    }
+            );
+            finish = Instant.now();
+            tRegistrationProviderResponse[i] = Duration.between(start, finish).toNanos();
+
+            start = Instant.now();
+            incentiveSystem.verifyRegistrationToken(
+                    ppk,
+                    registrationToken,
+                    upk
+            );
+            finish = Instant.now();
+            tRegistrationHandleResponse[i] = Duration.between(start, finish).toNanos();
+        }
+
+        for (int i = 0; i < benchmarkConfig.iterations; i++) {
             feedbackFunction.accept(BenchmarkState.ISSUE_JOIN, i);
+
+            tJoinStoreRequest[i] = 0;
+            tJoinStoreResponse[i] = 0;
+
             start = Instant.now();
             joinFirstStepOutput = incentiveSystem.generateJoinRequest(
                     ppk,
                     userKeyPair
             );
             finish = Instant.now();
-            tJoinRequest[i] = Duration.between(start, finish).toNanos();
+            tJoinProviderRequest[i] = Duration.between(start, finish).toNanos();
+
             start = Instant.now();
             joinResponse =
                     incentiveSystem.generateJoinRequestResponse(
@@ -105,7 +181,8 @@ public class Benchmark {
                             joinFirstStepOutput.getJoinRequest()
                     );
             finish = Instant.now();
-            tJoinResponse[i] = Duration.between(start, finish).toNanos();
+            tJoinProviderResponse[i] = Duration.between(start, finish).toNanos();
+
             start = Instant.now();
             token = incentiveSystem.handleJoinRequestResponse(
                     promotionParameters,
@@ -120,31 +197,55 @@ public class Benchmark {
         for (int i = 0; i < benchmarkConfig.iterations; i++) {
             feedbackFunction.accept(BenchmarkState.CREDIT_EARN, i);
             start = Instant.now();
-            earnRequest = incentiveSystem.generateEarnRequest(
+            earnStoreRequest = incentiveSystem.generateEarnCouponRequest(
                     token,
-                    ppk,
                     userKeyPair
             );
             finish = Instant.now();
-            tEarnRequest[i] = Duration.between(start, finish).toNanos();
+            tEarnStoreRequest[i] = Duration.between(start, finish).toNanos();
+
             start = Instant.now();
-            earnResponse = incentiveSystem.generateEarnRequestResponse(
-                    promotionParameters,
-                    earnRequest,
+            earnStoreCouponSignature = incentiveSystem.signEarnCoupon(
+                    storeKeyPair,
                     EARN_SPEND_AMOUNT,
-                    providerKeyPair
+                    earnStoreRequest,
+                    basketId,
+                    promotionParameters.getPromotionId(),
+                    (basketId1, promotionId, hash) -> IStoreBasketRedeemedHandler.BasketRedeemState.BASKET_NOT_REDEEMED
             );
             finish = Instant.now();
-            tEarnResponse[i] = Duration.between(start, finish).toNanos();
+            tEarnStoreResponse[i] = Duration.between(start, finish).toNanos();
+
             start = Instant.now();
-            token = incentiveSystem.handleEarnRequestResponse(
+            earnRequestECDSA = incentiveSystem.generateEarnRequest(
+                    token,
+                    ppk,
+                    userKeyPair,
+                    EARN_SPEND_AMOUNT,
+                    earnStoreCouponSignature
+            );
+            finish = Instant.now();
+            tEarnProviderRequest[i] = Duration.between(start, finish).toNanos();
+
+            start = Instant.now();
+            earnResponse = incentiveSystem.generateEarnResponse(
+                    earnRequestECDSA,
                     promotionParameters,
-                    earnRequest,
+                    providerKeyPair,
+                    new BenchmarkTransactionDBHandler(),
+                    storePublicKey -> true
+            );
+            finish = Instant.now();
+            tEarnProviderResponse[i] = Duration.between(start, finish).toNanos();
+
+            start = Instant.now();
+            token = incentiveSystem.handleEarnResponse(
+                    earnRequestECDSA,
                     earnResponse,
-                    EARN_SPEND_AMOUNT,
+                    promotionParameters,
                     token,
-                    ppk,
-                    userKeyPair
+                    userKeyPair,
+                    ppk
             );
             finish = Instant.now();
             tEarnHandleResponse[i] = Duration.between(start, finish).toNanos();
@@ -152,55 +253,92 @@ public class Benchmark {
 
         for (int i = 0; i < benchmarkConfig.iterations; i++) {
             feedbackFunction.accept(BenchmarkState.SPEND_DEDUCT, i);
-            var tid = incentiveSystem.getPp().getBg().getZn().getUniformlyRandomElement();
             start = Instant.now();
             assert token != null;
             var newPoints = Vector.fromStreamPlain(token.getPoints().stream().map(p -> p.asInteger().subtract(EARN_SPEND_AMOUNT.get(0))));
-            spendRequest = incentiveSystem.generateSpendRequest(
-                    promotionParameters,
-                    token,
-                    ppk,
-                    newPoints,
+            spendStoreRequest = incentiveSystem.generateStoreSpendRequest(
                     userKeyPair,
-                    tid,
-                    spendDeductTree
+                    ppk,
+                    token,
+                    promotionParameters,
+                    basketId,
+                    newPoints,
+                    spendDeductTree,
+                    context
             );
 
             finish = Instant.now();
-            tSpendRequest[i] = Duration.between(start, finish).toNanos();
+            tSpendStoreRequest[i] = Duration.between(start, finish).toNanos();
+
             start = Instant.now();
-            spendResponseTuple = incentiveSystem.generateSpendRequestResponse(
+            spendCouponSignature = incentiveSystem.signSpendCoupon(
+                    storeKeyPair,
+                    ppk,
+                    basketId,
                     promotionParameters,
-                    spendRequest,
-                    providerKeyPair,
-                    tid,
+                    spendStoreRequest,
                     spendDeductTree,
-                    tid // using tid as user choice TODO change this once user choice generation is properly implemented, see issue 75
+                    context,
+                    (basketId1, promotionId, hash) -> IStoreBasketRedeemedHandler.BasketRedeemState.BASKET_NOT_REDEEMED,
+                    new BenchmarkBlacklist(),
+                    new BenchmarkTransactionDBHandler()
             );
             finish = Instant.now();
-            tSpendResponse[i] = Duration.between(start, finish).toNanos();
+            tSpendStoreResponse[i] = Duration.between(start, finish).toNanos();
+
             start = Instant.now();
-            token = incentiveSystem.handleSpendRequestResponse(
+            incentiveSystem.verifySpendCouponSignature(spendStoreRequest, spendCouponSignature, promotionParameters, basketId);
+            spendProviderRequest = new SpendRequestECDSA(spendStoreRequest, spendCouponSignature);
+            finish = Instant.now();
+            tSpendProviderRequest[i] = Duration.between(start, finish).toNanos();
+
+            start = Instant.now();
+            spendProviderResponse = incentiveSystem.verifySpendRequestAndIssueNewToken(
+                    providerKeyPair,
                     promotionParameters,
-                    spendResponseTuple.getSpendResponse(),
-                    spendRequest,
-                    token,
-                    newPoints,
-                    ppk,
-                    userKeyPair
+                    spendProviderRequest,
+                    basketId,
+                    spendDeductTree,
+                    context,
+                    storePublicKey -> true,
+                    new BenchmarkBlacklist()
             );
+            finish = Instant.now();
+            tSpendProviderResponse[i] = Duration.between(start, finish).toNanos();
+
+            start = Instant.now();
+            token = incentiveSystem.retrieveUpdatedTokenFromSpendResponse(userKeyPair,
+                    ppk,
+                    token,
+                    promotionParameters,
+                    newPoints,
+                    spendProviderRequest,
+                    spendProviderResponse
+                    );
             finish = Instant.now();
             tSpendHandleResponse[i] = Duration.between(start, finish).toNanos();
         }
+
         return new BenchmarkResult(
-                tJoinRequest,
-                tJoinResponse,
+                tRegistrationStoreRequest,
+                tRegistrationStoreResponse,
+                tRegistrationProviderRequest,
+                tRegistrationProviderResponse,
+                tRegistrationHandleResponse,
+                tJoinStoreRequest,
+                tJoinStoreResponse,
+                tJoinProviderRequest,
+                tJoinProviderResponse,
                 tJoinHandleResponse,
-                tEarnRequest,
-                tEarnResponse,
+                tEarnStoreRequest,
+                tEarnStoreResponse,
+                tEarnProviderRequest,
+                tEarnProviderResponse,
                 tEarnHandleResponse,
-                tSpendRequest,
-                tSpendResponse,
+                tSpendStoreRequest,
+                tSpendStoreResponse,
+                tSpendProviderRequest,
+                tSpendProviderResponse,
                 tSpendHandleResponse
         );
     }

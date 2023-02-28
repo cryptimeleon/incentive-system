@@ -1,53 +1,115 @@
 package org.cryptimeleon.incentive.crypto.benchmark;
 
 import java.io.Serializable;
+import java.util.Locale;
 import java.util.stream.LongStream;
 
 /**
  * Class holding results of a benchmark and precomputed analyzed results.
  */
 public class BenchmarkResult implements Serializable {
-    public long[] joinRequestTime;
-    public long[] joinResponseTime;
-    public long[] joinHandleResponseTime;
-    public long[] earnRequestTime;
-    public long[] earnResponseTime;
-    public long[] earnHandleResponseTime;
-    public long[] spendRequestTime;
-    public long[] spendResponseTime;
-    public long[] spendHandleResponseTime;
-
-    public double joinRequestAvg;
-    public double joinResponseAvg;
+    public double registrationStoreRequestAvg;
+    public double registrationStoreResponseAvg;
+    public double registrationProviderRequestAvg;
+    public double registrationProviderResponseAvg;
+    public double registrationHandleResponseAvg;
+    public double joinStoreRequestAvg;
+    public double joinStoreResponseAvg;
+    long[] registrationStoreRequestTime;
+    long[] registrationStoreResponseTime;
+    long[] joinHandleResponseTime;
+    long[] earnStoreRequestTime;
+    long[] earnStoreResponseTime;
+    long[] earnProviderRequestTime;
+    long[] earnProviderResponseTime;
+    long[] earnHandleResponseTime;
+    long[] spendStoreRequestTime;
+    long[] spendStoreResponseTime;
+    long[] spendProviderRequestTime;
+    long[] spendProviderResponseTime;
+    long[] spendHandleResponseTime;
+    long[] registrationProviderRequestTime;
+    long[] registrationProviderResponseTime;
+    long[] registrationHandleResponseTime;
+    long[] joinStoreRequestTime;
+    long[] joinStoreResponseTime;
+    long[] joinProviderRequestTime;
+    long[] joinProviderResponseTime;
+    public double joinProviderRequestAvg;
+    public double joinProviderResponseAvg;
     public double joinHandleResponseAvg;
 
-    public double earnRequestAvg;
-    public double earnResponseAvg;
+    public double earnStoreRequestAvg;
+    public double earnStoreResponseAvg;
+    public double earnProviderRequestAvg;
+    public double earnProviderResponseAvg;
     public double earnHandleResponseAvg;
 
-    public double spendRequestAvg;
-    public double spendResponseAvg;
+    public double spendStoreRequestAvg;
+    public double spendStoreResponseAvg;
+    public double spendProviderRequestAvg;
+    public double spendProviderResponseAvg;
     public double spendHandleResponseAvg;
 
+    public double registrationTotalAvg;
     public double joinTotalAvg;
     public double earnTotalAvg;
     public double spendTotalAvg;
-    public double totalAvg;
+    
+    public double registrationAppAvg;
+    public double joinAppAvg;
+    public double earnAppAvg;
+    public double spendAppAvg;
 
     /**
      * Constructor that takes benchmark timing data as arrays containing the time for a step in nanoseconds.
      * Analyzes the data to offer results.
      */
-    public BenchmarkResult(long[] joinRequestTime, long[] joinResponseTime, long[] joinHandleResponseTime, long[] earnRequestTime, long[] earnResponseTime, long[] earnHandleResponseTime, long[] spendRequestTime, long[] spendResponseTime, long[] spendHandleResponseTime) {
-        this.joinRequestTime = joinRequestTime;
-        this.joinResponseTime = joinResponseTime;
-        this.joinHandleResponseTime = joinHandleResponseTime;
-        this.earnRequestTime = earnRequestTime;
-        this.earnResponseTime = earnResponseTime;
-        this.earnHandleResponseTime = earnHandleResponseTime;
-        this.spendRequestTime = spendRequestTime;
-        this.spendResponseTime = spendResponseTime;
-        this.spendHandleResponseTime = spendHandleResponseTime;
+    public BenchmarkResult(
+            long[] registrationStoreRequest,
+            long[] registrationStoreResponse,
+            long[] registrationProviderRequest,
+            long[] registrationProviderResponse,
+            long[] registrationHandleResponse,
+            long[] joinStoreRequest,
+            long[] joinStoreResponse,
+            long[] joinProviderRequest,
+            long[] joinProviderResponse,
+            long[] joinHandleResponse,
+            long[] earnStoreRequest,
+            long[] earnStoreResponse,
+            long[] earnProviderRequest,
+            long[] earnProviderResponse,
+            long[] earnHandleResponse,
+            long[] spendStoreRequest,
+            long[] spendStoreResponse,
+            long[] spendProviderRequest,
+            long[] spendProviderResponse,
+            long[] spendHandleResponse
+    ) {
+        this.registrationStoreRequestTime = registrationStoreRequest;
+        this.registrationStoreResponseTime = registrationStoreResponse;
+        this.registrationProviderRequestTime = registrationProviderRequest;
+        this.registrationProviderResponseTime = registrationProviderResponse;
+        this.registrationHandleResponseTime = registrationHandleResponse;
+
+        this.joinStoreRequestTime = joinStoreRequest;
+        this.joinStoreResponseTime = joinStoreResponse;
+        this.joinProviderRequestTime = joinProviderRequest;
+        this.joinProviderResponseTime = joinProviderResponse;
+        this.joinHandleResponseTime = joinHandleResponse;
+
+        this.earnStoreRequestTime = earnStoreRequest;
+        this.earnStoreResponseTime = earnStoreResponse;
+        this.earnProviderRequestTime = earnProviderRequest;
+        this.earnProviderResponseTime = earnProviderResponse;
+        this.earnHandleResponseTime = earnHandleResponse;
+
+        this.spendStoreRequestTime = spendStoreRequest;
+        this.spendStoreResponseTime = spendStoreResponse;
+        this.spendProviderRequestTime = spendProviderRequest;
+        this.spendProviderResponseTime = spendProviderResponse;
+        this.spendHandleResponseTime = spendHandleResponse;
 
         analyzeData();
     }
@@ -58,22 +120,39 @@ public class BenchmarkResult implements Serializable {
      * Should be called from the constructor to ensure the results are present.
      */
     private void analyzeData() {
-        joinRequestAvg = computeAverage(joinRequestTime);
-        joinResponseAvg = computeAverage(joinResponseTime);
+        registrationStoreRequestAvg = computeAverage(registrationStoreRequestTime);
+        registrationStoreResponseAvg = computeAverage(registrationStoreResponseTime);
+        registrationProviderRequestAvg = computeAverage(registrationProviderRequestTime);
+        registrationProviderResponseAvg = computeAverage(registrationProviderResponseTime);
+        registrationHandleResponseAvg = computeAverage(registrationHandleResponseTime);
+       
+        joinStoreRequestAvg = computeAverage(joinStoreRequestTime);
+        joinStoreResponseAvg = computeAverage(joinStoreResponseTime);
+        joinProviderRequestAvg = computeAverage(joinProviderRequestTime);
+        joinProviderResponseAvg = computeAverage(joinProviderResponseTime);
         joinHandleResponseAvg = computeAverage(joinHandleResponseTime);
 
-        earnRequestAvg = computeAverage(earnRequestTime);
-        earnResponseAvg = computeAverage(earnResponseTime);
+        earnStoreRequestAvg = computeAverage(earnStoreRequestTime);
+        earnStoreResponseAvg = computeAverage(earnStoreResponseTime);
+        earnProviderRequestAvg = computeAverage(earnProviderRequestTime);
+        earnProviderResponseAvg = computeAverage(earnProviderResponseTime);
         earnHandleResponseAvg = computeAverage(earnHandleResponseTime);
 
-        spendRequestAvg = computeAverage(spendRequestTime);
-        spendResponseAvg = computeAverage(spendResponseTime);
+        spendStoreRequestAvg = computeAverage(spendStoreRequestTime);
+        spendStoreResponseAvg = computeAverage(spendStoreResponseTime);
+        spendProviderRequestAvg= computeAverage(spendProviderRequestTime);
+        spendProviderResponseAvg = computeAverage(spendProviderResponseTime);
         spendHandleResponseAvg = computeAverage(spendHandleResponseTime);
 
-        joinTotalAvg = joinRequestAvg + joinResponseAvg + joinHandleResponseAvg;
-        earnTotalAvg = earnRequestAvg + earnResponseAvg + earnHandleResponseAvg;
-        spendTotalAvg = spendRequestAvg + spendResponseAvg + spendHandleResponseAvg;
-        totalAvg = joinTotalAvg + earnTotalAvg + spendTotalAvg;
+        registrationTotalAvg = registrationStoreRequestAvg + registrationStoreResponseAvg + registrationProviderRequestAvg + registrationProviderResponseAvg + registrationHandleResponseAvg;
+        joinTotalAvg = joinStoreRequestAvg + joinStoreResponseAvg + joinProviderRequestAvg + joinProviderResponseAvg + joinHandleResponseAvg;
+        earnTotalAvg = earnStoreRequestAvg + earnStoreResponseAvg + earnProviderRequestAvg + earnProviderResponseAvg + earnHandleResponseAvg;
+        spendTotalAvg = spendStoreRequestAvg + spendStoreResponseAvg + spendProviderRequestAvg + spendProviderResponseAvg + spendHandleResponseAvg;
+
+        registrationAppAvg = registrationStoreRequestAvg + registrationProviderRequestAvg + registrationHandleResponseAvg;
+        joinAppAvg = joinStoreRequestAvg + joinProviderRequestAvg + joinHandleResponseAvg;
+        earnAppAvg = earnStoreRequestAvg + earnProviderRequestAvg + earnHandleResponseAvg;
+        spendAppAvg = spendStoreRequestAvg + spendProviderRequestAvg + spendHandleResponseAvg;
     }
 
     /**
@@ -81,10 +160,19 @@ public class BenchmarkResult implements Serializable {
      */
     public void printReport() {
         System.out.println("****************************************************************************************************");
-        System.out.printf("** Total ** %fms%n", totalAvg);
-        System.out.printf("** Join  ** Total: %fms, Req: %fms, Res: %fms, Han: %fms%n", joinTotalAvg, joinRequestAvg, joinResponseAvg, joinHandleResponseAvg);
-        System.out.printf("** Earn  ** Total: %fms, Req: %fms, Res: %fms, Han: %fms%n", earnTotalAvg, earnRequestAvg, earnResponseAvg, earnHandleResponseAvg);
-        System.out.printf("** Spend ** Total: %fms, Req: %fms, Res: %fms, Han: %fms%n", spendTotalAvg, spendRequestAvg, spendResponseAvg, spendHandleResponseAvg);
+        System.out.printf(Locale.ENGLISH, "** Registration ** Total: %.3fms, A1: %.3fms, S: %.3fms, A2: %.3fms, P: %.3fms, A3: %.3fms%n", registrationTotalAvg, registrationStoreRequestAvg, registrationStoreResponseAvg, registrationProviderRequestAvg, registrationProviderResponseAvg, registrationHandleResponseAvg);
+        System.out.printf(Locale.ENGLISH, "** Join         ** Total: %.3fms, A1: %.3fms, S: %.3fms, A2: %.3fms, P: %.3fms, A3: %.3fms%n", joinTotalAvg, joinStoreRequestAvg, joinStoreResponseAvg, joinProviderRequestAvg, joinProviderResponseAvg, joinHandleResponseAvg);
+        System.out.printf(Locale.ENGLISH, "** Earn         ** Total: %.3fms, A1: %.3fms, S: %.3fms, A2: %.3fms, P: %.3fms, A3: %.3fms%n", earnTotalAvg, earnStoreRequestAvg, earnStoreResponseAvg, earnProviderRequestAvg, earnProviderResponseAvg, earnHandleResponseAvg);
+        System.out.printf(Locale.ENGLISH, "** Spend        ** Total: %.3fms, A1: %.3fms, S: %.3fms, A2: %.3fms, P: %.3fms, A3: %.3fms%n", spendTotalAvg, spendStoreRequestAvg, spendStoreResponseAvg, spendProviderRequestAvg, spendProviderResponseAvg, spendHandleResponseAvg);
+        System.out.println("****************************************************************************************************");
+    }
+
+    public void printCSV() {
+        System.out.println("****************************************************************************************************");
+        System.out.printf(Locale.ENGLISH, "%.4f, %.4f, %.4f, %.4f, %.4f%n", registrationStoreRequestAvg, registrationStoreResponseAvg, registrationProviderRequestAvg, registrationProviderResponseAvg, registrationHandleResponseAvg);
+        System.out.printf(Locale.ENGLISH, "%.4f, %.4f, %.4f, %.4f, %.4f%n", joinStoreRequestAvg, joinStoreResponseAvg, joinProviderRequestAvg, joinProviderResponseAvg, joinHandleResponseAvg);
+        System.out.printf(Locale.ENGLISH, "%.4f, %.4f, %.4f, %.4f, %.4f%n", earnStoreRequestAvg, earnStoreResponseAvg, earnProviderRequestAvg, earnProviderResponseAvg, earnHandleResponseAvg);
+        System.out.printf(Locale.ENGLISH, "%.4f, %.4f, %.4f, %.4f, %.4f%n", spendStoreRequestAvg, spendStoreResponseAvg, spendProviderRequestAvg, spendProviderResponseAvg, spendHandleResponseAvg);
         System.out.println("****************************************************************************************************");
     }
 
@@ -95,6 +183,6 @@ public class BenchmarkResult implements Serializable {
      * @return average time in ms
      */
     private double computeAverage(long[] times) {
-        return LongStream.of(times).average().getAsDouble() / 1000000;
+        return LongStream.of(times).average().getAsDouble() / 1_000_000;
     }
 }

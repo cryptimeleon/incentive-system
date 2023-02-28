@@ -114,6 +114,10 @@ fun BenchmarkUi(onUpClicked: () -> Unit) {
                                     style = MaterialTheme.typography.headlineMedium
                                 )
                                 BenchmarkResultItem(
+                                    title = "Registration",
+                                    description = state.registrationText ?: ""
+                                )
+                                BenchmarkResultItem(
                                     title = "Issue-Join",
                                     description = state.joinText ?: ""
                                 )
@@ -124,10 +128,6 @@ fun BenchmarkUi(onUpClicked: () -> Unit) {
                                 BenchmarkResultItem(
                                     title = "Spend-Deduct",
                                     description = state.spendText ?: ""
-                                )
-                                BenchmarkResultItem(
-                                    title = "Total",
-                                    description = state.totalText ?: ""
                                 )
                             }
                             FloatingActionButton(
