@@ -10,22 +10,20 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.yield
 import org.cryptimeleon.incentive.crypto.BilinearGroupChoice
-import org.cryptimeleon.incentive.crypto.IncentiveSystem
-import org.cryptimeleon.incentive.crypto.Setup
-import org.cryptimeleon.incentive.crypto.Util
 import org.cryptimeleon.incentive.crypto.benchmark.Benchmark
 import org.cryptimeleon.incentive.crypto.benchmark.BenchmarkConfig
 import org.cryptimeleon.incentive.crypto.benchmark.BenchmarkResult
 import timber.log.Timber
 import javax.inject.Inject
 
-private const val BENCHMARK_ITERATIONS = 10
+private const val BENCHMARK_ITERATIONS = 100
 private val BENCHMARK_GROUP = BilinearGroupChoice.Herumi_MCL
 const val SECURITY_PARAMETER = 128
 
 enum class BenchmarkViewState {
     NOT_STARTED,
     SETUP,
+    REGISTRATION,
     ISSUE_JOIN,
     CREDIT_EARN,
     SPEND_DEDUCT,
@@ -39,7 +37,7 @@ enum class BenchmarkViewState {
 class BenchmarkViewModel @Inject constructor(application: Application) :
     AndroidViewModel(application) {
 
-    val state = MutableLiveData<BenchmarkState>(
+    val state = MutableLiveData(
         BenchmarkState(
             BenchmarkViewState.NOT_STARTED,
             0,
@@ -53,36 +51,17 @@ class BenchmarkViewModel @Inject constructor(application: Application) :
     fun runBenchmark() {
         viewModelScope.launch {
             withContext(Dispatchers.Default) {
-                Timber.i("Generating public parameters")
+                Timber.i("Setup")
                 state.postValue(
                     state.value!!.copy(
                         state = BenchmarkViewState.SETUP
                     )
                 )
 
-                val pp =
-                    Setup.trustedSetup(SECURITY_PARAMETER, BENCHMARK_GROUP)
-
-                val incentiveSystem = IncentiveSystem(pp)
-
-                Timber.i("Provider Provider keys")
-                val providerKeyPair = incentiveSystem.generateProviderKeyPair()
-
-                Timber.i("Generating Pre User keys")
-                val userPreKeyPair = incentiveSystem.generateUserPreKeyPair()
-                val userKeyPair =
-                    Util.addRegistrationSignatureToUserPreKeys(userPreKeyPair, providerKeyPair, pp)
-
-                Timber.i("Generation finished")
-
                 val benchmarkConfig = BenchmarkConfig(
                     BENCHMARK_ITERATIONS,
-                    incentiveSystem,
-                    pp,
-                    providerKeyPair.pk,
-                    providerKeyPair.sk,
-                    userKeyPair.pk,
-                    userKeyPair.sk
+                    SECURITY_PARAMETER,
+                    BENCHMARK_GROUP
                 )
 
                 // Stop at this point if cancelled
@@ -93,6 +72,13 @@ class BenchmarkViewModel @Inject constructor(application: Application) :
                     Benchmark.runBenchmark(benchmarkConfig) { benchmarkState, iteration ->
                         when (benchmarkState) {
                             null -> Timber.e("Benchmark State is null")
+                            org.cryptimeleon.incentive.crypto.benchmark.BenchmarkState.REGISTRATION ->
+                                state.postValue(
+                                    state.value!!.copy(
+                                        state = BenchmarkViewState.REGISTRATION,
+                                        iteration = iteration
+                                    )
+                                )
                             org.cryptimeleon.incentive.crypto.benchmark.BenchmarkState.ISSUE_JOIN ->
                                 state.postValue(
                                     state.value!!.copy(
@@ -120,20 +106,8 @@ class BenchmarkViewModel @Inject constructor(application: Application) :
                 // Stop at this point if cancelled
                 yield()
 
-                // Log the result arrays for debugging
-                Timber.i(benchmarkResult.joinRequestTime.toString())
-                Timber.i(benchmarkResult.joinResponseTime.toString())
-                Timber.i(benchmarkResult.joinHandleResponseTime.toString())
-
-                Timber.i(benchmarkResult.earnRequestTime.toString())
-                Timber.i(benchmarkResult.earnResponseTime.toString())
-                Timber.i(benchmarkResult.earnHandleResponseTime.toString())
-
-                Timber.i(benchmarkResult.spendRequestTime.toString())
-                Timber.i(benchmarkResult.spendResponseTime.toString())
-                Timber.i(benchmarkResult.spendHandleResponseTime.toString())
-
                 // Log the results
+                benchmarkResult.printCSV()
                 benchmarkResult.printReport()
 
                 // This triggers the navigation
@@ -156,50 +130,58 @@ data class BenchmarkState(
     val stateText = when (state) {
         BenchmarkViewState.FINISHED -> "Done"
         BenchmarkViewState.SETUP -> "Setup of System"
+        BenchmarkViewState.REGISTRATION-> "Running registration ($iteration of $BENCHMARK_ITERATIONS)"
         BenchmarkViewState.ISSUE_JOIN -> "Running issue-join ($iteration of $BENCHMARK_ITERATIONS)"
         BenchmarkViewState.CREDIT_EARN -> "Running credit-earn ($iteration of $BENCHMARK_ITERATIONS)"
         BenchmarkViewState.SPEND_DEDUCT -> "Running spend-deduct ($iteration of $BENCHMARK_ITERATIONS)"
         else -> "Other state"
     }
 
+    val registrationText = benchmarkResult?.let {
+        protocolText(
+            it.registrationAppAvg,
+            it.registrationStoreRequestAvg,
+            it.registrationProviderRequestAvg,
+            it.registrationHandleResponseAvg
+        )
+    }
     val joinText = benchmarkResult?.let {
         protocolText(
-            it.joinTotalAvg,
-            it.joinRequestAvg,
-            it.joinResponseAvg,
+            it.joinAppAvg,
+            it.joinStoreRequestAvg,
+            it.joinProviderRequestAvg,
             it.joinHandleResponseAvg
         )
     }
     val earnText = benchmarkResult?.let {
         protocolText(
-            it.earnTotalAvg,
-            it.earnRequestAvg,
-            it.earnResponseAvg,
+            it.earnAppAvg,
+            it.earnStoreRequestAvg,
+            it.earnProviderRequestAvg,
             it.earnHandleResponseAvg
         )
     }
     val spendText = benchmarkResult?.let {
         protocolText(
-            it.spendTotalAvg,
-            it.spendRequestAvg,
-            it.spendResponseAvg,
+            it.spendAppAvg,
+            it.spendStoreRequestAvg,
+            it.spendProviderRequestAvg,
             it.spendHandleResponseAvg
         )
     }
-    val totalText = benchmarkResult?.let { benchmarkResult.totalAvg.toString() }
 
     /**
      * Function for assembling the result string for each protocol
      */
     private fun protocolText(
         total: Double,
-        request: Double,
-        response: Double,
+        storeRequest: Double,
+        providerRequest: Double,
         handleResponse: Double
     ): String {
-        return "Total: ${total.format(2)}\nRequest: ${request.format(2)}\nResponse: ${
-            response.format(2)
-        }\nHandle Response: ${handleResponse.format(2)}"
+        return "Total: ${total.format(3)}ms\nStore Request: ${storeRequest.format(3)}ms\nProvider Request: ${
+            providerRequest.format(3)
+        }ms\nHandle Response: ${handleResponse.format(2)}ms"
     }
 
     /**
@@ -211,6 +193,6 @@ data class BenchmarkState(
      * Assemble String that is sent via the share button.
      */
     fun shareData(): String {
-        return "Total:\n$totalText\nIssueJoin:\n$joinText\nCreditEarn\n$earnText\nSpendDeduct\n$spendText"
+        return "Total:\nRegistration:\n$registrationText\nIssueJoin:\n$joinText\nCreditEarn\n$earnText\nSpendDeduct\n$spendText"
     }
 }
