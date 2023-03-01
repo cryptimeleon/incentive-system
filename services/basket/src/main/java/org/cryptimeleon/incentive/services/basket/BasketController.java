@@ -22,8 +22,6 @@ import java.util.stream.Collectors;
 public class BasketController {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BasketController.class);
     private final BasketService basketService; // Spring boot automatically injects a BasketService object
-    @Value("${basket-service.redeem-secret}")
-    private String redeemSecret;
     @Value("${basket-service.provider-secret}")
     private String providerSecret;
     @Value("${store.shared-secret}")
@@ -38,16 +36,12 @@ public class BasketController {
      */
     @PostConstruct
     public void validateValue() {
-        if (redeemSecret.equals("")) {
-            throw new IllegalArgumentException("Redeem secret is not set!");
-        }
         if (providerSecret.equals("")) {
             throw new IllegalArgumentException("Basket provider secret is not set!");
         }
         if (storeSharedSecret.equals("")) {
             throw new IllegalArgumentException("Store shared secret is not set!");
         }
-        log.info("Redeem secret: {}", redeemSecret);
         log.info("Provider secret: {}", providerSecret);
         log.info("Store shared secret: {}", storeSharedSecret);
     }

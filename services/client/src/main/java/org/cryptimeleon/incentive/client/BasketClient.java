@@ -105,24 +105,6 @@ public class BasketClient implements AliveEndpoint {
                 .block();
     }
 
-    public Mono<Void> redeemBasket(PostRedeemBasketDto postRedeemBasketDto, String redeemSecret) {
-        return basketClient.post()
-                .uri("/basket/redeem")
-                .header("redeem-secret", redeemSecret)
-                .body(BodyInserters.fromValue(postRedeemBasketDto))
-                .retrieve()
-                .bodyToMono(Void.class);
-    }
-
-    public Mono<Void> lockBasket(UUID basketId, String redeemSecret) {
-        return basketClient.post()
-                .uri("/basket/lock")
-                .header("redeem-secret", redeemSecret)
-                .body(BodyInserters.fromValue(basketId))
-                .retrieve()
-                .bodyToMono(Void.class);
-    }
-
     public void addShoppingItems(List<ItemDto> testBasketItems, String providerSecret) {
         testBasketItems.forEach(item -> basketClient.post().uri("/items").header("provider-secret", providerSecret).body(BodyInserters.fromValue(item)).retrieve().bodyToMono(Void.class).block());
     }
