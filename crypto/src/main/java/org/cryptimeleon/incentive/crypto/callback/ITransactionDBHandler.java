@@ -1,6 +1,6 @@
 package org.cryptimeleon.incentive.crypto.callback;
 
-import org.cryptimeleon.incentive.crypto.model.EarnRequestECDSA;
+import org.cryptimeleon.incentive.crypto.model.EarnProviderRequest;
 import org.cryptimeleon.incentive.crypto.model.SpendTransactionData;
 
 /**
@@ -10,7 +10,7 @@ public interface ITransactionDBHandler {
     /**
      * Add data from earn request required for clearing to some datasource.
      */
-    void addEarnData(EarnRequestECDSA earnRequestECDSA, byte[] h);
+    void addEarnData(EarnProviderRequest earnProviderRequest, byte[] h);
 
     /**
      * Add data from spend request required for clearing and double-spending protection to some datasource.

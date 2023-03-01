@@ -109,21 +109,21 @@ public class EarnTest {
     @Test
     void earnStoreCouponRepresentationTest() {
         var storeReq = incSys.generateEarnCouponRequest(token, TestSuite.userKeyPair);
-        EarnStoreCouponSignature earnStoreCouponSignature = incSys.signEarnCoupon(TestSuite.storeKeyPair, earnAmount, storeReq, basketId, promotionId, testRedeemedHandler);
+        EarnStoreResponse earnStoreResponse = incSys.signEarnCoupon(TestSuite.storeKeyPair, earnAmount, storeReq, basketId, promotionId, testRedeemedHandler);
 
-        EarnStoreCouponSignature recoveredEarnStoreCouponSignature = new EarnStoreCouponSignature(earnStoreCouponSignature.getRepresentation());
+        EarnStoreResponse recoveredEarnStoreResponse = new EarnStoreResponse(earnStoreResponse.getRepresentation());
 
-        assertThat(recoveredEarnStoreCouponSignature).isEqualTo(earnStoreCouponSignature);
+        assertThat(recoveredEarnStoreResponse).isEqualTo(earnStoreResponse);
     }
 
     @Test
     void earnRequestECDSARepresentationTest() {
         var storeReq = incSys.generateEarnCouponRequest(token, TestSuite.userKeyPair);
-        EarnStoreCouponSignature earnStoreCouponSignature = incSys.signEarnCoupon(TestSuite.storeKeyPair, earnAmount, storeReq, basketId, promotionId, testRedeemedHandler);
-        EarnRequestECDSA earnRequestECDSA = incSys.generateEarnRequest(token, TestSuite.providerKeyPair.getPk(), TestSuite.userKeyPair, Vector.of(BigInteger.ONE), earnStoreCouponSignature);
+        EarnStoreResponse earnStoreResponse = incSys.signEarnCoupon(TestSuite.storeKeyPair, earnAmount, storeReq, basketId, promotionId, testRedeemedHandler);
+        EarnProviderRequest earnProviderRequest = incSys.generateEarnRequest(token, TestSuite.providerKeyPair.getPk(), TestSuite.userKeyPair, Vector.of(BigInteger.ONE), earnStoreResponse);
 
-        EarnRequestECDSA deserializedEarnRequestECDSA = new EarnRequestECDSA(earnRequestECDSA.getRepresentation(), TestSuite.pp);
+        EarnProviderRequest deserializedEarnProviderRequest = new EarnProviderRequest(earnProviderRequest.getRepresentation(), TestSuite.pp);
 
-        assertThat(deserializedEarnRequestECDSA).isEqualTo(earnRequestECDSA);
+        assertThat(deserializedEarnProviderRequest).isEqualTo(earnProviderRequest);
     }
 }

@@ -72,43 +72,43 @@ public class IncentiveServiceTest {
         );
     }
 
-    private static Token retrieveUpdatedTokenFromResponse(Token token, SpendRequestECDSA spendRequestECDSA, SpendResponseECDSA spendResponseECDSA) {
+    private static Token retrieveUpdatedTokenFromResponse(Token token, SpendProviderRequest spendProviderRequest, SpendProviderResponse spendProviderResponse) {
         return incentiveSystem.retrieveUpdatedTokenFromSpendResponse(
                 TestSuiteWithPromotion.userKeyPair,
                 TestSuiteWithPromotion.providerKeyPair.getPk(),
                 token,
                 TestSuiteWithPromotion.promotion.getPromotionParameters(),
                 TestSuiteWithPromotion.pointsAfterSpend,
-                spendRequestECDSA,
-                spendResponseECDSA);
+                spendProviderRequest,
+                spendProviderResponse);
     }
 
-    private static SpendResponseECDSA runSpendWithService(WebTestClient webClient, SpendRequestECDSA spendRequestECDSA) {
-        return runSpendWithService(webClient, spendRequestECDSA, TestSuiteWithPromotion.basket);
+    private static SpendProviderResponse runSpendWithService(WebTestClient webClient, SpendProviderRequest spendProviderRequest) {
+        return runSpendWithService(webClient, spendProviderRequest, TestSuiteWithPromotion.basket);
     }
 
-    private static SpendResponseECDSA runSpendWithService(WebTestClient webClient, SpendRequestECDSA spendRequestECDSA, Basket basket) {
+    private static SpendProviderResponse runSpendWithService(WebTestClient webClient, SpendProviderRequest spendProviderRequest, Basket basket) {
         return spend(webClient,
                 incentiveSystem,
                 TestSuiteWithPromotion.promotion.getPromotionParameters(),
                 TestSuiteWithPromotion.spendTokenUpdate,
-                spendRequestECDSA,
+                spendProviderRequest,
                 TestSuiteWithPromotion.metadata,
                 basket.getBasketId(),
                 TestSuiteWithPromotion.basketPoints.toList());
     }
 
-    private static SpendCouponSignature generateSpendCouponSignature(SpendCouponRequest spendCouponRequest) {
-        return generateSpendCouponSignature(spendCouponRequest, TestSuiteWithPromotion.basket);
+    private static SpendStoreResponse generateSpendCouponSignature(SpendStoreRequest spendStoreRequest) {
+        return generateSpendCouponSignature(spendStoreRequest, TestSuiteWithPromotion.basket);
     }
 
-    private static SpendCouponSignature generateSpendCouponSignature(SpendCouponRequest spendCouponRequest, Basket basket) {
+    private static SpendStoreResponse generateSpendCouponSignature(SpendStoreRequest spendStoreRequest, Basket basket) {
         return incentiveSystem.signSpendCoupon(
                 TestSuiteWithPromotion.storeKeyPair,
                 TestSuiteWithPromotion.providerKeyPair.getPk(),
                 basket.getBasketId(),
                 TestSuiteWithPromotion.promotion.getPromotionParameters(),
-                spendCouponRequest,
+                spendStoreRequest,
                 TestSuiteWithPromotion.tree,
                 TestSuiteWithPromotion.context,
                 (basketId, promotionId, hash) -> IStoreBasketRedeemedHandler.BasketRedeemState.BASKET_NOT_REDEEMED,
@@ -116,11 +116,11 @@ public class IncentiveServiceTest {
                 new TestSuite.TestTransactionDbHandler());
     }
 
-    private static SpendCouponRequest generateSpendCouponRequest(Token token) {
+    private static SpendStoreRequest generateSpendCouponRequest(Token token) {
         return generateSpendCouponRequest(token, TestSuiteWithPromotion.basket);
     }
 
-    private static SpendCouponRequest generateSpendCouponRequest(Token token, Basket basket) {
+    private static SpendStoreRequest generateSpendCouponRequest(Token token, Basket basket) {
         return incentiveSystem.generateStoreSpendRequest(
                 TestSuiteWithPromotion.userKeyPair,
                 TestSuiteWithPromotion.providerKeyPair.getPk(),
@@ -202,7 +202,7 @@ public class IncentiveServiceTest {
         // add promotion that is used for tests to the system
         addPromotion(webClient, TestSuiteWithPromotion.promotion, providerSecret, HttpStatus.OK);
         Token token = TestSuite.generateToken(TestSuiteWithPromotion.promotion.getPromotionParameters());
-        EarnStoreCouponSignature earnStoreCouponSignature = TestSuite.getEarnCouponForPromotion(token, testEarnAmount, TestSuiteWithPromotion.basket.getBasketId(), TestSuiteWithPromotion.promotion.getPromotionParameters().getPromotionId());
+        EarnStoreResponse earnStoreResponse = TestSuite.getEarnCouponForPromotion(token, testEarnAmount, TestSuiteWithPromotion.basket.getBasketId(), TestSuiteWithPromotion.promotion.getPromotionParameters().getPromotionId());
 
         // generate earn request and pretend like the test user sent it to you
         var updatedToken = earn(
@@ -212,7 +212,7 @@ public class IncentiveServiceTest {
                 TestSuite.userKeyPair,
                 token,
                 testEarnAmount,
-                earnStoreCouponSignature,
+                earnStoreResponse,
                 TestSuiteWithPromotion.promotion.getPromotionParameters()
         );
 
@@ -224,14 +224,14 @@ public class IncentiveServiceTest {
         addPromotion(webClient, TestSuiteWithPromotion.promotion, providerSecret, HttpStatus.OK);
 
         var token = generateToken();
-        SpendCouponRequest spendCouponRequest = generateSpendCouponRequest(token);
-        SpendCouponSignature spendCouponSignature = generateSpendCouponSignature(spendCouponRequest);
-        SpendRequestECDSA spendRequestECDSA = new SpendRequestECDSA(spendCouponRequest, spendCouponSignature);
+        SpendStoreRequest spendStoreRequest = generateSpendCouponRequest(token);
+        SpendStoreResponse spendCouponSignature = generateSpendCouponSignature(spendStoreRequest);
+        SpendProviderRequest spendProviderRequest = new SpendProviderRequest(spendStoreRequest, spendCouponSignature);
 
         // Request
-        SpendResponseECDSA spendResponseECDSA = runSpendWithService(webClient, spendRequestECDSA);
+        SpendProviderResponse spendProviderResponse = runSpendWithService(webClient, spendProviderRequest);
 
-        Token updatedToken = retrieveUpdatedTokenFromResponse(token, spendRequestECDSA, spendResponseECDSA);
+        Token updatedToken = retrieveUpdatedTokenFromResponse(token, spendProviderRequest, spendProviderResponse);
         assertThat(updatedToken.getPoints().map(RingElement::asInteger)).isEqualTo(TestSuiteWithPromotion.pointsAfterSpend);
     }
 
@@ -240,20 +240,20 @@ public class IncentiveServiceTest {
         addPromotion(webClient, TestSuiteWithPromotion.promotion, providerSecret, HttpStatus.OK);
 
         var token = generateToken();
-        SpendCouponRequest spendCouponRequest = generateSpendCouponRequest(token);
-        SpendCouponSignature spendCouponSignature = generateSpendCouponSignature(spendCouponRequest);
-        SpendRequestECDSA spendRequestECDSA = new SpendRequestECDSA(spendCouponRequest, spendCouponSignature);
+        SpendStoreRequest spendStoreRequest = generateSpendCouponRequest(token);
+        SpendStoreResponse spendCouponSignature = generateSpendCouponSignature(spendStoreRequest);
+        SpendProviderRequest spendProviderRequest = new SpendProviderRequest(spendStoreRequest, spendCouponSignature);
 
-        SpendCouponRequest spendCouponRequest2 = generateSpendCouponRequest(token, TestSuiteWithPromotion.basketButWithDifferentId);
-        SpendCouponSignature spendCouponSignature2 = generateSpendCouponSignature(spendCouponRequest2, TestSuiteWithPromotion.basketButWithDifferentId);
-        SpendRequestECDSA spendRequestECDSA2 = new SpendRequestECDSA(spendCouponRequest2, spendCouponSignature2);
+        SpendStoreRequest spendStoreRequest2 = generateSpendCouponRequest(token, TestSuiteWithPromotion.basketButWithDifferentId);
+        SpendStoreResponse spendCouponSignature2 = generateSpendCouponSignature(spendStoreRequest2, TestSuiteWithPromotion.basketButWithDifferentId);
+        SpendProviderRequest spendProviderRequest2 = new SpendProviderRequest(spendStoreRequest2, spendCouponSignature2);
 
         // Request
-        SpendResponseECDSA spendResponseECDSA = runSpendWithService(webClient, spendRequestECDSA);
-        retrieveUpdatedTokenFromResponse(token, spendRequestECDSA, spendResponseECDSA);
+        SpendProviderResponse spendProviderResponse = runSpendWithService(webClient, spendProviderRequest);
+        retrieveUpdatedTokenFromResponse(token, spendProviderRequest, spendProviderResponse);
 
         // TODO this is not super nice, expect a specific error code!
-        assertThatThrownBy(() -> runSpendWithService(webClient, spendRequestECDSA2, TestSuiteWithPromotion.basketButWithDifferentId)).isInstanceOf(AssertionError.class);
+        assertThatThrownBy(() -> runSpendWithService(webClient, spendProviderRequest2, TestSuiteWithPromotion.basketButWithDifferentId)).isInstanceOf(AssertionError.class);
     }
 
     @Test
@@ -261,21 +261,21 @@ public class IncentiveServiceTest {
         addPromotion(webClient, TestSuiteWithPromotion.promotion, providerSecret, HttpStatus.OK);
 
         var token = generateToken();
-        SpendCouponRequest spendCouponRequest = generateSpendCouponRequest(token);
-        SpendCouponSignature spendCouponSignature = generateSpendCouponSignature(spendCouponRequest);
-        var manipulatedSpendCouponRequest = new SpendCouponRequest(
-                spendCouponRequest.getDsid().add(pp.getBg().getZn().valueOf(1)),
-                spendCouponRequest.getC(),
-                spendCouponRequest.getSigma(),
-                spendCouponRequest.getC0(),
-                spendCouponRequest.getCPre0(),
-                spendCouponRequest.getCPre1(),
-                spendCouponRequest.getSpendZkp()
+        SpendStoreRequest spendStoreRequest = generateSpendCouponRequest(token);
+        SpendStoreResponse spendCouponSignature = generateSpendCouponSignature(spendStoreRequest);
+        var manipulatedSpendCouponRequest = new SpendStoreRequest(
+                spendStoreRequest.getDsid().add(pp.getBg().getZn().valueOf(1)),
+                spendStoreRequest.getC(),
+                spendStoreRequest.getSigma(),
+                spendStoreRequest.getC0(),
+                spendStoreRequest.getCPre0(),
+                spendStoreRequest.getCPre1(),
+                spendStoreRequest.getSpendZkp()
         );
-        SpendRequestECDSA spendRequestECDSA = new SpendRequestECDSA(manipulatedSpendCouponRequest, spendCouponSignature);
+        SpendProviderRequest spendProviderRequest = new SpendProviderRequest(manipulatedSpendCouponRequest, spendCouponSignature);
 
         // TODO this is not super nice, expect a specific error!
-        assertThatThrownBy(() -> runSpendWithService(webClient, spendRequestECDSA)).isInstanceOf(AssertionError.class);
+        assertThatThrownBy(() -> runSpendWithService(webClient, spendProviderRequest)).isInstanceOf(AssertionError.class);
     }
 
     private SPSEQSignature retrieveRegistrationSignatureForCoupon(WebTestClient webClient, RegistrationCoupon registrationCoupon) {

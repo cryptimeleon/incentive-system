@@ -9,18 +9,18 @@ import org.cryptimeleon.math.serialization.annotations.Represented;
 
 import java.util.Objects;
 
-public class SpendCouponSignature implements Representable {
+public class SpendStoreResponse implements Representable {
     @Represented
     private ECDSASignature signature;
     @Represented
     private StorePublicKey storePublicKey;
 
-    public SpendCouponSignature(ECDSASignature signature, StorePublicKey storePublicKey) {
+    public SpendStoreResponse(ECDSASignature signature, StorePublicKey storePublicKey) {
         this.signature = signature;
         this.storePublicKey = storePublicKey;
     }
 
-    public SpendCouponSignature(Representation representation) {
+    public SpendStoreResponse(Representation representation) {
         ReprUtil.deserialize(this, representation);
     }
 
@@ -36,7 +36,7 @@ public class SpendCouponSignature implements Representable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        SpendCouponSignature that = (SpendCouponSignature) o;
+        SpendStoreResponse that = (SpendStoreResponse) o;
         return Objects.equals(signature, that.signature) && Objects.equals(storePublicKey, that.storePublicKey);
     }
 

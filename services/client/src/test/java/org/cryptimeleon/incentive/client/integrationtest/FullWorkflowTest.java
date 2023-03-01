@@ -120,7 +120,7 @@ public class FullWorkflowTest extends TransactionTestPreparation {
 
         // Obtain response
         var batchResponse = basketClient.retrieveBulkResponse(basket.getBasketId());
-        var earnCoupon = new EarnStoreCouponSignature(jsonConverter.deserialize(batchResponse.getEarnResults().get(0).getSerializedEarnCouponSignature()));
+        var earnCoupon = new EarnStoreResponse(jsonConverter.deserialize(batchResponse.getEarnResults().get(0).getSerializedEarnCouponSignature()));
         assertThat(incentiveSystem.verifyEarnCoupon(earnCouponRequest, promotion.getPromotionParameters().getPromotionId(), pointsToEarn, earnCoupon, storePublicKey -> true))
                 .isTrue();
 
@@ -138,7 +138,7 @@ public class FullWorkflowTest extends TransactionTestPreparation {
         Vector<BigInteger> pointsAfterSpend = tokenUpdate.computeSatisfyingNewPointsVector(token.getPoints().map(RingElement::asInteger), basketPoints, metadata).get();
         SpendDeductTree tree = tokenUpdate.generateRelationTree(basketPoints);
         UniqueByteRepresentable context = ContextManager.computeContext(tokenUpdate.getTokenUpdateId(), basketPoints, metadata);
-        SpendCouponRequest spendStoreRequest = incentiveSystem.generateStoreSpendRequest(cryptoAssets.getUserKeyPair(), cryptoAssets.getProviderKeyPair().getPk(), token, promotion.getPromotionParameters(), basket.getBasketId(), pointsAfterSpend, tree, context);
+        SpendStoreRequest spendStoreRequest = incentiveSystem.generateStoreSpendRequest(cryptoAssets.getUserKeyPair(), cryptoAssets.getProviderKeyPair().getPk(), token, promotion.getPromotionParameters(), basket.getBasketId(), pointsAfterSpend, tree, context);
 
         // Send request
         assertThat(basketClient.sendSpend(basket.getBasketId(), promotion.getPromotionParameters().getPromotionId(), tokenUpdate.getTokenUpdateId(), spendStoreRequest, metadata).getStatusCode().is2xxSuccessful())
@@ -149,13 +149,13 @@ public class FullWorkflowTest extends TransactionTestPreparation {
 
         // Obtain response
         BulkResultsStoreDto batchResponse = basketClient.retrieveBulkResponse(basket.getBasketId());
-        SpendCouponSignature spendCouponSignature = new SpendCouponSignature(jsonConverter.deserialize(batchResponse.getSpendResults().get(0).getSerializedSpendCouponSignature()));
+        SpendStoreResponse spendCouponSignature = new SpendStoreResponse(jsonConverter.deserialize(batchResponse.getSpendResults().get(0).getSerializedSpendCouponSignature()));
         assertThat(incentiveSystem.verifySpendCouponSignature(spendStoreRequest, spendCouponSignature, promotion.getPromotionParameters(), basket.getBasketId()))
                 .isTrue();
 
-        SpendRequestECDSA spendRequestECDSA = new SpendRequestECDSA(spendStoreRequest, spendCouponSignature);
-        String serializedSpendResponse = incentiveClient.sendSpendRequest(spendRequestECDSA, promotion.getPromotionParameters().getPromotionId(), metadata, basket.getBasketId(), tokenUpdate.getTokenUpdateId(), basketPoints);
-        SpendResponseECDSA spendResponseECDSA = new SpendResponseECDSA(jsonConverter.deserialize(serializedSpendResponse), cryptoAssets.getPublicParameters());
-        return incentiveSystem.retrieveUpdatedTokenFromSpendResponse(cryptoAssets.getUserKeyPair(), cryptoAssets.getProviderKeyPair().getPk(), token, promotion.getPromotionParameters(), pointsAfterSpend, spendRequestECDSA, spendResponseECDSA);
+        SpendProviderRequest spendProviderRequest = new SpendProviderRequest(spendStoreRequest, spendCouponSignature);
+        String serializedSpendResponse = incentiveClient.sendSpendRequest(spendProviderRequest, promotion.getPromotionParameters().getPromotionId(), metadata, basket.getBasketId(), tokenUpdate.getTokenUpdateId(), basketPoints);
+        SpendProviderResponse spendProviderResponse = new SpendProviderResponse(jsonConverter.deserialize(serializedSpendResponse), cryptoAssets.getPublicParameters());
+        return incentiveSystem.retrieveUpdatedTokenFromSpendResponse(cryptoAssets.getUserKeyPair(), cryptoAssets.getProviderKeyPair().getPk(), token, promotion.getPromotionParameters(), pointsAfterSpend, spendProviderRequest, spendProviderResponse);
     }
 }

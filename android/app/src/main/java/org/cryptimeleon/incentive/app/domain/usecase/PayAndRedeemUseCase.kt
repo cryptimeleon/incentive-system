@@ -149,7 +149,11 @@ class PayAndRedeemUseCase(
             val cache =
                 spendProviderRequests.first { pair -> pair.second.promotionId == it.promotionId }.second
             val spendResponse =
-                SpendResponseECDSA(jsonConverter.deserialize(it.serializedSpendResult), pp)
+                SpendProviderResponse(
+                    jsonConverter.deserialize(
+                        it.serializedSpendResult
+                    ), pp
+                )
             val token = incentiveSystem.retrieveUpdatedTokenFromSpendResponse(
                 cryptoMaterial.ukp,
                 cryptoMaterial.ppk,
@@ -179,7 +183,7 @@ class PayAndRedeemUseCase(
             val cache =
                 earnProviderRequests.first { pair -> pair.second.promotionId == it.promotionId }.second
             val token = incentiveSystem.handleEarnResponse(
-                cache.earnRequestECDSA,
+                cache.earnProviderRequest,
                 signature,
                 cache.promotion.promotionParameters,
                 cache.token,
@@ -203,16 +207,16 @@ class PayAndRedeemUseCase(
         val cache =
             spendUpdateRequestPairs.find { pair -> pair.second.promotionId == it.promotionId }!!.second
 
-        val spendCouponSignature =
-            SpendCouponSignature(jsonConverter.deserialize(it.serializedSpendCouponSignature))
-        val spendRequestECDSA = SpendRequestECDSA(
+        val spendStoreResponse =
+            SpendStoreResponse(jsonConverter.deserialize(it.serializedSpendCouponSignature))
+        val spendProviderRequest = SpendProviderRequest(
             cache.zkpRequest,
-            spendCouponSignature
+            spendStoreResponse
         )
         Pair(
             SpendRequestProviderDto(
                 promotion.promotionParameters.promotionId,
-                jsonConverter.serialize(spendRequestECDSA.representation),
+                jsonConverter.serialize(spendProviderRequest.representation),
                 jsonConverter.serialize(RepresentableRepresentation(cache.metadata)),
                 basketId,
                 cache.tokenUpdateId,
@@ -223,7 +227,7 @@ class PayAndRedeemUseCase(
                 promotion,
                 cache.token,
                 cache.newPointsVector,
-                spendRequestECDSA
+                spendProviderRequest
             )
         )
     }
@@ -243,13 +247,13 @@ class PayAndRedeemUseCase(
             earnUpdateRequestPairs.find { pair -> pair.second.promotionId == it.promotionId }!!.second
         val earnAmount = promotion.computeEarningsForBasket(basket.toPromotionBasket())
 
-        val earnStoreCouponSignature =
-            EarnStoreCouponSignature(jsonConverter.deserialize(it.serializedEarnCouponSignature))
+        val earnStoreResponse =
+            EarnStoreResponse(jsonConverter.deserialize(it.serializedEarnCouponSignature))
         val couponValid = incentiveSystem.verifyEarnCoupon(
             cache.earnRequest,
             promotion.promotionParameters.promotionId,
             earnAmount,
-            earnStoreCouponSignature,
+            earnStoreResponse,
         ) { true }
 
         if (!couponValid) {
@@ -264,7 +268,7 @@ class PayAndRedeemUseCase(
             cryptoMaterial.ppk,
             cryptoMaterial.ukp,
             earnAmount,
-            earnStoreCouponSignature
+            earnStoreResponse
         )
         Pair(
             EarnRequestProviderDto(
@@ -378,7 +382,7 @@ data class EarnStoreCache(
 data class SpendStoreCache(
     val promotionId: BigInteger,
     val tokenUpdateId: UUID,
-    val zkpRequest: SpendCouponRequest,
+    val zkpRequest: SpendStoreRequest,
     val basketValue: Vector<BigInteger>,
     val metadata: ZkpTokenUpdateMetadata,
     val newPointsVector: Vector<BigInteger>,
@@ -388,7 +392,7 @@ data class SpendStoreCache(
 data class EarnProviderCache(
     val promotionId: BigInteger,
     val promotion: Promotion,
-    val earnRequestECDSA: EarnRequestECDSA,
+    val earnProviderRequest: EarnProviderRequest,
     val token: Token
 )
 
@@ -397,7 +401,7 @@ data class SpendProviderCache(
     val promotion: Promotion,
     val token: Token,
     val newPointsVector: Vector<BigInteger>,
-    val spendRequest: SpendRequestECDSA
+    val spendRequest: SpendProviderRequest
 )
 
 sealed class PayAndRedeemStatus {

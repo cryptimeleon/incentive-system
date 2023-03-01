@@ -4,9 +4,9 @@ import org.cryptimeleon.incentive.client.dto.provider.BulkRequestProviderDto;
 import org.cryptimeleon.incentive.client.dto.provider.BulkResultsProviderDto;
 import org.cryptimeleon.incentive.client.dto.provider.EarnRequestProviderDto;
 import org.cryptimeleon.incentive.client.dto.provider.SpendRequestProviderDto;
-import org.cryptimeleon.incentive.crypto.model.EarnRequestECDSA;
+import org.cryptimeleon.incentive.crypto.model.EarnProviderRequest;
 import org.cryptimeleon.incentive.crypto.model.RegistrationCoupon;
-import org.cryptimeleon.incentive.crypto.model.SpendRequestECDSA;
+import org.cryptimeleon.incentive.crypto.model.SpendProviderRequest;
 import org.cryptimeleon.incentive.promotion.Promotion;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
 import org.cryptimeleon.math.serialization.RepresentableRepresentation;
@@ -98,7 +98,7 @@ public class IncentiveClient implements AliveEndpoint {
                 .block();
     }
 
-    public String sendEarnRequest(EarnRequestECDSA earnRequest, BigInteger promotionId) {
+    public String sendEarnRequest(EarnProviderRequest earnRequest, BigInteger promotionId) {
         var earnRequestDto = new EarnRequestProviderDto(promotionId, jsonConverter.serialize(earnRequest.getRepresentation()));
         var bulkRequest = new BulkRequestProviderDto(
                 Collections.emptyList(),
@@ -109,7 +109,7 @@ public class IncentiveClient implements AliveEndpoint {
         return earnResponse.getSerializedEarnResponse();
     }
 
-    public String sendSpendRequest(SpendRequestECDSA spendRequest,
+    public String sendSpendRequest(SpendProviderRequest spendRequest,
                                    BigInteger promotionId,
                                    ZkpTokenUpdateMetadata metadata,
                                    UUID basketId,

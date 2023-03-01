@@ -162,7 +162,7 @@ public class IncentiveService {
     private EarnResultProviderDto earn(EarnRequestProviderDto earnRequestProviderDto) {
         var promotion = promotionRepository.getPromotion(earnRequestProviderDto.getPromotionId())
                 .orElseThrow(() -> new IncentiveServiceException(String.format("Promotion with id %s not found!", earnRequestProviderDto.getPromotionId())));
-        var earnRequestEcdsa = new EarnRequestECDSA(
+        var earnRequestEcdsa = new EarnProviderRequest(
                 jsonConverter.deserialize(earnRequestProviderDto.getSerializedEarnRequestECDSA()),
                 cryptoRepository.getPublicParameters()
         );
@@ -188,7 +188,7 @@ public class IncentiveService {
         var tree = tokenUpdate.generateRelationTree(basketPoints, zkpTokenUpdateMetadata);
 
         var context = ContextManager.computeContext(spendRequestProviderDto.getTokenUpdateId(), basketPoints, zkpTokenUpdateMetadata);
-        var spendRequest = new SpendRequestECDSA(
+        var spendRequest = new SpendProviderRequest(
                 jsonConverter.deserialize(spendRequestProviderDto.getSerializedSpendRequest()),
                 cryptoRepository.getPublicParameters(),
                 promotion.getPromotionParameters(),

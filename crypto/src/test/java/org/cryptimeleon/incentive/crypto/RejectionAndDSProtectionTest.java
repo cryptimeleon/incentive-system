@@ -106,14 +106,14 @@ public class RejectionAndDSProtectionTest {
         Assertions.assertEquals(linkOutput.getUpk(), TestSuite.userKeyPair.getPk());
     }
 
-    private SpendCouponSignature spendTokenStoreOnly(UUID basketId,
-                                                     IDsidBlacklistHandler dsidBlacklistHandler,
-                                                     Vector<BigInteger> pointDifference,
-                                                     Vector<BigInteger> pointsAfterSpend,
-                                                     IStoreBasketRedeemedHandler storeBasketRedeemedHandler,
-                                                     ITransactionDBHandler transactionDBHandler) {
+    private SpendStoreResponse spendTokenStoreOnly(UUID basketId,
+                                                   IDsidBlacklistHandler dsidBlacklistHandler,
+                                                   Vector<BigInteger> pointDifference,
+                                                   Vector<BigInteger> pointsAfterSpend,
+                                                   IStoreBasketRedeemedHandler storeBasketRedeemedHandler,
+                                                   ITransactionDBHandler transactionDBHandler) {
         SpendDeductTree spendDeductTree = SpendHelper.generateSimpleTestSpendDeductTree(promotionParameters, pointDifference);
-        SpendCouponRequest spendCouponRequest = incSys.generateStoreSpendRequest(
+        SpendStoreRequest spendStoreRequest = incSys.generateStoreSpendRequest(
                 TestSuite.userKeyPair, TestSuite.providerKeyPair.getPk(), token,
                 promotionParameters, basketId, pointsAfterSpend,
                 spendDeductTree,
@@ -124,7 +124,7 @@ public class RejectionAndDSProtectionTest {
                 TestSuite.providerKeyPair.getPk(),
                 basketId,
                 promotionParameters,
-                spendCouponRequest,
+                spendStoreRequest,
                 spendDeductTree,
                 TestSuite.context, storeBasketRedeemedHandler,
                 dsidBlacklistHandler,
@@ -132,12 +132,12 @@ public class RejectionAndDSProtectionTest {
         );
     }
 
-    private SpendResponseECDSA spendToken(UUID basketId,
-                                          IDsidBlacklistHandler dsidBlacklistHandler,
-                                          Vector<BigInteger> pointDifference,
-                                          Vector<BigInteger> pointsAfterSpend,
-                                          IStoreBasketRedeemedHandler storeBasketRedeemedHandler,
-                                          ITransactionDBHandler transactionDBHandler) {
+    private SpendProviderResponse spendToken(UUID basketId,
+                                             IDsidBlacklistHandler dsidBlacklistHandler,
+                                             Vector<BigInteger> pointDifference,
+                                             Vector<BigInteger> pointsAfterSpend,
+                                             IStoreBasketRedeemedHandler storeBasketRedeemedHandler,
+                                             ITransactionDBHandler transactionDBHandler) {
         return spendTokenMultipleBlackslists(basketId,
                 dsidBlacklistHandler,
                 dsidBlacklistHandler,
@@ -150,15 +150,15 @@ public class RejectionAndDSProtectionTest {
     /*
      * For a tests where dsid blacklists are not synchronized immediately
      */
-    private SpendResponseECDSA spendTokenMultipleBlackslists(UUID basketId,
-                                                             IDsidBlacklistHandler storeBlacklist,
-                                                             IDsidBlacklistHandler providerBlacklist,
-                                                             Vector<BigInteger> pointDifference,
-                                                             Vector<BigInteger> pointsAfterSpend,
-                                                             IStoreBasketRedeemedHandler testRedeemedHandler,
-                                                             ITransactionDBHandler transactionDBHandler) {
+    private SpendProviderResponse spendTokenMultipleBlackslists(UUID basketId,
+                                                                IDsidBlacklistHandler storeBlacklist,
+                                                                IDsidBlacklistHandler providerBlacklist,
+                                                                Vector<BigInteger> pointDifference,
+                                                                Vector<BigInteger> pointsAfterSpend,
+                                                                IStoreBasketRedeemedHandler testRedeemedHandler,
+                                                                ITransactionDBHandler transactionDBHandler) {
         SpendDeductTree spendDeductTree = SpendHelper.generateSimpleTestSpendDeductTree(promotionParameters, pointDifference);
-        SpendCouponRequest spendCouponRequest = incSys.generateStoreSpendRequest(
+        SpendStoreRequest spendStoreRequest = incSys.generateStoreSpendRequest(
                 TestSuite.userKeyPair,
                 TestSuite.providerKeyPair.getPk(),
                 token,
@@ -168,20 +168,20 @@ public class RejectionAndDSProtectionTest {
                 spendDeductTree,
                 TestSuite.context
         );
-        SpendCouponSignature spendCouponSignature = incSys.signSpendCoupon(
+        SpendStoreResponse spendCouponSignature = incSys.signSpendCoupon(
                 TestSuite.storeKeyPair,
                 TestSuite.providerKeyPair.getPk(),
                 basketId,
                 promotionParameters,
-                spendCouponRequest,
+                spendStoreRequest,
                 spendDeductTree,
                 TestSuite.context, testRedeemedHandler,
                 storeBlacklist,
                 transactionDBHandler
         );
-        Assertions.assertTrue(incSys.verifySpendCouponSignature(spendCouponRequest, spendCouponSignature, promotionParameters, basketId));
+        Assertions.assertTrue(incSys.verifySpendCouponSignature(spendStoreRequest, spendCouponSignature, promotionParameters, basketId));
 
-        SpendRequestECDSA spendRequest = new SpendRequestECDSA(spendCouponRequest, spendCouponSignature);
+        SpendProviderRequest spendRequest = new SpendProviderRequest(spendStoreRequest, spendCouponSignature);
         return incSys.verifySpendRequestAndIssueNewToken(
                 TestSuite.providerKeyPair,
                 promotionParameters,

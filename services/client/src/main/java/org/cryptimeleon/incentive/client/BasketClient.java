@@ -6,7 +6,7 @@ import org.cryptimeleon.incentive.client.dto.store.BulkResultsStoreDto;
 import org.cryptimeleon.incentive.client.dto.store.EarnRequestStoreDto;
 import org.cryptimeleon.incentive.client.dto.store.SpendRequestStoreDto;
 import org.cryptimeleon.incentive.crypto.model.EarnStoreRequest;
-import org.cryptimeleon.incentive.crypto.model.SpendCouponRequest;
+import org.cryptimeleon.incentive.crypto.model.SpendStoreRequest;
 import org.cryptimeleon.incentive.promotion.Promotion;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
 import org.cryptimeleon.math.serialization.RepresentableRepresentation;
@@ -112,7 +112,7 @@ public class BasketClient implements AliveEndpoint {
     public String registerUser(String userPublicKey, String userInfo) {
         return basketClient
                 .get()
-                .uri("/register-user-and-obtain-serialized-registration-coupon")
+                .uri("/register")
                 .header("user-public-key", userPublicKey)
                 .header("user-info", userInfo)
                 .retrieve()
@@ -125,7 +125,7 @@ public class BasketClient implements AliveEndpoint {
         return sendBulkEarnAndSpend(new BulkRequestStoreDto(basketId, List.of(earnRequestDto), Collections.emptyList()));
     }
 
-    public ResponseEntity<Void> sendSpend(UUID basketId, BigInteger promotionId, UUID tokenUpdateId, SpendCouponRequest spendStoreRequest, ZkpTokenUpdateMetadata metadata) {
+    public ResponseEntity<Void> sendSpend(UUID basketId, BigInteger promotionId, UUID tokenUpdateId, SpendStoreRequest spendStoreRequest, ZkpTokenUpdateMetadata metadata) {
         var spendRequestDto = new SpendRequestStoreDto(jsonConverter.serialize(spendStoreRequest.getRepresentation()),
                 promotionId,
                 tokenUpdateId,

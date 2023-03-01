@@ -135,14 +135,14 @@ public class StoreTest {
 
         assertThat(bulkResultsStoreDto.getEarnResults().get(0).getPromotionId()).isEqualTo(TestSuiteWithPromotion.promotion.getPromotionParameters().getPromotionId());
         String serializedStoreEarnCoupon = bulkResultsStoreDto.getEarnResults().get(0).getSerializedEarnCouponSignature();
-        EarnStoreCouponSignature earnStoreCouponSignature = new EarnStoreCouponSignature(jsonConverter.deserialize(serializedStoreEarnCoupon));
+        EarnStoreResponse earnStoreResponse = new EarnStoreResponse(jsonConverter.deserialize(serializedStoreEarnCoupon));
 
         Vector<BigInteger> deltaK = TestSuiteWithPromotion.promotion.computeEarningsForBasket(StoreService.promotionBasketFromBasketEntity(basket));
         assertThat(incentiveSystem.verifyEarnCoupon(
                         earnStoreRequest,
                         TestSuiteWithPromotion.promotion.getPromotionParameters().getPromotionId(),
                         deltaK,
-                        earnStoreCouponSignature,
+                earnStoreResponse,
                         storePublicKey -> true
                 )
         ).isTrue();
@@ -205,9 +205,9 @@ public class StoreTest {
 
     @Test
     void spendPointsTest(@Autowired WebTestClient webTestClient) {
-        SpendCouponRequest spendCouponRequest = generateSpendCouponRequest(token);
+        SpendStoreRequest spendStoreRequest = generateSpendCouponRequest(token);
 
-        BulkRequestStoreDto bulkRequestStoreDto = generateBulkStoreDto(spendCouponRequest);
+        BulkRequestStoreDto bulkRequestStoreDto = generateBulkStoreDto(spendStoreRequest);
 
         webTestClient.post()
                 .uri("/bulk")
@@ -238,16 +238,16 @@ public class StoreTest {
         assertThat(bulkResultsStoreDto.getSpendResults()).hasSize(1);
         assertThat(bulkResultsStoreDto.getSpendResults().get(0).getPromotionId()).isEqualTo(TestSuiteWithPromotion.promotion.getPromotionParameters().getPromotionId());
 
-        SpendCouponSignature spendCouponSignature = new SpendCouponSignature(jsonConverter.deserialize(bulkResultsStoreDto.getSpendResults().get(0).getSerializedSpendCouponSignature()));
-        assertThat(incentiveSystem.verifySpendCouponSignature(spendCouponRequest, spendCouponSignature, TestSuiteWithPromotion.promotion.getPromotionParameters(), TestSuiteWithPromotion.basket.getBasketId()))
+        SpendStoreResponse spendCouponSignature = new SpendStoreResponse(jsonConverter.deserialize(bulkResultsStoreDto.getSpendResults().get(0).getSerializedSpendCouponSignature()));
+        assertThat(incentiveSystem.verifySpendCouponSignature(spendStoreRequest, spendCouponSignature, TestSuiteWithPromotion.promotion.getPromotionParameters(), TestSuiteWithPromotion.basket.getBasketId()))
                 .isTrue();
     }
 
     @Test
     void spendPointsRetryTest(@Autowired WebTestClient webTestClient) {
-        SpendCouponRequest spendCouponRequest = generateSpendCouponRequest(token);
+        SpendStoreRequest spendStoreRequest = generateSpendCouponRequest(token);
 
-        BulkRequestStoreDto bulkRequestStoreDto = generateBulkStoreDto(spendCouponRequest);
+        BulkRequestStoreDto bulkRequestStoreDto = generateBulkStoreDto(spendStoreRequest);
 
         webTestClient.post()
                 .uri("/bulk")
@@ -264,9 +264,9 @@ public class StoreTest {
                 .expectStatus()
                 .isEqualTo(HttpStatus.OK);
 
-        SpendCouponRequest secondSpendCouponRequest = generateSpendCouponRequest(token);
+        SpendStoreRequest secondSpendStoreRequest = generateSpendCouponRequest(token);
 
-        BulkRequestStoreDto secondBulkRequestStoreDto = generateBulkStoreDto(secondSpendCouponRequest);
+        BulkRequestStoreDto secondBulkRequestStoreDto = generateBulkStoreDto(secondSpendStoreRequest);
 
         // First retry with different but equivalent request
         webTestClient.post()
@@ -281,9 +281,9 @@ public class StoreTest {
     // Hence, there might be an incentive to 'spend' two tokens for one basket.
     @Test
     void spendPointsRetryWithDifferentTokenTest(@Autowired WebTestClient webTestClient) {
-        SpendCouponRequest spendCouponRequest = generateSpendCouponRequest(token);
+        SpendStoreRequest spendStoreRequest = generateSpendCouponRequest(token);
 
-        BulkRequestStoreDto bulkRequestStoreDto = generateBulkStoreDto(spendCouponRequest);
+        BulkRequestStoreDto bulkRequestStoreDto = generateBulkStoreDto(spendStoreRequest);
 
         webTestClient.post()
                 .uri("/bulk")
@@ -293,9 +293,9 @@ public class StoreTest {
                 .isEqualTo(HttpStatus.OK);
 
         Token secondToken = generateToken(TestSuiteWithPromotion.promotion.getPromotionParameters(), TestSuiteWithPromotion.pointsBeforeSpend);
-        SpendCouponRequest secondSpendCouponRequest = generateSpendCouponRequest(secondToken);
+        SpendStoreRequest secondSpendStoreRequest = generateSpendCouponRequest(secondToken);
 
-        BulkRequestStoreDto secondBulkRequestStoreDto = generateBulkStoreDto(secondSpendCouponRequest);
+        BulkRequestStoreDto secondBulkRequestStoreDto = generateBulkStoreDto(secondSpendStoreRequest);
 
         // First retry with different but equivalent request
         webTestClient.post()
@@ -309,9 +309,9 @@ public class StoreTest {
     @Test
     void spendPointsBlacklistedDsidTest(@Autowired WebTestClient webTestClient) {
         when(dsidBlacklistRepository.containsDsidWithDifferentGamma(Mockito.eq(token.getDoubleSpendingId()), Mockito.any())).thenReturn(true);
-        SpendCouponRequest spendCouponRequest = generateSpendCouponRequest(token);
+        SpendStoreRequest spendStoreRequest = generateSpendCouponRequest(token);
 
-        BulkRequestStoreDto bulkRequestStoreDto = generateBulkStoreDto(spendCouponRequest);
+        BulkRequestStoreDto bulkRequestStoreDto = generateBulkStoreDto(spendStoreRequest);
 
         webTestClient.post()
                 .uri("/bulk")
@@ -321,9 +321,9 @@ public class StoreTest {
                 .isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR); // TODO improve error handling, BAD_REQUEST instead
     }
 
-    private BulkRequestStoreDto generateBulkStoreDto(SpendCouponRequest spendCouponRequest) {
+    private BulkRequestStoreDto generateBulkStoreDto(SpendStoreRequest spendStoreRequest) {
         var spendRequestDto = new SpendRequestStoreDto(
-                jsonConverter.serialize(spendCouponRequest.getRepresentation()),
+                jsonConverter.serialize(spendStoreRequest.getRepresentation()),
                 TestSuiteWithPromotion.promotion.getPromotionParameters().getPromotionId(),
                 TestSuiteWithPromotion.spendTokenUpdateId,
                 jsonConverter.serialize(new RepresentableRepresentation(TestSuiteWithPromotion.metadata)));
@@ -333,7 +333,7 @@ public class StoreTest {
         );
     }
 
-    private SpendCouponRequest generateSpendCouponRequest(Token token) {
+    private SpendStoreRequest generateSpendCouponRequest(Token token) {
         return incentiveSystem.generateStoreSpendRequest(
                 TestSuiteWithPromotion.userKeyPair,
                 TestSuiteWithPromotion.providerKeyPair.getPk(),
@@ -347,7 +347,7 @@ public class StoreTest {
 
     private WebTestClient.ResponseSpec getRegisterResponseSpec(WebTestClient webTestClient, String userInfo, UserPublicKey pk) {
         return webTestClient.get()
-                .uri("/register-user-and-obtain-serialized-registration-coupon")
+                .uri("/register")
                 .header("user-public-key", jsonConverter.serialize(pk.getRepresentation()))
                 .header("user-info", userInfo)
                 .exchange();

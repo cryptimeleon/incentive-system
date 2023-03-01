@@ -87,13 +87,13 @@ public class Benchmark {
         JoinFirstStepOutput joinFirstStepOutput;
         JoinResponse joinResponse;
         EarnStoreRequest earnStoreRequest;
-        EarnRequestECDSA earnRequestECDSA;
-        EarnStoreCouponSignature earnStoreCouponSignature;
+        EarnProviderRequest earnProviderRequest;
+        EarnStoreResponse earnStoreResponse;
         SPSEQSignature earnResponse;
-        SpendCouponRequest spendStoreRequest;
-        SpendCouponSignature spendCouponSignature;
-        SpendRequestECDSA spendProviderRequest;
-        SpendResponseECDSA spendProviderResponse;
+        SpendStoreRequest spendStoreRequest;
+        SpendStoreResponse spendCouponSignature;
+        SpendProviderRequest spendProviderRequest;
+        SpendProviderResponse spendProviderResponse;
         Token token = null;
         UUID basketId = UUID.randomUUID();
 
@@ -205,7 +205,7 @@ public class Benchmark {
             tEarnStoreRequest[i] = Duration.between(start, finish).toNanos();
 
             start = Instant.now();
-            earnStoreCouponSignature = incentiveSystem.signEarnCoupon(
+            earnStoreResponse = incentiveSystem.signEarnCoupon(
                     storeKeyPair,
                     EARN_SPEND_AMOUNT,
                     earnStoreRequest,
@@ -217,19 +217,19 @@ public class Benchmark {
             tEarnStoreResponse[i] = Duration.between(start, finish).toNanos();
 
             start = Instant.now();
-            earnRequestECDSA = incentiveSystem.generateEarnRequest(
+            earnProviderRequest = incentiveSystem.generateEarnRequest(
                     token,
                     ppk,
                     userKeyPair,
                     EARN_SPEND_AMOUNT,
-                    earnStoreCouponSignature
+                    earnStoreResponse
             );
             finish = Instant.now();
             tEarnProviderRequest[i] = Duration.between(start, finish).toNanos();
 
             start = Instant.now();
             earnResponse = incentiveSystem.generateEarnResponse(
-                    earnRequestECDSA,
+                    earnProviderRequest,
                     promotionParameters,
                     providerKeyPair,
                     new BenchmarkTransactionDBHandler(),
@@ -240,7 +240,7 @@ public class Benchmark {
 
             start = Instant.now();
             token = incentiveSystem.handleEarnResponse(
-                    earnRequestECDSA,
+                    earnProviderRequest,
                     earnResponse,
                     promotionParameters,
                     token,
@@ -288,7 +288,7 @@ public class Benchmark {
 
             start = Instant.now();
             incentiveSystem.verifySpendCouponSignature(spendStoreRequest, spendCouponSignature, promotionParameters, basketId);
-            spendProviderRequest = new SpendRequestECDSA(spendStoreRequest, spendCouponSignature);
+            spendProviderRequest = new SpendProviderRequest(spendStoreRequest, spendCouponSignature);
             finish = Instant.now();
             tSpendProviderRequest[i] = Duration.between(start, finish).toNanos();
 

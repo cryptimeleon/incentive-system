@@ -64,24 +64,24 @@ public class SpendTransactionData implements Representable {
         this.proof = proof;
     }
 
-    public SpendTransactionData(SpendCouponRequest spendCouponRequest,
+    public SpendTransactionData(SpendStoreRequest spendStoreRequest,
                                 BigInteger promotionId,
                                 UUID basketId,
                                 ECDSASignature couponSignature,
                                 StorePublicKey storePublicKey,
                                 Zn.ZnElement gamma) {
         this(promotionId,
-                spendCouponRequest.getDsid(),
+                spendStoreRequest.getDsid(),
                 basketId,
-                spendCouponRequest.getSigma(),
+                spendStoreRequest.getSigma(),
                 couponSignature,
                 storePublicKey,
-                spendCouponRequest.getC(),
+                spendStoreRequest.getC(),
                 gamma,
-                spendCouponRequest.getC0(),
-                spendCouponRequest.getCPre0(),
-                spendCouponRequest.getCPre1(),
-                spendCouponRequest.getSpendZkp()
+                spendStoreRequest.getC0(),
+                spendStoreRequest.getCPre0(),
+                spendStoreRequest.getCPre1(),
+                spendStoreRequest.getSpendZkp()
         );
     }
 

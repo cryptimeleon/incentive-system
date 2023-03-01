@@ -1,7 +1,7 @@
 package org.cryptimeleon.incentive.services.incentive.repository;
 
 import org.cryptimeleon.incentive.crypto.callback.ITransactionDBHandler;
-import org.cryptimeleon.incentive.crypto.model.EarnRequestECDSA;
+import org.cryptimeleon.incentive.crypto.model.EarnProviderRequest;
 import org.cryptimeleon.incentive.crypto.model.SpendTransactionData;
 import org.springframework.stereotype.Repository;
 
@@ -18,8 +18,8 @@ public class TransactionRepository implements ITransactionDBHandler {
     private final List<SpendTransactionData> spendTransactionDataList = new ArrayList<>();
 
     @Override
-    public void addEarnData(EarnRequestECDSA earnRequestECDSA, byte[] h) {
-        var dataToInsert = new EarnClearingData(h, earnRequestECDSA);
+    public void addEarnData(EarnProviderRequest earnProviderRequest, byte[] h) {
+        var dataToInsert = new EarnClearingData(h, earnProviderRequest);
         earnTransactionDataList.add(dataToInsert);
     }
 
@@ -32,11 +32,11 @@ public class TransactionRepository implements ITransactionDBHandler {
     static class EarnClearingData {
 
         private final byte[] h;
-        private final EarnRequestECDSA earnRequestECDSA;
+        private final EarnProviderRequest earnProviderRequest;
 
-        public EarnClearingData(byte[] h, EarnRequestECDSA earnRequestECDSA) {
+        public EarnClearingData(byte[] h, EarnProviderRequest earnProviderRequest) {
             this.h = h;
-            this.earnRequestECDSA = earnRequestECDSA;
+            this.earnProviderRequest = earnProviderRequest;
 
         }
 
@@ -44,8 +44,8 @@ public class TransactionRepository implements ITransactionDBHandler {
             return h;
         }
 
-        public EarnRequestECDSA getEarnRequestECDSA() {
-            return earnRequestECDSA;
+        public EarnProviderRequest getEarnRequestECDSA() {
+            return earnProviderRequest;
         }
     }
 }

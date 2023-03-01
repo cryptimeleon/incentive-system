@@ -147,8 +147,8 @@ public class ClientHelper {
     }
 
 
-    public static Token earn(WebTestClient webClient, IncentiveSystem incentiveSystem, ProviderKeyPair pkp, UserKeyPair ukp, Token token, Vector<BigInteger> pointsToEarn, EarnStoreCouponSignature earnStoreCouponSignature, PromotionParameters promotionParameters) {
-        var earnRequest = incentiveSystem.generateEarnRequest(token, pkp.getPk(), ukp, pointsToEarn, earnStoreCouponSignature);
+    public static Token earn(WebTestClient webClient, IncentiveSystem incentiveSystem, ProviderKeyPair pkp, UserKeyPair ukp, Token token, Vector<BigInteger> pointsToEarn, EarnStoreResponse earnStoreResponse, PromotionParameters promotionParameters) {
+        var earnRequest = incentiveSystem.generateEarnRequest(token, pkp.getPk(), ukp, pointsToEarn, earnStoreResponse);
         var earnDto = new EarnRequestProviderDto(promotionParameters.getPromotionId(), jsonConverter.serialize(earnRequest.getRepresentation()));
         BulkRequestProviderDto bulkRequestProviderDto = new BulkRequestProviderDto(Collections.emptyList(), List.of(earnDto));
         BulkResultsProviderDto bulkResultsProviderDto = bulkWithProvider(webClient, bulkRequestProviderDto);
@@ -157,9 +157,9 @@ public class ClientHelper {
         return incentiveSystem.handleEarnResponse(earnRequest, earnResponse, promotionParameters, token, ukp, pkp.getPk());
     }
 
-    public static SpendResponseECDSA spend(WebTestClient webClient, IncentiveSystem incentiveSystem, PromotionParameters promotionParameters, ZkpTokenUpdate tokenUpdate, SpendRequestECDSA spendRequestECDSA, ZkpTokenUpdateMetadata metadata, UUID basketId, List<BigInteger> basketPoints) {
+    public static SpendProviderResponse spend(WebTestClient webClient, IncentiveSystem incentiveSystem, PromotionParameters promotionParameters, ZkpTokenUpdate tokenUpdate, SpendProviderRequest spendProviderRequest, ZkpTokenUpdateMetadata metadata, UUID basketId, List<BigInteger> basketPoints) {
         var spendRequestDto = new SpendRequestProviderDto(promotionParameters.getPromotionId(),
-                jsonConverter.serialize(spendRequestECDSA.getRepresentation()),
+                jsonConverter.serialize(spendProviderRequest.getRepresentation()),
                 jsonConverter.serialize(new RepresentableRepresentation(metadata)),
                 basketId,
                 tokenUpdate.getTokenUpdateId(),
@@ -167,7 +167,7 @@ public class ClientHelper {
         BulkRequestProviderDto bulkRequestProviderDto = new BulkRequestProviderDto(List.of(spendRequestDto), Collections.emptyList());
         BulkResultsProviderDto bulkResultsProviderDto = bulkWithProvider(webClient, bulkRequestProviderDto);
         var serializedSpendResponse = bulkResultsProviderDto.getSpendResults().get(0).getSerializedSpendResult();
-        return new SpendResponseECDSA(jsonConverter.deserialize(serializedSpendResponse), incentiveSystem.pp);
+        return new SpendProviderResponse(jsonConverter.deserialize(serializedSpendResponse), incentiveSystem.pp);
     }
 
     public static BulkResultsProviderDto bulkWithProvider(WebTestClient webClient,

@@ -45,7 +45,7 @@ public class TestSuite {
         return Helper.generateToken(pp, userKeyPair, providerKeyPair, promotionParameters, points);
     }
 
-    public static EarnStoreCouponSignature getEarnCouponForPromotion(Token token, Vector<BigInteger> earnAmount, UUID basketId, BigInteger promotionId) {
+    public static EarnStoreResponse getEarnCouponForPromotion(Token token, Vector<BigInteger> earnAmount, UUID basketId, BigInteger promotionId) {
         EarnStoreRequest earnStoreRequest = incentiveSystem.generateEarnCouponRequest(token, userKeyPair);
         return incentiveSystem.signEarnCoupon(storeKeyPair, earnAmount, earnStoreRequest, basketId, promotionId, new TestRedeemedHandler());
     }
@@ -65,12 +65,12 @@ public class TestSuite {
     }
 
     public static class TestTransactionDbHandler implements ITransactionDBHandler {
-        final HashMap<EarnRequestECDSA, byte[]> earnData = new HashMap<>();
+        final HashMap<EarnProviderRequest, byte[]> earnData = new HashMap<>();
         final ArrayList<SpendTransactionData> spendData = new ArrayList<>();
 
         @Override
-        public void addEarnData(EarnRequestECDSA earnRequestECDSA, byte[] h) {
-            earnData.put(earnRequestECDSA, h);
+        public void addEarnData(EarnProviderRequest earnProviderRequest, byte[] h) {
+            earnData.put(earnProviderRequest, h);
         }
 
         @Override
