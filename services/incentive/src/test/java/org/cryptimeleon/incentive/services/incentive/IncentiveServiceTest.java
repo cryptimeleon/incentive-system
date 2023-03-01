@@ -9,13 +9,10 @@ import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.promotion.TestSuiteWithPromotion;
 import org.cryptimeleon.incentive.promotion.model.Basket;
 import org.cryptimeleon.incentive.services.incentive.api.RegistrationCouponJSON;
-import org.cryptimeleon.incentive.services.incentive.repository.BasketRepository;
 import org.cryptimeleon.incentive.services.incentive.repository.CryptoRepository;
-import org.cryptimeleon.incentive.services.incentive.repository.DSPRepository;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.rings.RingElement;
-import org.cryptimeleon.math.structures.rings.zn.Zn;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -27,12 +24,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.cryptimeleon.incentive.services.incentive.ClientHelper.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 /**
@@ -66,14 +61,6 @@ public class IncentiveServiceTest {
     // Use a MockBean to prevent the CryptoRepository from being created (and trying to connect to the info service)
     @MockBean
     private CryptoRepository cryptoRepository;
-
-    // Mock basket repository to inject baskets
-    @MockBean
-    private BasketRepository basketRepository;
-
-    @MockBean
-    private DSPRepository offlineDSPRepository;
-    private ArrayList<Zn.ZnElement> dsids;
 
     private static Token generateToken() {
         return Helper.generateToken(
@@ -153,17 +140,6 @@ public class IncentiveServiceTest {
         when(cryptoRepository.getProviderPublicKey()).thenReturn(TestSuite.providerKeyPair.getPk());
         when(cryptoRepository.getProviderSecretKey()).thenReturn(TestSuite.providerKeyPair.getSk());
         when(cryptoRepository.getProviderKeyPair()).thenReturn(TestSuite.providerKeyPair);
-        when(basketRepository.getBasket(TestSuiteWithPromotion.basket.getBasketId())).thenReturn(TestSuiteWithPromotion.basket);
-        when(basketRepository.isBasketPaid(TestSuiteWithPromotion.basket.getBasketId())).thenReturn(false);
-        when(basketRepository.getBasket(TestSuiteWithPromotion.emptyBasket.getBasketId())).thenReturn(TestSuiteWithPromotion.emptyBasket);
-        when(basketRepository.isBasketPaid(TestSuiteWithPromotion.emptyBasket.getBasketId())).thenReturn(false);
-        when(basketRepository.getBasket(TestSuiteWithPromotion.emptyBasketTwo.getBasketId())).thenReturn(TestSuiteWithPromotion.emptyBasketTwo);
-        when(basketRepository.isBasketPaid(TestSuiteWithPromotion.emptyBasketTwo.getBasketId())).thenReturn(false);
-
-        dsids = new ArrayList<>();
-        when(offlineDSPRepository.containsDsid(any())).thenAnswer(invocation ->
-                dsids.contains(invocation.getArgument(0, Zn.ZnElement.class))
-        );
 
         // clear all promotions for clean test starting state
         deleteAllPromotions(webTestClient, providerSecret, HttpStatus.OK);

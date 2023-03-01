@@ -1,8 +1,5 @@
 package org.cryptimeleon.incentive.services.incentive;
 
-import org.cryptimeleon.incentive.client.dto.inc.EarnTokenUpdateResultDto;
-import org.cryptimeleon.incentive.client.dto.inc.TokenUpdateResultsDto;
-import org.cryptimeleon.incentive.client.dto.inc.ZkpTokenUpdateResultDto;
 import org.cryptimeleon.incentive.client.dto.provider.*;
 import org.cryptimeleon.incentive.crypto.IncentiveSystemRestorer;
 import org.cryptimeleon.incentive.crypto.callback.IRegistrationCouponDBHandler;
@@ -13,7 +10,6 @@ import org.cryptimeleon.incentive.promotion.ContextManager;
 import org.cryptimeleon.incentive.promotion.Promotion;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
 import org.cryptimeleon.incentive.services.incentive.api.RegistrationCouponJSON;
-import org.cryptimeleon.incentive.services.incentive.error.BasketNotPaidException;
 import org.cryptimeleon.incentive.services.incentive.error.IncentiveServiceException;
 import org.cryptimeleon.incentive.services.incentive.repository.*;
 import org.cryptimeleon.math.serialization.RepresentableRepresentation;
@@ -24,7 +20,6 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -38,12 +33,9 @@ import java.util.stream.Collectors;
  */
 @Service
 public class IncentiveService {
-    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(IncentiveService.class);
     private final JSONConverter jsonConverter = new JSONConverter();
     private final CryptoRepository cryptoRepository;
     private final PromotionRepository promotionRepository;
-    private final BasketRepository basketRepository;
-    private final TokenUpdateResultRepository tokenUpdateResultRepository;
     private final RegistrationCouponRepository registrationCouponRepository;
     private final TransactionRepository transactionRepository;
     private final DsidBlacklistRepository dsidBlacklistRepository;
@@ -51,14 +43,10 @@ public class IncentiveService {
     @Autowired
     private IncentiveService(CryptoRepository cryptoRepository,
                              PromotionRepository promotionRepository,
-                             BasketRepository basketRepository,
-                             TokenUpdateResultRepository tokenUpdateResultRepository,
                              RegistrationCouponRepository registrationCouponRepository,
                              TransactionRepository transactionRepository, DsidBlacklistRepository dsidBlacklistRepository) {
         this.cryptoRepository = cryptoRepository;
         this.promotionRepository = promotionRepository;
-        this.basketRepository = basketRepository;
-        this.tokenUpdateResultRepository = tokenUpdateResultRepository;
         this.registrationCouponRepository = registrationCouponRepository;
         this.transactionRepository = transactionRepository;
         this.dsidBlacklistRepository = dsidBlacklistRepository;
@@ -125,23 +113,6 @@ public class IncentiveService {
      */
     public void deleteAllPromotions() {
         promotionRepository.deleteAllPromotions();
-    }
-
-    /**
-     * Obtain all earn responses that are currently unapplied for the basket identified by the passed basket ID.
-     * If the specified basket is not paid, an exception occurs.
-     *
-     * @return DTO containing earn responses (= token updates)
-     */
-    public TokenUpdateResultsDto retrieveBulkResults(UUID basketId) {
-        // can only retrieve updates if basket was already paid
-        if (!basketRepository.isBasketPaid(basketId)) {
-            throw new BasketNotPaidException();
-        }
-        // create and return DTO
-        var results = tokenUpdateResultRepository.getUpdateResults(basketId).values();
-        log.info(String.valueOf(results));
-        return new TokenUpdateResultsDto(results.stream().filter(tokenUpdateResult -> tokenUpdateResult instanceof ZkpTokenUpdateResultDto).map(i -> (ZkpTokenUpdateResultDto) i).collect(Collectors.toList()), results.stream().filter(tokenUpdateResult -> tokenUpdateResult instanceof EarnTokenUpdateResultDto).map(i -> (EarnTokenUpdateResultDto) i).collect(Collectors.toList()));
     }
 
     public String registerUser(String serializedRegistrationCoupon) {
