@@ -1,7 +1,9 @@
 package org.cryptimeleon.incentive.app.data.network
 
 import org.cryptimeleon.incentive.app.domain.model.BulkRequestDto
+import org.cryptimeleon.incentive.app.domain.model.BulkRequestProviderDto
 import org.cryptimeleon.incentive.app.domain.model.BulkResponseDto
+import org.cryptimeleon.incentive.app.domain.model.BulkResultsProviderDto
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -9,7 +11,7 @@ import retrofit2.http.Header
 import retrofit2.http.POST
 import java.util.*
 
-interface CryptoApiService {
+interface ProviderApiService {
     @GET("register-with-coupon")
     suspend fun retrieveRegistrationSignatureFor(@Header("registration-coupon") serializedRegistrationCoupon: String): Response<String>
 
@@ -27,4 +29,7 @@ interface CryptoApiService {
 
     @POST("bulk-token-update-results")
     suspend fun retrieveTokenUpdatesResults(@Header("basket-id") basketId: UUID): Response<BulkResponseDto>
+
+    @POST("bulk")
+    suspend fun bulkRequest(@Body request: BulkRequestProviderDto): Response<BulkResultsProviderDto>
 }

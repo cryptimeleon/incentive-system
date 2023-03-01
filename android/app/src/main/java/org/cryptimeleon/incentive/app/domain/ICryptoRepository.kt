@@ -1,9 +1,7 @@
 package org.cryptimeleon.incentive.app.domain
 
 import kotlinx.coroutines.flow.Flow
-import org.cryptimeleon.incentive.app.domain.model.BulkRequestDto
-import org.cryptimeleon.incentive.app.domain.model.BulkResponseDto
-import org.cryptimeleon.incentive.app.domain.model.CryptoMaterial
+import org.cryptimeleon.incentive.app.domain.model.*
 import org.cryptimeleon.incentive.crypto.model.PromotionParameters
 import org.cryptimeleon.incentive.crypto.model.Token
 import java.util.*
@@ -36,6 +34,13 @@ interface ICryptoRepository {
     suspend fun retrieveTokenUpdatesResults(basketId: UUID): BulkResponseDto
     suspend fun putToken(promotionParameters: PromotionParameters, token: Token)
     suspend fun deleteAll()
+    suspend fun sendTokenUpdatesBatchToStore(
+        basketId: UUID,
+        bulkRequestStoreDto: BulkRequestStoreDto
+    )
+
+    suspend fun retrieveTokenUpdatesBatchStoreResults(basketId: UUID): BulkResultStoreDto
+    suspend fun sendTokenUpdatesBatchToProvider(bulkRequestProviderDto: BulkRequestProviderDto): BulkResultsProviderDto
 }
 
 class DSException : Exception()

@@ -2,15 +2,15 @@ package org.cryptimeleon.incentive.client.dto.provider;
 
 import java.math.BigInteger;
 
-public class SpendResultsProviderDto {
+public class SpendResultProviderDto {
     private BigInteger promotionId;
     private String serializedSpendResult;
 
     @SuppressWarnings("unused")
-    public SpendResultsProviderDto() {
+    public SpendResultProviderDto() {
     }
 
-    public SpendResultsProviderDto(BigInteger promotionId, String serializedSpendResult) {
+    public SpendResultProviderDto(BigInteger promotionId, String serializedSpendResult) {
         this.promotionId = promotionId;
         this.serializedSpendResult = serializedSpendResult;
     }

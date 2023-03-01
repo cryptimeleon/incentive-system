@@ -5,11 +5,7 @@ import kotlinx.coroutines.flow.combine
 import org.cryptimeleon.incentive.app.domain.IBasketRepository
 import org.cryptimeleon.incentive.app.domain.ICryptoRepository
 import org.cryptimeleon.incentive.app.domain.IPromotionRepository
-import org.cryptimeleon.incentive.app.domain.model.Earn
-import org.cryptimeleon.incentive.app.domain.model.None
-import org.cryptimeleon.incentive.app.domain.model.PromotionUserUpdateChoice
-import org.cryptimeleon.incentive.app.domain.model.UpdateChoice
-import org.cryptimeleon.incentive.app.domain.model.ZKP
+import org.cryptimeleon.incentive.app.domain.model.*
 
 /**
  * Filters the promotion updates chosen by users by removing those that are outdated since e.g. basket contents or metadata have changed.

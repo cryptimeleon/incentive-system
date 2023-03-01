@@ -383,7 +383,7 @@ public class IncentiveService {
         return new EarnResultProviderDto(promotion.getPromotionParameters().getPromotionId(), jsonConverter.serialize(earnResult.getRepresentation()));
     }
 
-    private SpendResultsProviderDto spend(SpendRequestProviderDto spendRequestProviderDto) {
+    private SpendResultProviderDto spend(SpendRequestProviderDto spendRequestProviderDto) {
         var promotion = promotionRepository.getPromotion(spendRequestProviderDto.getPromotionId())
                 .orElseThrow(() -> new IncentiveServiceException(String.format("Promotion with id %s not found!", spendRequestProviderDto.getPromotionId())));
         var tokenUpdate = promotion.getZkpTokenUpdates().stream()
@@ -414,6 +414,6 @@ public class IncentiveService {
                 s -> true,
                 dsidBlacklistRepository
         );
-        return new SpendResultsProviderDto(promotion.getPromotionParameters().getPromotionId(), jsonConverter.serialize(spendResult.getRepresentation()));
+        return new SpendResultProviderDto(promotion.getPromotionParameters().getPromotionId(), jsonConverter.serialize(spendResult.getRepresentation()));
     }
 }

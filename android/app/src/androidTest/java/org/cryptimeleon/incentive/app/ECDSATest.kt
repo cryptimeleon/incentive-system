@@ -17,8 +17,17 @@ class ECDSATest {
         val ecdsaSignatureScheme = ECDSASignatureScheme()
         val keypair = ecdsaSignatureScheme.generateKeyPair()
 
-        val signature = ecdsaSignatureScheme.sign(ByteArrayImplementation("Test".encodeToByteArray()), keypair.signingKey)
-        assert(ecdsaSignatureScheme.verify(ByteArrayImplementation("Test".encodeToByteArray()), signature, keypair.verificationKey))
+        val signature = ecdsaSignatureScheme.sign(
+            ByteArrayImplementation("Test".encodeToByteArray()),
+            keypair.signingKey
+        )
+        assert(
+            ecdsaSignatureScheme.verify(
+                ByteArrayImplementation("Test".encodeToByteArray()),
+                signature,
+                keypair.verificationKey
+            )
+        )
     }
 
     @Test

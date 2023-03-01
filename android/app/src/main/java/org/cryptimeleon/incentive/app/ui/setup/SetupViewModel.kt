@@ -5,11 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import org.cryptimeleon.incentive.app.domain.IBasketRepository
 import org.cryptimeleon.incentive.app.domain.ICryptoRepository
 import org.cryptimeleon.incentive.app.domain.IPreferencesRepository
@@ -30,7 +26,12 @@ class SetupViewModel @Inject constructor(
     private val uiScope = CoroutineScope(Dispatchers.Main + viewModelJob)
 
     private val refreshCryptoDataUseCase =
-        RefreshCryptoDataUseCase(cryptoRepository, promotionRepository, basketRepository, preferencesRepository)
+        RefreshCryptoDataUseCase(
+            cryptoRepository,
+            promotionRepository,
+            basketRepository,
+            preferencesRepository
+        )
 
     private val _navigateToInfo = MutableLiveData(false)
     val navigateToInfo: LiveData<Boolean>
