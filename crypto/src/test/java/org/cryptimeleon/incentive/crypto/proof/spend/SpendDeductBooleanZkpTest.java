@@ -77,7 +77,7 @@ class SpendDeductBooleanZkpTest {
         promotion = IncentiveSystem.generatePromotionParameters(4);
         token = TestSuite.generateToken(promotion, points);
         zn = pp.getBg().getZn();
-        testSuite = SpendHelper.generateTestSuite(newPoints, pp, promotion, providerKey, token, userKey, zn);
+        testSuite = SpendHelper.generateTestSuite(newPoints, pp, promotion, providerKey, token, userKey);
         pointsREV = new RingElementVector(Vector.fromStreamPlain(points.stream().map(this.zn::getElement)));
         newPointsREV = new RingElementVector(Vector.fromStreamPlain(newPoints.stream().map(this.zn::getElement)));
     }

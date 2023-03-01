@@ -86,8 +86,7 @@ class TokenUpdateZkpTest {
                 promotion,
                 providerKey,
                 token,
-                userKey,
-                zn
+                userKey
         );
 
         witness = testSuite.witness;
@@ -136,8 +135,7 @@ class TokenUpdateZkpTest {
                 promotion,
                 providerKey,
                 token,
-                userKey,
-                zn
+                userKey
         );
 
         witness = testSuite.witness;

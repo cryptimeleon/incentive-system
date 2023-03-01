@@ -12,11 +12,13 @@ import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductAndNode;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkpCommonInput;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkpWitnessInput;
+import org.cryptimeleon.math.misc.ByteArrayImpl;
 import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.rings.cartesian.RingElementVector;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 import java.math.BigInteger;
+import java.util.UUID;
 
 public class SpendHelper {
 
@@ -72,13 +74,13 @@ public class SpendHelper {
         return new SpendDeductAndNode(updateTree, conditionTree);
     }
 
-    public static SpendZkpTestSuite generateTestSuite(Vector<BigInteger> newPoints, IncentivePublicParameters pp, PromotionParameters promotion, ProviderKeyPair providerKey, Token token, UserKeyPair userKey, Zn zn) {
+    public static SpendZkpTestSuite generateTestSuite(Vector<BigInteger> newPoints, IncentivePublicParameters pp, PromotionParameters promotion, ProviderKeyPair providerKey, Token token, UserKeyPair userKey) {
         var zp = pp.getBg().getZn();
         var usk = userKey.getSk().getUsk();
         var dsid = token.getDoubleSpendingId();
         var vectorH = providerKey.getPk().getH(pp, promotion);
         var newPointsVector = RingElementVector.fromStream(newPoints.stream().map(e -> pp.getBg().getZn().createZnElement(e)));
-        var tid = zn.getUniformlyRandomElement();
+        var pid = BigInteger.valueOf(20L);
 
 
         /* Compute pseudorandom values */
@@ -94,12 +96,14 @@ public class SpendHelper {
         var exponents = new RingElementVector(tS, usk, dsidUserS, dsrndS, zS).concatenate(newPointsVector);
         var cPre0 = vectorH.innerProduct(exponents).pow(uS).compute();
         var cPre1 = pp.getG1Generator().pow(uS).compute();
+        var cPre2 = cPre1.pow(pid);
 
         /* Enable double-spending-protection by forcing usk becoming public in that case
            If token is used twice in two different transactions, the provider observes c, 0 with gamma!=gamma'
            Hence, the provider can easily retrieve usk and esk (using the Schnorr-trick, computing (c-c')/(gamma-gamma') for usk). */
-        // using tid as user choice TODO change this once user choice generation is properly implemented, see issue 75
-        var gamma = Util.hashGammaOld(zp, dsid, tid, cPre0, cPre1, tid);
+        var context = new ByteArrayImpl("context".getBytes());
+        var basketId = UUID.randomUUID();
+        var gamma = Util.hashGamma(zp, dsid, basketId, cPre0, cPre1, cPre2, context);
         var c = usk.mul(gamma).add(token.getDoubleSpendRandomness());
 
         /* Build noninteractive (Fiat-Shamir transformed) ZKP to ensure that the user follows the rules of the protocol */

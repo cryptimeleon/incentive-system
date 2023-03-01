@@ -150,19 +150,6 @@ public class BasketClient implements AliveEndpoint {
                 .block();
     }
 
-    @Deprecated
-    public String requestEarnCoupon(EarnStoreRequest earnStoreRequest, UUID basketId, BigInteger promotionId) {
-        return basketClient
-                .get()
-                .uri("/earn")
-                .header("earn-store-request", jsonConverter.serialize(earnStoreRequest.getRepresentation()))
-                .header("basket-id", String.valueOf(basketId))
-                .header("promotion-id", String.valueOf(promotionId))
-                .retrieve()
-                .bodyToMono(String.class)
-                .block();
-    }
-
     public ResponseEntity<Void> sendEarn(UUID basketId, BigInteger promotionId, EarnStoreRequest earnStoreRequest) {
         var earnRequestDto = new EarnRequestStoreDto(promotionId, jsonConverter.serialize(earnStoreRequest.getRepresentation()));
         return sendBulkEarnAndSpend(new BulkRequestStoreDto(basketId, List.of(earnRequestDto), Collections.emptyList()));

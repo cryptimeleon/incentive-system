@@ -1,7 +1,5 @@
 package org.cryptimeleon.incentive.client;
 
-import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
-import org.cryptimeleon.incentive.client.dto.inc.TokenUpdateResultsDto;
 import org.cryptimeleon.incentive.client.dto.provider.BulkRequestProviderDto;
 import org.cryptimeleon.incentive.client.dto.provider.BulkResultsProviderDto;
 import org.cryptimeleon.incentive.client.dto.provider.EarnRequestProviderDto;
@@ -66,25 +64,6 @@ public class IncentiveClient implements AliveEndpoint {
                 .header("join-request", serializedJoinRequest)
                 .retrieve()
                 .bodyToMono(String.class);
-    }
-
-    @Deprecated
-    public Mono<Void> sendBulkUpdates(UUID basketId, BulkRequestDto bulkRequestDto) {
-        return incentiveClient.post()
-                .uri("/bulk-token-updates")
-                .header("basket-id", basketId.toString())
-                .body(BodyInserters.fromValue(bulkRequestDto))
-                .retrieve()
-                .bodyToMono(Void.class);
-    }
-
-    @Deprecated
-    public Mono<TokenUpdateResultsDto> retrieveBulkResults(UUID basketId) {
-        return incentiveClient.post()
-                .uri("/bulk-token-update-results")
-                .header("basket-id", basketId.toString())
-                .retrieve()
-                .bodyToMono(TokenUpdateResultsDto.class);
     }
 
     public BulkResultsProviderDto sendBulkRequest(BulkRequestProviderDto bulkRequestProviderDto) {

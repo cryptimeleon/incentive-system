@@ -36,28 +36,6 @@ public class Util {
         );
     }
 
-    /**
-     * Hash function to retrieve ZnElement gamma in spend-deduct
-     *
-     * @param zn    ZnElement to retrieve
-     * @param dsid  dsid to hash
-     * @param tid   tid to hash
-     * @param cPre0 cPre0 to hash
-     * @param cPre1 cPre1 to hash
-     * @return hashed ZnElement gamma
-     */
-    @Deprecated
-    public static Zn.ZnElement hashGammaOld(Zn zn, Zn.ZnElement dsid, Zn.ZnElement tid, GroupElement cPre0, GroupElement cPre1, UniqueByteRepresentable userChoice) {
-        var hashfunction = new HashIntoZn(zn);
-        var accumulator = new ByteArrayAccumulator();
-        accumulator.escapeAndSeparate(dsid.getUniqueByteRepresentation());
-        accumulator.escapeAndSeparate(tid.getUniqueByteRepresentation());
-        accumulator.escapeAndSeparate(cPre0.getUniqueByteRepresentation());
-        accumulator.escapeAndSeparate(cPre1.getUniqueByteRepresentation());
-        accumulator.escapeAndSeparate(userChoice);
-        return hashfunction.hash(accumulator.extractBytes());
-    }
-
     public static Zn.ZnElement hashGamma(Zn zn, Zn.ZnElement dsid, UUID basketId, GroupElement cPre0, GroupElement cPre1, GroupElement cPre2, UniqueByteRepresentable context) {
         var hashfunction = new HashIntoZn(zn);
         var accumulator = new ByteArrayAccumulator();
