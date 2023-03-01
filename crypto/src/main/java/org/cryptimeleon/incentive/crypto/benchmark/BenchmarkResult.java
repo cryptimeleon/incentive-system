@@ -15,6 +15,27 @@ public class BenchmarkResult implements Serializable {
     public double registrationHandleResponseAvg;
     public double joinStoreRequestAvg;
     public double joinStoreResponseAvg;
+    public double joinProviderRequestAvg;
+    public double joinProviderResponseAvg;
+    public double joinHandleResponseAvg;
+    public double earnStoreRequestAvg;
+    public double earnStoreResponseAvg;
+    public double earnProviderRequestAvg;
+    public double earnProviderResponseAvg;
+    public double earnHandleResponseAvg;
+    public double spendStoreRequestAvg;
+    public double spendStoreResponseAvg;
+    public double spendProviderRequestAvg;
+    public double spendProviderResponseAvg;
+    public double spendHandleResponseAvg;
+    public double registrationTotalAvg;
+    public double joinTotalAvg;
+    public double earnTotalAvg;
+    public double spendTotalAvg;
+    public double registrationAppAvg;
+    public double joinAppAvg;
+    public double earnAppAvg;
+    public double spendAppAvg;
     long[] registrationStoreRequestTime;
     long[] registrationStoreResponseTime;
     long[] joinHandleResponseTime;
@@ -35,31 +56,6 @@ public class BenchmarkResult implements Serializable {
     long[] joinStoreResponseTime;
     long[] joinProviderRequestTime;
     long[] joinProviderResponseTime;
-    public double joinProviderRequestAvg;
-    public double joinProviderResponseAvg;
-    public double joinHandleResponseAvg;
-
-    public double earnStoreRequestAvg;
-    public double earnStoreResponseAvg;
-    public double earnProviderRequestAvg;
-    public double earnProviderResponseAvg;
-    public double earnHandleResponseAvg;
-
-    public double spendStoreRequestAvg;
-    public double spendStoreResponseAvg;
-    public double spendProviderRequestAvg;
-    public double spendProviderResponseAvg;
-    public double spendHandleResponseAvg;
-
-    public double registrationTotalAvg;
-    public double joinTotalAvg;
-    public double earnTotalAvg;
-    public double spendTotalAvg;
-    
-    public double registrationAppAvg;
-    public double joinAppAvg;
-    public double earnAppAvg;
-    public double spendAppAvg;
 
     /**
      * Constructor that takes benchmark timing data as arrays containing the time for a step in nanoseconds.
@@ -125,7 +121,7 @@ public class BenchmarkResult implements Serializable {
         registrationProviderRequestAvg = computeAverage(registrationProviderRequestTime);
         registrationProviderResponseAvg = computeAverage(registrationProviderResponseTime);
         registrationHandleResponseAvg = computeAverage(registrationHandleResponseTime);
-       
+
         joinStoreRequestAvg = computeAverage(joinStoreRequestTime);
         joinStoreResponseAvg = computeAverage(joinStoreResponseTime);
         joinProviderRequestAvg = computeAverage(joinProviderRequestTime);
@@ -140,7 +136,7 @@ public class BenchmarkResult implements Serializable {
 
         spendStoreRequestAvg = computeAverage(spendStoreRequestTime);
         spendStoreResponseAvg = computeAverage(spendStoreResponseTime);
-        spendProviderRequestAvg= computeAverage(spendProviderRequestTime);
+        spendProviderRequestAvg = computeAverage(spendProviderRequestTime);
         spendProviderResponseAvg = computeAverage(spendProviderResponseTime);
         spendHandleResponseAvg = computeAverage(spendHandleResponseTime);
 

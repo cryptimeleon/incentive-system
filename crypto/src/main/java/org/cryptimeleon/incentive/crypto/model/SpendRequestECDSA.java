@@ -13,7 +13,9 @@ import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkpCommonInput;
 import org.cryptimeleon.math.hash.UniqueByteRepresentable;
-import org.cryptimeleon.math.serialization.*;
+import org.cryptimeleon.math.serialization.ListRepresentation;
+import org.cryptimeleon.math.serialization.Representable;
+import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.structures.groups.Group;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
@@ -74,7 +76,7 @@ public class SpendRequestECDSA implements Representable {
                              SpendDeductTree spendDeductTree,
                              ProviderPublicKey providerPublicKey,
                              UniqueByteRepresentable context) {
-        Iterator<Representation> representationIterator = ((ListRepresentation) representation) .iterator();
+        Iterator<Representation> representationIterator = ((ListRepresentation) representation).iterator();
         Zn zn = pp.getBg().getZn();
         Group group = pp.getBg().getG1();
         ECDSASignatureScheme ecdsaSignatureScheme = new ECDSASignatureScheme();

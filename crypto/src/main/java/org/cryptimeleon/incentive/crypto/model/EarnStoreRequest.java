@@ -1,6 +1,8 @@
 package org.cryptimeleon.incentive.crypto.model;
 
-import org.cryptimeleon.math.serialization.*;
+import org.cryptimeleon.math.serialization.ByteArrayRepresentation;
+import org.cryptimeleon.math.serialization.Representable;
+import org.cryptimeleon.math.serialization.Representation;
 
 import java.util.Arrays;
 

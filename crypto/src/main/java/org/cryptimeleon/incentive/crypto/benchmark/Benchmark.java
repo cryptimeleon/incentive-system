@@ -314,7 +314,7 @@ public class Benchmark {
                     newPoints,
                     spendProviderRequest,
                     spendProviderResponse
-                    );
+            );
             finish = Instant.now();
             tSpendHandleResponse[i] = Duration.between(start, finish).toNanos();
         }

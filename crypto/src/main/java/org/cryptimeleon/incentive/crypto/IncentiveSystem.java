@@ -379,7 +379,7 @@ public class IncentiveSystem {
      * @param userKeyPair only required for pseudorandomness
      * @return a request that can be processed by the store
      */
-    public EarnStoreRequest generateEarnCouponRequest(Token token, UserKeyPair userKeyPair){
+    public EarnStoreRequest generateEarnCouponRequest(Token token, UserKeyPair userKeyPair) {
         // Compute pseudorandom value from the token that is used to blind the commitment
         // This makes this algorithm deterministic
         var s = pp.getPrfToZn().hashThenPrfToZn(userKeyPair.getSk().getPrfKey(), token, "CreditEarn");
@@ -494,7 +494,7 @@ public class IncentiveSystem {
      * @param promotionParameters               the parameters associated to the promotion from the user's request. Can be identified
      *                                          by the promotionId in the request
      * @param providerKeyPair                   the keys of the provider
-     * @param transactionDBHandler                 a callback for adding all relevant data to the clearing db
+     * @param transactionDBHandler              a callback for adding all relevant data to the clearing db
      * @param storePublicKeyVerificationHandler a callback for verifying that the store's key used to authenticate the request is trusted
      * @return the blindly updated signature
      */
@@ -734,10 +734,10 @@ public class IncentiveSystem {
      * Verify the spend coupon signature.
      * Does not verify the store's public key!
      *
-     * @param spendCouponRequest the request sent to obtain the signature
+     * @param spendCouponRequest   the request sent to obtain the signature
      * @param spendCouponSignature the signature + public key
-     * @param promotionParameters the parameters of the promotion this signature belongs to
-     * @param basketId the id the corresponding basket
+     * @param promotionParameters  the parameters of the promotion this signature belongs to
+     * @param basketId             the id the corresponding basket
      * @return whether the signature is valid
      */
     public boolean verifySpendCouponSignature(SpendCouponRequest spendCouponRequest, SpendCouponSignature spendCouponSignature, PromotionParameters promotionParameters, UUID basketId) {

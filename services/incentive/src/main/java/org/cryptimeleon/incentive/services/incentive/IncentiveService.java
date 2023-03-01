@@ -1,6 +1,8 @@
 package org.cryptimeleon.incentive.services.incentive;
 
-import org.cryptimeleon.incentive.client.dto.inc.*;
+import org.cryptimeleon.incentive.client.dto.inc.EarnTokenUpdateResultDto;
+import org.cryptimeleon.incentive.client.dto.inc.TokenUpdateResultsDto;
+import org.cryptimeleon.incentive.client.dto.inc.ZkpTokenUpdateResultDto;
 import org.cryptimeleon.incentive.client.dto.provider.*;
 import org.cryptimeleon.incentive.crypto.IncentiveSystemRestorer;
 import org.cryptimeleon.incentive.crypto.callback.IRegistrationCouponDBHandler;
