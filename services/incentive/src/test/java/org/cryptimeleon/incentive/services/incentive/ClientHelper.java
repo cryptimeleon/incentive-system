@@ -1,9 +1,6 @@
 package org.cryptimeleon.incentive.services.incentive;
 
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
-import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
-import org.cryptimeleon.incentive.client.dto.inc.EarnRequestDto;
-import org.cryptimeleon.incentive.client.dto.inc.TokenUpdateResultsDto;
 import org.cryptimeleon.incentive.client.dto.provider.BulkRequestProviderDto;
 import org.cryptimeleon.incentive.client.dto.provider.BulkResultsProviderDto;
 import org.cryptimeleon.incentive.client.dto.provider.EarnRequestProviderDto;
@@ -149,100 +146,6 @@ public class ClientHelper {
         return incentiveSystem.handleJoinRequestResponse(promotion.getPromotionParameters(), pkp.getPk(), joinFirstStepOutput, joinResponse);
     }
 
-    /**
-     * Helper method that generates an earn request and sends it to the Credit endpoint of the incentive server.
-     *
-     * @param webTestClient   test client to send requests to server
-     * @param incentiveSystem incentive system instance used in this protocol run
-     * @param pkp             SPS-EQ public key of the provider of the incentive system
-     * @param ukp             key pair of the user (user public key, user secret key)
-     * @param token           user token to update
-     * @param promotionId     ID of the promotion that the user wants to earn points for
-     * @param basketId        ID of the basket of the user (which is used to compute the earned points)
-     * @param expectedStatus  if any other status than this is returned upon the client's request, an exception is throwns
-     * @return the request that can processed by the provider
-     */
-    static EarnRequest generateAndSendEarnRequest(WebTestClient webTestClient,
-                                                  IncentiveSystem incentiveSystem,
-                                                  ProviderKeyPair pkp,
-                                                  UserKeyPair ukp,
-                                                  Token token,
-                                                  BigInteger promotionId,
-                                                  UUID basketId,
-                                                  HttpStatus expectedStatus) {
-        // compute earn request from token and keys
-        var earnRequest = incentiveSystem.generateEarnRequest(token, pkp.getPk(), ukp);
-
-        // make earn request
-        webTestClient.post()
-                .uri("/bulk-token-updates")
-                .header("basket-id", String.valueOf(basketId))
-                .body(BodyInserters.fromValue(
-                        new BulkRequestDto(
-                                List.of(new EarnRequestDto(promotionId,
-                                        jsonConverter.serialize(earnRequest.getRepresentation()))),
-                                Collections.emptyList())))
-                .exchange()
-                .expectStatus()
-                .isEqualTo(expectedStatus);
-
-        // return earn request (is needed later to retrieve the token after the provider executed the Credit algorithm)
-        return earnRequest;
-    }
-
-    /**
-     * Helper method.
-     * User claims the points she earned with the passed earn request.
-     * The separation from making the earn request is necessary
-     * since the user's basket needs to be paid after making the earn request and before claiming the points.
-     *
-     * @param webTestClient   test client (= user) making the requests to the server
-     * @param incentiveSystem incentive system instance used in this protocol run
-     * @param promotion       promotion object, modelling the promotion for which the user is claiming points
-     * @param pkp             SPS-EQ public key of the provider of the incentive system
-     * @param ukp             key pair of the user
-     * @param token           user token to update
-     * @param earnRequest     initial corresponding earn request that was made before paying the basket
-     * @param basketId        ID of the basket that the user wants to claim points for
-     * @param pointsToEarn    how many points the user earns for her basket
-     * @param expectedStatus  if any other HTTP status than this one is returned, an exception is thrown
-     * @return updated token
-     */
-    public static Token retrieveTokenAfterEarn(WebTestClient webTestClient,
-                                               IncentiveSystem incentiveSystem,
-                                               Promotion promotion,
-                                               ProviderKeyPair pkp,
-                                               UserKeyPair ukp,
-                                               Token token,
-                                               EarnRequest earnRequest,
-                                               UUID basketId,
-                                               Vector<BigInteger> pointsToEarn,
-                                               HttpStatus expectedStatus) {
-        var pp = incentiveSystem.pp;
-
-        // make request
-        var resultsDto = webTestClient.post()
-                .uri("/bulk-token-update-results")
-                .header("basket-id", String.valueOf(basketId))
-                .exchange()
-                .expectStatus()
-                .isEqualTo(expectedStatus)
-                .expectBody(TokenUpdateResultsDto.class)
-                .returnResult().getResponseBody();
-
-        // assert well-formedness of result
-        assert resultsDto != null;
-
-        // extract earn response
-        var serializedEarnResponse = resultsDto.getEarnTokenUpdateResultDtoList().get(0).getSerializedEarnResponse();
-
-        // extract updated signature from earn responses
-        SPSEQSignature spseqSignature = new SPSEQSignature(jsonConverter.deserialize(serializedEarnResponse), pp.getBg().getG1(), pp.getBg().getG2());
-
-        // execute second part of Earn algorithm and output resulting token
-        return incentiveSystem.handleEarnRequestResponse(promotion.getPromotionParameters(), earnRequest, spseqSignature, pointsToEarn, token, pkp.getPk(), ukp);
-    }
-
 
     public static Token earn(WebTestClient webClient, IncentiveSystem incentiveSystem, ProviderKeyPair pkp, UserKeyPair ukp, Token token, Vector<BigInteger> pointsToEarn, EarnStoreCouponSignature earnStoreCouponSignature, PromotionParameters promotionParameters) {
         var earnRequest = incentiveSystem.generateEarnRequest(token, pkp.getPk(), ukp, pointsToEarn, earnStoreCouponSignature);
@@ -264,8 +167,7 @@ public class ClientHelper {
         BulkRequestProviderDto bulkRequestProviderDto = new BulkRequestProviderDto(List.of(spendRequestDto), Collections.emptyList());
         BulkResultsProviderDto bulkResultsProviderDto = bulkWithProvider(webClient, bulkRequestProviderDto);
         var serializedSpendResponse = bulkResultsProviderDto.getSpendResults().get(0).getSerializedSpendResult();
-        var spendResponse = new SpendResponseECDSA(jsonConverter.deserialize(serializedSpendResponse), incentiveSystem.pp);
-        return spendResponse;
+        return new SpendResponseECDSA(jsonConverter.deserialize(serializedSpendResponse), incentiveSystem.pp);
     }
 
     public static BulkResultsProviderDto bulkWithProvider(WebTestClient webClient,

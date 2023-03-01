@@ -1,8 +1,6 @@
 package org.cryptimeleon.incentive.client.integrationtest;
 
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
-import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
-import org.cryptimeleon.incentive.client.dto.inc.EarnRequestDto;
 import org.cryptimeleon.incentive.client.dto.store.BulkResultsStoreDto;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
@@ -23,8 +21,6 @@ import org.junit.jupiter.api.TestInstance;
 
 import java.math.BigInteger;
 import java.time.Duration;
-import java.util.Collections;
-import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -35,7 +31,6 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class FullWorkflowTest extends TransactionTestPreparation {
-    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(FullWorkflowTest.class);
 
     @BeforeAll
     void setup() {
@@ -76,17 +71,6 @@ public class FullWorkflowTest extends TransactionTestPreparation {
     }
 
     @Test
-    @Deprecated
-    void earnTestLegacy() {
-        var token = generateToken();
-        var basket = createBasketWithItems();
-        var basketValueForPromotion = testPromotion.computeEarningsForBasket(basket);
-        log.info("Run valid credit earn protocol");
-        Token newToken = runEarnProtocolLegacy(token, basket, basketValueForPromotion);
-        Assertions.assertEquals(newToken.getPoints().map(RingElement::asInteger), basketValueForPromotion);
-    }
-
-    @Test
     void spendTest() {
         Token token = generateToken(testPromotion.getPromotionParameters(), Vector.of(BigInteger.valueOf(25)));
         var basket = createBasketWithItems();
@@ -102,18 +86,6 @@ public class FullWorkflowTest extends TransactionTestPreparation {
         var updatedToken = runSpendProtocol(token, basket, testPromotion, testTokenUpdate);
 
         var basketAfterSpend = basketClient.getBasket(basket.getBasketId()).block();
-        assert basketAfterSpend != null;
-        org.assertj.core.api.Assertions.assertThat(basketAfterSpend.getRewardItems()).hasSize(1).allMatch(rewardItemDto -> rewardItemDto.getId().equals(REWARD_ID));
-    }
-
-    @Test
-    void spendRewardsAddedToBasketTest() {
-        Token token = generateToken(testPromotion.getPromotionParameters(), Vector.of(BigInteger.valueOf(20)));
-        var basketId = createBasket();
-        assert basketId != null;
-        log.info("BasketId: " + basketId);
-        runSpendDeductWorkflow(token, basketId);
-        var basketAfterSpend = basketClient.getBasket(basketId).block();
         assert basketAfterSpend != null;
         org.assertj.core.api.Assertions.assertThat(basketAfterSpend.getRewardItems()).hasSize(1).allMatch(rewardItemDto -> rewardItemDto.getId().equals(REWARD_ID));
     }
@@ -185,16 +157,5 @@ public class FullWorkflowTest extends TransactionTestPreparation {
         String serializedSpendResponse = incentiveClient.sendSpendRequest(spendRequestECDSA, promotion.getPromotionParameters().getPromotionId(), metadata, basket.getBasketId(), tokenUpdate.getTokenUpdateId(), basketPoints);
         SpendResponseECDSA spendResponseECDSA = new SpendResponseECDSA(jsonConverter.deserialize(serializedSpendResponse), cryptoAssets.getPublicParameters());
         return incentiveSystem.retrieveUpdatedTokenFromSpendResponse(cryptoAssets.getUserKeyPair(), cryptoAssets.getProviderKeyPair().getPk(), token, promotion.getPromotionParameters(), pointsAfterSpend, spendRequestECDSA, spendResponseECDSA);
-    }
-
-    @Deprecated
-    private Token runEarnProtocolLegacy(Token token, org.cryptimeleon.incentive.promotion.model.Basket basket, org.cryptimeleon.math.structures.cartesian.Vector<java.math.BigInteger> basketValueForPromotion) {
-        var earnRequest = incentiveSystem.generateEarnRequest(token, cryptoAssets.getProviderKeyPair().getPk(), cryptoAssets.getUserKeyPair());
-        var serializedEarnRequest = jsonConverter.serialize(earnRequest.getRepresentation());
-        incentiveClient.sendBulkUpdates(basket.getBasketId(), new BulkRequestDto(List.of(new EarnRequestDto(testPromotion.getPromotionParameters().getPromotionId(), serializedEarnRequest)), Collections.emptyList())).block();
-        basketClient.payBasket(basket.getBasketId(), paySecret);
-        var serializedSignature = incentiveClient.retrieveBulkResults(basket.getBasketId()).block().getEarnTokenUpdateResultDtoList().get(0).getSerializedEarnResponse();
-        var signature = new SPSEQSignature(jsonConverter.deserialize(serializedSignature), cryptoAssets.getPublicParameters().getBg().getG1(), cryptoAssets.getPublicParameters().getBg().getG2());
-        return incentiveSystem.handleEarnRequestResponse(testPromotion.getPromotionParameters(), earnRequest, signature, basketValueForPromotion, token, cryptoAssets.getProviderKeyPair().getPk(), cryptoAssets.getUserKeyPair());
     }
 }

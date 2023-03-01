@@ -28,7 +28,6 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -242,77 +241,6 @@ public class IncentiveServiceTest {
         );
 
         assertThat(updatedToken.getPoints().map(RingElement::asInteger)).isEqualTo(testEarnAmount);
-    }
-
-    @Test
-    public void earnTestOld(@Autowired WebTestClient webClient) {
-        // add promotion that is used for tests to the system
-        addPromotion(webClient, TestSuiteWithPromotion.promotion, providerSecret, HttpStatus.OK);
-
-        // execute Issue to generate a token for the test promotion for the test user
-        Token token = joinPromotion(webClient, incentiveSystem, TestSuite.providerKeyPair, TestSuite.userKeyPair, TestSuiteWithPromotion.promotion, HttpStatus.OK);
-
-        // evaluate test basket to determine how many points the user earns
-        var pointsToEarn = TestSuiteWithPromotion.promotion.computeEarningsForBasket(TestSuiteWithPromotion.basket);
-
-        // generate earn request and pretend like the test user sent it to you
-        var earnRequest = generateAndSendEarnRequest(
-                webClient,
-                incentiveSystem,
-                TestSuite.providerKeyPair,
-                TestSuite.userKeyPair,
-                token,
-                TestSuiteWithPromotion.promotion.getPromotionParameters().getPromotionId(),
-                TestSuiteWithPromotion.basket.getBasketId(),
-                HttpStatus.OK
-        );
-
-        // test basket is considered paid now (-> change this in hard-coded mock repo)
-        when(basketRepository.isBasketPaid(TestSuiteWithPromotion.basket.getBasketId())).thenReturn(true);
-
-
-        retrieveTokenAfterEarn(
-                webClient,
-                incentiveSystem,
-                TestSuiteWithPromotion.promotion,
-                TestSuite.providerKeyPair,
-                TestSuite.userKeyPair,
-                token,
-                earnRequest,
-                TestSuiteWithPromotion.basket.getBasketId(),
-                pointsToEarn,
-                HttpStatus.OK
-        );
-    }
-
-    @Test
-    public void earnWrongBasketTest(@Autowired WebTestClient webClient) {
-        addPromotion(webClient, TestSuiteWithPromotion.promotion, providerSecret, HttpStatus.OK);
-        Token token = joinPromotion(webClient, incentiveSystem, TestSuite.providerKeyPair, TestSuite.userKeyPair, TestSuiteWithPromotion.promotion, HttpStatus.OK);
-
-        generateAndSendEarnRequest(webClient,
-                incentiveSystem,
-                TestSuite.providerKeyPair,
-                TestSuite.userKeyPair,
-                token,
-                TestSuiteWithPromotion.promotion.getPromotionParameters().getPromotionId(),
-                UUID.randomUUID(),
-                HttpStatus.BAD_REQUEST);
-    }
-
-    @Test
-    public void earnInvalidPromotionIdTest(@Autowired WebTestClient webClient) {
-        addPromotion(webClient, TestSuiteWithPromotion.promotion, providerSecret, HttpStatus.OK);
-        Token token = joinPromotion(webClient, incentiveSystem, TestSuite.providerKeyPair, TestSuite.userKeyPair, TestSuiteWithPromotion.promotion, HttpStatus.OK);
-
-        generateAndSendEarnRequest(webClient,
-                incentiveSystem,
-                TestSuite.providerKeyPair,
-                TestSuite.userKeyPair,
-                token,
-                BigInteger.valueOf(14),
-                UUID.randomUUID(),
-                HttpStatus.BAD_REQUEST);
     }
 
     @Test

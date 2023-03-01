@@ -1,7 +1,6 @@
 package org.cryptimeleon.incentive.services.incentive;
 
 import io.swagger.annotations.ApiOperation;
-import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
 import org.cryptimeleon.incentive.client.dto.inc.TokenUpdateResultsDto;
 import org.cryptimeleon.incentive.client.dto.provider.BulkRequestProviderDto;
 import org.cryptimeleon.incentive.client.dto.provider.BulkResultsProviderDto;
@@ -154,21 +153,6 @@ public class IncentiveController {
     @PostMapping("/bulk")
     public BulkResultsProviderDto bulk(@RequestBody BulkRequestProviderDto bulkRequestProviderDto) {
         return incentiveService.bulk(bulkRequestProviderDto);
-    }
-
-    /**
-     * HTTP endpoint for sending a bulk of spend and earn requests to the incentive server.
-     * Server will apply the updates to the basket identified by the passed basket ID
-     * and store the results (i.e. granted rewards and earned points) for later
-     * (since points and rewards can only be obtained after basket is paid).
-     *
-     * @param basketId       ID of the basket to apply the updates to
-     * @param bulkRequestDto data transfer object (DTO) containing spend and earn requests
-     */
-    @Deprecated
-    @PostMapping("/bulk-token-updates")
-    public void bulkUpdates(@RequestHeader(name = "basket-id") UUID basketId, @RequestBody BulkRequestDto bulkRequestDto) {
-        incentiveService.handleBulk(basketId, bulkRequestDto);
     }
 
     /*
