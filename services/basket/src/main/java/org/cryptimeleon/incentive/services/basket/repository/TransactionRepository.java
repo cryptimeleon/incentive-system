@@ -15,8 +15,8 @@ import java.util.Map;
  */
 @Repository
 public class TransactionRepository implements ITransactionDBHandler {
-    Map<EarnRequestECDSA, byte[]> earnData = new HashMap<>();
-    ArrayList<SpendTransactionData> spendData = new ArrayList<>();
+    final Map<EarnRequestECDSA, byte[]> earnData = new HashMap<>();
+    final ArrayList<SpendTransactionData> spendData = new ArrayList<>();
 
     @Override
     public void addEarnData(EarnRequestECDSA earnRequestECDSA, byte[] h) {

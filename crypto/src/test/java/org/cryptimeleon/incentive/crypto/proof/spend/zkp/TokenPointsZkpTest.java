@@ -23,32 +23,32 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class TokenPointsZkpTest {
 
-    BigInteger[] points = {
+    final BigInteger[] points = {
             BigInteger.valueOf(3),
             BigInteger.valueOf(3),
             BigInteger.valueOf(3),
             BigInteger.valueOf(3)
     };
-    Vector<BigInteger> lowerLimits = Vector.of(
+    final Vector<BigInteger> lowerLimits = Vector.of(
             BigInteger.valueOf(2),
             BigInteger.valueOf(3),
             null,
             null
     );
-    Vector<BigInteger> upperLimits = Vector.of(
+    final Vector<BigInteger> upperLimits = Vector.of(
             BigInteger.valueOf(4),
             BigInteger.valueOf(3),
             BigInteger.valueOf(3),
             null
     );
 
-    Vector<BigInteger> invalidLowerLimits = Vector.of(
+    final Vector<BigInteger> invalidLowerLimits = Vector.of(
             BigInteger.valueOf(4),
             null,
             null,
             null
     );
-    Vector<BigInteger> invalidUpperLimits = Vector.of(
+    final Vector<BigInteger> invalidUpperLimits = Vector.of(
             BigInteger.valueOf(2),
             null,
             null,

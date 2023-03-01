@@ -40,7 +40,7 @@ import static org.mockito.Mockito.when;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class StoreTest {
     private final BasketEntity basket = constructBasketEntity();
-    private final BasketEntity paidBasket = new BasketEntity(TestSuiteWithPromotion.basket.getBasketId(), new HashSet<>(), new HashSet<>(), true, false, true, "", new HashMap<>());
+    private final BasketEntity paidBasket = new BasketEntity(TestSuiteWithPromotion.basket.getBasketId(), new HashSet<>(), new HashSet<>(), true, true, new HashMap<>());
     private final JSONConverter jsonConverter = new JSONConverter();
     @MockBean
     private CryptoRepository cryptoRepository;
@@ -55,7 +55,7 @@ public class StoreTest {
     private Token token;
 
     private static BasketEntity constructBasketEntity() {
-        var b = new BasketEntity(TestSuiteWithPromotion.basket.getBasketId(), new HashSet<>(), new HashSet<>(), false, false, true, "", new HashMap<>());
+        var b = new BasketEntity(TestSuiteWithPromotion.basket.getBasketId(), new HashSet<>(), new HashSet<>(), false, true, new HashMap<>());
         b.getBasketItems().addAll(
                 TestSuiteWithPromotion.basket.getBasketItemList().stream().map(basketItem -> {
                             var e = new ItemInBasketEntity(b, new ItemEntity(basketItem.getItemId(), basketItem.getTitle(), (long) basketItem.getPrice(), new HashSet<>()));

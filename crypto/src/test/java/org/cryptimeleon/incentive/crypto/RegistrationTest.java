@@ -25,10 +25,10 @@ import static org.assertj.core.api.Assertions.assertThat;
  */
 public class RegistrationTest {
 
-    IncentiveSystem incSys = TestSuite.incentiveSystem;
-    StoreKeyPair skp = TestSuite.storeKeyPair;
-    ProviderKeyPair pkp = TestSuite.providerKeyPair;
-    UserKeyPair ukp = TestSuite.userKeyPair;
+    final IncentiveSystem incSys = TestSuite.incentiveSystem;
+    final StoreKeyPair skp = TestSuite.storeKeyPair;
+    final ProviderKeyPair pkp = TestSuite.providerKeyPair;
+    final UserKeyPair ukp = TestSuite.userKeyPair;
 
     @Test
     public void registrationTest() {

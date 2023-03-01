@@ -111,5 +111,5 @@ public class DemoBootstrapData {
                     )
             ));
 
-    public static BootstrapData bootstrapData = new BootstrapData(basketItems, rewardItems, promotions);
+    public static final BootstrapData bootstrapData = new BootstrapData(basketItems, rewardItems, promotions);
 }

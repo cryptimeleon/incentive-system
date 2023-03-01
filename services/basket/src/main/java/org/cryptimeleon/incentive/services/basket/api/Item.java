@@ -12,8 +12,10 @@ public class Item {
     @ApiModelProperty("${item.id}")
     String id;
     @ApiModelProperty("${item.title}")
+    final
     String title;
     @ApiModelProperty("${item.price}")
+    final
     long price;
 
     public Item(ItemEntity itemEntity) {

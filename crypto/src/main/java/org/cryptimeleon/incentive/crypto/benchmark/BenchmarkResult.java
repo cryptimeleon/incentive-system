@@ -36,26 +36,26 @@ public class BenchmarkResult implements Serializable {
     public double joinAppAvg;
     public double earnAppAvg;
     public double spendAppAvg;
-    long[] registrationStoreRequestTime;
-    long[] registrationStoreResponseTime;
-    long[] joinHandleResponseTime;
-    long[] earnStoreRequestTime;
-    long[] earnStoreResponseTime;
-    long[] earnProviderRequestTime;
-    long[] earnProviderResponseTime;
-    long[] earnHandleResponseTime;
-    long[] spendStoreRequestTime;
-    long[] spendStoreResponseTime;
-    long[] spendProviderRequestTime;
-    long[] spendProviderResponseTime;
-    long[] spendHandleResponseTime;
-    long[] registrationProviderRequestTime;
-    long[] registrationProviderResponseTime;
-    long[] registrationHandleResponseTime;
-    long[] joinStoreRequestTime;
-    long[] joinStoreResponseTime;
-    long[] joinProviderRequestTime;
-    long[] joinProviderResponseTime;
+    final long[] registrationStoreRequestTime;
+    final long[] registrationStoreResponseTime;
+    final long[] joinHandleResponseTime;
+    final long[] earnStoreRequestTime;
+    final long[] earnStoreResponseTime;
+    final long[] earnProviderRequestTime;
+    final long[] earnProviderResponseTime;
+    final long[] earnHandleResponseTime;
+    final long[] spendStoreRequestTime;
+    final long[] spendStoreResponseTime;
+    final long[] spendProviderRequestTime;
+    final long[] spendProviderResponseTime;
+    final long[] spendHandleResponseTime;
+    final long[] registrationProviderRequestTime;
+    final long[] registrationProviderResponseTime;
+    final long[] registrationHandleResponseTime;
+    final long[] joinStoreRequestTime;
+    final long[] joinStoreResponseTime;
+    final long[] joinProviderRequestTime;
+    final long[] joinProviderResponseTime;
 
     /**
      * Constructor that takes benchmark timing data as arrays containing the time for a step in nanoseconds.

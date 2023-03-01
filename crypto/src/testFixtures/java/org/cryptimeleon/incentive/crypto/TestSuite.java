@@ -51,7 +51,7 @@ public class TestSuite {
     }
 
     public static class TestDsidBlacklist implements IDsidBlacklistHandler {
-        HashMap<Zn.ZnElement, Zn.ZnElement> dsMap = new HashMap<>();
+        final HashMap<Zn.ZnElement, Zn.ZnElement> dsMap = new HashMap<>();
 
         @Override
         public boolean containsDsidWithDifferentGamma(Zn.ZnElement doubleSpendingId, Zn.ZnElement gamma) {
@@ -65,8 +65,8 @@ public class TestSuite {
     }
 
     public static class TestTransactionDbHandler implements ITransactionDBHandler {
-        HashMap<EarnRequestECDSA, byte[]> earnData = new HashMap<>();
-        ArrayList<SpendTransactionData> spendData = new ArrayList<>();
+        final HashMap<EarnRequestECDSA, byte[]> earnData = new HashMap<>();
+        final ArrayList<SpendTransactionData> spendData = new ArrayList<>();
 
         @Override
         public void addEarnData(EarnRequestECDSA earnRequestECDSA, byte[] h) {

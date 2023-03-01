@@ -10,7 +10,7 @@ import java.util.logging.Logger;
  * Don't execute an expensive benchmark here, use the benchmark package for that.
  */
 public class BenchmarkTest {
-    Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
+    final Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
     @Test
     void runBenchmark() {

@@ -10,10 +10,10 @@ import java.util.List;
 
 public class BootstrapClient {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BootstrapClient.class);
-    String basketServiceProviderSecret;
-    String promotionServiceProviderSecret;
-    BasketClient basketClient;
-    IncentiveClient incentiveClient;
+    final String basketServiceProviderSecret;
+    final String promotionServiceProviderSecret;
+    final BasketClient basketClient;
+    final IncentiveClient incentiveClient;
 
     public BootstrapClient(String basketServiceProviderSecret, String promotionServiceProviderSecret, BasketClient basketClient, IncentiveClient incentiveClient) {
         this.basketServiceProviderSecret = basketServiceProviderSecret;

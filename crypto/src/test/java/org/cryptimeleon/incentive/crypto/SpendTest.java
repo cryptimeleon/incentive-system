@@ -13,17 +13,17 @@ import java.math.BigInteger;
 import java.util.UUID;
 
 public class SpendTest {
-    IncentiveSystem incSys = TestSuite.incentiveSystem;
-    UUID basketId = UUID.randomUUID();
-    PromotionParameters promotionParameters = IncentiveSystem.generatePromotionParameters(2);
-    Vector<BigInteger> pointsBeforeSpend = Vector.of(BigInteger.valueOf(10L), BigInteger.valueOf(0L));
-    Vector<BigInteger> pointsAfterSpend = Vector.of(BigInteger.valueOf(6L), BigInteger.valueOf(0L));
-    Vector<BigInteger> pointDifference = pointsBeforeSpend.zip(pointsAfterSpend, BigInteger::subtract);
+    final IncentiveSystem incSys = TestSuite.incentiveSystem;
+    final UUID basketId = UUID.randomUUID();
+    final PromotionParameters promotionParameters = IncentiveSystem.generatePromotionParameters(2);
+    final Vector<BigInteger> pointsBeforeSpend = Vector.of(BigInteger.valueOf(10L), BigInteger.valueOf(0L));
+    final Vector<BigInteger> pointsAfterSpend = Vector.of(BigInteger.valueOf(6L), BigInteger.valueOf(0L));
+    final Vector<BigInteger> pointDifference = pointsBeforeSpend.zip(pointsAfterSpend, BigInteger::subtract);
 
-    Token token = TestSuite.generateToken(promotionParameters, pointsBeforeSpend);
-    TestRedeemedHandler testRedeemedHandler = new TestRedeemedHandler();
-    IDsidBlacklistHandler dsidBlacklistHandler = new TestSuite.TestDsidBlacklist();
-    TestSuite.TestTransactionDbHandler transactionDbHandler = new TestSuite.TestTransactionDbHandler();
+    final Token token = TestSuite.generateToken(promotionParameters, pointsBeforeSpend);
+    final TestRedeemedHandler testRedeemedHandler = new TestRedeemedHandler();
+    final IDsidBlacklistHandler dsidBlacklistHandler = new TestSuite.TestDsidBlacklist();
+    final TestSuite.TestTransactionDbHandler transactionDbHandler = new TestSuite.TestTransactionDbHandler();
 
     @Test
     void spendFullTest() {

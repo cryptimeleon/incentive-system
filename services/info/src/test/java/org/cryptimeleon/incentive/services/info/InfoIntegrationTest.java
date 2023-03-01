@@ -21,7 +21,7 @@ public class InfoIntegrationTest {
     @Value("${provider.shared-secret}")
     String sharedSecret;
 
-    JSONConverter jsonConverter = new JSONConverter();
+    final JSONConverter jsonConverter = new JSONConverter();
 
     @Autowired
     private InfoService infoService;
@@ -61,9 +61,7 @@ public class InfoIntegrationTest {
                 .expectStatus()
                 .isOk()
                 .expectBody(String.class)
-                .consumeWith(response -> {
-                    new ProviderPublicKey(jsonConverter.deserialize(response.getResponseBody()), publicParameters);
-                });
+                .consumeWith(response -> new ProviderPublicKey(jsonConverter.deserialize(response.getResponseBody()), publicParameters));
     }
 
     /**
@@ -92,8 +90,6 @@ public class InfoIntegrationTest {
                 .expectStatus()
                 .isOk()
                 .expectBody(String.class)
-                .consumeWith(response -> {
-                    new ProviderSecretKey(jsonConverter.deserialize(response.getResponseBody()), publicParameters);
-                });
+                .consumeWith(response -> new ProviderSecretKey(jsonConverter.deserialize(response.getResponseBody()), publicParameters));
     }
 }

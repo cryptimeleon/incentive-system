@@ -24,7 +24,7 @@ public class BasketEntity {
         this.basketID = UUID.randomUUID();
     }
 
-    public BasketEntity(UUID basketID, Set<ItemInBasketEntity> basketItems, Set<RewardItemEntity> rewardItems, boolean paid, boolean redeemed, boolean locked, String redeemRequest, HashMap<BigInteger, byte[]> redeemRequestHashes) {
+    public BasketEntity(UUID basketID, Set<ItemInBasketEntity> basketItems, Set<RewardItemEntity> rewardItems, boolean paid, boolean locked, HashMap<BigInteger, byte[]> redeemRequestHashes) {
         this.basketID = basketID;
         this.basketItems = basketItems;
         this.rewardItems = rewardItems;

@@ -20,9 +20,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  */
 public class KeyTest {
 
-    IncentivePublicParameters pp = TestSuite.pp;
-    IncentiveSystem incentiveSystem = TestSuite.incentiveSystem;
-    Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
+    final IncentivePublicParameters pp = TestSuite.pp;
+    final IncentiveSystem incentiveSystem = TestSuite.incentiveSystem;
+    final Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
     @Test
     void testStoreKeyPair() {

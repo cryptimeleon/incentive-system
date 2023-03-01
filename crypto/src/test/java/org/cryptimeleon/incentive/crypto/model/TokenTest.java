@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  */
 public class TokenTest {
 
-    Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
+    final Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
 
     @Test
     void testTokenSerialization() {

@@ -11,6 +11,7 @@ public class RewardItem {
     @ApiModelProperty("${item.id}")
     String id;
     @ApiModelProperty("${item.title}")
+    final
     String title;
 
     public RewardItem(final String id, final String title) {

@@ -11,7 +11,7 @@ import java.util.HashMap;
  */
 @Repository
 public class DsidBlacklistRepository implements IDsidBlacklistHandler {
-    HashMap<Zn.ZnElement, Zn.ZnElement> dsMap = new HashMap<>();
+    final HashMap<Zn.ZnElement, Zn.ZnElement> dsMap = new HashMap<>();
 
     @Override
     public boolean containsDsidWithDifferentGamma(Zn.ZnElement doubleSpendingId, Zn.ZnElement gamma) {

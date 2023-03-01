@@ -13,13 +13,13 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class EarnTest {
 
-    IncentiveSystem incSys = TestSuite.incentiveSystem;
-    UUID basketId = UUID.randomUUID();
-    PromotionParameters promotionParameters = IncentiveSystem.generatePromotionParameters(2);
-    BigInteger promotionId = promotionParameters.getPromotionId();
-    Token token = TestSuite.generateToken(promotionParameters);
-    Token altToken = TestSuite.generateToken(promotionParameters);
-    Vector<BigInteger> earnAmount = Vector.of(BigInteger.valueOf(3L), BigInteger.valueOf(5L));
+    final IncentiveSystem incSys = TestSuite.incentiveSystem;
+    final UUID basketId = UUID.randomUUID();
+    final PromotionParameters promotionParameters = IncentiveSystem.generatePromotionParameters(2);
+    final BigInteger promotionId = promotionParameters.getPromotionId();
+    final Token token = TestSuite.generateToken(promotionParameters);
+    final Token altToken = TestSuite.generateToken(promotionParameters);
+    final Vector<BigInteger> earnAmount = Vector.of(BigInteger.valueOf(3L), BigInteger.valueOf(5L));
     TestRedeemedHandler testRedeemedHandler;
     TestSuite.TestTransactionDbHandler transactionDbHandler;
 

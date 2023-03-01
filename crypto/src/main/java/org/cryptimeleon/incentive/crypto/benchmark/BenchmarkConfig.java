@@ -16,7 +16,7 @@ import org.cryptimeleon.incentive.crypto.model.keys.user.UserSecretKey;
  * A simple data class for a benchmark configuration with different constructors.
  */
 public class BenchmarkConfig {
-    int iterations;
+    final int iterations;
     IncentiveSystem incentiveSystem;
     IncentivePublicParameters pp;
     ProviderPublicKey ppk;
