@@ -6,7 +6,6 @@ import org.springframework.test.web.reactive.server.EntityExchangeResult;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
 
-import java.util.List;
 import java.util.UUID;
 
 public class ClientHelper {
@@ -126,17 +125,6 @@ public class ClientHelper {
                 .isEqualTo(expectedStatus);
     }
 
-    static void postRewards(WebTestClient webTestClient, String redeemSecret, UUID basketId, List<String> rewardIds, HttpStatus expectedStatus) {
-        webTestClient.post()
-                .uri("/basket/rewards")
-                .header("redeem-secret", redeemSecret)
-                .header("basket-id", basketId.toString())
-                .body(BodyInserters.fromValue(rewardIds))
-                .exchange()
-                .expectStatus()
-                .isEqualTo(expectedStatus);
-    }
-
     static void deleteBasketItem(WebTestClient webTestClient, UUID basketId, String itemId, HttpStatus expectedStatus) {
         webTestClient.delete()
                 .uri(uriBuilder -> uriBuilder.path("/basket/items")
@@ -148,28 +136,12 @@ public class ClientHelper {
                 .isEqualTo(expectedStatus);
     }
 
-    public static void payBasket(WebTestClient webTestClient, UUID basketId, String paySecret, HttpStatus expectedStatus) {
+    public static void payBasket(WebTestClient webTestClient, UUID basketId, HttpStatus expectedStatus) {
         webTestClient.post()
-                .uri("/basket/pay")
-                .header("pay-secret", paySecret)
+                .uri("/basket/pay-dev")
                 .header("basket-id", String.valueOf(basketId))
                 .exchange()
                 .expectStatus()
                 .isEqualTo(expectedStatus);
-    }
-
-    static void redeemBasket(WebTestClient webTestClient, RedeemBasketRequest redeemRequest, String redeemSecret, HttpStatus expectedStatus) {
-        webTestClient.post()
-                .uri("/basket/redeem")
-                .header("redeem-secret", redeemSecret)
-                .body(BodyInserters.fromValue(redeemRequest))
-                .exchange()
-                .expectStatus()
-                .isEqualTo(expectedStatus);
-    }
-
-    static void redeemBasket(WebTestClient webTestClient, UUID basketId, String request, long value, String redeemSecret, HttpStatus expectedStatus) {
-        var redeemRequest = new RedeemBasketRequest(basketId, request, value);
-        redeemBasket(webTestClient, redeemRequest, redeemSecret, expectedStatus);
     }
 }

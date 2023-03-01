@@ -10,7 +10,6 @@ import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -64,11 +63,4 @@ public class BasketRepository {
         basketClient.lockBasket(basketId, redeemSecret).block();
     }
 
-    /**
-     * Sets the list of rewards (identified by IDs) that the user could claim for the basket with the passed ID.
-     * The uses who owns the basket can claim these rewards as soon as she has paid the basket.
-     */
-    public void setRewardsOfBasket(UUID basketId, ArrayList<String> rewardIds) {
-        basketClient.setRewardsForBasket(basketId, rewardIds, redeemSecret).block();
-    }
 }

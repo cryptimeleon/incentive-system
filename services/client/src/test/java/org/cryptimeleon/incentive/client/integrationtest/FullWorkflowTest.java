@@ -116,7 +116,7 @@ public class FullWorkflowTest extends TransactionTestPreparation {
                 .isTrue();
 
         // Pay basket
-        basketClient.payBasket(basket.getBasketId(), paySecret);
+        basketClient.payBasket(basket.getBasketId());
 
         // Obtain response
         var batchResponse = basketClient.retrieveBulkResponse(basket.getBasketId());
@@ -145,7 +145,7 @@ public class FullWorkflowTest extends TransactionTestPreparation {
                 .isTrue();
 
         // Pay basket
-        basketClient.payBasket(basket.getBasketId(), paySecret);
+        basketClient.payBasket(basket.getBasketId());
 
         // Obtain response
         BulkResultsStoreDto batchResponse = basketClient.retrieveBulkResponse(basket.getBasketId());

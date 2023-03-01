@@ -9,5 +9,4 @@ data class BasketEntity(
     @PrimaryKey val key: Int = 0, // Only store current basket :)
     val basketId: UUID,
     val paid: Boolean,
-    val redeemed: Boolean,
 )

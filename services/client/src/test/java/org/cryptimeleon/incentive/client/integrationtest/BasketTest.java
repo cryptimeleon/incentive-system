@@ -15,8 +15,6 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class BasketTest extends TransactionTestPreparation {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BasketTest.class);
-    @Value("${basket-service.pay-secret}")
-    private String paymentSecret;
     @Value("${basket-service.redeem-secret}")
     private String redeemSecret;
 
@@ -49,7 +47,7 @@ public class BasketTest extends TransactionTestPreparation {
         log.info("Redeeming not paid basket throws exception");
         var redeemRequest = new PostRedeemBasketDto(basketId, "Some request", basket.getValue());
         assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> basketClient.redeemBasket(redeemRequest, redeemSecret).block());
-        basketClient.payBasket(basketId, paymentSecret);
+        basketClient.payBasket(basketId);
         log.info("Paid basket can be redeemed");
         basketClient.redeemBasket(redeemRequest, redeemSecret).block();
         basket = basketClient.getBasket(basketId).block();

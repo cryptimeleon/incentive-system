@@ -17,7 +17,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -97,10 +96,9 @@ public class BasketClient implements AliveEndpoint {
                 .bodyToMono(Void.class);
     }
 
-    public void payBasket(UUID basketId, String paymentSecret) {
+    public void payBasket(UUID basketId) {
         basketClient.post()
-                .uri("/basket/pay")
-                .header("pay-secret", paymentSecret)
+                .uri("/basket/pay-dev")
                 .header("basket-id", String.valueOf(basketId))
                 .retrieve()
                 .bodyToMono(Void.class)
@@ -121,16 +119,6 @@ public class BasketClient implements AliveEndpoint {
                 .uri("/basket/lock")
                 .header("redeem-secret", redeemSecret)
                 .body(BodyInserters.fromValue(basketId))
-                .retrieve()
-                .bodyToMono(Void.class);
-    }
-
-    public Mono<Void> setRewardsForBasket(UUID basketId, ArrayList<String> rewardIds, String redeemSecret) {
-        return basketClient.post()
-                .uri("/basket/rewards")
-                .header("redeem-secret", redeemSecret)
-                .header("basket-id", String.valueOf(basketId))
-                .body(BodyInserters.fromValue(rewardIds))
                 .retrieve()
                 .bodyToMono(Void.class);
     }

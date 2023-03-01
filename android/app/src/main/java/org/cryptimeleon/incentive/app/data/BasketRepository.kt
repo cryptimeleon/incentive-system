@@ -59,7 +59,6 @@ class BasketRepository(
         val updatedBasket = BasketEntity(
             basketId = networkBasket.basketId,
             paid = networkBasket.paid,
-            redeemed = networkBasket.redeemed,
         )
         basketDao.setBasketEntity(updatedBasket)
 
@@ -121,7 +120,6 @@ class BasketRepository(
         val basketID = createBasketResponse.body()!!
         val basket = Basket(
             value = 0,
-            redeemed = false,
             paid = false,
             basketId = basketID,
             items = listOf()
@@ -177,7 +175,6 @@ class BasketRepository(
             BasketEntity(
                 basketId = basket.basketId,
                 paid = basket.paid,
-                redeemed = basket.redeemed,
             )
 
         fun basketEntityToBasket(
@@ -188,7 +185,6 @@ class BasketRepository(
                 basketId = basketEntity.basketId,
                 paid = basketEntity.paid,
                 value = basketItems.map { it.count * it.price }.sum(),
-                redeemed = basketEntity.redeemed,
                 items = basketItems
             )
 

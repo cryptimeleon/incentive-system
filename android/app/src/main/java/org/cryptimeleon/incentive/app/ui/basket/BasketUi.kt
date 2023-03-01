@@ -569,13 +569,11 @@ val testBasketItemList =
 val testBasket = Basket(
     UUID.randomUUID(), testBasketItemList,
     paid = false,
-    redeemed = false,
     value = 999
 )
 val emptyTestBasket = Basket(
     UUID.randomUUID(), listOf(),
     paid = false,
-    redeemed = false,
     value = 91591
 )
 const val previewUiMode = Configuration.UI_MODE_NIGHT_NO

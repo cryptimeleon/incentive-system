@@ -14,9 +14,7 @@ public class BasketEntity {
     @ManyToMany
     private Set<RewardItemEntity> rewardItems = new HashSet<>();
     private boolean paid;
-    private boolean redeemed;
     private boolean locked;
-    private String redeemRequest;
 
     @ElementCollection
     @MapKeyColumn(name = "key", columnDefinition = "DECIMAL(50,0)") // Allow more digits than default for key (19)
@@ -31,9 +29,7 @@ public class BasketEntity {
         this.basketItems = basketItems;
         this.rewardItems = rewardItems;
         this.paid = paid;
-        this.redeemed = redeemed;
         this.locked = locked;
-        this.redeemRequest = redeemRequest;
         this.redeemRequestHashes = redeemRequestHashes;
     }
 
@@ -81,32 +77,12 @@ public class BasketEntity {
         this.paid = paid;
     }
 
-    @Deprecated
-    public boolean isRedeemed() {
-        return redeemed;
-    }
-
-    @Deprecated
-    public void setRedeemed(boolean redeemed) {
-        this.redeemed = redeemed;
-    }
-
     public boolean isLocked() {
         return locked;
     }
 
     public void setLocked(boolean locked) {
         this.locked = locked;
-    }
-
-    @Deprecated
-    public String getRedeemRequest() {
-        return redeemRequest;
-    }
-
-    @Deprecated
-    public void setRedeemRequest(String redeemRequest) {
-        this.redeemRequest = redeemRequest;
     }
 
     public Optional<byte[]> getRedeemHashForPromotionId(BigInteger promotionId) {

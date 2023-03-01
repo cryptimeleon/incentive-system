@@ -22,8 +22,6 @@ import java.util.stream.Collectors;
 public class BasketController {
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BasketController.class);
     private final BasketService basketService; // Spring boot automatically injects a BasketService object
-    @Value("${basket-service.pay-secret}")
-    private String paymentSecret;
     @Value("${basket-service.redeem-secret}")
     private String redeemSecret;
     @Value("${basket-service.provider-secret}")
@@ -40,9 +38,6 @@ public class BasketController {
      */
     @PostConstruct
     public void validateValue() {
-        if (paymentSecret.equals("")) {
-            throw new IllegalArgumentException("Payment secret is not set!");
-        }
         if (redeemSecret.equals("")) {
             throw new IllegalArgumentException("Redeem secret is not set!");
         }
@@ -52,7 +47,6 @@ public class BasketController {
         if (storeSharedSecret.equals("")) {
             throw new IllegalArgumentException("Store shared secret is not set!");
         }
-        log.info("Payment secret: {}", paymentSecret);
         log.info("Redeem secret: {}", redeemSecret);
         log.info("Provider secret: {}", providerSecret);
         log.info("Store shared secret: {}", storeSharedSecret);
@@ -202,18 +196,6 @@ public class BasketController {
     }
 
     /**
-     * Sets a basket to paid.
-     * TODO add hashcode for integrity? At which state was the basket paid? (Avoid race condition between payment add adding 'free' items to basket.
-     */
-    @PostMapping("/basket/pay")
-    void payBasket(@RequestHeader("pay-secret") String clientPaySecret, @RequestHeader("basket-id") UUID basketId) throws BasketServiceException {
-        if (!clientPaySecret.equals(paymentSecret)) {
-            throw new BasketUnauthorizedException("You are not authorized to access /basket/pay!");
-        }
-        basketService.payBasket(basketId);
-    }
-
-    /**
      * Sets a basket to paid, TODO for development only.
      */
     @PostMapping("/basket/pay-dev")
@@ -221,40 +203,11 @@ public class BasketController {
         basketService.payBasket(basketId);
     }
 
+    // TODO not used anymore! Use it again!
     @PostMapping("/basket/lock")
     void lockBasket(@RequestBody UUID basketId) throws BasketServiceException {
         basketService.lockBasket(basketId);
     }
-
-    /**
-     * Sets a basket to redeemed and stores the redeem request.
-     * The redeem amount is modelled as basket's value
-     * Returns an error code if the basket cannot be redeemed.
-     * The same request can be used multiple times to allow users to recover from network errors etc.
-     * <p>
-     */
-    @PostMapping("/basket/redeem")
-    void redeemBasket(@RequestHeader("redeem-secret") String clientRedeemSecret, @RequestBody RedeemBasketRequest redeemRequest) throws BasketServiceException {
-        if (!clientRedeemSecret.equals(redeemSecret)) {
-            throw new BasketUnauthorizedException("You are not authorized to access /basket/redeem!");
-        }
-        basketService.redeemBasket(redeemRequest.getBasketId(), redeemRequest.getRedeemRequest(), redeemRequest.getValue());
-    }
-
-    /**
-     * Put rewards to basket
-     *
-     * @param clientRedeemSecret clients need this secret to authenticate themselves. Prohibit users from adding secrets
-     * @param rewardIds          list of the ids of all rewards to add
-     */
-    @PostMapping("/basket/rewards")
-    void addRewardsToBasket(@RequestHeader("redeem-secret") String clientRedeemSecret, @RequestHeader("basket-id") UUID basketId, @RequestBody List<String> rewardIds) throws BasketServiceException {
-        if (!clientRedeemSecret.equals(redeemSecret)) {
-            throw new BasketUnauthorizedException("You are not authorized to access /basket/redeem!");
-        }
-        basketService.addRewardsToBasket(basketId, rewardIds);
-    }
-
     /*
      * exception handling
      */
