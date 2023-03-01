@@ -5,12 +5,7 @@ import kotlinx.coroutines.flow.combine
 import org.cryptimeleon.incentive.app.domain.IBasketRepository
 import org.cryptimeleon.incentive.app.domain.ICryptoRepository
 import org.cryptimeleon.incentive.app.domain.IPromotionRepository
-import org.cryptimeleon.incentive.app.domain.model.Basket
-import org.cryptimeleon.incentive.app.domain.model.Earn
-import org.cryptimeleon.incentive.app.domain.model.None
-import org.cryptimeleon.incentive.app.domain.model.PromotionUserUpdateChoice
-import org.cryptimeleon.incentive.app.domain.model.RewardItem
-import org.cryptimeleon.incentive.app.domain.model.ZKP
+import org.cryptimeleon.incentive.app.domain.model.*
 import org.cryptimeleon.incentive.app.util.toBigIntVector
 import org.cryptimeleon.incentive.crypto.model.Token
 import org.cryptimeleon.incentive.promotion.Promotion

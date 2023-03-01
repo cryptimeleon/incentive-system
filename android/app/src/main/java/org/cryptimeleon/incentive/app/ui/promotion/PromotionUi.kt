@@ -2,33 +2,12 @@ package org.cryptimeleon.incentive.app.ui.promotion
 
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.Divider
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalIconButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
@@ -50,14 +29,10 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import org.cryptimeleon.incentive.app.R
-import org.cryptimeleon.incentive.app.domain.usecase.HazelPromotionData
-import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
-import org.cryptimeleon.incentive.app.domain.usecase.StreakPromotionData
-import org.cryptimeleon.incentive.app.domain.usecase.VipPromotionData
-import org.cryptimeleon.incentive.app.domain.usecase.VipStatus
+import org.cryptimeleon.incentive.app.domain.usecase.*
+import org.cryptimeleon.incentive.app.ui.common.promotionImageUrl
 import org.cryptimeleon.incentive.app.ui.preview.CryptimeleonPreviewContainer
 import org.cryptimeleon.incentive.app.ui.preview.PreviewData
-import org.cryptimeleon.incentive.app.ui.common.promotionImageUrl
 import java.math.BigInteger
 
 val IMAGE_HEIGHT = 280.dp
@@ -83,11 +58,11 @@ fun PromotionDetailUi(promotionId: BigInteger, onUpClicked: () -> Unit) {
         PromotionDetailUi(it, onUpClicked)
     }
 
-    setImageOverlayStatusBar()
+    SetImageOverlayStatusBar()
 }
 
 @Composable
-private fun setImageOverlayStatusBar() {
+private fun SetImageOverlayStatusBar() {
     val systemUiController = rememberSystemUiController()
 
     SideEffect {
@@ -166,7 +141,9 @@ fun PromotionTitle(
                     .fillMaxWidth()
                     .background(color = MaterialTheme.colorScheme.background)
             ) {
-                Column(modifier = Modifier.padding(horizontal = 16.dp).weight(1f)) {
+                Column(modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .weight(1f)) {
                     Spacer(modifier = Modifier.size(8.dp))
                     Text(
                         promotionData.promotionName,

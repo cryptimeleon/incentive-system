@@ -22,6 +22,7 @@ import java.util.*
 import javax.inject.Inject
 
 const val NUMBER_SEARCH_ITEMS = 3
+
 /**
  * ViewModel for the ScanFragment.
  * Handles detected barcodes, queries the product, processes the product and allows adding the basket.

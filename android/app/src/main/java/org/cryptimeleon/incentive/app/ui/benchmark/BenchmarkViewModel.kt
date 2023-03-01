@@ -130,7 +130,7 @@ data class BenchmarkState(
     val stateText = when (state) {
         BenchmarkViewState.FINISHED -> "Done"
         BenchmarkViewState.SETUP -> "Setup of System"
-        BenchmarkViewState.REGISTRATION-> "Running registration ($iteration of $BENCHMARK_ITERATIONS)"
+        BenchmarkViewState.REGISTRATION -> "Running registration ($iteration of $BENCHMARK_ITERATIONS)"
         BenchmarkViewState.ISSUE_JOIN -> "Running issue-join ($iteration of $BENCHMARK_ITERATIONS)"
         BenchmarkViewState.CREDIT_EARN -> "Running credit-earn ($iteration of $BENCHMARK_ITERATIONS)"
         BenchmarkViewState.SPEND_DEDUCT -> "Running spend-deduct ($iteration of $BENCHMARK_ITERATIONS)"

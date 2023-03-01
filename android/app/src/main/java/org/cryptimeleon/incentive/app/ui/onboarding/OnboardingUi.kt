@@ -58,7 +58,11 @@ val onboardingPages = listOf(
     )
 )
 
-@OptIn(ExperimentalPagerApi::class, ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
+@OptIn(
+    ExperimentalPagerApi::class,
+    ExperimentalMaterial3Api::class,
+    ExperimentalComposeUiApi::class
+)
 @Composable
 fun OnboardingScreen(navigateToApp: () -> Unit = {}) {
     val onboardingViewModel = hiltViewModel<OnboardingViewModel>()
@@ -86,10 +90,12 @@ fun OnboardingScreen(navigateToApp: () -> Unit = {}) {
                         keyboardActions = KeyboardActions(onDone = {
                             keyboardController?.hide()
                             coroutineScope.launch {
-                                pagerState.animateScrollToPage(i+1)
+                                pagerState.animateScrollToPage(i + 1)
                             }
                         }),
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp)
                     )
                 }
             }

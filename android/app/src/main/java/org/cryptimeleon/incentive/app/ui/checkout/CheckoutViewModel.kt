@@ -15,11 +15,7 @@ import org.cryptimeleon.incentive.app.domain.IBasketRepository
 import org.cryptimeleon.incentive.app.domain.ICryptoRepository
 import org.cryptimeleon.incentive.app.domain.IPreferencesRepository
 import org.cryptimeleon.incentive.app.domain.IPromotionRepository
-import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemStatus
-import org.cryptimeleon.incentive.app.domain.usecase.PayAndRedeemUseCase
-import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
-import org.cryptimeleon.incentive.app.domain.usecase.PromotionInfoUseCase
-import org.cryptimeleon.incentive.app.domain.usecase.ResetAppUseCase
+import org.cryptimeleon.incentive.app.domain.usecase.*
 import java.util.*
 import javax.inject.Inject
 

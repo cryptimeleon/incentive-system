@@ -1,17 +1,7 @@
 package org.cryptimeleon.incentive.app.ui.promotion
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardColors
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -31,8 +21,8 @@ fun PromotionInfoSectionHeader(text: String) {
 fun ZkpTokenUpdateCard(
     tokenUpdate: ZkpTokenUpdate,
     progressIfApplies: Optional<Float>,
-    colors: CardColors = CardDefaults.cardColors(),
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    colors: CardColors = CardDefaults.cardColors()
 ) {
     Card(
         modifier = modifier

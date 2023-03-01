@@ -33,7 +33,6 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
 
-
 private const val USER_PREFERENCES = "user_preferences"
 
 data class UrlConfig(

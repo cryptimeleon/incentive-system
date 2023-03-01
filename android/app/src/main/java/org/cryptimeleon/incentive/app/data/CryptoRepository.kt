@@ -8,8 +8,8 @@ import kotlinx.coroutines.flow.map
 import org.cryptimeleon.incentive.app.data.database.crypto.CryptoDao
 import org.cryptimeleon.incentive.app.data.database.crypto.CryptoMaterialEntity
 import org.cryptimeleon.incentive.app.data.database.crypto.CryptoTokenEntity
-import org.cryptimeleon.incentive.app.data.network.ProviderApiService
 import org.cryptimeleon.incentive.app.data.network.InfoApiService
+import org.cryptimeleon.incentive.app.data.network.ProviderApiService
 import org.cryptimeleon.incentive.app.data.network.StoreApiService
 import org.cryptimeleon.incentive.app.domain.DSException
 import org.cryptimeleon.incentive.app.domain.ICryptoRepository
@@ -18,11 +18,7 @@ import org.cryptimeleon.incentive.app.domain.RefreshCryptoMaterialException
 import org.cryptimeleon.incentive.app.domain.model.*
 import org.cryptimeleon.incentive.crypto.IncentiveSystem
 import org.cryptimeleon.incentive.crypto.IncentiveSystemRestorer
-import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters
-import org.cryptimeleon.incentive.crypto.model.JoinResponse
-import org.cryptimeleon.incentive.crypto.model.PromotionParameters
-import org.cryptimeleon.incentive.crypto.model.RegistrationCoupon
-import org.cryptimeleon.incentive.crypto.model.Token
+import org.cryptimeleon.incentive.crypto.model.*
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserKeyPair
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey
@@ -198,11 +194,18 @@ class CryptoRepository(
         val userPreKeyPair = incentiveSystem.generateUserPreKeyPair()
 
         // Registration
-        val registrationCouponResponse = storeApiService.retrieveRegistrationCouponFor(jsonConverter.serialize(userPreKeyPair.pk.representation), userDataForRegistration)
+        val registrationCouponResponse = storeApiService.retrieveRegistrationCouponFor(
+            jsonConverter.serialize(userPreKeyPair.pk.representation),
+            userDataForRegistration
+        )
         if (!registrationCouponResponse.isSuccessful) throw java.lang.RuntimeException("Registration at Store failed" + registrationCouponResponse.code())
 
-        val serializedRegistrationCoupon = registrationCouponResponse.body() ?: throw RuntimeException("Registration at Store unsuccessful")
-        val registrationCoupon = RegistrationCoupon(jsonConverter.deserialize(serializedRegistrationCoupon), IncentiveSystemRestorer(pp))
+        val serializedRegistrationCoupon = registrationCouponResponse.body()
+            ?: throw RuntimeException("Registration at Store unsuccessful")
+        val registrationCoupon = RegistrationCoupon(
+            jsonConverter.deserialize(serializedRegistrationCoupon),
+            IncentiveSystemRestorer(pp)
+        )
         assert(incentiveSystem.verifyRegistrationCoupon(registrationCoupon) { true })
 
         val signatureResponse =
@@ -212,7 +215,13 @@ class CryptoRepository(
         }
         val signature =
             pp.spsEq.restoreSignature(jsonConverter.deserialize(signatureResponse.body()))
-        assert(incentiveSystem.verifyRegistrationToken(providerPublicKey, signature, registrationCoupon))
+        assert(
+            incentiveSystem.verifyRegistrationToken(
+                providerPublicKey,
+                signature,
+                registrationCoupon
+            )
+        )
 
 
         // Store everything

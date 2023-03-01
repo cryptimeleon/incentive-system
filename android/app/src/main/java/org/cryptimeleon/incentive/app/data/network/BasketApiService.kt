@@ -4,12 +4,7 @@ import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 import retrofit2.Response
-import retrofit2.http.Body
-import retrofit2.http.DELETE
-import retrofit2.http.GET
-import retrofit2.http.Header
-import retrofit2.http.POST
-import retrofit2.http.PUT
+import retrofit2.http.*
 import java.util.*
 
 interface BasketApiService {
@@ -43,7 +38,8 @@ data class NetworkRewardItem(val id: String, val title: String) : Parcelable
 data class NetworkShoppingItem(val id: String, val price: Int, val title: String) : Parcelable
 
 @Parcelize
-data class NetworkBasketItemPutRequest(val basketId: UUID, val count: Int, val itemId: String) : Parcelable
+data class NetworkBasketItemPutRequest(val basketId: UUID, val count: Int, val itemId: String) :
+    Parcelable
 
 data class NetworkBasket(
     @SerializedName("basketID") val basketId: UUID,

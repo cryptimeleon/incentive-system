@@ -31,5 +31,5 @@ interface ProviderApiService {
     suspend fun retrieveTokenUpdatesResults(@Header("basket-id") basketId: UUID): Response<BulkResponseDto>
 
     @POST("bulk")
-    suspend fun bulkRequest(@Body request: BulkRequestProviderDto) :Response<BulkResultsProviderDto>
+    suspend fun bulkRequest(@Body request: BulkRequestProviderDto): Response<BulkResultsProviderDto>
 }

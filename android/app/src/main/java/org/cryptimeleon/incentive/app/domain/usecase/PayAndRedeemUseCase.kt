@@ -305,7 +305,8 @@ class PayAndRedeemUseCase(
                     basketValue,
                     metadata
                 ).get()
-                val context = ContextManager.computeContext(update.tokenUpdateId, basketValue, metadata)
+                val context =
+                    ContextManager.computeContext(update.tokenUpdateId, basketValue, metadata)
                 val zkpRequest = incentiveSystem.generateStoreSpendRequest(
                     cryptoMaterial.ukp,
                     cryptoMaterial.ppk,

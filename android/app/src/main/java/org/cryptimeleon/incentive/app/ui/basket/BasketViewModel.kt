@@ -17,12 +17,7 @@ import org.cryptimeleon.incentive.app.domain.model.Basket
 import org.cryptimeleon.incentive.app.domain.model.Earn
 import org.cryptimeleon.incentive.app.domain.model.None
 import org.cryptimeleon.incentive.app.domain.model.ZKP
-import org.cryptimeleon.incentive.app.domain.usecase.EarnTokenUpdate
-import org.cryptimeleon.incentive.app.domain.usecase.NoTokenUpdate
-import org.cryptimeleon.incentive.app.domain.usecase.PromotionData
-import org.cryptimeleon.incentive.app.domain.usecase.PromotionInfoUseCase
-import org.cryptimeleon.incentive.app.domain.usecase.TokenUpdate
-import org.cryptimeleon.incentive.app.domain.usecase.ZkpTokenUpdate
+import org.cryptimeleon.incentive.app.domain.usecase.*
 import org.cryptimeleon.incentive.app.util.SLE
 import timber.log.Timber
 import java.math.BigInteger

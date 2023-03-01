@@ -2,20 +2,7 @@ package org.cryptimeleon.incentive.app.ui.preview
 
 import org.cryptimeleon.incentive.app.domain.model.Basket
 import org.cryptimeleon.incentive.app.domain.model.BasketItem
-import org.cryptimeleon.incentive.app.domain.usecase.EarnTokenUpdate
-import org.cryptimeleon.incentive.app.domain.usecase.HazelPromotionData
-import org.cryptimeleon.incentive.app.domain.usecase.HazelTokenUpdateState
-import org.cryptimeleon.incentive.app.domain.usecase.NoTokenUpdate
-import org.cryptimeleon.incentive.app.domain.usecase.PromotionUpdateFeasibility
-import org.cryptimeleon.incentive.app.domain.usecase.ProveVipTokenUpdateState
-import org.cryptimeleon.incentive.app.domain.usecase.RangeProofStreakTokenUpdateState
-import org.cryptimeleon.incentive.app.domain.usecase.SpendStreakTokenUpdateState
-import org.cryptimeleon.incentive.app.domain.usecase.StandardStreakTokenUpdateState
-import org.cryptimeleon.incentive.app.domain.usecase.StreakDate
-import org.cryptimeleon.incentive.app.domain.usecase.StreakPromotionData
-import org.cryptimeleon.incentive.app.domain.usecase.UpgradeVipTokenUpdateState
-import org.cryptimeleon.incentive.app.domain.usecase.VipPromotionData
-import org.cryptimeleon.incentive.app.domain.usecase.VipStatus
+import org.cryptimeleon.incentive.app.domain.usecase.*
 import org.cryptimeleon.math.structures.cartesian.Vector
 import java.math.BigInteger
 import java.time.LocalDate
@@ -34,14 +21,6 @@ class PreviewData {
             paid = false,
             redeemed = false,
             value = 3 * 199 + 1 * 238 + 2 * 59
-        )
-
-        val emptyBasket = Basket(
-            basketId = UUID.randomUUID(),
-            items = emptyList(),
-            paid = false,
-            redeemed = false,
-            value = 0
         )
 
         val hazelPromotionData = HazelPromotionData(
