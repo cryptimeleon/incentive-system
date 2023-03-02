@@ -38,9 +38,9 @@ class VipPromotionTest {
     void testComputeEarningsForBasket() {
         Basket emptyBasket = new Basket(UUID.randomUUID(), List.of());
         Basket basket = new Basket(UUID.randomUUID(), List.of(
-                new BasketItem(UUID.randomUUID(), "Hazel", 10, 2),
-                new BasketItem(UUID.randomUUID(), "Hazelnut spread", 20, 4),
-                new BasketItem(UUID.randomUUID(), "Potatoes", 30, 1)
+                new BasketItem(UUID.randomUUID().toString(), "Hazel", 10, 2),
+                new BasketItem(UUID.randomUUID().toString(), "Hazelnut spread", 20, 4),
+                new BasketItem(UUID.randomUUID().toString(), "Potatoes", 30, 1)
         ));
 
         // Compute value of basket

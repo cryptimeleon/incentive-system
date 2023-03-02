@@ -72,7 +72,7 @@ class PayAndRedeemUseCase(
                     basketId
                 )
             cryptoRepository.sendTokenUpdatesBatchToStore(
-                basketId, BulkRequestStoreDto(
+                BulkRequestStoreDto(
                     basketId,
                     earnUpdateRequestPairs.map { it.first },
                     spendUpdateRequestPairs.map { it.first }

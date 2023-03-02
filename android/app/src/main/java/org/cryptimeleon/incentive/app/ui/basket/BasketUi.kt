@@ -145,7 +145,7 @@ private fun BasketNotEmptyView(
 ) {
     var expandedBasketItem by remember { mutableStateOf(wrongId) }
     val showLog = remember { mutableStateOf(false) }
-    val basketItemsCount = basket.items.map { it.count }.sum()
+    val basketItemsCount = basket.items.sumOf { it.count }
     val scrollState = rememberScrollState()
 
     Box(modifier = Modifier.fillMaxSize()) {

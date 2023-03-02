@@ -184,7 +184,7 @@ class BasketRepository(
             Basket(
                 basketId = basketEntity.basketId,
                 paid = basketEntity.paid,
-                value = basketItems.map { it.count * it.price }.sum(),
+                value = basketItems.sumOf { it.count * it.price },
                 items = basketItems
             )
 

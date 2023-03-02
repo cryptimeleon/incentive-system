@@ -1,8 +1,6 @@
 package org.cryptimeleon.incentive.app.data.network
 
-import org.cryptimeleon.incentive.app.domain.model.BulkRequestDto
 import org.cryptimeleon.incentive.app.domain.model.BulkRequestProviderDto
-import org.cryptimeleon.incentive.app.domain.model.BulkResponseDto
 import org.cryptimeleon.incentive.app.domain.model.BulkResultsProviderDto
 import retrofit2.Response
 import retrofit2.http.Body
@@ -20,15 +18,6 @@ interface ProviderApiService {
         @Header("join-request") joinRequest: String,
         @Header("promotion-id") promotionId: String
     ): Response<String>
-
-    @POST("bulk-token-updates")
-    suspend fun sendTokenUpdatesBatch(
-        @Header("basket-id") basketId: UUID,
-        @Body bulkRequestDto: BulkRequestDto
-    ): Response<Unit>
-
-    @POST("bulk-token-update-results")
-    suspend fun retrieveTokenUpdatesResults(@Header("basket-id") basketId: UUID): Response<BulkResponseDto>
 
     @POST("bulk")
     suspend fun bulkRequest(@Body request: BulkRequestProviderDto): Response<BulkResultsProviderDto>
