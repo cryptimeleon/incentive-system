@@ -28,31 +28,31 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SpendDeductBooleanZkpTest {
 
-    Vector<BigInteger> points = Vector.of(
+    final Vector<BigInteger> points = Vector.of(
             BigInteger.valueOf(3),
             BigInteger.valueOf(3),
             BigInteger.valueOf(3),
             BigInteger.valueOf(3)
     );
-    Vector<BigInteger> lowerLimits = Vector.of(
+    final Vector<BigInteger> lowerLimits = Vector.of(
             BigInteger.valueOf(2),
             BigInteger.valueOf(3),
             null,
             null
     );
-    Vector<BigInteger> upperLimits = Vector.of(
+    final Vector<BigInteger> upperLimits = Vector.of(
             BigInteger.valueOf(4),
             BigInteger.valueOf(3),
             BigInteger.valueOf(3),
             null
     );
-    Vector<BigInteger> invalidUpperLimits = Vector.of(
+    final Vector<BigInteger> invalidUpperLimits = Vector.of(
             BigInteger.valueOf(2),
             null,
             null,
             null
     );
-    Vector<BigInteger> newPoints = Vector.of(
+    final Vector<BigInteger> newPoints = Vector.of(
             BigInteger.valueOf(2),
             BigInteger.valueOf(1),
             BigInteger.valueOf(0),
@@ -77,7 +77,7 @@ class SpendDeductBooleanZkpTest {
         promotion = IncentiveSystem.generatePromotionParameters(4);
         token = TestSuite.generateToken(promotion, points);
         zn = pp.getBg().getZn();
-        testSuite = SpendHelper.generateTestSuite(newPoints, pp, promotion, providerKey, token, userKey, zn);
+        testSuite = SpendHelper.generateTestSuite(newPoints, pp, promotion, providerKey, token, userKey);
         pointsREV = new RingElementVector(Vector.fromStreamPlain(points.stream().map(this.zn::getElement)));
         newPointsREV = new RingElementVector(Vector.fromStreamPlain(newPoints.stream().map(this.zn::getElement)));
     }

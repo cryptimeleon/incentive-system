@@ -22,43 +22,43 @@ import static org.junit.jupiter.api.Assertions.*;
 class TokenUpdateZkpTest {
 
     private static final int TEST_VECTOR_SIZE = 3;
-    Vector<BigInteger> points = Vector.of(
+    final Vector<BigInteger> points = Vector.of(
             BigInteger.valueOf(3),
             BigInteger.valueOf(3),
             BigInteger.valueOf(3)
     );
-    Vector<BigInteger> newPoints = Vector.of(
+    final Vector<BigInteger> newPoints = Vector.of(
             BigInteger.valueOf(2),
             BigInteger.valueOf(3),
             BigInteger.valueOf(4)
     );
-    Vector<BigInteger> aVector = Vector.of(
+    final Vector<BigInteger> aVector = Vector.of(
             BigInteger.valueOf(1),
             BigInteger.valueOf(1),
             BigInteger.valueOf(0)
     );
-    Vector<BigInteger> bVector = Vector.of(
+    final Vector<BigInteger> bVector = Vector.of(
             BigInteger.valueOf(-1),
             BigInteger.valueOf(0),
             BigInteger.valueOf(4)
     );
-    Vector<BigInteger> invalidBVector = Vector.of(
+    final Vector<BigInteger> invalidBVector = Vector.of(
             BigInteger.valueOf(-1),
             BigInteger.valueOf(1),
             BigInteger.valueOf(4)
     );
-    Vector<BigInteger> tooSmallNewPoints = Vector.of(
+    final Vector<BigInteger> tooSmallNewPoints = Vector.of(
             BigInteger.valueOf(-1),
             BigInteger.valueOf(3),
             BigInteger.valueOf(3)
     );
-    Vector<BigInteger> lowerLimitsZero = Util.getZeroBigIntegerVector(TEST_VECTOR_SIZE);
-    Vector<BigInteger> upperLimits = Vector.of(
+    final Vector<BigInteger> lowerLimitsZero = Util.getZeroBigIntegerVector(TEST_VECTOR_SIZE);
+    final Vector<BigInteger> upperLimits = Vector.of(
             BigInteger.valueOf(3),
             BigInteger.valueOf(3),
             BigInteger.valueOf(4)
     );
-    Vector<BigInteger> ignoreVector = Util.getNullBigIntegerVector(TEST_VECTOR_SIZE);
+    final Vector<BigInteger> ignoreVector = Util.getNullBigIntegerVector(TEST_VECTOR_SIZE);
 
     IncentivePublicParameters pp;
     ProviderKeyPair providerKey;
@@ -86,8 +86,7 @@ class TokenUpdateZkpTest {
                 promotion,
                 providerKey,
                 token,
-                userKey,
-                zn
+                userKey
         );
 
         witness = testSuite.witness;
@@ -136,8 +135,7 @@ class TokenUpdateZkpTest {
                 promotion,
                 providerKey,
                 token,
-                userKey,
-                zn
+                userKey
         );
 
         witness = testSuite.witness;

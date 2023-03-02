@@ -45,8 +45,6 @@ data class NetworkBasket(
     @SerializedName("basketID") val basketId: UUID,
     @SerializedName("basketItems") val basketItems: List<NetworkBasketItem>,
     @SerializedName("paid") val paid: Boolean,
-    @SerializedName("redeemRequest") val redeemRequest: String,
-    @SerializedName("redeemed") val redeemed: Boolean,
     @SerializedName("value") val value: Int,
 )
 

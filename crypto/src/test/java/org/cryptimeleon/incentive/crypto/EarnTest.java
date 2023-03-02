@@ -13,13 +13,13 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class EarnTest {
 
-    IncentiveSystem incSys = TestSuite.incentiveSystem;
-    UUID basketId = UUID.randomUUID();
-    PromotionParameters promotionParameters = IncentiveSystem.generatePromotionParameters(2);
-    BigInteger promotionId = promotionParameters.getPromotionId();
-    Token token = TestSuite.generateToken(promotionParameters);
-    Token altToken = TestSuite.generateToken(promotionParameters);
-    Vector<BigInteger> earnAmount = Vector.of(BigInteger.valueOf(3L), BigInteger.valueOf(5L));
+    final IncentiveSystem incSys = TestSuite.incentiveSystem;
+    final UUID basketId = UUID.randomUUID();
+    final PromotionParameters promotionParameters = IncentiveSystem.generatePromotionParameters(2);
+    final BigInteger promotionId = promotionParameters.getPromotionId();
+    final Token token = TestSuite.generateToken(promotionParameters);
+    final Token altToken = TestSuite.generateToken(promotionParameters);
+    final Vector<BigInteger> earnAmount = Vector.of(BigInteger.valueOf(3L), BigInteger.valueOf(5L));
     TestRedeemedHandler testRedeemedHandler;
     TestSuite.TestTransactionDbHandler transactionDbHandler;
 
@@ -109,21 +109,21 @@ public class EarnTest {
     @Test
     void earnStoreCouponRepresentationTest() {
         var storeReq = incSys.generateEarnCouponRequest(token, TestSuite.userKeyPair);
-        EarnStoreCouponSignature earnStoreCouponSignature = incSys.signEarnCoupon(TestSuite.storeKeyPair, earnAmount, storeReq, basketId, promotionId, testRedeemedHandler);
+        EarnStoreResponse earnStoreResponse = incSys.signEarnCoupon(TestSuite.storeKeyPair, earnAmount, storeReq, basketId, promotionId, testRedeemedHandler);
 
-        EarnStoreCouponSignature recoveredEarnStoreCouponSignature = new EarnStoreCouponSignature(earnStoreCouponSignature.getRepresentation());
+        EarnStoreResponse recoveredEarnStoreResponse = new EarnStoreResponse(earnStoreResponse.getRepresentation());
 
-        assertThat(recoveredEarnStoreCouponSignature).isEqualTo(earnStoreCouponSignature);
+        assertThat(recoveredEarnStoreResponse).isEqualTo(earnStoreResponse);
     }
 
     @Test
     void earnRequestECDSARepresentationTest() {
         var storeReq = incSys.generateEarnCouponRequest(token, TestSuite.userKeyPair);
-        EarnStoreCouponSignature earnStoreCouponSignature = incSys.signEarnCoupon(TestSuite.storeKeyPair, earnAmount, storeReq, basketId, promotionId, testRedeemedHandler);
-        EarnRequestECDSA earnRequestECDSA = incSys.generateEarnRequest(token, TestSuite.providerKeyPair.getPk(), TestSuite.userKeyPair, Vector.of(BigInteger.ONE), earnStoreCouponSignature);
+        EarnStoreResponse earnStoreResponse = incSys.signEarnCoupon(TestSuite.storeKeyPair, earnAmount, storeReq, basketId, promotionId, testRedeemedHandler);
+        EarnProviderRequest earnProviderRequest = incSys.generateEarnRequest(token, TestSuite.providerKeyPair.getPk(), TestSuite.userKeyPair, Vector.of(BigInteger.ONE), earnStoreResponse);
 
-        EarnRequestECDSA deserializedEarnRequestECDSA = new EarnRequestECDSA(earnRequestECDSA.getRepresentation(), TestSuite.pp);
+        EarnProviderRequest deserializedEarnProviderRequest = new EarnProviderRequest(earnProviderRequest.getRepresentation(), TestSuite.pp);
 
-        assertThat(deserializedEarnRequestECDSA).isEqualTo(earnRequestECDSA);
+        assertThat(deserializedEarnProviderRequest).isEqualTo(earnProviderRequest);
     }
 }

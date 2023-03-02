@@ -1,7 +1,7 @@
 package org.cryptimeleon.incentive.services.basket.repository;
 
 import org.cryptimeleon.incentive.crypto.callback.ITransactionDBHandler;
-import org.cryptimeleon.incentive.crypto.model.EarnRequestECDSA;
+import org.cryptimeleon.incentive.crypto.model.EarnProviderRequest;
 import org.cryptimeleon.incentive.crypto.model.SpendTransactionData;
 import org.springframework.stereotype.Repository;
 
@@ -15,12 +15,12 @@ import java.util.Map;
  */
 @Repository
 public class TransactionRepository implements ITransactionDBHandler {
-    Map<EarnRequestECDSA, byte[]> earnData = new HashMap<>();
-    ArrayList<SpendTransactionData> spendData = new ArrayList<>();
+    final Map<EarnProviderRequest, byte[]> earnData = new HashMap<>();
+    final ArrayList<SpendTransactionData> spendData = new ArrayList<>();
 
     @Override
-    public void addEarnData(EarnRequestECDSA earnRequestECDSA, byte[] h) {
-        earnData.put(earnRequestECDSA, h);
+    public void addEarnData(EarnProviderRequest earnProviderRequest, byte[] h) {
+        earnData.put(earnProviderRequest, h);
     }
 
     @Override

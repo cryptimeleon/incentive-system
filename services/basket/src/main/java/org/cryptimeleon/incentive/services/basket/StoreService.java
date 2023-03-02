@@ -94,7 +94,7 @@ public class StoreService {
         // Process all earn and spend requests and store results(TODO in parallel?, check if duplicate promotionIds?)
         // Earn
         List<EarnResultStoreDto> earnResultStoreDtoList = bulkRequestStoreDto.getEarnRequestStoreDtoList().stream().map(earnRequestStoreDto -> {
-            EarnStoreCouponSignature signature = earn(earnRequestStoreDto, basket);
+            EarnStoreResponse signature = earn(earnRequestStoreDto, basket);
             return new EarnResultStoreDto(earnRequestStoreDto.getPromotionId(), jsonConverter.serialize(signature.getRepresentation()));
         }).collect(Collectors.toList());
 
@@ -140,7 +140,7 @@ public class StoreService {
         return bulkResponseRepository.removeBulkResultFor(basketId);
     }
 
-    public EarnStoreCouponSignature earn(EarnRequestStoreDto earnRequestStoreDto, Basket basket) {
+    public EarnStoreResponse earn(EarnRequestStoreDto earnRequestStoreDto, Basket basket) {
         var promotionId = earnRequestStoreDto.getPromotionId();
         EarnStoreRequest earnStoreRequest = new EarnStoreRequest(jsonConverter.deserialize(earnRequestStoreDto.getSerializedRequest()));
         Promotion promotion = promotionRepository.getPromotion(promotionId)
@@ -158,7 +158,7 @@ public class StoreService {
         );
     }
 
-    public SpendCouponSignature spend(SpendRequestStoreDto spendRequestStoreDto, Basket basket) {
+    public SpendStoreResponse spend(SpendRequestStoreDto spendRequestStoreDto, Basket basket) {
         var serializedSpendStoreRequest = spendRequestStoreDto.getSerializedRequest();
         var promotionId = spendRequestStoreDto.getPromotionId();
         UUID tokenUpdateId = spendRequestStoreDto.getTokenUpdateId();
@@ -177,7 +177,7 @@ public class StoreService {
         SpendDeductTree relationTree = requestedTokenUpdate.generateRelationTree(basketValueForUpdate, zkpTokenUpdateMetadata);
         UniqueByteRepresentable context = ContextManager.computeContext(tokenUpdateId, basketValueForUpdate, zkpTokenUpdateMetadata);
 
-        SpendCouponRequest spendCouponRequest = new SpendCouponRequest(jsonConverter.deserialize(serializedSpendStoreRequest),
+        SpendStoreRequest spendStoreRequest = new SpendStoreRequest(jsonConverter.deserialize(serializedSpendStoreRequest),
                 cryptoRepository.getPublicParameters(),
                 basket.getBasketId(),
                 promotion.getPromotionParameters(),
@@ -190,7 +190,7 @@ public class StoreService {
                 cryptoRepository.getProviderPublicKey(),
                 basket.getBasketId(),
                 promotion.getPromotionParameters(),
-                spendCouponRequest,
+                spendStoreRequest,
                 relationTree,
                 context,
                 this::checkBasketStateAndRedeem,

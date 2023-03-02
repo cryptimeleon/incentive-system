@@ -23,8 +23,6 @@ public class PayBasketTest {
     private final Item secondTestItem = new Item("1234554", "Second test item", 123);
     @Value("${basket-service.provider-secret}")
     private String providerSecret;
-    @Value("${basket-service.pay-secret}")
-    private String paymentSecret;
 
     @BeforeAll
     void addTestItems(@Autowired WebTestClient webTestClient) {
@@ -38,7 +36,7 @@ public class PayBasketTest {
         putItem(webTestClient, basketId, firstTestItem.getId(), 3, HttpStatus.OK);
         putItem(webTestClient, basketId, secondTestItem.getId(), 1, HttpStatus.OK);
 
-        payBasket(webTestClient, basketId, paymentSecret, HttpStatus.OK);
+        payBasket(webTestClient, basketId, HttpStatus.OK);
 
         var basket = queryBasket(webTestClient, basketId).getResponseBody();
         assert basket != null;
@@ -46,23 +44,17 @@ public class PayBasketTest {
     }
 
     @Test
-    public void payBasketAuthorizationTest(@Autowired WebTestClient webTestClient) {
-        payBasket(webTestClient, UUID.randomUUID(), "", HttpStatus.UNAUTHORIZED);
-        payBasket(webTestClient, UUID.randomUUID(), paymentSecret + "x", HttpStatus.UNAUTHORIZED);
-    }
-
-    @Test
     public void payNotExistentBasketTest(@Autowired WebTestClient webTestClient) {
         var wrongBasketId = UUID.randomUUID();
 
-        payBasket(webTestClient, wrongBasketId, paymentSecret, HttpStatus.NOT_FOUND);
+        payBasket(webTestClient, wrongBasketId, HttpStatus.NOT_FOUND);
     }
 
     @Test
     public void payEmptyBasketTest(@Autowired WebTestClient webTestClient) {
         UUID basketId = createBasket(webTestClient).getResponseBody();
 
-        payBasket(webTestClient, basketId, paymentSecret, HttpStatus.BAD_REQUEST);
+        payBasket(webTestClient, basketId, HttpStatus.BAD_REQUEST);
     }
 
 
@@ -71,7 +63,7 @@ public class PayBasketTest {
         UUID basketId = createBasket(webTestClient).getResponseBody();
         putItem(webTestClient, basketId, firstTestItem.getId(), 3, HttpStatus.OK);
         putItem(webTestClient, basketId, secondTestItem.getId(), 1, HttpStatus.OK);
-        payBasket(webTestClient, basketId, paymentSecret, HttpStatus.OK);
+        payBasket(webTestClient, basketId, HttpStatus.OK);
 
         putItem(webTestClient, basketId, firstTestItem.getId(), 5, HttpStatus.BAD_REQUEST);
         deleteBasketItem(webTestClient, basketId, secondTestItem.getId(), HttpStatus.BAD_REQUEST);

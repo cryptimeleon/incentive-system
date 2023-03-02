@@ -32,8 +32,8 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
  * upk, c0Pre, c1Pre
  */
 public class CommitmentWellformednessProtocol extends DelegateProtocol {
-    IncentivePublicParameters pp; // public parameters of the respective incentive system
-    ProviderPublicKey pk; // provider public key used for in an instance of the protocol
+    final IncentivePublicParameters pp; // public parameters of the respective incentive system
+    final ProviderPublicKey pk; // provider public key used for in an instance of the protocol
 
     public CommitmentWellformednessProtocol(IncentivePublicParameters pp, ProviderPublicKey pk) {
         this.pp = pp;

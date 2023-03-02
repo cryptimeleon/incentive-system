@@ -109,16 +109,6 @@ public class BasketService {
         basketRepository.deleteById(basketId);
     }
 
-    public void addRewardsToBasket(UUID basketId, List<String> rewardItemIds) throws BasketServiceException {
-        var basket = getBasketById(basketId);
-        var rewardItemsToAdd = rewardItemIds.stream().map(rewardItemRepository::findById).map(Optional::orElseThrow).collect(Collectors.toList());
-
-        if (isBasketImmutable(basket)) throw new BasketPaidException();
-
-        basket.getRewardItems().addAll(rewardItemsToAdd);
-        basketRepository.save(basket);
-    }
-
     public void setItemInBasket(UUID basketId, String itemId, int count) throws BasketServiceException {
         assert count > 0;
 
@@ -154,32 +144,6 @@ public class BasketService {
         if (basket.getBasketItems().isEmpty()) throw new BasketServiceException("Cannot pay empty baskets");
         basket.setLocked(true);
         basketRepository.save(basket);
-    }
-
-    public void redeemBasket(UUID basketId, String redeemRequest, long value) throws BasketServiceException {
-        var basket = getBasketById(basketId);
-
-        if (!basket.isPaid()) throw new BasketServiceException("Basket not paid!");
-        if (getBasketValue(basket) != value) throw new WrongBasketValueException();
-        if (basket.isRedeemed() && !basket.getRedeemRequest().equals(redeemRequest))
-            throw new BasketServiceException("Basket id already redeemed!");
-        if (basket.isRedeemed() && basket.getRedeemRequest().equals(redeemRequest))
-            return;  // Same request Can be used twice because it yields the same token
-
-        basket.setRedeemed(true);
-        basket.setRedeemRequest(redeemRequest);
-        basketRepository.save(basket);
-    }
-
-    /*
-     * Function for computing the value of a basket.
-     * Basket does not know its value to prevent redundant data / weird data ownership.
-     */
-    public long getBasketValue(BasketEntity basket) {
-        return basket.getBasketItems()
-                .stream()
-                .mapToLong((basketItem) -> basketItem.getItem().getPrice() * basketItem.getCount())
-                .sum();
     }
 
     private boolean isBasketImmutable(BasketEntity basket) {

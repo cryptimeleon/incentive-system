@@ -19,7 +19,6 @@ class PreviewData {
                 BasketItem("ITEM3", "Apple", 59, 2),
             ),
             paid = false,
-            redeemed = false,
             value = 3 * 199 + 1 * 238 + 2 * 59
         )
 

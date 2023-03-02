@@ -10,7 +10,7 @@ import retrofit2.http.POST
 import java.util.*
 
 interface StoreApiService {
-    @GET("register-user-and-obtain-serialized-registration-coupon")
+    @GET("register")
     suspend fun retrieveRegistrationCouponFor(
         @Header("user-public-key") serializedPublicKey: String,
         @Header("user-info") userData: String

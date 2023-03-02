@@ -7,9 +7,9 @@ import java.util.UUID;
  * Dataclass for put item request body.
  */
 public class PutItemRequest {
-    UUID basketId;
-    String itemId;
-    int count;
+    final UUID basketId;
+    final String itemId;
+    final int count;
 
     public PutItemRequest(final UUID basketId, final String itemId, final int count) {
         this.basketId = basketId;

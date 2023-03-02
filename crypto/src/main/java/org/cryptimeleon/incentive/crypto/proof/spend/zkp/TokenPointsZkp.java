@@ -25,12 +25,12 @@ import java.math.BigInteger;
 class TokenPointsZkp extends DelegateProtocol {
 
     // Public parameters
-    IncentivePublicParameters pp;
+    final IncentivePublicParameters pp;
     // Proof that lowerLimits[i] <= points[i] <= upperLimits[i] for all i
-    Vector<BigInteger> lowerLimits; // null means no limit
-    Vector<BigInteger> upperLimits; // null means no limit
-    ProviderPublicKey providerPublicKey;
-    PromotionParameters promotionParameters;
+    final Vector<BigInteger> lowerLimits; // null means no limit
+    final Vector<BigInteger> upperLimits; // null means no limit
+    final ProviderPublicKey providerPublicKey;
+    final PromotionParameters promotionParameters;
 
     public TokenPointsZkp(IncentivePublicParameters pp, Vector<BigInteger> lowerLimits, Vector<BigInteger> upperLimits, ProviderPublicKey providerPublicKey, PromotionParameters promotionParameters) {
         this.pp = pp;

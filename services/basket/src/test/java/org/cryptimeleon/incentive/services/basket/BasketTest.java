@@ -13,8 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.test.web.reactive.server.WebTestClient;
 
 import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.cryptimeleon.incentive.services.basket.ClientHelper.*;
@@ -29,8 +27,6 @@ public class BasketTest {
     private final RewardItem secondRewardItem = new RewardItem("1235", "Second Reward Item");
     @Value("${basket-service.provider-secret}")
     private String providerSecret;
-    @Value("${basket-service.redeem-secret}")
-    private String redeemSecret;
 
     @BeforeAll
     void addTestItems(@Autowired WebTestClient webTestClient) {
@@ -66,7 +62,6 @@ public class BasketTest {
         assert basket != null;
         assertThat(basket.getBasketItems()).isEmpty();
         assertThat(basket.isPaid()).isFalse();
-        assertThat(basket.isRedeemed()).isFalse();
         assertThat(basket.getBasketID()).isEqualByComparingTo(basketId);
     }
 
@@ -124,14 +119,5 @@ public class BasketTest {
         var basket = queryBasket(webTestClient, basketId).getResponseBody();
         assert basket != null;
         assertThat(basket.getBasketItems()).isEmpty();
-    }
-
-    @Test
-    void basketAddRewardItemsTest(@Autowired WebTestClient webTestClient) {
-        UUID basketId = createBasket(webTestClient).getResponseBody();
-        postRewards(webTestClient, redeemSecret, basketId, Stream.of(firstRewardItem, secondRewardItem).map(RewardItem::getId).collect(Collectors.toList()), HttpStatus.OK);
-        var basket = queryBasket(webTestClient, basketId).getResponseBody();
-        assert basket != null;
-        assertThat(basket.getRewardItems()).containsExactlyInAnyOrder(firstRewardItem, secondRewardItem);
     }
 }

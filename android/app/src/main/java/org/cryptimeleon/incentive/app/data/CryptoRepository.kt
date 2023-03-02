@@ -92,34 +92,7 @@ class CryptoRepository(
         }
     }
 
-    @Deprecated("Old api")
-    override suspend fun sendTokenUpdatesBatch(
-        basketId: UUID,
-        bulkRequestDto: BulkRequestDto
-    ) {
-        val response = providerApiService.sendTokenUpdatesBatch(basketId, bulkRequestDto)
-        if (!response.isSuccessful) {
-            Timber.e("Error: ${response.code()}, ${response.errorBody()}")
-            if (response.code() == 418) {
-                throw DSException()
-            } else {
-                throw PayRedeemException(response.code(), response.errorBody()?.string() ?: "")
-            }
-        }
-    }
-
-    @Deprecated("Old api")
-    override suspend fun retrieveTokenUpdatesResults(basketId: UUID): BulkResponseDto {
-        val response = providerApiService.retrieveTokenUpdatesResults(basketId)
-        if (!response.isSuccessful || response.body() == null) {
-            Timber.e("Error: ${response.code()}, ${response.errorBody()}")
-            throw PayRedeemException(response.code(), response.errorBody()?.string() ?: "")
-        }
-        return response.body()!!
-    }
-
     override suspend fun sendTokenUpdatesBatchToStore(
-        basketId: UUID,
         bulkRequestStoreDto: BulkRequestStoreDto
     ) {
         val response = storeApiService.sendBulkRequest(bulkRequestStoreDto)

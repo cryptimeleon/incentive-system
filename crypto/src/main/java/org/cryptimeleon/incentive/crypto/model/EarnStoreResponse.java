@@ -9,16 +9,16 @@ import org.cryptimeleon.math.serialization.Representation;
 
 import java.util.Objects;
 
-public class EarnStoreCouponSignature implements Representable {
+public class EarnStoreResponse implements Representable {
     private final ECDSASignature signature;
     private final StorePublicKey storePublicKey;
 
-    public EarnStoreCouponSignature(ECDSASignature signature, StorePublicKey storePublicKey) {
+    public EarnStoreResponse(ECDSASignature signature, StorePublicKey storePublicKey) {
         this.signature = signature;
         this.storePublicKey = storePublicKey;
     }
 
-    public EarnStoreCouponSignature(Representation representation) {
+    public EarnStoreResponse(Representation representation) {
         ListRepresentation listRepresentation = (ListRepresentation) representation;
         ECDSASignatureScheme ecdsaSignatureScheme = new ECDSASignatureScheme();
         this.signature = (ECDSASignature) ecdsaSignatureScheme.restoreSignature(listRepresentation.get(0));
@@ -37,7 +37,7 @@ public class EarnStoreCouponSignature implements Representable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        EarnStoreCouponSignature that = (EarnStoreCouponSignature) o;
+        EarnStoreResponse that = (EarnStoreResponse) o;
         return Objects.equals(signature, that.signature) && Objects.equals(storePublicKey, that.storePublicKey);
     }
 

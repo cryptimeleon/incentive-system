@@ -12,9 +12,9 @@ import java.security.NoSuchAlgorithmException;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class TokenDsidHashMakerTest {
-    JSONConverter jsonConverter = new JSONConverter();
-    PromotionParameters promotionParameters = IncentiveSystem.generatePromotionParameters(1);
-    Token token = TestSuite.generateToken(promotionParameters);
+    final JSONConverter jsonConverter = new JSONConverter();
+    final PromotionParameters promotionParameters = IncentiveSystem.generatePromotionParameters(1);
+    final Token token = TestSuite.generateToken(promotionParameters);
 
     @Test
     void smokeTest() {

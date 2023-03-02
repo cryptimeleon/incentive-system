@@ -16,9 +16,6 @@ public class IncentiveApplication {
     @Value("${basket-service.url}")
     private String basketUrl;
 
-    @Value("${dsprotection-service.url}")
-    private String dsProtectionServiceUrl;
-
     public static void main(String[] args) {
         SpringApplication.run(IncentiveApplication.class, args);
     }

@@ -8,8 +8,8 @@ import java.util.Objects;
  */
 public class ItemDto {
     String id;
-    String title;
-    int price;
+    final String title;
+    final int price;
 
     public ItemDto(final String id, final String title, final int price) {
         this.id = id;

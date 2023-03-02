@@ -13,7 +13,9 @@ import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductBooleanZkp;
 import org.cryptimeleon.incentive.crypto.proof.spend.zkp.SpendDeductZkpCommonInput;
 import org.cryptimeleon.math.hash.UniqueByteRepresentable;
-import org.cryptimeleon.math.serialization.*;
+import org.cryptimeleon.math.serialization.ListRepresentation;
+import org.cryptimeleon.math.serialization.Representable;
+import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.structures.groups.Group;
 import org.cryptimeleon.math.structures.groups.GroupElement;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
@@ -22,7 +24,7 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.UUID;
 
-public class SpendRequestECDSA implements Representable {
+public class SpendProviderRequest implements Representable {
     private final Zn.ZnElement doubleSpendingId;
     private final Zn.ZnElement c;
     private final ECDSASignature couponSignature;
@@ -34,15 +36,15 @@ public class SpendRequestECDSA implements Representable {
     private final GroupElement c0;
     private final FiatShamirProof proof;
 
-    public SpendRequestECDSA(Zn.ZnElement doubleSpendingId,
-                             Zn.ZnElement c,
-                             ECDSASignature couponSignature,
-                             SPSEQSignature tokenSignature,
-                             StorePublicKey storePublicKey,
-                             GroupElement cPre0,
-                             GroupElement cPre1,
-                             GroupElement c0,
-                             FiatShamirProof proof) {
+    public SpendProviderRequest(Zn.ZnElement doubleSpendingId,
+                                Zn.ZnElement c,
+                                ECDSASignature couponSignature,
+                                SPSEQSignature tokenSignature,
+                                StorePublicKey storePublicKey,
+                                GroupElement cPre0,
+                                GroupElement cPre1,
+                                GroupElement c0,
+                                FiatShamirProof proof) {
         this.doubleSpendingId = doubleSpendingId;
         this.c = c;
         this.couponSignature = couponSignature;
@@ -54,27 +56,27 @@ public class SpendRequestECDSA implements Representable {
         this.proof = proof;
     }
 
-    public SpendRequestECDSA(SpendCouponRequest spendCouponRequest, SpendCouponSignature spendCouponSignature) {
+    public SpendProviderRequest(SpendStoreRequest spendStoreRequest, SpendStoreResponse spendCouponSignature) {
         this(
-                spendCouponRequest.getDsid(),
-                spendCouponRequest.getC(),
+                spendStoreRequest.getDsid(),
+                spendStoreRequest.getC(),
                 spendCouponSignature.getSignature(),
-                spendCouponRequest.getSigma(),
+                spendStoreRequest.getSigma(),
                 spendCouponSignature.getStorePublicKey(),
-                spendCouponRequest.getCPre0(),
-                spendCouponRequest.getCPre1(),
-                spendCouponRequest.getC0(),
-                spendCouponRequest.getSpendZkp());
+                spendStoreRequest.getCPre0(),
+                spendStoreRequest.getCPre1(),
+                spendStoreRequest.getC0(),
+                spendStoreRequest.getSpendZkp());
     }
 
-    public SpendRequestECDSA(Representation representation,
-                             IncentivePublicParameters pp,
-                             PromotionParameters promotionParameters,
-                             UUID basketId,
-                             SpendDeductTree spendDeductTree,
-                             ProviderPublicKey providerPublicKey,
-                             UniqueByteRepresentable context) {
-        Iterator<Representation> representationIterator = ((ListRepresentation) representation) .iterator();
+    public SpendProviderRequest(Representation representation,
+                                IncentivePublicParameters pp,
+                                PromotionParameters promotionParameters,
+                                UUID basketId,
+                                SpendDeductTree spendDeductTree,
+                                ProviderPublicKey providerPublicKey,
+                                UniqueByteRepresentable context) {
+        Iterator<Representation> representationIterator = ((ListRepresentation) representation).iterator();
         Zn zn = pp.getBg().getZn();
         Group group = pp.getBg().getG1();
         ECDSASignatureScheme ecdsaSignatureScheme = new ECDSASignatureScheme();
@@ -135,7 +137,7 @@ public class SpendRequestECDSA implements Representable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        SpendRequestECDSA that = (SpendRequestECDSA) o;
+        SpendProviderRequest that = (SpendProviderRequest) o;
         return Objects.equals(doubleSpendingId, that.doubleSpendingId) && Objects.equals(c, that.c) && Objects.equals(couponSignature, that.couponSignature) && Objects.equals(tokenSignature, that.tokenSignature) && Objects.equals(cPre0, that.cPre0) && Objects.equals(cPre1, that.cPre1) && Objects.equals(c0, that.c0) && Objects.equals(proof, that.proof);
     }
 

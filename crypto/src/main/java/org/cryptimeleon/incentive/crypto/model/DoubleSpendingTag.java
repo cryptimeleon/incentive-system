@@ -4,7 +4,6 @@ import org.cryptimeleon.math.serialization.Representable;
 import org.cryptimeleon.math.serialization.Representation;
 import org.cryptimeleon.math.serialization.annotations.ReprUtil;
 import org.cryptimeleon.math.serialization.annotations.Represented;
-import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 import java.util.Objects;
@@ -17,28 +16,10 @@ import java.util.Objects;
  */
 public class DoubleSpendingTag implements Representable {
     @Represented(restorer = "Zn")
-    private Zn.ZnElement c; // challenge for deriving the user secret key
+    private final Zn.ZnElement c; // challenge for deriving the user secret key
 
     @Represented(restorer = "Zn")
-    private Zn.ZnElement gamma; // challenge generation helper value
-
-    public DoubleSpendingTag(Representation repr, IncentivePublicParameters pp) {
-        new ReprUtil(this).register(pp.getBg().getZn(), "Zn").deserialize(repr);
-    }
-
-    /**
-     * Constructs a double-spending tag from serialized representations of its components.
-     */
-    public DoubleSpendingTag(IncentivePublicParameters pp, String serializedCRepr, String serializedGammaRepr) {
-        Zn usedZn = pp.getBg().getZn();
-        JSONConverter jsonConverter = new JSONConverter();
-
-        Representation c0Repr = jsonConverter.deserialize(serializedCRepr);
-        this.c = usedZn.restoreElement(c0Repr);
-
-        Representation gammaRepr = jsonConverter.deserialize(serializedGammaRepr);
-        this.gamma = usedZn.restoreElement(gammaRepr);
-    }
+    private final Zn.ZnElement gamma; // challenge generation helper value
 
     public DoubleSpendingTag(Zn.ZnElement c, Zn.ZnElement gamma) {
         this.c = c;

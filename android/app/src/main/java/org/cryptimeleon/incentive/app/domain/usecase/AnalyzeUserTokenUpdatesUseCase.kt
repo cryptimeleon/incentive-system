@@ -27,7 +27,7 @@ class AnalyzeUserTokenUpdatesUseCase(
         ) { updates, promotionStates ->
             updates.filter { update ->
                 promotionStates.any { state ->
-                    state.promotionId.equals(update.promotionId) &&
+                    state.promotionId == update.promotionId &&
                             when (update.userUpdateChoice) {
                                 None -> true
                                 Earn -> state.basketPoints.stream().anyMatch { it.toInt() > 0 }

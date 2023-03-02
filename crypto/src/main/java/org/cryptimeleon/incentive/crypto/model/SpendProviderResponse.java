@@ -10,16 +10,16 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
 import java.util.Iterator;
 import java.util.Objects;
 
-public class SpendResponseECDSA implements Representable {
+public class SpendProviderResponse implements Representable {
     private final SPSEQSignature signature;
     private final Zn.ZnElement dsidStarProv;
 
-    public SpendResponseECDSA(SPSEQSignature signature, Zn.ZnElement dsidStarProv) {
+    public SpendProviderResponse(SPSEQSignature signature, Zn.ZnElement dsidStarProv) {
         this.signature = signature;
         this.dsidStarProv = dsidStarProv;
     }
 
-    public SpendResponseECDSA(Representation representation, IncentivePublicParameters pp) {
+    public SpendProviderResponse(Representation representation, IncentivePublicParameters pp) {
         Iterator<Representation> representationIterator = ((ListRepresentation) representation).iterator();
         SPSEQSignatureScheme spseqSignatureScheme = pp.getSpsEq();
 
@@ -47,7 +47,7 @@ public class SpendResponseECDSA implements Representable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        SpendResponseECDSA that = (SpendResponseECDSA) o;
+        SpendProviderResponse that = (SpendProviderResponse) o;
         return Objects.equals(signature, that.signature) && Objects.equals(dsidStarProv, that.dsidStarProv);
     }
 

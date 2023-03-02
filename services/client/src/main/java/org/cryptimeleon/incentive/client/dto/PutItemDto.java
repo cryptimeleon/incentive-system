@@ -5,7 +5,7 @@ import java.util.UUID;
 
 public class PutItemDto {
     UUID basketId;
-    String itemId;
+    final String itemId;
     int count;
 
     public PutItemDto(final UUID basketId, final String itemId, final int count) {

@@ -19,7 +19,7 @@ import org.cryptimeleon.math.structures.rings.zn.Zn;
 import java.util.Objects;
 import java.util.UUID;
 
-public class SpendCouponRequest implements Representable {
+public class SpendStoreRequest implements Representable {
     private final Zn.ZnElement dsid;
     private final Zn.ZnElement c;
     private final SPSEQSignature sigma;
@@ -28,7 +28,7 @@ public class SpendCouponRequest implements Representable {
     private final GroupElement cPre1;
     private final FiatShamirProof spendZkp;
 
-    public SpendCouponRequest(Representation representation, IncentivePublicParameters pp, UUID basketId, PromotionParameters promotionParameters, ProviderPublicKey providerPublicKey, SpendDeductTree spendDeductTree, UniqueByteRepresentable context) {
+    public SpendStoreRequest(Representation representation, IncentivePublicParameters pp, UUID basketId, PromotionParameters promotionParameters, ProviderPublicKey providerPublicKey, SpendDeductTree spendDeductTree, UniqueByteRepresentable context) {
         ListRepresentation listRepresentation = (ListRepresentation) representation;
         Group g1 = pp.getBg().getG1();
 
@@ -46,7 +46,7 @@ public class SpendCouponRequest implements Representable {
         this.spendZkp = fiatShamirProofSystem.restoreProof(spendDeductCommonInput, listRepresentation.get(6));
     }
 
-    public SpendCouponRequest(Zn.ZnElement dsid, Zn.ZnElement c, SPSEQSignature sigma, GroupElement c0, GroupElement cPre0, GroupElement cPre1, FiatShamirProof spendZkp) {
+    public SpendStoreRequest(Zn.ZnElement dsid, Zn.ZnElement c, SPSEQSignature sigma, GroupElement c0, GroupElement cPre0, GroupElement cPre1, FiatShamirProof spendZkp) {
         this.dsid = dsid;
         this.c = c;
         this.sigma = sigma;
@@ -88,7 +88,7 @@ public class SpendCouponRequest implements Representable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        SpendCouponRequest that = (SpendCouponRequest) o;
+        SpendStoreRequest that = (SpendStoreRequest) o;
         return Objects.equals(dsid, that.dsid) && Objects.equals(c, that.c) && Objects.equals(sigma, that.sigma) && Objects.equals(c0, that.c0) && Objects.equals(cPre0, that.cPre0) && Objects.equals(cPre1, that.cPre1) && Objects.equals(spendZkp, that.spendZkp);
     }
 

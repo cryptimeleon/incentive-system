@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.UUID;
 
 public class TestRedeemedHandler implements IStoreBasketRedeemedHandler {
-    HashMap<UUID, HashMap<BigInteger, byte[]>> redeemedBaskets = new HashMap<>();
+    final HashMap<UUID, HashMap<BigInteger, byte[]>> redeemedBaskets = new HashMap<>();
 
     @Override
     public BasketRedeemState verifyAndRedeemRequestWithHash(UUID basketId, BigInteger promotionId, byte[] hash) {

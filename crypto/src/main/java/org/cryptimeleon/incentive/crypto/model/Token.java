@@ -122,4 +122,18 @@ public class Token implements Representable, UniqueByteRepresentable {
     public int hashCode() {
         return Objects.hash(commitment0, doubleSpendingId, doubleSpendRandomness, z, t, promotionId, points, signature);
     }
+
+    @Override
+    public String toString() {
+        return "Token{" +
+                "commitment0=" + commitment0 +
+                ", doubleSpendingId=" + doubleSpendingId +
+                ", doubleSpendRandomness=" + doubleSpendRandomness +
+                ", z=" + z +
+                ", t=" + t +
+                ", promotionId=" + promotionId +
+                ", points=" + points +
+                ", signature=" + signature +
+                '}';
+    }
 }

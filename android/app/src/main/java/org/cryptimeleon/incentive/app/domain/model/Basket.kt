@@ -6,7 +6,6 @@ data class Basket(
     val basketId: UUID,
     val items: List<BasketItem>,
     val paid: Boolean,
-    val redeemed: Boolean,
     val value: Int,
 ) {
     fun toPromotionBasket(): org.cryptimeleon.incentive.promotion.model.Basket {

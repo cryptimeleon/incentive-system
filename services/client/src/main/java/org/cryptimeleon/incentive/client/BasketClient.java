@@ -6,7 +6,7 @@ import org.cryptimeleon.incentive.client.dto.store.BulkResultsStoreDto;
 import org.cryptimeleon.incentive.client.dto.store.EarnRequestStoreDto;
 import org.cryptimeleon.incentive.client.dto.store.SpendRequestStoreDto;
 import org.cryptimeleon.incentive.crypto.model.EarnStoreRequest;
-import org.cryptimeleon.incentive.crypto.model.SpendCouponRequest;
+import org.cryptimeleon.incentive.crypto.model.SpendStoreRequest;
 import org.cryptimeleon.incentive.promotion.Promotion;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
 import org.cryptimeleon.math.serialization.RepresentableRepresentation;
@@ -17,7 +17,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -97,42 +96,13 @@ public class BasketClient implements AliveEndpoint {
                 .bodyToMono(Void.class);
     }
 
-    public void payBasket(UUID basketId, String paymentSecret) {
+    public void payBasket(UUID basketId) {
         basketClient.post()
-                .uri("/basket/pay")
-                .header("pay-secret", paymentSecret)
+                .uri("/basket/pay-dev")
                 .header("basket-id", String.valueOf(basketId))
                 .retrieve()
                 .bodyToMono(Void.class)
                 .block();
-    }
-
-    public Mono<Void> redeemBasket(PostRedeemBasketDto postRedeemBasketDto, String redeemSecret) {
-        return basketClient.post()
-                .uri("/basket/redeem")
-                .header("redeem-secret", redeemSecret)
-                .body(BodyInserters.fromValue(postRedeemBasketDto))
-                .retrieve()
-                .bodyToMono(Void.class);
-    }
-
-    public Mono<Void> lockBasket(UUID basketId, String redeemSecret) {
-        return basketClient.post()
-                .uri("/basket/lock")
-                .header("redeem-secret", redeemSecret)
-                .body(BodyInserters.fromValue(basketId))
-                .retrieve()
-                .bodyToMono(Void.class);
-    }
-
-    public Mono<Void> setRewardsForBasket(UUID basketId, ArrayList<String> rewardIds, String redeemSecret) {
-        return basketClient.post()
-                .uri("/basket/rewards")
-                .header("redeem-secret", redeemSecret)
-                .header("basket-id", String.valueOf(basketId))
-                .body(BodyInserters.fromValue(rewardIds))
-                .retrieve()
-                .bodyToMono(Void.class);
     }
 
     public void addShoppingItems(List<ItemDto> testBasketItems, String providerSecret) {
@@ -142,22 +112,9 @@ public class BasketClient implements AliveEndpoint {
     public String registerUser(String userPublicKey, String userInfo) {
         return basketClient
                 .get()
-                .uri("/register-user-and-obtain-serialized-registration-coupon")
+                .uri("/register")
                 .header("user-public-key", userPublicKey)
                 .header("user-info", userInfo)
-                .retrieve()
-                .bodyToMono(String.class)
-                .block();
-    }
-
-    @Deprecated
-    public String requestEarnCoupon(EarnStoreRequest earnStoreRequest, UUID basketId, BigInteger promotionId) {
-        return basketClient
-                .get()
-                .uri("/earn")
-                .header("earn-store-request", jsonConverter.serialize(earnStoreRequest.getRepresentation()))
-                .header("basket-id", String.valueOf(basketId))
-                .header("promotion-id", String.valueOf(promotionId))
                 .retrieve()
                 .bodyToMono(String.class)
                 .block();
@@ -168,7 +125,7 @@ public class BasketClient implements AliveEndpoint {
         return sendBulkEarnAndSpend(new BulkRequestStoreDto(basketId, List.of(earnRequestDto), Collections.emptyList()));
     }
 
-    public ResponseEntity<Void> sendSpend(UUID basketId, BigInteger promotionId, UUID tokenUpdateId, SpendCouponRequest spendStoreRequest, ZkpTokenUpdateMetadata metadata) {
+    public ResponseEntity<Void> sendSpend(UUID basketId, BigInteger promotionId, UUID tokenUpdateId, SpendStoreRequest spendStoreRequest, ZkpTokenUpdateMetadata metadata) {
         var spendRequestDto = new SpendRequestStoreDto(jsonConverter.serialize(spendStoreRequest.getRepresentation()),
                 promotionId,
                 tokenUpdateId,

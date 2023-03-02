@@ -1,8 +1,6 @@
 package org.cryptimeleon.incentive.services.incentive;
 
 import io.swagger.annotations.ApiOperation;
-import org.cryptimeleon.incentive.client.dto.inc.BulkRequestDto;
-import org.cryptimeleon.incentive.client.dto.inc.TokenUpdateResultsDto;
 import org.cryptimeleon.incentive.client.dto.provider.BulkRequestProviderDto;
 import org.cryptimeleon.incentive.client.dto.provider.BulkResultsProviderDto;
 import org.cryptimeleon.incentive.services.incentive.api.RegistrationCouponJSON;
@@ -18,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.PostConstruct;
 import java.math.BigInteger;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * The controller of the incentive service that defines all REST endpoints.
@@ -154,35 +151,6 @@ public class IncentiveController {
     @PostMapping("/bulk")
     public BulkResultsProviderDto bulk(@RequestBody BulkRequestProviderDto bulkRequestProviderDto) {
         return incentiveService.bulk(bulkRequestProviderDto);
-    }
-
-    /**
-     * HTTP endpoint for sending a bulk of spend and earn requests to the incentive server.
-     * Server will apply the updates to the basket identified by the passed basket ID
-     * and store the results (i.e. granted rewards and earned points) for later
-     * (since points and rewards can only be obtained after basket is paid).
-     *
-     * @param basketId       ID of the basket to apply the updates to
-     * @param bulkRequestDto data transfer object (DTO) containing spend and earn requests
-     */
-    @Deprecated
-    @PostMapping("/bulk-token-updates")
-    public void bulkUpdates(@RequestHeader(name = "basket-id") UUID basketId, @RequestBody BulkRequestDto bulkRequestDto) {
-        incentiveService.handleBulk(basketId, bulkRequestDto);
-    }
-
-    /*
-     * end of endpoints for user to interact with provider of incentive system
-     */
-
-    /**
-     * HTTP endpoint for obtaining all points and rewards for a paid basket identified by the passed ID.
-     *
-     * @return data transfer object (DTO) with all the updates
-     */
-    @PostMapping("/bulk-token-update-results")
-    public TokenUpdateResultsDto bulkResults(@RequestHeader(name = "basket-id") UUID basketId) {
-        return incentiveService.retrieveBulkResults(basketId);
     }
 
     /**

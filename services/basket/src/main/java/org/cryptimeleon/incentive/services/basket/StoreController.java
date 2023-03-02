@@ -30,7 +30,7 @@ public class StoreController {
      * @param userInfo                some information that allows identifying a user in the real world
      * @return a serialized registration coupon consisting of the signed data and the verification key
      */
-    @GetMapping("/register-user-and-obtain-serialized-registration-coupon")
+    @GetMapping("/register")
     ResponseEntity<String> registerUserAndReturnSerializedRegistrationCoupon(@RequestHeader("user-public-key") String serializedUserPublicKey, @RequestHeader("user-info") String userInfo) {
         return new ResponseEntity<>(storeService.registerUserAndReturnSerializedRegistrationCoupon(serializedUserPublicKey, userInfo), HttpStatus.OK);
     }

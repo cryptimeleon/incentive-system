@@ -63,14 +63,6 @@ class FakeCryptoRepository(
         )
     }
 
-    override suspend fun sendTokenUpdatesBatch(basketId: UUID, bulkRequestDto: BulkRequestDto) {
-        TODO("Not yet implemented")
-    }
-
-    override suspend fun retrieveTokenUpdatesResults(basketId: UUID): BulkResponseDto {
-        TODO("Not yet implemented")
-    }
-
     override suspend fun putToken(promotionParameters: PromotionParameters, token: Token) {
         TODO("Not yet implemented")
     }
@@ -80,7 +72,6 @@ class FakeCryptoRepository(
     }
 
     override suspend fun sendTokenUpdatesBatchToStore(
-        basketId: UUID,
         bulkRequestStoreDto: BulkRequestStoreDto
     ) {
         TODO("Not yet implemented")
