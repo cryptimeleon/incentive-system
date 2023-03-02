@@ -19,8 +19,19 @@ public class StoreController {
     @Value("${basket-service.provider-secret}")
     private String basketServiceProviderSecret; // used to authenticate the request for the store secret key (set via environment variable)
 
+    @Value("${store-name}")
+    private String storeName;
+
     public StoreController(StoreService storeService) {
         this.storeService = storeService;
+    }
+
+    /**
+     * Get the name of this store.
+     */
+    @GetMapping("/name")
+    ResponseEntity<String> name() {
+        return new ResponseEntity<>(storeName, HttpStatus.OK);
     }
 
     /**

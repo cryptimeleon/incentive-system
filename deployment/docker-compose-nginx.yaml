@@ -33,6 +33,22 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=production
       - SERVER_SERVLET_CONTEXT_PATH=${BASKET_CONTEXT:-/basket}
+      - STORE_NAME=First Store
+      - BASKET_SERVICE_PROVIDER_SECRET=${BASKET_PROVIDER_SECRET}
+      - STORE_SHARED_SECRET=${STORE_SHARED_SECRET}
+      - INFO_SERVICE_URL=http://infoservice:8000${INFO_CONTEXT:-/info}
+      - SPRINGFOX_HOST=${HOST:-incentives.cs.uni-paderborn.de}
+    networks:
+      - provider
+    hostname: basketservice
+  basketservice-two:
+    image: cryptimeleon/incentive-service-basket:0.5.0
+    ports:
+      - "8011:8010"
+    environment:
+      - SPRING_PROFILES_ACTIVE=production
+      - SERVER_SERVLET_CONTEXT_PATH=${BASKET_CONTEXT:-/basket-two}
+      - STORE_NAME=Second Store
       - BASKET_SERVICE_PROVIDER_SECRET=${BASKET_PROVIDER_SECRET}
       - STORE_SHARED_SECRET=${STORE_SHARED_SECRET}
       - INFO_SERVICE_URL=http://infoservice:8000${INFO_CONTEXT:-/info}
