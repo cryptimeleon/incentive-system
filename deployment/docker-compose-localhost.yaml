@@ -14,8 +14,6 @@ services:
       - "8012:8012"
     environment:
       - INFO_SERVICE_URL=http://infoservice:8000/
-      - BASKET_SERVICE_URL=http://basketservice:8010/
-      - DSPROTECTION_SERVICE_URL=http://dsprotectionservice:8004/
     networks:
       - provider
     hostname: incentiveservice

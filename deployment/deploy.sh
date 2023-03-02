@@ -3,8 +3,6 @@
 pushd deployment
 
 export PROVIDER_SHARED_SECRET=$(./util.sh)
-export BASKET_REDEEM_SECRET=$(./util.sh)
-export BASKET_PAY_SECRET=$(./util.sh)
 export BASKET_PROVIDER_SECRET=$(./util.sh)
 export INCENTIVE_PROVIDER_SECRET=$(./util.sh)
 export STORE_SHARED_SECRET=$(./util.sh)
