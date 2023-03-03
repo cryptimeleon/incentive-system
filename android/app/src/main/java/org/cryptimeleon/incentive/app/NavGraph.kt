@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
@@ -22,6 +23,7 @@ import org.cryptimeleon.incentive.app.ui.promotion.PromotionDetailUi
 import org.cryptimeleon.incentive.app.ui.scan.ScanScreen
 import org.cryptimeleon.incentive.app.ui.settings.Settings
 import org.cryptimeleon.incentive.app.ui.setup.SetupUi
+import org.cryptimeleon.incentive.app.ui.setup.SetupViewModel
 import java.math.BigInteger
 
 object MainDestination {
@@ -49,6 +51,8 @@ fun NavGraph(
     val startDestination =
         if (firstTimeOpening) MainDestination.ONBOARDING_ROUTE else MainDestination.LOADING_ROUTE
 
+    // Only one instance of this VW to avoid double registration etc. due to animations
+    val setupViewModel = hiltViewModel<SetupViewModel>()
     NavHost(
         navController,
         startDestination = startDestination,
@@ -61,7 +65,7 @@ fun NavGraph(
             }
         }
         composable(MainDestination.LOADING_ROUTE) {
-            SetupUi {
+            SetupUi(setupViewModel) {
                 actions.navigateToDashboard()
             }
         }
