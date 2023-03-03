@@ -133,26 +133,16 @@ class ScanViewModel @Inject constructor(
             is ScanResultState -> {
                 viewModelScope.launch {
                     withContext(Dispatchers.IO) {
-                        val putItemSuccessful =
-                            basketRepository.putItemIntoCurrentBasket(
-                                scanState.shoppingItem.id,
-                                scanState.count
-                            )
-
+                        basketRepository.putItemIntoBasket(
+                            scanState.shoppingItem.id,
+                            scanState.count
+                        )
                         withContext(Dispatchers.Main) {
-                            if (putItemSuccessful) {
-                                Toast.makeText(
-                                    getApplication(),
-                                    "Successfully put ${scanState.shoppingItem.id} to basket.",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            } else {
-                                Toast.makeText(
-                                    getApplication(),
-                                    "An error occured when trying to put ${scanState.shoppingItem.id} to basket.",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
+                            Toast.makeText(
+                                getApplication(),
+                                "Successfully put ${scanState.shoppingItem.id} to basket.",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                         _state.postValue(ScanBlockedState)
                         delay(1000)

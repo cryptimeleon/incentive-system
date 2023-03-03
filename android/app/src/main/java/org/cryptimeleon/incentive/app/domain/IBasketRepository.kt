@@ -4,48 +4,35 @@ import kotlinx.coroutines.flow.Flow
 import org.cryptimeleon.incentive.app.domain.model.Basket
 import org.cryptimeleon.incentive.app.domain.model.RewardItem
 import org.cryptimeleon.incentive.app.domain.model.ShoppingItem
+import java.util.*
 
 interface IBasketRepository {
 
-    val basket: Flow<Basket?>
+    val basket: Flow<Basket>
     val shoppingItems: Flow<List<ShoppingItem>>
     val rewardItems: Flow<List<RewardItem>>
 
     /**
-     * If there is no (active) basket, this function will create a new basket.
-     */
-    suspend fun ensureActiveBasket()
-
-    /**
-     * Creates a new basket and invalidates all other baskets
-     */
-    suspend fun createNewBasket()
-
-    /**
      * Put an item with a given amount to the basket.
-     *
-     * @return true if successful
      */
-    suspend fun putItemIntoCurrentBasket(itemId: String, amount: Int): Boolean
+    suspend fun putItemIntoBasket(itemId: String, amount: Int)
 
     suspend fun getBasketItem(itemId: String): ShoppingItem?
 
     /**
-     * Discards the current basket and creates a new basket.
-     * @param delete only deletes basket on server side if delete set to true
-     * @return true if successful
+     * Discards the current basket.
      */
-    suspend fun discardCurrentBasket(delete: Boolean = false)
+    suspend fun discardCurrentBasket()
 
     /**
-     * Pays the current basket.
+     * Send current basket to store.
      */
-    suspend fun payCurrentBasket()
+    suspend fun pushCurrentBasket(): UUID
 
     /**
-     * Load basket contents from basket server and update it in the database accordingly
+     * Pays the basket.
      */
-    suspend fun refreshBasket()
+    suspend fun payBasket(basketId: UUID)
 
     /**
      * Load shopping items from basket server and update them in the database accordingly

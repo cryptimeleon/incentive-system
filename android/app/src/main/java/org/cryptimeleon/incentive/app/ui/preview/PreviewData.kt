@@ -12,13 +12,11 @@ class PreviewData {
 
     companion object {
         val basket = Basket(
-            basketId = UUID.randomUUID(),
             items = listOf(
                 BasketItem("ITEM1", "Hazelnut Spread", 199, 3),
                 BasketItem("ITEM2", "Grapeseed Oil", 239, 1),
                 BasketItem("ITEM3", "Apple", 59, 2),
             ),
-            paid = false,
             value = 3 * 199 + 1 * 238 + 2 * 59
         )
 

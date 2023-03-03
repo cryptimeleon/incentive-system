@@ -5,12 +5,6 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface BasketDao {
-    @Query("SELECT * FROM baskets LIMIT 1")
-    fun observeBasketEntity(): Flow<BasketEntity?>
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun setBasketEntity(basketEntity: BasketEntity)
-
     @Query("SELECT * FROM `basket-items` ORDER BY itemId ASC")
     fun observeBasketItemEntities(): Flow<List<BasketItemEntity>>
 

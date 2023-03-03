@@ -23,7 +23,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
@@ -37,7 +36,6 @@ import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 import org.cryptimeleon.incentive.app.ui.log.ZkpSummaryUi
 import org.cryptimeleon.incentive.app.ui.preview.PreviewData
-import org.cryptimeleon.incentive.app.util.SLE
 import timber.log.Timber
 import java.math.BigInteger
 import java.util.*
@@ -57,11 +55,11 @@ fun BasketUi(
     gotoRewards: () -> Unit,
 ) {
     val basketViewModel = hiltViewModel<BasketViewModel>()
-    val basket: SLE<Basket> by basketViewModel.basket.collectAsState(initial = SLE.Loading())
+    val basket: Basket by basketViewModel.basket.collectAsState(initial = Basket(emptyList(), 0))
     val promotionDataList by basketViewModel.promotionData.collectAsState(initial = emptyList())
 
     BasketUi(
-        basketSle = basket,
+        basket = basket,
         promotionDataList = promotionDataList,
         setItemCount = basketViewModel::setItemCount,
         setUpdateChoice = basketViewModel::setUpdateChoice,
@@ -79,7 +77,7 @@ fun BasketUi(
 )
 @Composable
 private fun BasketUi(
-    basketSle: SLE<Basket>,
+    basket: Basket,
     promotionDataList: List<PromotionData> = emptyList(),
     setItemCount: (String, Int) -> Unit = { _, _ -> },
     pay: () -> Unit = {},
@@ -101,35 +99,16 @@ private fun BasketUi(
         )
     }) {
         Box(modifier = Modifier.padding(it)) {
-            when (basketSle) {
-                is SLE.Error -> Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        "Error, no basket!",
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyLarge
-                    )
-                    Text(
-                        "Ensure you have an active internet connection and restart the app!",
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    // TODO refresh button?
-                }
-                is SLE.Loading -> LoadingSpinner()
-                is SLE.Success -> {
-                    val basket = basketSle.data!!
-                    if (basket.items.isEmpty()) {
-                        BasketEmptyView(openScanner)
-                    } else {
-                        BasketNotEmptyView(
-                            basket,
-                            promotionDataList,
-                            setItemCount,
-                            setUpdateChoice,
-                            pay
-                        )
-                    }
-                }
+            if (basket.items.isEmpty()) {
+                BasketEmptyView(openScanner)
+            } else {
+                BasketNotEmptyView(
+                    basket,
+                    promotionDataList,
+                    setItemCount,
+                    setUpdateChoice,
+                    pay
+                )
             }
         }
     }
@@ -432,28 +411,6 @@ private fun BasketEmptyView(openScanner: () -> Unit) {
     }
 }
 
-
-@Composable
-private fun LoadingSpinner() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .fillMaxHeight(),
-        verticalArrangement = Arrangement.Center
-    ) {
-        CircularProgressIndicator(
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        )
-        Text(
-            text = "Loading basket...",
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier
-                .fillMaxWidth()
-        )
-    }
-}
-
 @Composable
 private fun BasketItem(
     item: BasketItem,
@@ -567,13 +524,11 @@ val testBasketItemList =
         )
     )
 val testBasket = Basket(
-    UUID.randomUUID(), testBasketItemList,
-    paid = false,
+    items = testBasketItemList,
     value = 999
 )
 val emptyTestBasket = Basket(
-    UUID.randomUUID(), listOf(),
-    paid = false,
+    items = listOf(),
     value = 91591
 )
 const val previewUiMode = Configuration.UI_MODE_NIGHT_NO
@@ -589,24 +544,8 @@ const val previewUiMode = Configuration.UI_MODE_NIGHT_NO
 private fun BasketPreview() {
     CryptimeleonTheme {
         BasketUi(
-            SLE.Success(testBasket),
+            testBasket,
             promotionDataList = PreviewData.promotionDataList
-        )
-    }
-}
-
-@ExperimentalMaterialApi
-@ExperimentalAnimationApi
-@Composable
-@Preview(
-    uiMode = previewUiMode,
-    showBackground = true,
-    name = "Loading preview"
-)
-private fun BasketPreviewLoading() {
-    CryptimeleonTheme {
-        BasketUi(
-            SLE.Loading(),
         )
     }
 }
@@ -622,22 +561,8 @@ private fun BasketPreviewLoading() {
 private fun BasketPreviewEmpty() {
     CryptimeleonTheme {
         BasketUi(
-            SLE.Success(emptyTestBasket),
+            emptyTestBasket,
         )
-    }
-}
-
-@ExperimentalMaterialApi
-@ExperimentalAnimationApi
-@Composable
-@Preview(
-    uiMode = previewUiMode,
-    showBackground = true,
-    name = "Error Basket"
-)
-private fun BasketPreviewError() {
-    CryptimeleonTheme {
-        BasketUi(SLE.Error())
     }
 }
 
