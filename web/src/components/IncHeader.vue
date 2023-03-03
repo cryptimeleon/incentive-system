@@ -32,7 +32,14 @@
         <li>
           <router-link to="/store-frontend">
             <span class="text-white hover:text-gray-200">
-              Store Frontend
+              Store One
+            </span>
+          </router-link>
+        </li>
+        <li>
+          <router-link to="/store-two-frontend">
+            <span class="text-white hover:text-gray-200">
+              Store Two
             </span>
           </router-link>
         </li>
