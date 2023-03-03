@@ -3,7 +3,6 @@
         <div class="flex flex-row space-x-4">
             <div class="text-3xl font-bold">{{ name }}</div>
             <ServiceStatus v-if="!loading" :online="online"/>
-            <ServiceStatus :online="false"/>
         </div>
         <div class="prose text-lg">{{ description }}</div>
 
