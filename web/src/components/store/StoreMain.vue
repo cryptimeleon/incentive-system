@@ -34,7 +34,6 @@ export default {
             * Invariant: contains all baskets that the system is currently aware of.
             */
             baskets: [],
-
             // message for heartbeat check of basket service (queried from backend where it is hard-coded)
             helloMessage: '',
             loading: true,
@@ -57,8 +56,11 @@ export default {
             // create dummy basket list
             fetch(basePath + "/allbaskets")
                     .then(response => {
-                        if (response.ok) this.baskets = response.json()
+                        if (!response.ok) throw Error(response.statusText)
                     })
+                    .then(response => response.json())
+                    .then(data => this.baskets= data)
+                    .catch(error => console.error(error))
         }
     }
 </script>
