@@ -56,9 +56,12 @@ export default {
             // create dummy basket list
             fetch(basePath + "/allbaskets")
                     .then(response => {
-                        if (!response.ok) throw Error(response.statusText)
+                        if (response.ok) {
+                            this.baskets = response.json()
+                        } else {
+                            throw Error(response.statusText)
+                        }
                     })
-                    .then(response => this.baskets = response.json())
                     .catch(error => console.error(error))
         }
     }

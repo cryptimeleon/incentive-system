@@ -58,9 +58,12 @@ export default {
 
         fetch("/incentive/registration-coupons")
                 .then(response => {
-                    if (!response.ok) throw Error(response.statusText)
+                    if (response.ok) {
+                        this.registrationCoupons = response.json()
+                    } else {
+                        throw Error(response.statusText)
+                    }
                 })
-                .then(response => this.registrationCoupons = response.json())
                 .catch(error => console.error(error))
     }
 }
