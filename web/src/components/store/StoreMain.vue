@@ -2,7 +2,7 @@
     <div class="w-full">
         <div class="flex flex-row space-x-4">
             <div class="text-3xl font-bold">{{ name }}</div>
-            <ServiceStatus v-if="!loading" :online="online"/>
+            <ServiceStatus :loading="loading" :online="online"/>
         </div>
         <div class="prose text-lg">{{ description }}</div>
 
@@ -49,14 +49,16 @@ export default {
             const basePath = this.baseUrl
             // display heartbeat message to show server status
             fetch(basePath)
-                    .then(response => this.online = response.ok)
+                    .then(response => {
+                        this.online = response.ok
+                        this.loading = false
+                    })
 
             // create dummy basket list
             fetch(basePath + "/allbaskets")
                     .then(response => {
                         if (response.ok) this.baskets = response.json()
                     })
-            this.loading = false
         }
     }
 </script>

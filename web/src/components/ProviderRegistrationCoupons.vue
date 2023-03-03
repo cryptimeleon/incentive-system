@@ -2,7 +2,7 @@
     <div class="w-full">
         <div class="flex flex-row space-x-4">
             <div class="text-3xl font-bold">Provider</div>
-            <ServiceStatus v-if="!loading" :online="online"/>
+            <ServiceStatus :loading="loading" :online="online"/>
         </div>
         <div class="prose text-lg pb-2">
             Some provider text here.
@@ -53,12 +53,12 @@ export default {
     async created() {
         fetch("/incentive").then((response) => {
             this.online = response.ok
+            this.loading = false
         })
 
         fetch("/incentive/registration-coupons")
                 .then(response => response.json())
                 .then(data => this.registrationCoupons = data);
-        this.loading = false
     }
 }
 </script>
