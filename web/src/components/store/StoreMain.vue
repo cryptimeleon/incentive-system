@@ -58,8 +58,7 @@ export default {
                     .then(response => {
                         if (!response.ok) throw Error(response.statusText)
                     })
-                    .then(response => response.json())
-                    .then(data => this.baskets= data)
+                    .then(response => this.baskets = response.json())
                     .catch(error => console.error(error))
         }
     }

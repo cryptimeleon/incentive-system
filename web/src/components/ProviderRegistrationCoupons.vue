@@ -60,8 +60,7 @@ export default {
                 .then(response => {
                     if (!response.ok) throw Error(response.statusText)
                 })
-                .then(response => response.json())
-                .then(data => this.registrationCoupons = data)
+                .then(response => this.registrationCoupons = response.json())
                 .catch(error => console.error(error))
     }
 }
