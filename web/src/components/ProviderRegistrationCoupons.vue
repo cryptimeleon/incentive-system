@@ -1,6 +1,13 @@
 <template>
     <div class="w-full">
-        <div class="text-3xl font-bold">Provider View - Registration Coupons</div>
+        <div class="flex flex-row space-x-4">
+            <div class="text-3xl font-bold">Provider</div>
+            <ServiceStatus v-if="!loading" :online="online"/>
+        </div>
+        <div class="prose text-lg pb-2">
+            Some provider text here.
+        </div>
+        <div class="text-2xl font-bold">Registration Coupons</div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
             <div v-for="registrationCoupon in registrationCoupons" :key="registrationCoupon.userPublicKey">
                 <div class="max-w-sm rounded overflow-hidden shadow-lg">
@@ -11,7 +18,9 @@
                         <div class="text-gray-700 text-base">
                             <p class="font-bold">UserPublicKey</p>
                             <p class="break-all">
-                                ({{ registrationCoupon.userPublicKey.split("INT").slice(2, 4).map(s => s.replace(/\W/g, '')).join(", ") }})</p>
+                                ({{
+                                    registrationCoupon.userPublicKey.split("INT").slice(2, 4).map(s => s.replace(/\W/g, '')).join(", ")
+                                }})</p>
                             <p class="font-bold">Signature</p>
                             <p class="break-all">
                                 {{ registrationCoupon.signature.replace("BYTES:", '').replaceAll('"', '') }}</p>
@@ -28,18 +37,28 @@
 
 <script>
 
+import ServiceStatus from "@/components/ServiceStatus.vue";
+
 export default {
     name: "ProviderRegistrationCoupons",
+    components: {ServiceStatus},
     methods: {},
     data() {
         return {
-            registrationCoupons: []
+            registrationCoupons: [],
+            online: false,
+            loading: true
         };
     },
     async created() {
+        fetch("/incentive").then((response) => {
+            this.online = response.ok
+        })
+
         fetch("/incentive/registration-coupons")
                 .then(response => response.json())
-                .then(data => (this.registrationCoupons = data));
+                .then(data => this.registrationCoupons = data);
+        this.loading = false
     }
 }
 </script>

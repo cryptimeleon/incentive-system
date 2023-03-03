@@ -9,7 +9,7 @@
           <p class="text-xl font-semibold py-2 text-white">Incentive System</p>
         </router-link>
 
-        <div @click="showMenu = !showMenu" class="flex md:hidden">
+        <div @click="showMenu =! showMenu" class="flex md:hidden">
           <button type="button" class="text-white-800">
             <svg viewBox="0 0 24 24" class="w-6 h-6 fill-current">
               <path fill-rule="evenodd"
@@ -47,13 +47,6 @@
           <router-link to="/provider-frontend">
             <span class="text-white hover:text-gray-200">
               Provider Frontend
-            </span>
-          </router-link>
-        </li>
-        <li>
-          <router-link to="/ds-protection">
-            <span class="text-white hover:text-gray-200">
-              Double-Spending Protection
             </span>
           </router-link>
         </li>

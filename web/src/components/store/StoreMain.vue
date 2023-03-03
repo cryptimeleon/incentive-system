@@ -38,7 +38,7 @@ export default {
             // message for heartbeat check of basket service (queried from backend where it is hard-coded)
             helloMessage: '',
             loading: true,
-            online: undefined
+            online: false
             }
         },
         /*
@@ -48,12 +48,14 @@ export default {
         async created() {
             const basePath = this.baseUrl
             // display heartbeat message to show server status
-            const heartbeatRes = await fetch(basePath)
-            this.online = heartbeatRes.ok
+            fetch(basePath)
+                    .then(response => this.online = response.ok)
 
             // create dummy basket list
-            const basketRes = await fetch(basePath + "/allbaskets")
-            this.baskets = await basketRes.json()
+            fetch(basePath + "/allbaskets")
+                    .then(response => {
+                        if (response.ok) this.baskets = response.json()
+                    })
             this.loading = false
         }
     }
