@@ -38,13 +38,21 @@ export default {
             helloMessage: '',
             loading: true,
             online: false
-            }
-        },
-        /*
-        * Connects to backend (= basket server) to fill the baskets array.
-        * Monitors server state by displaying heartbeat message.
-        */
-        async created() {
+        }
+    },
+    created() {
+        this.$watch(
+                () => this.$route.params,
+                () => {
+                    this.fetchData()
+                },
+                // fetch the data when the view is created and the data is
+                // already being observed
+                {immediate: true}
+        )
+    },
+    methods: {
+        fetchData() {
             const basePath = this.baseUrl
             // display heartbeat message to show server status
             fetch(basePath)
@@ -63,7 +71,8 @@ export default {
                     .then(data => this.baskets = data)
                     .catch(error => console.error(error))
         }
-    }
+    },
+}
 </script>
 
 <style scoped>
