@@ -141,9 +141,11 @@ fun PromotionTitle(
                     .fillMaxWidth()
                     .background(color = MaterialTheme.colorScheme.background)
             ) {
-                Column(modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .weight(1f)) {
+                Column(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .weight(1f)
+                ) {
                     Spacer(modifier = Modifier.size(8.dp))
                     Text(
                         promotionData.promotionName,

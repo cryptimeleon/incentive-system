@@ -6,9 +6,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
@@ -30,6 +28,7 @@ import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 import org.cryptimeleon.incentive.app.ui.common.promotionImageUrl
 import org.cryptimeleon.incentive.app.ui.preview.CryptimeleonPreviewContainer
 import org.cryptimeleon.incentive.app.ui.preview.PreviewData
+import org.cryptimeleon.incentive.app.ui.storeselection.StoreSelectionSheet
 import java.math.BigInteger
 
 @Composable
@@ -37,7 +36,8 @@ fun Dashboard(
     openSettings: () -> Unit,
     openBenchmark: () -> Unit,
     openAttacker: () -> Unit,
-    navigateToPromotionDetails: (promotionId: BigInteger) -> Unit
+    navigateToPromotionDetails: (promotionId: BigInteger) -> Unit,
+    bottomAppBar: @Composable () -> Unit
 ) {
     val dashboardViewModel = hiltViewModel<DashboardViewModel>()
     val promotionDataList by dashboardViewModel.promotionDataListFlow.collectAsState(initial = emptyList())
@@ -47,26 +47,33 @@ fun Dashboard(
         cardClicked = navigateToPromotionDetails,
         openSettings = openSettings,
         openBenchmark = openBenchmark,
-        openAttacker = openAttacker
+        openAttacker = openAttacker,
+        bottomAppBar = bottomAppBar
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Dashboard(
     promotionDataList: List<PromotionData>,
     cardClicked: (BigInteger) -> Unit = {},
     openSettings: () -> Unit = {},
     openBenchmark: () -> Unit = {},
-    openAttacker: () -> Unit = {}
+    openAttacker: () -> Unit = {},
+    bottomAppBar: @Composable () -> Unit = {}
 ) {
-    Scaffold(topBar = {
-        DefaultTopAppBar(
-            onOpenSettings = openSettings,
-            onOpenBenchmark = openBenchmark,
-            onOpenAttacker = openAttacker
-        )
-    }) {
+    var showStoreSheet by remember { mutableStateOf(false) }
+
+    Scaffold(
+        topBar = {
+            DefaultTopAppBar(
+                onOpenSettings = openSettings,
+                onOpenBenchmark = openBenchmark,
+                onOpenAttacker = openAttacker,
+                onSelectStore = { showStoreSheet = true }
+            )
+        },
+        bottomBar = bottomAppBar
+    ) {
         Column(
             modifier = Modifier
                 .padding(it)
@@ -79,6 +86,9 @@ fun Dashboard(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
             }
+        }
+        if (showStoreSheet) {
+            StoreSelectionSheet(onDismissRequest = { showStoreSheet = false })
         }
     }
 }

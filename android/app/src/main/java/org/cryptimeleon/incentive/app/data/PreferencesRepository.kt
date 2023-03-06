@@ -15,6 +15,7 @@ class PreferencesRepository(private val dataStore: DataStore<Preferences>) :
     private object PreferencesKeys {
         val DISCARD_UPDATED_TOKEN = booleanPreferencesKey("discard_updated_token")
         val USER_DATA = stringPreferencesKey("user_data")
+        val CURRENT_STORE_PATH = stringPreferencesKey("current_store")
     }
 
     override val doubleSpendingPreferencesFlow: Flow<DoubleSpendingPreferences> = dataStore.data
@@ -36,6 +37,10 @@ class PreferencesRepository(private val dataStore: DataStore<Preferences>) :
             preferences[PreferencesKeys.USER_DATA] ?: "Cryptimeleon User"
         }
 
+    override val currentStoreName: Flow<String> = dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.CURRENT_STORE_PATH] ?: ""
+    }
+
     override suspend fun updateDiscardUpdatedToken(discardToken: Boolean) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.DISCARD_UPDATED_TOKEN] = discardToken
@@ -45,6 +50,12 @@ class PreferencesRepository(private val dataStore: DataStore<Preferences>) :
     override suspend fun setUserData(userData: String) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.USER_DATA] = userData
+        }
+    }
+
+    override suspend fun setCurrentStoreName(name: String) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.CURRENT_STORE_PATH] = name
         }
     }
 }

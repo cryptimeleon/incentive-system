@@ -1,13 +1,8 @@
 package org.cryptimeleon.incentive.app
 
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.Lifecycle
-import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -17,6 +12,7 @@ import org.cryptimeleon.incentive.app.ui.attacker.AttackerUi
 import org.cryptimeleon.incentive.app.ui.basket.BasketUi
 import org.cryptimeleon.incentive.app.ui.benchmark.BenchmarkUi
 import org.cryptimeleon.incentive.app.ui.checkout.CheckoutUi
+import org.cryptimeleon.incentive.app.ui.common.CryptimeleonBottomBar
 import org.cryptimeleon.incentive.app.ui.dashboard.Dashboard
 import org.cryptimeleon.incentive.app.ui.onboarding.OnboardingScreen
 import org.cryptimeleon.incentive.app.ui.promotion.PromotionDetailUi
@@ -43,7 +39,6 @@ object MainDestination {
 fun NavGraph(
     navController: NavHostController,
     firstTimeOpening: Boolean,
-    innerPadding: PaddingValues,
     onOnboardingFinished: () -> Unit
 ) {
     val actions = remember(navController) { MainActions(navController) }
@@ -53,10 +48,10 @@ fun NavGraph(
 
     // Only one instance of this VW to avoid double registration etc. due to animations
     val setupViewModel = hiltViewModel<SetupViewModel>()
+
     NavHost(
         navController,
         startDestination = startDestination,
-        Modifier.padding(innerPadding)
     ) {
         composable(MainDestination.ONBOARDING_ROUTE) {
             OnboardingScreen {
@@ -75,14 +70,18 @@ fun NavGraph(
                 actions.openBenchmark,
                 actions.openAttacker,
                 actions.navigateToPromotionDetail,
-            )
+            ) {
+                CryptimeleonBottomBar(navController = navController)
+            }
         }
         composable(MainDestination.SCANNER_ROUTE) {
             ScanScreen(
                 actions.openSettings,
                 actions.openBenchmark,
                 actions.openAttacker
-            )
+            ) {
+                CryptimeleonBottomBar(navController = navController)
+            }
         }
         composable(MainDestination.BASKET_ROUTE) {
             BasketUi(
@@ -91,7 +90,9 @@ fun NavGraph(
                 actions.openBenchmark,
                 actions.openAttacker,
                 actions.openCheckout
-            )
+            ) {
+                CryptimeleonBottomBar(navController = navController)
+            }
         }
         composable(MainDestination.CHECKOUT_ROUTE) {
             CheckoutUi(actions.navigateToDashboard) {
@@ -165,12 +166,3 @@ class MainActions(navController: NavHostController) {
         navController.navigate("${MainDestination.PROMOTION_DETAIL_ROUTE}/$it")
     }
 }
-
-/**
- * Fix from OWL app:
- *
- * If the lifecycle is not resumed it means this NavBackStackEntry already processed a nav event.
- * This is used to de-duplicate navigation events.
- */
-private fun NavBackStackEntry.lifecycleIsResumed() =
-    this.lifecycle.currentState == Lifecycle.State.RESUMED

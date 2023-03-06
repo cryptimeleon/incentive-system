@@ -58,7 +58,6 @@ fun CheckoutUi(navigateHome: () -> Unit, navigateToLoadingScreen: () -> Unit) {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CheckoutUi(
     basket: Basket?,

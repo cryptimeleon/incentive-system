@@ -1,8 +1,14 @@
 package org.cryptimeleon.incentive.app.data
 
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
-import org.cryptimeleon.incentive.app.data.database.basket.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import org.cryptimeleon.incentive.app.data.database.basket.BasketDao
+import org.cryptimeleon.incentive.app.data.database.basket.BasketItemEntity
+import org.cryptimeleon.incentive.app.data.database.basket.RewardItemEntity
+import org.cryptimeleon.incentive.app.data.database.basket.ShoppingItemEntity
 import org.cryptimeleon.incentive.app.data.network.BasketApiService
 import org.cryptimeleon.incentive.app.data.network.NetworkBasketItemPutRequest
 import org.cryptimeleon.incentive.app.data.network.NetworkShoppingItem
@@ -84,8 +90,12 @@ class BasketRepository(
         }
 
         val basketId = createBasketResponse.body()!!
-        basketDao.observeBasketItemEntities().first().forEach {basketItemEntity ->
-            val request = NetworkBasketItemPutRequest(basketId, basketItemEntity.count, basketItemEntity.itemId)
+        basketDao.observeBasketItemEntities().first().forEach { basketItemEntity ->
+            val request = NetworkBasketItemPutRequest(
+                basketId,
+                basketItemEntity.count,
+                basketItemEntity.itemId
+            )
             val response = basketApiService.putItemToBasket(request)
             if (!response.isSuccessful) Timber.e("An error occurred when putting \n$basketItemEntity\nto current basket.")
         }

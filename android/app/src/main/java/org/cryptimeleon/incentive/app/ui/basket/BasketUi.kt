@@ -36,6 +36,7 @@ import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 import org.cryptimeleon.incentive.app.ui.log.ZkpSummaryUi
 import org.cryptimeleon.incentive.app.ui.preview.PreviewData
+import org.cryptimeleon.incentive.app.ui.storeselection.StoreSelectionSheet
 import timber.log.Timber
 import java.math.BigInteger
 import java.util.*
@@ -53,6 +54,7 @@ fun BasketUi(
     openBenchmark: () -> Unit,
     openAttacker: () -> Unit,
     gotoRewards: () -> Unit,
+    bottomAppBar: @Composable () -> Unit,
 ) {
     val basketViewModel = hiltViewModel<BasketViewModel>()
     val basket: Basket by basketViewModel.basket.collectAsState(initial = Basket(emptyList(), 0))
@@ -68,13 +70,11 @@ fun BasketUi(
         openSettings = openSettings,
         openBenchmark = openBenchmark,
         openAttacker = openAttacker,
-        discardBasket = basketViewModel::discardCurrentBasket
+        discardBasket = basketViewModel::discardCurrentBasket,
+        bottomAppBar = bottomAppBar
     )
 }
 
-@OptIn(
-    ExperimentalMaterial3Api::class
-)
 @Composable
 private fun BasketUi(
     basket: Basket,
@@ -86,18 +86,24 @@ private fun BasketUi(
     openBenchmark: () -> Unit = {},
     openAttacker: () -> Unit = {},
     discardBasket: () -> Unit = {},
-    setUpdateChoice: (BigInteger, TokenUpdate) -> Unit = { _, _ -> }
+    setUpdateChoice: (BigInteger, TokenUpdate) -> Unit = { _, _ -> },
+    bottomAppBar: @Composable () -> Unit = {}
 ) {
+    var showStoreSheet by remember { mutableStateOf(false) }
 
-    Scaffold(topBar = {
-        DefaultTopAppBar(
-            title = { Text("My Basket") },
-            onOpenSettings = openSettings,
-            onOpenBenchmark = openBenchmark,
-            onOpenAttacker = openAttacker,
-            onDiscardBasket = discardBasket
-        )
-    }) {
+    Scaffold(
+        topBar = {
+            DefaultTopAppBar(
+                title = { Text("My Basket") },
+                onOpenSettings = openSettings,
+                onOpenBenchmark = openBenchmark,
+                onOpenAttacker = openAttacker,
+                onDiscardBasket = discardBasket,
+                onSelectStore = { showStoreSheet = true }
+            )
+        },
+        bottomBar = bottomAppBar
+    ) {
         Box(modifier = Modifier.padding(it)) {
             if (basket.items.isEmpty()) {
                 BasketEmptyView(openScanner)
@@ -111,6 +117,10 @@ private fun BasketUi(
                 )
             }
         }
+    }
+
+    if (showStoreSheet) {
+        StoreSelectionSheet(onDismissRequest = { showStoreSheet = false })
     }
 }
 
@@ -545,7 +555,7 @@ private fun BasketPreview() {
     CryptimeleonTheme {
         BasketUi(
             testBasket,
-            promotionDataList = PreviewData.promotionDataList
+            promotionDataList = PreviewData.promotionDataList,
         )
     }
 }

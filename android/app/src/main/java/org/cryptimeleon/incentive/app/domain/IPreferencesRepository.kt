@@ -8,7 +8,9 @@ import org.cryptimeleon.incentive.app.domain.model.DoubleSpendingPreferences
  */
 interface IPreferencesRepository {
     val doubleSpendingPreferencesFlow: Flow<DoubleSpendingPreferences>
+    val userDataPreferencesFlow: Flow<String>
+    val currentStoreName: Flow<String>
     suspend fun updateDiscardUpdatedToken(discardToken: Boolean)
     suspend fun setUserData(userData: String)
-    val userDataPreferencesFlow: Flow<String>
+    suspend fun setCurrentStoreName(name: String)
 }
