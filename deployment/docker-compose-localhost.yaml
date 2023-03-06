@@ -27,7 +27,7 @@ services:
   bootstrapservice:
     image: cryptimeleon/incentive-service-bootstrap:0.5.0
     environment:
-      - BASKET_SERVICE_URL=http://basketservice:8010/
+      - BASKET_SERVICE_URLS=http://basketservice:8010/,http://basketservice:8011/
       - INCENTIVE_SERVICE_URL=http://incentiveservice:8012/
     networks:
       - provider

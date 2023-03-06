@@ -60,8 +60,8 @@ services:
     image: cryptimeleon/incentive-service-bootstrap:0.5.0
     environment:
       - SPRING_PROFILES_ACTIVE=production
-      - BASKET_SERVICE_URL=http://basketservice:8010${BASKET_CONTEXT:-/basket}
-      - BASKET_SERVICE_PROVIDER_SECRET=${BASKET_PROVIDER_SECRET}
+      - BASKET_SERVICE_URLS=http://basketservice:8010${BASKET_CONTEXT:-/basket},http://basketservicetwo:8010${BASKET_CONTEXT_TWO:-/basket-two}
+      - BASKET_SERVICE_PROVIDER_SECRETS=${BASKET_PROVIDER_SECRET},${BASKET_PROVIDER_SECRET_TWO}
       - INCENTIVE_SERVICE_URL=http://incentiveservice:8012${INCENTIVE_CONTEXT:-/incentive}
       - INCENTIVE_SERVICE_PROVIDER_SECRET=${INCENTIVE_PROVIDER_SECRET}
     depends_on:
