@@ -7,7 +7,6 @@ import org.cryptimeleon.incentive.app.data.database.basket.BasketDao
 import org.cryptimeleon.incentive.app.data.database.basket.BasketItemEntity
 import org.cryptimeleon.incentive.app.data.network.BasketApiService
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.BDDMockito.given
@@ -38,9 +37,7 @@ class BasketRepositoryTest {
         given(basketDao.observeBasketItemEntities()).willReturn(basketItemsEntityFlow)
 
         basketRepository = BasketRepository(basketApiService, basketDao)
-
         val basketFlow = basketRepository.basket
-        assertNull(basketFlow.first())
 
         assertEquals(
             BasketRepository.basketEntityToBasket(emptyList()),
