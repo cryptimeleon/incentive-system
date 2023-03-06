@@ -1,25 +1,20 @@
 package org.cryptimeleon.incentive.services.bootstrap;
 
 import org.cryptimeleon.incentive.client.BasketClient;
-import org.cryptimeleon.incentive.client.IncentiveClient;
 import org.cryptimeleon.incentive.client.dto.ItemDto;
 import org.cryptimeleon.incentive.client.dto.RewardItemDto;
 import org.cryptimeleon.incentive.promotion.Promotion;
 
 import java.util.List;
 
-public class BootstrapClient {
-    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BootstrapClient.class);
+public class BootstrapBasketClient {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(BootstrapBasketClient.class);
     final String basketServiceProviderSecret;
-    final String promotionServiceProviderSecret;
     final BasketClient basketClient;
-    final IncentiveClient incentiveClient;
 
-    public BootstrapClient(String basketServiceProviderSecret, String promotionServiceProviderSecret, BasketClient basketClient, IncentiveClient incentiveClient) {
+    public BootstrapBasketClient(String basketServiceProviderSecret, BasketClient basketClient) {
         this.basketServiceProviderSecret = basketServiceProviderSecret;
-        this.promotionServiceProviderSecret = promotionServiceProviderSecret;
         this.basketClient = basketClient;
-        this.incentiveClient = incentiveClient;
     }
 
     public void publishBootstrapData(BootstrapDataChoice bootstrapDataChoice) {
@@ -55,7 +50,6 @@ public class BootstrapClient {
     }
 
     private void publishPromotions(List<Promotion> promotions) {
-        incentiveClient.addPromotions(promotions, promotionServiceProviderSecret).block();
         basketClient.addPromotions(promotions, basketServiceProviderSecret).block();
     }
 }

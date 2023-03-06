@@ -23,6 +23,7 @@ public class BootstrapApplication {
     private String[] basketServiceProviderSecrets;
     @Value("${incentive-service.provider-secret}")
     private String promotionServiceProviderSecret = "";
+    private final BootstrapDataChoice BOOTSTRAP_DATA_CHOICE = BootstrapDataChoice.DEMO;
 
     public static void main(String[] args) {
         SpringApplication.run(BootstrapApplication.class, args);
@@ -36,23 +37,26 @@ public class BootstrapApplication {
     @Bean
     public CommandLineRunner run(IncentiveClient incentiveClient) {
         return args -> {
+            if (promotionServiceProviderSecret.equals("")) {
+                log.error("promotionServiceProviderSecret is empty!");
+                throw new RuntimeException();
+            }
+            log.info("Promotion service provider secret: {}", promotionServiceProviderSecret);
+            waitForIncentiveServiceOrThrow(incentiveClient);
+            BootstrapProviderClient bootstrapClient = new BootstrapProviderClient(promotionServiceProviderSecret, incentiveClient);
+            bootstrapClient.publishBootstrapData(BOOTSTRAP_DATA_CHOICE);
+
             for (int i = 0; i < basketServiceUrls.length; i++) {
                 String basketServiceProviderSecret = basketServiceProviderSecrets[i];
                 if (basketServiceProviderSecret.equals("")) {
                     log.error("basketServiceProviderSecret #{} is empty!", i);
                     throw new RuntimeException();
                 }
-                if (promotionServiceProviderSecret.equals("")) {
-                    log.error("promotionServiceProviderSecret is empty!");
-                    throw new RuntimeException();
-                }
-                log.info("Basket service provider secret: {}", basketServiceProviderSecret);
-                log.info("Promotion service provider secret: {}", promotionServiceProviderSecret);
+                log.info("Basket service provider secret #{}: {}", i, basketServiceProviderSecret);
                 BasketClient basketClient = new BasketClient(basketServiceUrls[i]);
                 waitForBasketServiceOrThrow(basketClient);
-                waitForIncentiveServiceOrThrow(incentiveClient);
-                BootstrapClient bootstrapClient = new BootstrapClient(basketServiceProviderSecret, promotionServiceProviderSecret, basketClient, incentiveClient);
-                bootstrapClient.publishBootstrapData(BootstrapDataChoice.DEMO);
+                BootstrapBasketClient bootstrapBasketClient = new BootstrapBasketClient(basketServiceProviderSecret, basketClient);
+                bootstrapBasketClient.publishBootstrapData(BOOTSTRAP_DATA_CHOICE);
             }
         };
     }
