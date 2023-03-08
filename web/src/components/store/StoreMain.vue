@@ -29,7 +29,7 @@ export default {
         return {
             /*
             * Declares empty basket array.
-            * Intially empty, filled at component creation time (in created method).
+            * Initially empty, filled at component creation time (in created method).
             * Invariant: contains all baskets that the system is currently aware of.
             */
             baskets: [],
@@ -39,36 +39,27 @@ export default {
             online: false
         }
     },
-    created() {
-        this.$watch(
-                () => this.$route.params,
-                () => {
-                    this.fetchData()
-                },
-                // fetch the data when the view is created and the data is
-                // already being observed
-                {immediate: true}
-        )
-    },
-    methods: {
-        fetchData() {
-            const basePath = this.baseUrl
-            // display heartbeat message to show server status
-            fetch(basePath)
-                    .then(response => {
-                        this.online = response.ok
-                        this.loading = false
-                    })
+    watch: {
+        baseUrl: {
+            handler(newBaseUrl) {
+                // display heartbeat message to show server status
+                fetch(newBaseUrl)
+                        .then(response => {
+                            this.online = response.ok
+                            this.loading = false
+                        })
 
-            // create dummy basket list
-            fetch(basePath + "/allbaskets")
-                    .then(response => {
-                        if (!response.ok) throw Error(response.statusText)
-                        return response
-                    })
-                    .then(response => response.json())
-                    .then(data => this.baskets = data)
-                    .catch(error => console.error(error))
+                // create dummy basket list
+                fetch(newBaseUrl + "/allbaskets")
+                        .then(response => {
+                            if (!response.ok) throw Error(response.statusText)
+                            return response
+                        })
+                        .then(response => response.json())
+                        .then(data => this.baskets = data)
+                        .catch(error => console.error(error))
+            },
+            immediate: true
         }
     },
 }
