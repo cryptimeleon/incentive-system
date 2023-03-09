@@ -1,8 +1,8 @@
 package org.cryptimeleon.incentive.crypto;
 
 import org.cryptimeleon.incentive.crypto.callback.IDsidBlacklistHandler;
+import org.cryptimeleon.incentive.crypto.callback.ISpendTransactionDBHandler;
 import org.cryptimeleon.incentive.crypto.callback.IStoreBasketRedeemedHandler;
-import org.cryptimeleon.incentive.crypto.callback.ITransactionDBHandler;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.proof.spend.SpendHelper;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.UUID;
 
 public class RejectionAndDSProtectionTest {
@@ -26,47 +27,45 @@ public class RejectionAndDSProtectionTest {
     final Vector<BigInteger> pointDifferenceAlt = pointsBeforeSpend.zip(pointsAfterSpendAlt, BigInteger::subtract);
 
     final Token token = TestSuite.generateToken(promotionParameters, pointsBeforeSpend);
-    TestSuite.TestTransactionDbHandler transactionDBHandler;
     TestSuite.TestDsidBlacklist testDsidBlacklist;
     TestRedeemedHandler testRedeemedHandler;
 
     @BeforeEach
     void setup() {
-        transactionDBHandler = new TestSuite.TestTransactionDbHandler();
         testDsidBlacklist = new TestSuite.TestDsidBlacklist();
         testRedeemedHandler = new TestRedeemedHandler();
     }
 
     @Test
     void testSuccessfulRetryAtProvider() {
-        spendToken(basketId, testDsidBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler, transactionDBHandler);
-        spendToken(basketId, testDsidBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler, transactionDBHandler);
+        spendToken(basketId, testDsidBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler);
+        spendToken(basketId, testDsidBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler);
     }
 
     @Test
     void testSuccessfulRejectionAtStoreSameBasketDifferentRequest() {
-        spendToken(basketId, testDsidBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler, transactionDBHandler);
+        spendToken(basketId, testDsidBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler);
 
         // Same basket, different request
-        Throwable t = Assertions.assertThrows(RuntimeException.class, () -> spendToken(basketId, testDsidBlacklist, pointDifferenceAlt, pointsAfterSpendAlt, testRedeemedHandler, transactionDBHandler));
+        Throwable t = Assertions.assertThrows(RuntimeException.class, () -> spendToken(basketId, testDsidBlacklist, pointDifferenceAlt, pointsAfterSpendAlt, testRedeemedHandler));
         System.out.println(t.getMessage());
         Assertions.assertTrue(t.getMessage().contains("Basket already redeemed for different request"));
     }
 
     @Test
     void testSuccessfulRejectionAtStoreDifferentBasketSameRequest() {
-        spendToken(basketId, testDsidBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler, transactionDBHandler);
+        spendToken(basketId, testDsidBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler);
 
-        Throwable t = Assertions.assertThrows(RuntimeException.class, () -> spendToken(secondBasketId, testDsidBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler, transactionDBHandler));
+        Throwable t = Assertions.assertThrows(RuntimeException.class, () -> spendToken(secondBasketId, testDsidBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler));
         System.out.println(t.getMessage());
         Assertions.assertTrue(t.getMessage().contains("already spent with different basket"));
     }
 
     @Test
     void testSuccessfulRejectionAtStoreDifferentBasketAndRequest() {
-        spendToken(basketId, testDsidBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler, transactionDBHandler);
+        spendToken(basketId, testDsidBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler);
 
-        Throwable t = Assertions.assertThrows(RuntimeException.class, () -> spendToken(secondBasketId, testDsidBlacklist, pointDifferenceAlt, pointsAfterSpendAlt, testRedeemedHandler, transactionDBHandler));
+        Throwable t = Assertions.assertThrows(RuntimeException.class, () -> spendToken(secondBasketId, testDsidBlacklist, pointDifferenceAlt, pointsAfterSpendAlt, testRedeemedHandler));
         System.out.println(t.getMessage());
         Assertions.assertTrue(t.getMessage().contains("already spent with different basket"));
     }
@@ -78,11 +77,11 @@ public class RejectionAndDSProtectionTest {
         TestSuite.TestDsidBlacklist storeTwoBlacklist = new TestSuite.TestDsidBlacklist();
         TestSuite.TestDsidBlacklist providerBlacklist = new TestSuite.TestDsidBlacklist();
 
-        spendTokenMultipleBlackslists(basketId, storeOneBlacklist, providerBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler, transactionDBHandler);
+        spendTokenMultipleBlackslists(basketId, storeOneBlacklist, providerBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler);
 
         Throwable t = Assertions.assertThrows(
                 RuntimeException.class,
-                () -> spendTokenMultipleBlackslists(secondBasketId, storeTwoBlacklist, providerBlacklist, pointDifferenceAlt, pointsAfterSpendAlt, testRedeemedHandler, transactionDBHandler)
+                () -> spendTokenMultipleBlackslists(secondBasketId, storeTwoBlacklist, providerBlacklist, pointDifferenceAlt, pointsAfterSpendAlt, testRedeemedHandler)
         );
         System.out.println(t.getMessage());
         Assertions.assertTrue(t.getMessage().contains("Illegal retry, dsid already used for different request"));
@@ -90,13 +89,14 @@ public class RejectionAndDSProtectionTest {
 
     @Test
     void testSuccessfulLink() {
+        ArrayList<SpendTransactionData> spendTransactionData = new ArrayList<>();
         TestSuite.TestDsidBlacklist storeOneBlacklist = new TestSuite.TestDsidBlacklist();
         TestSuite.TestDsidBlacklist storeTwoBlacklist = new TestSuite.TestDsidBlacklist();
 
-        spendTokenStoreOnly(basketId, storeOneBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler, transactionDBHandler);
-        spendTokenStoreOnly(secondBasketId, storeTwoBlacklist, pointDifferenceAlt, pointsAfterSpendAlt, testRedeemedHandler, transactionDBHandler);
-        SpendTransactionData first = transactionDBHandler.spendData.get(0);
-        SpendTransactionData second = transactionDBHandler.spendData.get(1);
+        spendTokenStoreOnly(basketId, storeOneBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler, spendTransactionData::add);
+        spendTokenStoreOnly(secondBasketId, storeTwoBlacklist, pointDifferenceAlt, pointsAfterSpendAlt, testRedeemedHandler, spendTransactionData::add);
+        SpendTransactionData first = spendTransactionData.get(0);
+        SpendTransactionData second = spendTransactionData.get(1);
 
         DoubleSpendingTag doubleSpendingTag = new DoubleSpendingTag(first.getC(), first.getGamma());
         DoubleSpendingTag secondDoubleSpendingTag = new DoubleSpendingTag(second.getC(), second.getGamma());
@@ -111,7 +111,7 @@ public class RejectionAndDSProtectionTest {
                                                    Vector<BigInteger> pointDifference,
                                                    Vector<BigInteger> pointsAfterSpend,
                                                    IStoreBasketRedeemedHandler storeBasketRedeemedHandler,
-                                                   ITransactionDBHandler transactionDBHandler) {
+                                                   ISpendTransactionDBHandler spendTransactionDBHandler) {
         SpendDeductTree spendDeductTree = SpendHelper.generateSimpleTestSpendDeductTree(promotionParameters, pointDifference);
         SpendStoreRequest spendStoreRequest = incSys.generateStoreSpendRequest(
                 TestSuite.userKeyPair, TestSuite.providerKeyPair.getPk(), token,
@@ -126,9 +126,10 @@ public class RejectionAndDSProtectionTest {
                 promotionParameters,
                 spendStoreRequest,
                 spendDeductTree,
-                TestSuite.context, storeBasketRedeemedHandler,
+                TestSuite.context,
+                storeBasketRedeemedHandler,
                 dsidBlacklistHandler,
-                transactionDBHandler
+                spendTransactionDBHandler
         );
     }
 
@@ -136,15 +137,14 @@ public class RejectionAndDSProtectionTest {
                                              IDsidBlacklistHandler dsidBlacklistHandler,
                                              Vector<BigInteger> pointDifference,
                                              Vector<BigInteger> pointsAfterSpend,
-                                             IStoreBasketRedeemedHandler storeBasketRedeemedHandler,
-                                             ITransactionDBHandler transactionDBHandler) {
+                                             IStoreBasketRedeemedHandler storeBasketRedeemedHandler
+                                             ) {
         return spendTokenMultipleBlackslists(basketId,
                 dsidBlacklistHandler,
                 dsidBlacklistHandler,
                 pointDifference,
                 pointsAfterSpend,
-                storeBasketRedeemedHandler,
-                transactionDBHandler);
+                storeBasketRedeemedHandler);
     }
 
     /*
@@ -155,8 +155,7 @@ public class RejectionAndDSProtectionTest {
                                                                 IDsidBlacklistHandler providerBlacklist,
                                                                 Vector<BigInteger> pointDifference,
                                                                 Vector<BigInteger> pointsAfterSpend,
-                                                                IStoreBasketRedeemedHandler testRedeemedHandler,
-                                                                ITransactionDBHandler transactionDBHandler) {
+                                                                IStoreBasketRedeemedHandler testRedeemedHandler) {
         SpendDeductTree spendDeductTree = SpendHelper.generateSimpleTestSpendDeductTree(promotionParameters, pointDifference);
         SpendStoreRequest spendStoreRequest = incSys.generateStoreSpendRequest(
                 TestSuite.userKeyPair,
@@ -177,7 +176,7 @@ public class RejectionAndDSProtectionTest {
                 spendDeductTree,
                 TestSuite.context, testRedeemedHandler,
                 storeBlacklist,
-                transactionDBHandler
+                spendTransactionData -> {}
         );
         Assertions.assertTrue(incSys.verifySpendCouponSignature(spendStoreRequest, spendCouponSignature, promotionParameters, basketId));
 

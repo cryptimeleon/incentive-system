@@ -113,7 +113,8 @@ public class IncentiveServiceTest {
                 TestSuiteWithPromotion.context,
                 (basketId, promotionId, hash) -> IStoreBasketRedeemedHandler.BasketRedeemState.BASKET_NOT_REDEEMED,
                 new TestSuite.TestDsidBlacklist(),
-                new TestSuite.TestTransactionDbHandler());
+                spendTransactionData -> {}
+        );
     }
 
     private static SpendStoreRequest generateSpendCouponRequest(Token token) {

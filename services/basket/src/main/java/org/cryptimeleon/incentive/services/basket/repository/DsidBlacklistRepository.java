@@ -20,4 +20,8 @@ public class DsidBlacklistRepository implements IDsidBlacklistHandler {
     public void addEntryIfDsidNotPresent(Zn.ZnElement doubleSpendingId, Zn.ZnElement gamma) {
         storage.putIfAbsent(doubleSpendingId, gamma);
     }
+
+    // TODO
+    // send to provider
+    // query from provider / or direct call at request?
 }

@@ -232,7 +232,7 @@ public class Benchmark {
                     earnProviderRequest,
                     promotionParameters,
                     providerKeyPair,
-                    new BenchmarkTransactionDBHandler(),
+                    earnTransactionData -> {},
                     storePublicKey -> true
             );
             finish = Instant.now();
@@ -281,7 +281,7 @@ public class Benchmark {
                     context,
                     (basketId1, promotionId, hash) -> IStoreBasketRedeemedHandler.BasketRedeemState.BASKET_NOT_REDEEMED,
                     new BenchmarkBlacklist(),
-                    new BenchmarkTransactionDBHandler()
+                    spendTransactionData -> {}
             );
             finish = Instant.now();
             tSpendStoreResponse[i] = Duration.between(start, finish).toNanos();

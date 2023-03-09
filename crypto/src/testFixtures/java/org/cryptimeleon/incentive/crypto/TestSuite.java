@@ -1,7 +1,6 @@
 package org.cryptimeleon.incentive.crypto;
 
 import org.cryptimeleon.incentive.crypto.callback.IDsidBlacklistHandler;
-import org.cryptimeleon.incentive.crypto.callback.ITransactionDBHandler;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.store.StoreKeyPair;
@@ -13,7 +12,6 @@ import org.cryptimeleon.math.structures.cartesian.Vector;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -64,18 +62,4 @@ public class TestSuite {
         }
     }
 
-    public static class TestTransactionDbHandler implements ITransactionDBHandler {
-        final HashMap<EarnProviderRequest, byte[]> earnData = new HashMap<>();
-        final ArrayList<SpendTransactionData> spendData = new ArrayList<>();
-
-        @Override
-        public void addEarnData(EarnProviderRequest earnProviderRequest, byte[] h) {
-            earnData.put(earnProviderRequest, h);
-        }
-
-        @Override
-        public void addSpendData(SpendTransactionData spendTransactionData) {
-            spendData.add(spendTransactionData);
-        }
-    }
 }

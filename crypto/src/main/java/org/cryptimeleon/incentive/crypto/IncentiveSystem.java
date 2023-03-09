@@ -501,7 +501,7 @@ public class IncentiveSystem {
     public SPSEQSignature generateEarnResponse(EarnProviderRequest earnProviderRequest,
                                                PromotionParameters promotionParameters,
                                                ProviderKeyPair providerKeyPair,
-                                               ITransactionDBHandler transactionDBHandler,
+                                               IEarnTransactionDBHandler transactionDBHandler,
                                                IStorePublicKeyVerificationHandler storePublicKeyVerificationHandler) {
         // Blinded token
         var c0Prime = earnProviderRequest.getcPrime0();
@@ -528,7 +528,8 @@ public class IncentiveSystem {
         if (!blindedSpseqValid) throw new RuntimeException("(Blinded) SPSEQ signature invalid");
 
         // Add to clearing DB
-        transactionDBHandler.addEarnData(earnProviderRequest, h);
+        var earnTxData = new EarnTransactionData(earnProviderRequest, h);
+        transactionDBHandler.addEarnData(earnTxData);
 
         // Blind-sign update
         var Q = providerKeyPair.getSk().getTokenPointsQ(promotionParameters);
@@ -672,7 +673,7 @@ public class IncentiveSystem {
                                               UniqueByteRepresentable context,
                                               IStoreBasketRedeemedHandler basketRedeemedHandler,
                                               IDsidBlacklistHandler dsidBlacklistHandler,
-                                              ITransactionDBHandler transactionDBHandler
+                                              ISpendTransactionDBHandler transactionDBHandler
     ) {
         var zp = pp.getBg().getZn();
 

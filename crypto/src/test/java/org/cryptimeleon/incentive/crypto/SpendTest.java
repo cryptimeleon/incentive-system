@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.UUID;
 
 public class SpendTest {
@@ -23,7 +24,6 @@ public class SpendTest {
     final Token token = TestSuite.generateToken(promotionParameters, pointsBeforeSpend);
     final TestRedeemedHandler testRedeemedHandler = new TestRedeemedHandler();
     final IDsidBlacklistHandler dsidBlacklistHandler = new TestSuite.TestDsidBlacklist();
-    final TestSuite.TestTransactionDbHandler transactionDbHandler = new TestSuite.TestTransactionDbHandler();
 
     @Test
     void spendFullTest() {
@@ -41,9 +41,10 @@ public class SpendTest {
                 promotionParameters,
                 spendStoreRequest,
                 spendDeductTree,
-                TestSuite.context, testRedeemedHandler,
+                TestSuite.context,
+                testRedeemedHandler,
                 dsidBlacklistHandler,
-                transactionDbHandler
+                spendTransactionData -> {}
         );
         Assertions.assertTrue(incSys.verifySpendCouponSignature(spendStoreRequest, spendCouponSignature, promotionParameters, basketId));
 
@@ -71,6 +72,7 @@ public class SpendTest {
                 spendDeductTree,
                 TestSuite.context
         );
+        ArrayList<SpendTransactionData> spendTxData = new ArrayList<>();
         SpendStoreResponse spendCouponSignature = incSys.signSpendCoupon(
                 TestSuite.storeKeyPair,
                 TestSuite.providerKeyPair.getPk(),
@@ -80,10 +82,10 @@ public class SpendTest {
                 spendDeductTree,
                 TestSuite.context, testRedeemedHandler,
                 dsidBlacklistHandler,
-                transactionDbHandler
+                spendTxData::add
         );
 
-        SpendTransactionData spendTransactionData = transactionDbHandler.spendData.get(0);
+        SpendTransactionData spendTransactionData = spendTxData.get(0);
         SpendProviderRequest spendRequest = new SpendProviderRequest(spendStoreRequest, spendCouponSignature);
         SpendProviderResponse spendResponse = incSys.verifySpendRequestAndIssueNewToken(
                 TestSuite.providerKeyPair,
