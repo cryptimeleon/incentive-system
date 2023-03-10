@@ -21,4 +21,20 @@ public class DSDetectedEntryDto {
         this.userPublicKey = jsonConverter.serialize(userInfo.getUpk().getUpk().getRepresentation());
         this.userSecretExponent = jsonConverter.serialize(userInfo.getDsBlame().getRepresentation());
     }
+
+    public UUID getBasketId() {
+        return basketId;
+    }
+
+    public String getUserPublicKey() {
+        return userPublicKey;
+    }
+
+    public String getUserInfo() {
+        return userInfo;
+    }
+
+    public String getUserSecretExponent() {
+        return userSecretExponent;
+    }
 }
