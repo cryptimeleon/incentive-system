@@ -195,7 +195,7 @@ public class StoreService {
                 context,
                 this::checkBasketStateAndRedeem,
                 dsidBlacklistRepository,
-                spendTransactionData -> transactionRepository.addSpendData(new BasketSpendTransactionData(basket.getBasketId(), promotion, requestedTokenUpdate, spendTransactionData))
+                spendTransactionData -> transactionRepository.addSpendData(new BasketSpendTransactionData(basket.getBasketId(), promotion, requestedTokenUpdate, spendTransactionData, serializedZkpTokenUpdateMetadata, basketValueForUpdate.toList()))
         );
     }
 

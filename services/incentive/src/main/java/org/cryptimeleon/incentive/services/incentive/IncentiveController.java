@@ -1,6 +1,7 @@
 package org.cryptimeleon.incentive.services.incentive;
 
 import io.swagger.annotations.ApiOperation;
+import org.cryptimeleon.incentive.client.dto.EnrichedSpendTransactionDataDto;
 import org.cryptimeleon.incentive.client.dto.provider.BulkRequestProviderDto;
 import org.cryptimeleon.incentive.client.dto.provider.BulkResultsProviderDto;
 import org.cryptimeleon.incentive.services.incentive.api.RegistrationCouponJSON;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.PostConstruct;
 import java.math.BigInteger;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * The controller of the incentive service that defines all REST endpoints.
@@ -161,6 +163,21 @@ public class IncentiveController {
     @GetMapping("/registration-coupons")
     public List<RegistrationCouponJSON> getRegistrationCoupons() {
         return incentiveService.getRegistrationCoupons();
+    }
+
+    @PostMapping("/spend-transaction-data")
+    public void addSpendTransactionData(@RequestBody EnrichedSpendTransactionDataDto enrichedSpendTransactionDataDto) {
+        incentiveService.addSpendTransactionData(enrichedSpendTransactionDataDto);
+    }
+
+    @GetMapping("/spend-transaction-data")
+    public List<UUID> addSpendTransactionDataBasketIds() {
+        return incentiveService.txDataBaskets();
+    }
+
+    @GetMapping("/double-spending-detected")
+    public List<UUID> getDoubleSpendingBaskets() {
+        return incentiveService.doubleSpendingDetected();
     }
 
     /*

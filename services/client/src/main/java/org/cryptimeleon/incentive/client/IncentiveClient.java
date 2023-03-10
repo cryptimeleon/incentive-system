@@ -1,5 +1,6 @@
 package org.cryptimeleon.incentive.client;
 
+import org.cryptimeleon.incentive.client.dto.EnrichedSpendTransactionDataDto;
 import org.cryptimeleon.incentive.client.dto.provider.BulkRequestProviderDto;
 import org.cryptimeleon.incentive.client.dto.provider.BulkResultsProviderDto;
 import org.cryptimeleon.incentive.client.dto.provider.EarnRequestProviderDto;
@@ -21,6 +22,7 @@ import reactor.core.publisher.Mono;
 import java.math.BigInteger;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -128,5 +130,15 @@ public class IncentiveClient implements AliveEndpoint {
         var bulkResponse = sendBulkRequest(bulkRequest);
         var spendResponse = bulkResponse.getSpendResults().get(0);
         return spendResponse.getSerializedSpendResult();
+    }
+
+    public void sendSpendTransactionData(EnrichedSpendTransactionDataDto enrichedSpendTransactionDataDto) {
+        var response = incentiveClient.post()
+                .uri("/spend-transaction-data")
+                .body(BodyInserters.fromValue(enrichedSpendTransactionDataDto))
+                .retrieve()
+                .toBodilessEntity()
+                .block();
+        assert Objects.requireNonNull(response).getStatusCode().is2xxSuccessful();
     }
 }

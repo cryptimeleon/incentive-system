@@ -1,5 +1,7 @@
 package org.cryptimeleon.incentive.services.basket.repository;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -12,15 +14,25 @@ import java.util.UUID;
  */
 @Repository
 public class TransactionRepository {
-    final ArrayList<BasketEarnTransactionData> earnData = new ArrayList<>();
-    final ArrayList<BasketSpendTransactionData> spendData = new ArrayList<>();
+    private final ArrayList<BasketEarnTransactionData> earnData = new ArrayList<>();
+    private final ArrayList<BasketSpendTransactionData> spendData = new ArrayList<>();
+
+    private final ProviderTxRepository providerTxRepository;
+
+    @Autowired
+    public TransactionRepository(ProviderTxRepository providerTxRepository) {
+        this.providerTxRepository = providerTxRepository;
+    }
+
 
     public void addEarnData(BasketEarnTransactionData basketEarnTransactionData) {
         earnData.add(basketEarnTransactionData);
     }
 
+    @Async
     public void addSpendData(BasketSpendTransactionData basketSpendTransactionData) {
         spendData.add(basketSpendTransactionData);
+        providerTxRepository.sendBasketTransactioData(basketSpendTransactionData);
     }
 
     public Optional<BasketSpendTransactionData> getSpendDataForBasketId(UUID basketId) {
