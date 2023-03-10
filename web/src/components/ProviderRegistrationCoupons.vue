@@ -10,7 +10,7 @@
         <div class="text-2xl font-bold">Registration Coupons</div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
             <div v-for="registrationCoupon in registrationCoupons" :key="registrationCoupon.userPublicKey">
-                <div class="max-w-sm rounded overflow-hidden shadow-lg">
+                <div class="max-w-sm rounded overflow-hidden shadow-md bg-white">
                     <div class="px-6 py-4">
                         <div class="font-bold text-xl mb-2">
                             User: {{ registrationCoupon.userInfo }}

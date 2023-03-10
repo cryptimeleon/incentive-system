@@ -6,7 +6,7 @@
         </div>
         <div class="prose text-lg">{{ description }}</div>
         <div class="text-2xl font-bold pt-2">Baskets</div>
-        <BasketList :baskets="baskets"/>
+        <BasketList :baskets="basketWithDsData"/>
     </div>
 </template>
 
@@ -33,10 +33,22 @@ export default {
             * Invariant: contains all baskets that the system is currently aware of.
             */
             baskets: [],
+            dsData: [],
             // message for heartbeat check of basket service (queried from backend where it is hard-coded)
             helloMessage: '',
             loading: true,
             online: false
+        }
+    },
+    computed: {
+        basketWithDsData() {
+            return this.baskets.map(basket => {
+                let dsData = this.dsData.find(data => data.basketId === basket.basketID)
+                if (dsData!==undefined) {
+                    basket.dsData = dsData
+                }
+                return basket
+            });
         }
     },
     watch: {
@@ -57,6 +69,15 @@ export default {
                         })
                         .then(response => response.json())
                         .then(data => this.baskets = data)
+                        .catch(error => console.error(error))
+
+                fetch("/incentive/double-spending-detected")
+                        .then(response => {
+                            if (!response.ok) throw Error(response.statusText)
+                            return response
+                        })
+                        .then(response => response.json())
+                        .then(data => this.dsData = data)
                         .catch(error => console.error(error))
             },
             immediate: true

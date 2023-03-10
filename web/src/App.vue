@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col justify-between min-h-screen">
+  <div class="flex flex-col justify-between min-h-screen bg-gray-50">
     <IncHeader/>
     <div class="grow w-full md:w-[768px] md:mx-auto px-4 self-start">
         <router-view/>
