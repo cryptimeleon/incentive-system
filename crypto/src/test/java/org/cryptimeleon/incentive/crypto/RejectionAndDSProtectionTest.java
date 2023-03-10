@@ -29,43 +29,51 @@ public class RejectionAndDSProtectionTest {
     final Token token = TestSuite.generateToken(promotionParameters, pointsBeforeSpend);
     TestSuite.TestDsidBlacklist testDsidBlacklist;
     TestRedeemedHandler testRedeemedHandler;
+    TestRedeemedHandler secondTestRedeemedHandler;
 
     @BeforeEach
     void setup() {
         testDsidBlacklist = new TestSuite.TestDsidBlacklist();
         testRedeemedHandler = new TestRedeemedHandler();
+        secondTestRedeemedHandler = new TestRedeemedHandler();
     }
 
     @Test
     void testSuccessfulRetryAtProvider() {
-        spendToken(basketId, testDsidBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler);
-        spendToken(basketId, testDsidBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler);
+        spendTokenSyncronizedBlacklists(basketId, testDsidBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler);
+        spendTokenSyncronizedBlacklists(basketId, testDsidBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler);
     }
 
     @Test
     void testSuccessfulRejectionAtStoreSameBasketDifferentRequest() {
-        spendToken(basketId, testDsidBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler);
+        spendTokenStoreOnly(basketId, testDsidBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler, spendTransactionData -> {
+        });
 
         // Same basket, different request
-        Throwable t = Assertions.assertThrows(RuntimeException.class, () -> spendToken(basketId, testDsidBlacklist, pointDifferenceAlt, pointsAfterSpendAlt, testRedeemedHandler));
+        Throwable t = Assertions.assertThrows(RuntimeException.class, () -> spendTokenStoreOnly(basketId, testDsidBlacklist, pointDifferenceAlt, pointsAfterSpendAlt, testRedeemedHandler, spendTransactionData -> {
+        }));
         System.out.println(t.getMessage());
         Assertions.assertTrue(t.getMessage().contains("Basket already redeemed for different request"));
     }
 
     @Test
     void testSuccessfulRejectionAtStoreDifferentBasketSameRequest() {
-        spendToken(basketId, testDsidBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler);
+        spendTokenStoreOnly(basketId, testDsidBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler, spendTransactionData -> {
+        });
 
-        Throwable t = Assertions.assertThrows(RuntimeException.class, () -> spendToken(secondBasketId, testDsidBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler));
+        Throwable t = Assertions.assertThrows(RuntimeException.class, () -> spendTokenStoreOnly(secondBasketId, testDsidBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler, spendTransactionData -> {
+        }));
         System.out.println(t.getMessage());
         Assertions.assertTrue(t.getMessage().contains("already spent with different basket"));
     }
 
     @Test
     void testSuccessfulRejectionAtStoreDifferentBasketAndRequest() {
-        spendToken(basketId, testDsidBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler);
+        spendTokenStoreOnly(basketId, testDsidBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler, spendTransactionData -> {
+        });
 
-        Throwable t = Assertions.assertThrows(RuntimeException.class, () -> spendToken(secondBasketId, testDsidBlacklist, pointDifferenceAlt, pointsAfterSpendAlt, testRedeemedHandler));
+        Throwable t = Assertions.assertThrows(RuntimeException.class, () -> spendTokenStoreOnly(secondBasketId, testDsidBlacklist, pointDifferenceAlt, pointsAfterSpendAlt, testRedeemedHandler, spendTransactionData -> {
+        }));
         System.out.println(t.getMessage());
         Assertions.assertTrue(t.getMessage().contains("already spent with different basket"));
     }
@@ -133,12 +141,12 @@ public class RejectionAndDSProtectionTest {
         );
     }
 
-    private SpendProviderResponse spendToken(UUID basketId,
-                                             IDsidBlacklistHandler dsidBlacklistHandler,
-                                             Vector<BigInteger> pointDifference,
-                                             Vector<BigInteger> pointsAfterSpend,
-                                             IStoreBasketRedeemedHandler storeBasketRedeemedHandler
-                                             ) {
+    private SpendProviderResponse spendTokenSyncronizedBlacklists(UUID basketId,
+                                                                  IDsidBlacklistHandler dsidBlacklistHandler,
+                                                                  Vector<BigInteger> pointDifference,
+                                                                  Vector<BigInteger> pointsAfterSpend,
+                                                                  IStoreBasketRedeemedHandler storeBasketRedeemedHandler
+    ) {
         return spendTokenMultipleBlackslists(basketId,
                 dsidBlacklistHandler,
                 dsidBlacklistHandler,
