@@ -42,7 +42,7 @@ public class TransactionRepository implements IEarnTransactionDBHandler, ISpendT
     }
 
     // Start after one minute, sync every minute
-    @Scheduled(initialDelay = 60_000, fixedRate = 60_000)
+    @Scheduled(initialDelay = 60_000, fixedRate = 30_000)
     public void linkAll() {
         spendTransactionDataList.forEach((znElement, spendTransactionDataList) -> {
             var first = spendTransactionDataList.get(0);
@@ -54,6 +54,7 @@ public class TransactionRepository implements IEarnTransactionDBHandler, ISpendT
                         new DoubleSpendingTag(second.getC(), second.getGamma()));
                 doubleSpendingDetected.put(first.getBasketId(), userInfo);
                 doubleSpendingDetected.put(second.getBasketId(), userInfo);
+                // TODO tuple basketId, promotionId => avoid attacking with multiple identities
             }
         });
     }
