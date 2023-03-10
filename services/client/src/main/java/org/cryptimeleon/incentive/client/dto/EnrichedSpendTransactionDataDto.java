@@ -11,11 +11,15 @@ import java.util.UUID;
  * A DTO for spend transaction data + some more data from the context of the transaction.
  */
 public class EnrichedSpendTransactionDataDto {
-    private final String serializedSpendTransactionData;
-    private final BigInteger promotionId;
-    private final UUID tokenUpdateId;
-    private final String serializedMetadata;
-    private final List<BigInteger> basketPoints;
+    private String serializedSpendTransactionData;
+    private BigInteger promotionId;
+    private UUID tokenUpdateId;
+    private String serializedMetadata;
+    private List<BigInteger> basketPoints;
+
+    @SuppressWarnings("unused")
+    public EnrichedSpendTransactionDataDto() {
+    }
 
     public EnrichedSpendTransactionDataDto(SpendTransactionData spendTransactionData, BigInteger promotionId, UUID tokenUpdateId, String serializedMetadata, List<BigInteger> basketPoints) {
         this.serializedSpendTransactionData = (new JSONConverter()).serialize(spendTransactionData.getRepresentation());
