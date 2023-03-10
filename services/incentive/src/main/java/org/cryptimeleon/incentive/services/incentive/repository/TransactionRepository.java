@@ -51,7 +51,7 @@ public class TransactionRepository implements IEarnTransactionDBHandler, ISpendT
                 var second = secondOptional.get();
                 UserInfo userInfo = cryptoRepository.getIncentiveSystem().link(
                         new DoubleSpendingTag(first.getC(), first.getGamma()),
-                        new DoubleSpendingTag(first.getC(), first.getGamma()));
+                        new DoubleSpendingTag(second.getC(), second.getGamma()));
                 doubleSpendingDetected.put(first.getBasketId(), userInfo);
                 doubleSpendingDetected.put(second.getBasketId(), userInfo);
             }
