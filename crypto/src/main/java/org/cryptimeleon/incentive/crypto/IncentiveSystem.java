@@ -724,7 +724,10 @@ public class IncentiveSystem {
                 break;
         }
 
-        // Blacklist dsid at provider and send clearing data => Provider finds users that perform double-spending attack!
+        // Blacklist dsid at this store
+        dsidBlacklistHandler.addEntryIfDsidNotPresent(commonInput.dsid, gamma);
+
+        // Add request to transaction DB that is synced with provider => provider finds users that perform double-spending attack!
         var spendClearingData = new SpendTransactionData(spendStoreRequest, promotionParameters.getPromotionId(), basketId, signature, storeKeyPair.getPk(), gamma);
         transactionDBHandler.addSpendData(spendClearingData);
 
