@@ -907,12 +907,11 @@ public class IncentiveSystem {
      * Given two double-spending tags belonging to a detected double-spending attempt, this algorithm computes the key material of the suspected user
      * as well as tracing information used to trace further transactions resulting from the detected double-spending attempt.
      *
-     * @param pp         public parameters of the respective incentive system instance
      * @param dsTag      tag of the first spend operation
      * @param dsTagPrime tag of the second spend operation
      * @return suspected user's key material + tracing information
      */
-    public UserInfo link(IncentivePublicParameters pp, DoubleSpendingTag dsTag, DoubleSpendingTag dsTagPrime) {
+    public UserInfo link(DoubleSpendingTag dsTag, DoubleSpendingTag dsTagPrime) {
         // computing dsblame, DLOG of the usk of the user blamed of double-spending
         ZnElement c = dsTag.getC();
         ZnElement cPrime = dsTagPrime.getC();
@@ -925,7 +924,7 @@ public class IncentiveSystem {
         ZnElement dsBlame = cDifference.div(gammaDifference);
 
         // computing public key of the user blamed of double-spending
-        UserPublicKey upk = new UserPublicKey(pp.getW().pow(dsBlame));
+        UserPublicKey upk = new UserPublicKey(this.pp.getW().pow(dsBlame));
 
         // assemble and return output
         return new UserInfo(upk, dsBlame);

@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiOperation;
 import org.cryptimeleon.incentive.client.dto.EnrichedSpendTransactionDataDto;
 import org.cryptimeleon.incentive.client.dto.provider.BulkRequestProviderDto;
 import org.cryptimeleon.incentive.client.dto.provider.BulkResultsProviderDto;
+import org.cryptimeleon.incentive.services.incentive.api.DSDetectedEntryDto;
 import org.cryptimeleon.incentive.services.incentive.api.RegistrationCouponJSON;
 import org.cryptimeleon.incentive.services.incentive.error.BasketAlreadyPaidException;
 import org.cryptimeleon.incentive.services.incentive.error.BasketNotPaidException;
@@ -176,7 +177,7 @@ public class IncentiveController {
     }
 
     @GetMapping("/double-spending-detected")
-    public List<UUID> getDoubleSpendingBaskets() {
+    public List<DSDetectedEntryDto> getDoubleSpendingBaskets() {
         return incentiveService.doubleSpendingDetected();
     }
 

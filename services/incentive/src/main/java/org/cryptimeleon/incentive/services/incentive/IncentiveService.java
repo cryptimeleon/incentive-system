@@ -10,6 +10,7 @@ import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.promotion.ContextManager;
 import org.cryptimeleon.incentive.promotion.Promotion;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
+import org.cryptimeleon.incentive.services.incentive.api.DSDetectedEntryDto;
 import org.cryptimeleon.incentive.services.incentive.api.RegistrationCouponJSON;
 import org.cryptimeleon.incentive.services.incentive.error.IncentiveServiceException;
 import org.cryptimeleon.incentive.services.incentive.repository.*;
@@ -20,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -215,13 +215,17 @@ public class IncentiveService {
 
     public List<UUID> txDataBaskets() {
         return transactionRepository.getSpendTransactionDataList().values().stream()
-                .flatMap(list-> list.stream().map(SpendTransactionData::getBasketId))
+                .flatMap(list -> list.stream().map(SpendTransactionData::getBasketId))
                 .distinct()
                 .collect(Collectors.toList());
     }
 
-    public List<UUID> doubleSpendingDetected() {
-        return new ArrayList<>(transactionRepository.getDoubleSpendingDetected().keySet());
+    public List<DSDetectedEntryDto> doubleSpendingDetected() {
+        return transactionRepository.getDoubleSpendingDetected().entrySet().stream().map(
+                tuple -> {
+                    var registrationCoupon = registrationCouponRepository.findEntryFor(tuple.getValue().getUpk()).orElseThrow();
+                    return new DSDetectedEntryDto(tuple.getKey(), tuple.getValue(), registrationCoupon);
+                }).collect(Collectors.toList());
     }
 
     public void addSpendTransactionData(EnrichedSpendTransactionDataDto enrichedSpendTransactionDataDto) {

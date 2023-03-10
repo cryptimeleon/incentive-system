@@ -2,9 +2,12 @@ package org.cryptimeleon.incentive.services.incentive.repository;
 
 import org.cryptimeleon.incentive.crypto.callback.IEarnTransactionDBHandler;
 import org.cryptimeleon.incentive.crypto.callback.ISpendTransactionDBHandler;
+import org.cryptimeleon.incentive.crypto.model.DoubleSpendingTag;
 import org.cryptimeleon.incentive.crypto.model.EarnTransactionData;
 import org.cryptimeleon.incentive.crypto.model.SpendTransactionData;
+import org.cryptimeleon.incentive.crypto.model.UserInfo;
 import org.cryptimeleon.math.structures.rings.zn.Zn;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Repository;
 
@@ -18,7 +21,13 @@ public class TransactionRepository implements IEarnTransactionDBHandler, ISpendT
     // Some data could appear twice bc. users can re-do earn without gaining an advantage. Filter by the hash h / ecdsa signature
     private final List<EarnTransactionData> earnTransactionDataList = new ArrayList<>();
     private final Map<Zn.ZnElement,List<SpendTransactionData>> spendTransactionDataList = Collections.synchronizedMap(new HashMap<>());
-    private final Map<UUID, String> doubleSpendingDetected = Collections.synchronizedMap(new HashMap<>());
+    private final Map<UUID, UserInfo> doubleSpendingDetected = Collections.synchronizedMap(new HashMap<>());
+    private final CryptoRepository cryptoRepository;
+
+    @Autowired
+    public TransactionRepository(CryptoRepository cryptoRepository) {
+        this.cryptoRepository = cryptoRepository;
+    }
 
     @Override
     public void addEarnData(EarnTransactionData earnTransactionData) {
@@ -40,13 +49,16 @@ public class TransactionRepository implements IEarnTransactionDBHandler, ISpendT
             var secondOptional = spendTransactionDataList.stream().filter(entry -> !entry.getC().equals(first.getC())).findAny();
             if (secondOptional.isPresent()) {
                 var second = secondOptional.get();
-                doubleSpendingDetected.put(first.getBasketId(), "TODO");
-                doubleSpendingDetected.put(second.getBasketId(), "TODO");
+                UserInfo userInfo = cryptoRepository.getIncentiveSystem().link(
+                        new DoubleSpendingTag(first.getC(), first.getGamma()),
+                        new DoubleSpendingTag(first.getC(), first.getGamma()));
+                doubleSpendingDetected.put(first.getBasketId(), userInfo);
+                doubleSpendingDetected.put(second.getBasketId(), userInfo);
             }
         });
     }
 
-    public Map<UUID, String> getDoubleSpendingDetected() {
+    public Map<UUID, UserInfo> getDoubleSpendingDetected() {
         return Collections.unmodifiableMap(doubleSpendingDetected);
     }
 

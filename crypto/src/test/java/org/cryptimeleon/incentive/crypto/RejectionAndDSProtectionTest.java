@@ -100,7 +100,7 @@ public class RejectionAndDSProtectionTest {
 
         DoubleSpendingTag doubleSpendingTag = new DoubleSpendingTag(first.getC(), first.getGamma());
         DoubleSpendingTag secondDoubleSpendingTag = new DoubleSpendingTag(second.getC(), second.getGamma());
-        var linkOutput = incSys.link(TestSuite.pp, doubleSpendingTag, secondDoubleSpendingTag);
+        var linkOutput = incSys.link(doubleSpendingTag, secondDoubleSpendingTag);
 
         Assertions.assertEquals(linkOutput.getDsBlame(), TestSuite.userKeyPair.getSk().getUsk());
         Assertions.assertEquals(linkOutput.getUpk(), TestSuite.userKeyPair.getPk());
