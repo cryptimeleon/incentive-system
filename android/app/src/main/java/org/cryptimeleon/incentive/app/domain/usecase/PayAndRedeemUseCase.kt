@@ -20,7 +20,8 @@ import java.util.*
 class PayAndRedeemUseCase(
     private val promotionRepository: IPromotionRepository,
     private val cryptoRepository: ICryptoRepository,
-    private val basketRepository: IBasketRepository
+    private val basketRepository: IBasketRepository,
+    private val preferencesRepository: IPreferencesRepository
 ) {
     private val jsonConverter = JSONConverter()
     private val analyzeUserTokenUpdatesUseCase =
@@ -45,6 +46,7 @@ class PayAndRedeemUseCase(
             val basket = basketRepository.basket.first()
             val promotionParameters = promotionRepository.promotions.first()
             val cryptoMaterial = cryptoRepository.cryptoMaterial.first()!!
+            val doubleSpendingPreferences = preferencesRepository.doubleSpendingPreferencesFlow.first()
             val tokens = cryptoRepository.tokens.first()
             val pp = cryptoMaterial.pp
             val incentiveSystem = IncentiveSystem(pp)
@@ -81,6 +83,10 @@ class PayAndRedeemUseCase(
             )
 
             basketRepository.payBasket(basketId)
+            if (doubleSpendingPreferences.discardUpdatedToken) {
+                return PayAndRedeemStatus.DSStopAfterCLaimingReward(basketId)
+            }
+            // TODO one attack stops here. Claim two rewards from one token without sending data to provider
 
             val updateResults = cryptoRepository.retrieveTokenUpdatesBatchStoreResults(basketId)
             val earnProviderRequests: List<Pair<EarnRequestProviderDto, EarnProviderCache>> =
@@ -409,6 +415,7 @@ data class SpendProviderCache(
 
 sealed class PayAndRedeemStatus {
     data class Success(val basketId: UUID) : PayAndRedeemStatus()
+    data class DSStopAfterCLaimingReward(val basketId: UUID) : PayAndRedeemStatus()
     object DSDetected : PayAndRedeemStatus()
     data class Error(val e: Exception) : PayAndRedeemStatus()
 }

@@ -88,6 +88,7 @@ private fun CheckoutUi(
                 CheckoutStep.FINISHED -> {
                     when (status) {
                         is PayAndRedeemStatus.Success -> FinishedUi(status.basketId, navigateHome)
+                        is PayAndRedeemStatus.DSStopAfterCLaimingReward-> OnlyRewardClaimedUi(status.basketId, navigateHome)
                         PayAndRedeemStatus.DSDetected -> DSPreventedUi(
                             navigateHome = navigateHome,
                             disableDoubleSpending = {

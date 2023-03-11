@@ -24,7 +24,6 @@ import org.cryptimeleon.incentive.app.domain.model.DoubleSpendingPreferences
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
 import org.cryptimeleon.incentive.app.ui.preview.CryptimeleonPreviewContainer
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AttackerUi(onUpClicked: () -> Unit) {
 
@@ -57,8 +56,7 @@ fun AttackerUi(onUpClicked: () -> Unit) {
         AttackerUi(
             doubleSpendingAttackEnabled.discardUpdatedToken,
             Modifier.padding(contentPadding),
-            viewModel::setDiscardUpdatedToken,
-            viewModel::launchShortDosAttack
+            viewModel::setDiscardUpdatedToken
         )
     }
 }
@@ -68,7 +66,6 @@ private fun AttackerUi(
     doubleSpendingAttackEnabled: Boolean,
     modifier: Modifier = Modifier,
     setDiscardEnabled: (Boolean) -> Unit = {},
-    launchDosAttack: () -> Unit = {},
 ) {
     Column(
         modifier = modifier
@@ -104,9 +101,6 @@ private fun AttackerUi(
             Switch(checked = doubleSpendingAttackEnabled, onCheckedChange = setDiscardEnabled)
         }
         DoubleSpendingProtectionText(Modifier.padding(bottom = 32.dp))
-        Button(onClick = launchDosAttack, modifier = Modifier.fillMaxWidth()) {
-            Text("Short DoS Attack")
-        }
     }
 }
 
