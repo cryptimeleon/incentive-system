@@ -2,7 +2,7 @@ package org.cryptimeleon.incentive.crypto;
 
 import org.cryptimeleon.incentive.crypto.callback.IDsidBlacklistHandler;
 import org.cryptimeleon.incentive.crypto.exception.ProviderDoubleSpendingDetectedException;
-import org.cryptimeleon.incentive.crypto.exception.StoreDoubleSpendingDetected;
+import org.cryptimeleon.incentive.crypto.exception.StoreDoubleSpendingDetectedException;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.proof.spend.SpendHelper;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
@@ -28,7 +28,7 @@ public class SpendTest {
     final IDsidBlacklistHandler dsidBlacklistHandler = new TestSuite.TestDsidBlacklist();
 
     @Test
-    void spendFullTest() throws StoreDoubleSpendingDetected, ProviderDoubleSpendingDetectedException {
+    void spendFullTest() throws StoreDoubleSpendingDetectedException, ProviderDoubleSpendingDetectedException {
         SpendDeductTree spendDeductTree = SpendHelper.generateSimpleTestSpendDeductTree(promotionParameters, pointDifference);
         SpendStoreRequest spendStoreRequest = incSys.generateStoreSpendRequest(
                 TestSuite.userKeyPair, TestSuite.providerKeyPair.getPk(), token,
@@ -67,7 +67,7 @@ public class SpendTest {
     }
 
     @Test
-    void representationTests() throws StoreDoubleSpendingDetected, ProviderDoubleSpendingDetectedException {
+    void representationTests() throws StoreDoubleSpendingDetectedException, ProviderDoubleSpendingDetectedException {
         SpendDeductTree spendDeductTree = SpendHelper.generateSimpleTestSpendDeductTree(promotionParameters, pointDifference);
         SpendStoreRequest spendStoreRequest = incSys.generateStoreSpendRequest(
                 TestSuite.userKeyPair, TestSuite.providerKeyPair.getPk(), token,

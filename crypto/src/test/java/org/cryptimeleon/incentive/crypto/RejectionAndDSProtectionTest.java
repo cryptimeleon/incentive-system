@@ -4,7 +4,7 @@ import org.cryptimeleon.incentive.crypto.callback.IDsidBlacklistHandler;
 import org.cryptimeleon.incentive.crypto.callback.ISpendTransactionDBHandler;
 import org.cryptimeleon.incentive.crypto.callback.IStoreBasketRedeemedHandler;
 import org.cryptimeleon.incentive.crypto.exception.ProviderDoubleSpendingDetectedException;
-import org.cryptimeleon.incentive.crypto.exception.StoreDoubleSpendingDetected;
+import org.cryptimeleon.incentive.crypto.exception.StoreDoubleSpendingDetectedException;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.proof.spend.SpendHelper;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
@@ -41,13 +41,13 @@ public class RejectionAndDSProtectionTest {
     }
 
     @Test
-    void testSuccessfulRetryAtProvider() throws ProviderDoubleSpendingDetectedException, StoreDoubleSpendingDetected {
+    void testSuccessfulRetryAtProvider() throws ProviderDoubleSpendingDetectedException, StoreDoubleSpendingDetectedException {
         spendTokenSyncronizedBlacklists(basketId, testDsidBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler);
         spendTokenSyncronizedBlacklists(basketId, testDsidBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler);
     }
 
     @Test
-    void testSuccessfulRejectionAtStoreSameBasketDifferentRequest() throws StoreDoubleSpendingDetected {
+    void testSuccessfulRejectionAtStoreSameBasketDifferentRequest() throws StoreDoubleSpendingDetectedException {
         spendTokenStoreOnly(basketId, testDsidBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler, spendTransactionData -> {
         });
 
@@ -59,29 +59,28 @@ public class RejectionAndDSProtectionTest {
     }
 
     @Test
-    void testSuccessfulRejectionAtStoreDifferentBasketSameRequest() throws StoreDoubleSpendingDetected {
+    void testSuccessfulRejectionAtStoreDifferentBasketSameRequest() throws StoreDoubleSpendingDetectedException {
         spendTokenStoreOnly(basketId, testDsidBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler, spendTransactionData -> {
         });
 
-        Throwable t = Assertions.assertThrows(RuntimeException.class, () -> spendTokenStoreOnly(secondBasketId, testDsidBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler, spendTransactionData -> {
-        }));
-        System.out.println(t.getMessage());
-        Assertions.assertTrue(t.getMessage().contains("already spent with different basket"));
+        Assertions.assertThrows(
+                StoreDoubleSpendingDetectedException.class,
+                () -> spendTokenStoreOnly(secondBasketId, testDsidBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler, spendTransactionData -> {}));
     }
 
     @Test
-    void testSuccessfulRejectionAtStoreDifferentBasketAndRequest() throws StoreDoubleSpendingDetected {
+    void testSuccessfulRejectionAtStoreDifferentBasketAndRequest() throws StoreDoubleSpendingDetectedException {
         spendTokenStoreOnly(basketId, testDsidBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler, spendTransactionData -> {
         });
 
-        Throwable t = Assertions.assertThrows(RuntimeException.class, () -> spendTokenStoreOnly(secondBasketId, testDsidBlacklist, pointDifferenceAlt, pointsAfterSpendAlt, testRedeemedHandler, spendTransactionData -> {
-        }));
-        System.out.println(t.getMessage());
-        Assertions.assertTrue(t.getMessage().contains("already spent with different basket"));
+        Assertions.assertThrows(
+                StoreDoubleSpendingDetectedException.class,
+                () -> spendTokenStoreOnly(secondBasketId, testDsidBlacklist, pointDifferenceAlt, pointsAfterSpendAlt, testRedeemedHandler, spendTransactionData -> {})
+        );
     }
 
     @Test
-    void testSuccessfulRejectionAtProvider() throws ProviderDoubleSpendingDetectedException, StoreDoubleSpendingDetected {
+    void testSuccessfulRejectionAtProvider() throws ProviderDoubleSpendingDetectedException, StoreDoubleSpendingDetectedException {
         // Do no sync blacklist with store => multiple blacklists
         TestSuite.TestDsidBlacklist storeOneBlacklist = new TestSuite.TestDsidBlacklist();
         TestSuite.TestDsidBlacklist storeTwoBlacklist = new TestSuite.TestDsidBlacklist();
@@ -89,16 +88,14 @@ public class RejectionAndDSProtectionTest {
 
         spendTokenMultipleBlackslists(basketId, storeOneBlacklist, providerBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler);
 
-        Throwable t = Assertions.assertThrows(
-                RuntimeException.class,
+        Assertions.assertThrows(
+                ProviderDoubleSpendingDetectedException.class,
                 () -> spendTokenMultipleBlackslists(secondBasketId, storeTwoBlacklist, providerBlacklist, pointDifferenceAlt, pointsAfterSpendAlt, testRedeemedHandler)
         );
-        System.out.println(t.getMessage());
-        Assertions.assertTrue(t.getMessage().contains("Illegal retry, dsid already used for different request"));
     }
 
     @Test
-    void testSuccessfulLink() throws StoreDoubleSpendingDetected {
+    void testSuccessfulLink() throws StoreDoubleSpendingDetectedException {
         ArrayList<SpendTransactionData> spendTransactionData = new ArrayList<>();
         TestSuite.TestDsidBlacklist storeOneBlacklist = new TestSuite.TestDsidBlacklist();
         TestSuite.TestDsidBlacklist storeTwoBlacklist = new TestSuite.TestDsidBlacklist();
@@ -121,7 +118,7 @@ public class RejectionAndDSProtectionTest {
                                                    Vector<BigInteger> pointDifference,
                                                    Vector<BigInteger> pointsAfterSpend,
                                                    IStoreBasketRedeemedHandler storeBasketRedeemedHandler,
-                                                   ISpendTransactionDBHandler spendTransactionDBHandler) throws StoreDoubleSpendingDetected {
+                                                   ISpendTransactionDBHandler spendTransactionDBHandler) throws StoreDoubleSpendingDetectedException {
         SpendDeductTree spendDeductTree = SpendHelper.generateSimpleTestSpendDeductTree(promotionParameters, pointDifference);
         SpendStoreRequest spendStoreRequest = incSys.generateStoreSpendRequest(
                 TestSuite.userKeyPair, TestSuite.providerKeyPair.getPk(), token,
@@ -148,7 +145,7 @@ public class RejectionAndDSProtectionTest {
                                                                   Vector<BigInteger> pointDifference,
                                                                   Vector<BigInteger> pointsAfterSpend,
                                                                   IStoreBasketRedeemedHandler storeBasketRedeemedHandler
-    ) throws ProviderDoubleSpendingDetectedException, StoreDoubleSpendingDetected {
+    ) throws ProviderDoubleSpendingDetectedException, StoreDoubleSpendingDetectedException {
         return spendTokenMultipleBlackslists(basketId,
                 dsidBlacklistHandler,
                 dsidBlacklistHandler,
@@ -165,7 +162,7 @@ public class RejectionAndDSProtectionTest {
                                                                 IDsidBlacklistHandler providerBlacklist,
                                                                 Vector<BigInteger> pointDifference,
                                                                 Vector<BigInteger> pointsAfterSpend,
-                                                                IStoreBasketRedeemedHandler testRedeemedHandler) throws StoreDoubleSpendingDetected, ProviderDoubleSpendingDetectedException {
+                                                                IStoreBasketRedeemedHandler testRedeemedHandler) throws StoreDoubleSpendingDetectedException, ProviderDoubleSpendingDetectedException {
         SpendDeductTree spendDeductTree = SpendHelper.generateSimpleTestSpendDeductTree(promotionParameters, pointDifference);
         SpendStoreRequest spendStoreRequest = incSys.generateStoreSpendRequest(
                 TestSuite.userKeyPair,

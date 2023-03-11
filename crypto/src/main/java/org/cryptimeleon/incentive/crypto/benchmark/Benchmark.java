@@ -6,7 +6,7 @@ import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.callback.IStoreBasketRedeemedHandler;
 import org.cryptimeleon.incentive.crypto.exception.ProviderDoubleSpendingDetectedException;
-import org.cryptimeleon.incentive.crypto.exception.StoreDoubleSpendingDetected;
+import org.cryptimeleon.incentive.crypto.exception.StoreDoubleSpendingDetectedException;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
@@ -286,7 +286,7 @@ public class Benchmark {
                         new BenchmarkBlacklist(),
                         spendTransactionData -> {}
                 );
-            } catch (StoreDoubleSpendingDetected e) {
+            } catch (StoreDoubleSpendingDetectedException e) {
                 throw new RuntimeException(e);
             }
             finish = Instant.now();

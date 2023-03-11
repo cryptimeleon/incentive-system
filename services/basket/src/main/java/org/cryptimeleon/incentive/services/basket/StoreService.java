@@ -2,7 +2,7 @@ package org.cryptimeleon.incentive.services.basket;
 
 import org.cryptimeleon.incentive.client.dto.store.*;
 import org.cryptimeleon.incentive.crypto.callback.IStoreBasketRedeemedHandler;
-import org.cryptimeleon.incentive.crypto.exception.StoreDoubleSpendingDetected;
+import org.cryptimeleon.incentive.crypto.exception.StoreDoubleSpendingDetectedException;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
@@ -200,7 +200,7 @@ public class StoreService {
                     dsidBlacklistRepository,
                     spendTransactionData -> transactionRepository.addSpendData(new BasketSpendTransactionData(basket.getBasketId(), promotion, requestedTokenUpdate, spendTransactionData, serializedZkpTokenUpdateMetadata, basketValueForUpdate.toList()))
             );
-        } catch (StoreDoubleSpendingDetected e) {
+        } catch (StoreDoubleSpendingDetectedException e) {
             throw new DSPreventedException();
         }
     }
