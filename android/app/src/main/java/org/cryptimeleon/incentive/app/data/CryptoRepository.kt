@@ -11,10 +11,7 @@ import org.cryptimeleon.incentive.app.data.database.crypto.CryptoTokenEntity
 import org.cryptimeleon.incentive.app.data.network.InfoApiService
 import org.cryptimeleon.incentive.app.data.network.ProviderApiService
 import org.cryptimeleon.incentive.app.data.network.StoreApiService
-import org.cryptimeleon.incentive.app.domain.DSException
-import org.cryptimeleon.incentive.app.domain.ICryptoRepository
-import org.cryptimeleon.incentive.app.domain.PayRedeemException
-import org.cryptimeleon.incentive.app.domain.RefreshCryptoMaterialException
+import org.cryptimeleon.incentive.app.domain.*
 import org.cryptimeleon.incentive.app.domain.model.*
 import org.cryptimeleon.incentive.crypto.IncentiveSystem
 import org.cryptimeleon.incentive.crypto.IncentiveSystemRestorer
@@ -99,8 +96,7 @@ class CryptoRepository(
         if (!response.isSuccessful) {
             Timber.e("Error: ${response.code()}, ${response.errorBody()}")
             if (response.code() == 418) {
-                // TODO add error codes once implemented
-                throw DSException()
+                throw DSStoreException()
             } else {
                 throw PayRedeemException(response.code(), response.errorBody()?.string() ?: "")
             }
@@ -121,8 +117,7 @@ class CryptoRepository(
         if (!response.isSuccessful || response.body() == null) {
             Timber.e("Error: ${response.code()}, ${response.errorBody()}")
             if (response.code() == 418) {
-                // TODO add error codes once implemented
-                throw DSException()
+                throw DSProviderException()
             } else {
                 throw PayRedeemException(response.code(), response.errorBody()?.string() ?: "")
             }

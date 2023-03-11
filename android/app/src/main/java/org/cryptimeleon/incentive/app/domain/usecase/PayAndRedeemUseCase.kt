@@ -134,9 +134,12 @@ class PayAndRedeemUseCase(
             basketRepository.discardCurrentBasket()
             Timber.i("Finished Pay and Redeem")
             return PayAndRedeemStatus.Success(basketId)
-        } catch (e: DSException) {
+        } catch (e: DSStoreException) {
             Timber.e(e)
-            return PayAndRedeemStatus.DSDetected
+            return PayAndRedeemStatus.DSDetected(DSDetectedStep.STORE)
+        } catch (e: DSProviderException) {
+            Timber.e(e)
+            return PayAndRedeemStatus.DSDetected(DSDetectedStep.PROVIDER)
         } catch (e: PayRedeemException) {
             Timber.e(e)
             return PayAndRedeemStatus.Error(e)
@@ -416,6 +419,11 @@ data class SpendProviderCache(
 sealed class PayAndRedeemStatus {
     data class Success(val basketId: UUID) : PayAndRedeemStatus()
     data class DSStopAfterCLaimingReward(val basketId: UUID) : PayAndRedeemStatus()
-    object DSDetected : PayAndRedeemStatus()
+    data class DSDetected(val step: DSDetectedStep) : PayAndRedeemStatus()
     data class Error(val e: Exception) : PayAndRedeemStatus()
+}
+
+enum class DSDetectedStep {
+    STORE,
+    PROVIDER
 }

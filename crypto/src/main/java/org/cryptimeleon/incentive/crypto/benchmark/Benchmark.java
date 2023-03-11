@@ -5,6 +5,7 @@ import org.cryptimeleon.craco.common.ByteArrayImplementation;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.callback.IStoreBasketRedeemedHandler;
+import org.cryptimeleon.incentive.crypto.exception.StoreDoubleSpendingDetected;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
@@ -271,18 +272,22 @@ public class Benchmark {
             tSpendStoreRequest[i] = Duration.between(start, finish).toNanos();
 
             start = Instant.now();
-            spendCouponSignature = incentiveSystem.signSpendCoupon(
-                    storeKeyPair,
-                    ppk,
-                    basketId,
-                    promotionParameters,
-                    spendStoreRequest,
-                    spendDeductTree,
-                    context,
-                    (basketId1, promotionId, hash) -> IStoreBasketRedeemedHandler.BasketRedeemState.BASKET_NOT_REDEEMED,
-                    new BenchmarkBlacklist(),
-                    spendTransactionData -> {}
-            );
+            try {
+                spendCouponSignature = incentiveSystem.signSpendCoupon(
+                        storeKeyPair,
+                        ppk,
+                        basketId,
+                        promotionParameters,
+                        spendStoreRequest,
+                        spendDeductTree,
+                        context,
+                        (basketId1, promotionId, hash) -> IStoreBasketRedeemedHandler.BasketRedeemState.BASKET_NOT_REDEEMED,
+                        new BenchmarkBlacklist(),
+                        spendTransactionData -> {}
+                );
+            } catch (StoreDoubleSpendingDetected e) {
+                throw new RuntimeException(e);
+            }
             finish = Instant.now();
             tSpendStoreResponse[i] = Duration.between(start, finish).toNanos();
 

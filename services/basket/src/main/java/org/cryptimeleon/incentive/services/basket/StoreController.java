@@ -3,6 +3,7 @@ package org.cryptimeleon.incentive.services.basket;
 import io.swagger.annotations.ApiOperation;
 import org.cryptimeleon.incentive.client.dto.store.BulkRequestStoreDto;
 import org.cryptimeleon.incentive.client.dto.store.BulkResultsStoreDto;
+import org.cryptimeleon.incentive.services.basket.exceptions.DSPreventedException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -113,6 +114,12 @@ public class StoreController {
         }
         storeService.deleteAllPromotions();
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @ExceptionHandler(DSPreventedException.class)
+    public ResponseEntity<String> handleException(DSPreventedException ex) {
+        // For debugging causes send the exception string
+        return new ResponseEntity<>("Double-spending prevented", HttpStatus.I_AM_A_TEAPOT);
     }
 
     @ExceptionHandler(StoreException.class)

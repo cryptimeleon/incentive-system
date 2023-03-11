@@ -9,6 +9,7 @@ import org.cryptimeleon.craco.sig.ecdsa.ECDSASignatureScheme;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignatureScheme;
 import org.cryptimeleon.incentive.crypto.callback.*;
+import org.cryptimeleon.incentive.crypto.exception.StoreDoubleSpendingDetected;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
@@ -674,7 +675,7 @@ public class IncentiveSystem {
                                               IStoreBasketRedeemedHandler basketRedeemedHandler,
                                               IDsidBlacklistHandler dsidBlacklistHandler,
                                               ISpendTransactionDBHandler transactionDBHandler
-    ) {
+    ) throws StoreDoubleSpendingDetected {
         var zp = pp.getBg().getZn();
 
         // Verify old token signature valid
@@ -714,7 +715,7 @@ public class IncentiveSystem {
         switch (redeemResult) {
             case BASKET_NOT_REDEEMED:
                 if (dsidBlacklistHandler.containsDsidWithDifferentGamma(commonInput.dsid, gamma)) {
-                    throw new RuntimeException("Token with dsid already spent with different basket!");
+                    throw new StoreDoubleSpendingDetected("Token with dsid already spent with different basket!");
                 }
                 break;
             case BASKET_REDEEMED_ABORT:

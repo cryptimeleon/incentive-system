@@ -1,6 +1,7 @@
 package org.cryptimeleon.incentive.crypto;
 
 import org.cryptimeleon.incentive.crypto.callback.IDsidBlacklistHandler;
+import org.cryptimeleon.incentive.crypto.exception.StoreDoubleSpendingDetected;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.proof.spend.SpendHelper;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
@@ -34,18 +35,23 @@ public class SpendTest {
                 spendDeductTree,
                 TestSuite.context
         );
-        SpendStoreResponse spendCouponSignature = incSys.signSpendCoupon(
-                TestSuite.storeKeyPair,
-                TestSuite.providerKeyPair.getPk(),
-                basketId,
-                promotionParameters,
-                spendStoreRequest,
-                spendDeductTree,
-                TestSuite.context,
-                testRedeemedHandler,
-                dsidBlacklistHandler,
-                spendTransactionData -> {}
-        );
+        SpendStoreResponse spendCouponSignature;
+        try {
+            spendCouponSignature = incSys.signSpendCoupon(
+                    TestSuite.storeKeyPair,
+                    TestSuite.providerKeyPair.getPk(),
+                    basketId,
+                    promotionParameters,
+                    spendStoreRequest,
+                    spendDeductTree,
+                    TestSuite.context,
+                    testRedeemedHandler,
+                    dsidBlacklistHandler,
+                    spendTransactionData -> {}
+            );
+        } catch (StoreDoubleSpendingDetected e) {
+            throw new RuntimeException(e);
+        }
         Assertions.assertTrue(incSys.verifySpendCouponSignature(spendStoreRequest, spendCouponSignature, promotionParameters, basketId));
 
         SpendProviderRequest spendRequest = new SpendProviderRequest(spendStoreRequest, spendCouponSignature);
@@ -73,17 +79,22 @@ public class SpendTest {
                 TestSuite.context
         );
         ArrayList<SpendTransactionData> spendTxData = new ArrayList<>();
-        SpendStoreResponse spendCouponSignature = incSys.signSpendCoupon(
-                TestSuite.storeKeyPair,
-                TestSuite.providerKeyPair.getPk(),
-                basketId,
-                promotionParameters,
-                spendStoreRequest,
-                spendDeductTree,
-                TestSuite.context, testRedeemedHandler,
-                dsidBlacklistHandler,
-                spendTxData::add
-        );
+        SpendStoreResponse spendCouponSignature;
+        try {
+            spendCouponSignature = incSys.signSpendCoupon(
+                    TestSuite.storeKeyPair,
+                    TestSuite.providerKeyPair.getPk(),
+                    basketId,
+                    promotionParameters,
+                    spendStoreRequest,
+                    spendDeductTree,
+                    TestSuite.context, testRedeemedHandler,
+                    dsidBlacklistHandler,
+                    spendTxData::add
+            );
+        } catch (StoreDoubleSpendingDetected e) {
+            throw new RuntimeException(e);
+        }
 
         SpendTransactionData spendTransactionData = spendTxData.get(0);
         SpendProviderRequest spendRequest = new SpendProviderRequest(spendStoreRequest, spendCouponSignature);
