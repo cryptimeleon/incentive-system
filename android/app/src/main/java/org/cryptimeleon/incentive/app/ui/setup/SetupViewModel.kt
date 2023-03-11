@@ -17,7 +17,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SetupViewModel @Inject constructor(
     cryptoRepository: ICryptoRepository,
-    private val basketRepository: IBasketRepository,
+    basketRepository: IBasketRepository,
     promotionRepository: IPromotionRepository,
     preferencesRepository: IPreferencesRepository,
     application: Application,
@@ -37,12 +37,15 @@ class SetupViewModel @Inject constructor(
     val navigateToInfo: LiveData<Boolean>
         get() = _navigateToInfo
 
+    var setupStarted = false
     fun startSetup() {
+        if (setupStarted) return
+        setupStarted = true
+
         uiScope.launch {
             withContext(Dispatchers.IO) {
                 try {
                     refreshCryptoDataUseCase()
-                    basketRepository.ensureActiveBasket()
                     _navigateToInfo.postValue(true)
                 } catch (e: Exception) {
                     Timber.e(e)

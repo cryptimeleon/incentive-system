@@ -1,13 +1,11 @@
 package org.cryptimeleon.incentive.app.ui.basket
 
 import android.app.Application
-import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.cryptimeleon.incentive.app.domain.IBasketRepository
@@ -18,8 +16,6 @@ import org.cryptimeleon.incentive.app.domain.model.Earn
 import org.cryptimeleon.incentive.app.domain.model.None
 import org.cryptimeleon.incentive.app.domain.model.ZKP
 import org.cryptimeleon.incentive.app.domain.usecase.*
-import org.cryptimeleon.incentive.app.util.SLE
-import timber.log.Timber
 import java.math.BigInteger
 import javax.inject.Inject
 
@@ -31,14 +27,7 @@ class BasketViewModel @Inject constructor(
     application: Application
 ) : AndroidViewModel(application) {
 
-    val basket: Flow<SLE<Basket>> = basketRepository.basket.map {
-        Timber.i("Basket ${it}, ${it?.items}")
-        if (it == null) {
-            SLE.Error("Basket is null!")
-        } else {
-            SLE.Success(it)
-        }
-    }
+    val basket: Flow<Basket> = basketRepository.basket
 
     val promotionData: Flow<List<PromotionData>> =
         PromotionInfoUseCase(promotionRepository, cryptoRepository, basketRepository).invoke()
@@ -46,15 +35,7 @@ class BasketViewModel @Inject constructor(
     fun setItemCount(itemId: String, count: Int) {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                if (!basketRepository.putItemIntoCurrentBasket(itemId, count)) {
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(
-                            getApplication(),
-                            "Could not update item $itemId",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
+                basketRepository.putItemIntoBasket(itemId, count)
             }
         }
     }
@@ -78,7 +59,7 @@ class BasketViewModel @Inject constructor(
     fun discardCurrentBasket() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                basketRepository.discardCurrentBasket(delete = false)
+                basketRepository.discardCurrentBasket()
             }
         }
     }

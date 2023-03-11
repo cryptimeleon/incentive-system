@@ -1,30 +1,50 @@
 package org.cryptimeleon.incentive.services.basket.repository;
 
-import org.cryptimeleon.incentive.crypto.callback.ITransactionDBHandler;
-import org.cryptimeleon.incentive.crypto.model.EarnProviderRequest;
-import org.cryptimeleon.incentive.crypto.model.SpendTransactionData;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 /**
  * Store all transaction data for clearing and offline double-spending detection.
  * TODO: Send them to provider
  */
 @Repository
-public class TransactionRepository implements ITransactionDBHandler {
-    final Map<EarnProviderRequest, byte[]> earnData = new HashMap<>();
-    final ArrayList<SpendTransactionData> spendData = new ArrayList<>();
+public class TransactionRepository {
+    private final ArrayList<BasketEarnTransactionData> earnData = new ArrayList<>();
+    private final ArrayList<BasketSpendTransactionData> spendData = new ArrayList<>();
 
-    @Override
-    public void addEarnData(EarnProviderRequest earnProviderRequest, byte[] h) {
-        earnData.put(earnProviderRequest, h);
+    private final ProviderTxRepository providerTxRepository;
+
+    @Autowired
+    public TransactionRepository(ProviderTxRepository providerTxRepository) {
+        this.providerTxRepository = providerTxRepository;
     }
 
-    @Override
-    public void addSpendData(SpendTransactionData spendTransactionData) {
-        spendData.add(spendTransactionData);
+
+    public void addEarnData(BasketEarnTransactionData basketEarnTransactionData) {
+        earnData.add(basketEarnTransactionData);
+    }
+
+    @Async
+    public void addSpendData(BasketSpendTransactionData basketSpendTransactionData) {
+        spendData.add(basketSpendTransactionData);
+        providerTxRepository.sendBasketTransactioData(basketSpendTransactionData);
+    }
+
+    public Optional<BasketSpendTransactionData> getSpendDataForBasketId(UUID basketId) {
+        return spendData.stream()
+                .filter(spendData -> spendData.getBasketId().equals(basketId))
+                .findAny();
+    }
+
+    public Optional<BasketEarnTransactionData> getEarnDataForBasketId(UUID basketId) {
+        return earnData.stream()
+                .filter(earnData -> earnData.getBasketId().equals(basketId))
+                .findAny();
     }
 }
+

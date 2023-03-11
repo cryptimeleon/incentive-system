@@ -1,19 +1,17 @@
 <template>
-    <div :key="basket.basketID" v-for="basket in baskets">
-        <BasketUI :basket="basket" />
+    <div class="flex flex-col pb-8 gap-4">
+        <BasketCard :basket="basket" v-for="basket in baskets" :key="basket.basketID"/>
     </div>
 </template>
 
 <script>
-    import BasketUI from "./Basket.vue"
+import BasketCard from "@/components/store/BasketCard.vue";
 
-    export default {
-        name: 'BasketList',
-        props: {
-            baskets: Array
-        },
-        components: {
-            BasketUI
-        }
-    }
+export default {
+    name: 'BasketList',
+    components: {BasketCard},
+    props: {
+        baskets: Array,
+    },
+}
 </script>

@@ -32,20 +32,6 @@ class BasketDatabaseTest {
         db.close()
     }
 
-    private val basket = BasketEntity(
-        basketId = UUID.randomUUID(),
-        paid = false,
-    )
-
-    @Test
-    @Throws(Exception::class)
-    fun testBasket() = runBlocking {
-        val basketFlow = basketDao.observeBasketEntity()
-        Assert.assertNull(basketFlow.first())
-        basketDao.setBasketEntity(basket)
-        Assert.assertEquals(basket, basketFlow.first())
-    }
-
     private val firstBasketItemEntity = BasketItemEntity(
         "first-item",
         "Chocolate",

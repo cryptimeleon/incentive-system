@@ -1,6 +1,8 @@
 package org.cryptimeleon.incentive.crypto;
 
 import org.cryptimeleon.incentive.crypto.callback.IDsidBlacklistHandler;
+import org.cryptimeleon.incentive.crypto.exception.ProviderDoubleSpendingDetectedException;
+import org.cryptimeleon.incentive.crypto.exception.StoreDoubleSpendingDetectedException;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.proof.spend.SpendHelper;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
@@ -10,6 +12,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.UUID;
 
 public class SpendTest {
@@ -23,10 +26,9 @@ public class SpendTest {
     final Token token = TestSuite.generateToken(promotionParameters, pointsBeforeSpend);
     final TestRedeemedHandler testRedeemedHandler = new TestRedeemedHandler();
     final IDsidBlacklistHandler dsidBlacklistHandler = new TestSuite.TestDsidBlacklist();
-    final TestSuite.TestTransactionDbHandler transactionDbHandler = new TestSuite.TestTransactionDbHandler();
 
     @Test
-    void spendFullTest() {
+    void spendFullTest() throws StoreDoubleSpendingDetectedException, ProviderDoubleSpendingDetectedException {
         SpendDeductTree spendDeductTree = SpendHelper.generateSimpleTestSpendDeductTree(promotionParameters, pointDifference);
         SpendStoreRequest spendStoreRequest = incSys.generateStoreSpendRequest(
                 TestSuite.userKeyPair, TestSuite.providerKeyPair.getPk(), token,
@@ -41,9 +43,11 @@ public class SpendTest {
                 promotionParameters,
                 spendStoreRequest,
                 spendDeductTree,
-                TestSuite.context, testRedeemedHandler,
+                TestSuite.context,
+                testRedeemedHandler,
                 dsidBlacklistHandler,
-                transactionDbHandler
+                spendTransactionData -> {
+                }
         );
         Assertions.assertTrue(incSys.verifySpendCouponSignature(spendStoreRequest, spendCouponSignature, promotionParameters, basketId));
 
@@ -63,7 +67,7 @@ public class SpendTest {
     }
 
     @Test
-    void representationTests() {
+    void representationTests() throws StoreDoubleSpendingDetectedException, ProviderDoubleSpendingDetectedException {
         SpendDeductTree spendDeductTree = SpendHelper.generateSimpleTestSpendDeductTree(promotionParameters, pointDifference);
         SpendStoreRequest spendStoreRequest = incSys.generateStoreSpendRequest(
                 TestSuite.userKeyPair, TestSuite.providerKeyPair.getPk(), token,
@@ -71,7 +75,9 @@ public class SpendTest {
                 spendDeductTree,
                 TestSuite.context
         );
-        SpendStoreResponse spendCouponSignature = incSys.signSpendCoupon(
+        ArrayList<SpendTransactionData> spendTxData = new ArrayList<>();
+        SpendStoreResponse spendCouponSignature;
+        spendCouponSignature = incSys.signSpendCoupon(
                 TestSuite.storeKeyPair,
                 TestSuite.providerKeyPair.getPk(),
                 basketId,
@@ -80,10 +86,10 @@ public class SpendTest {
                 spendDeductTree,
                 TestSuite.context, testRedeemedHandler,
                 dsidBlacklistHandler,
-                transactionDbHandler
+                spendTxData::add
         );
 
-        SpendTransactionData spendTransactionData = transactionDbHandler.spendData.get(0);
+        SpendTransactionData spendTransactionData = spendTxData.get(0);
         SpendProviderRequest spendRequest = new SpendProviderRequest(spendStoreRequest, spendCouponSignature);
         SpendProviderResponse spendResponse = incSys.verifySpendRequestAndIssueNewToken(
                 TestSuite.providerKeyPair,

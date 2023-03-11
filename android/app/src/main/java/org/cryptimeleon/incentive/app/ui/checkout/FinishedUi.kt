@@ -27,11 +27,25 @@ import org.cryptimeleon.incentive.app.ui.preview.CryptimeleonPreviewContainer
 import timber.log.Timber
 import java.util.*
 
+
+@Composable
+internal fun OnlyRewardClaimedUi(
+    paidBasketId: UUID?,
+    navigateHome: () -> Unit
+) {
+    FinishedUiWithQRCode("Reward claimed successfully without remainder token 🤖", paidBasketId, navigateHome)
+}
+
 @Composable
 internal fun FinishedUi(
     paidBasketId: UUID?,
     navigateHome: () -> Unit
 ) {
+    FinishedUiWithQRCode("Success! 🎉", paidBasketId, navigateHome)
+}
+
+@Composable
+private fun FinishedUiWithQRCode(message: String, paidBasketId: UUID?, navigateHome: () -> Unit) {
     Column(
         modifier = Modifier
             .padding(16.dp)
@@ -45,7 +59,7 @@ internal fun FinishedUi(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                "Success! 🎉",
+                message,
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.SemiBold,
             )

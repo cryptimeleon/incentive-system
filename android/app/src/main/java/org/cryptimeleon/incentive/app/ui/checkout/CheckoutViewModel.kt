@@ -8,7 +8,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.cryptimeleon.incentive.app.domain.IBasketRepository
@@ -16,7 +15,6 @@ import org.cryptimeleon.incentive.app.domain.ICryptoRepository
 import org.cryptimeleon.incentive.app.domain.IPreferencesRepository
 import org.cryptimeleon.incentive.app.domain.IPromotionRepository
 import org.cryptimeleon.incentive.app.domain.usecase.*
-import java.util.*
 import javax.inject.Inject
 
 @HiltViewModel
@@ -31,7 +29,8 @@ class CheckoutViewModel @Inject constructor(
         PayAndRedeemUseCase(
             promotionRepository,
             cryptoRepository,
-            basketRepository
+            basketRepository,
+            preferencesRepository
         )
 
     private val _checkoutStep = MutableStateFlow(CheckoutStep.SUMMARY)
@@ -40,12 +39,6 @@ class CheckoutViewModel @Inject constructor(
 
     private val resetAppUseCase =
         ResetAppUseCase(cryptoRepository, basketRepository, promotionRepository)
-
-
-    // store basketId since a new one is retrieved after payment
-    private val _paidBasketId: MutableStateFlow<UUID?> = MutableStateFlow(null)
-    val paidBasketId: StateFlow<UUID?>
-        get() = _paidBasketId
 
     private val _returnCode: MutableStateFlow<PayAndRedeemStatus?> = MutableStateFlow(null)
     val returnCode: StateFlow<PayAndRedeemStatus?>
@@ -58,9 +51,7 @@ class CheckoutViewModel @Inject constructor(
     fun startPayAndRedeem() {
         viewModelScope.launch {
             withContext(Dispatchers.IO) {
-                // Store basket ID since use case will retrieve a new one
                 _checkoutStep.value = CheckoutStep.PROCESSING
-                _paidBasketId.value = basket.first()?.basketId
                 _returnCode.value = payAndRedeemUseCase.invoke()
                 _checkoutStep.value = CheckoutStep.FINISHED
             }

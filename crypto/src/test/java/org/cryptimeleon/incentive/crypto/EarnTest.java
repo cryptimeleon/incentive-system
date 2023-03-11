@@ -21,12 +21,10 @@ public class EarnTest {
     final Token altToken = TestSuite.generateToken(promotionParameters);
     final Vector<BigInteger> earnAmount = Vector.of(BigInteger.valueOf(3L), BigInteger.valueOf(5L));
     TestRedeemedHandler testRedeemedHandler;
-    TestSuite.TestTransactionDbHandler transactionDbHandler;
 
     @BeforeEach
     void setup() {
         testRedeemedHandler = new TestRedeemedHandler();
-        transactionDbHandler = new TestSuite.TestTransactionDbHandler();
     }
 
     @Test
@@ -39,7 +37,7 @@ public class EarnTest {
                 .isTrue();
 
         var providerReq = incSys.generateEarnRequest(token, TestSuite.providerKeyPair.getPk(), TestSuite.userKeyPair, earnAmount, storeRes);
-        var providerRes = incSys.generateEarnResponse(providerReq, promotionParameters, TestSuite.providerKeyPair, transactionDbHandler, (a) -> true);
+        var providerRes = incSys.generateEarnResponse(providerReq, promotionParameters, TestSuite.providerKeyPair, earnTransactionData -> {}, (a) -> true);
 
         var updatedToken = incSys.handleEarnResponse(providerReq, providerRes, promotionParameters, token, TestSuite.userKeyPair, TestSuite.providerKeyPair.getPk());
 
@@ -58,7 +56,7 @@ public class EarnTest {
 
         var providerReq = incSys.generateEarnRequest(token, TestSuite.providerKeyPair.getPk(), TestSuite.userKeyPair, invalidEarnAmount, storeRes);
 
-        assertThatThrownBy(() -> incSys.generateEarnResponse(providerReq, promotionParameters, TestSuite.providerKeyPair, transactionDbHandler, (a) -> true))
+        assertThatThrownBy(() -> incSys.generateEarnResponse(providerReq, promotionParameters, TestSuite.providerKeyPair, earnTransactionData -> {}, (a) -> true))
                 .isInstanceOf(RuntimeException.class);
     }
 
@@ -93,7 +91,7 @@ public class EarnTest {
                 .isTrue();
 
         var providerReq = incSys.generateEarnRequest(tokenWithDoubledPoints, TestSuite.providerKeyPair.getPk(), TestSuite.userKeyPair, earnAmount, storeRes);
-        assertThatThrownBy(() -> incSys.generateEarnResponse(providerReq, promotionParameters, TestSuite.providerKeyPair, transactionDbHandler, (a) -> true))
+        assertThatThrownBy(() -> incSys.generateEarnResponse(providerReq, promotionParameters, TestSuite.providerKeyPair, earnTransactionData -> {}, (a) -> true))
                 .isInstanceOf(RuntimeException.class);
     }
 

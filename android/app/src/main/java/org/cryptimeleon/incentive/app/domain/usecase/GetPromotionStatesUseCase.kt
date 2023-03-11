@@ -27,9 +27,7 @@ class GetPromotionStatesUseCase(
             cryptoRepository.tokens,
             basketRepository.basket
         ) { promotions, tokens, basket ->
-            if (basket == null) return@combine emptyList<UserPromotionState>()
-
-            return@combine promotions.map {
+            promotions.map {
                 val token =
                     tokens.find { token: Token -> token.promotionId == it.promotionParameters.promotionId }
                         ?: throw RuntimeException("No token for promotion found!")

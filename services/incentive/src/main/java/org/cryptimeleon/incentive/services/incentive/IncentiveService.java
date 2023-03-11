@@ -1,16 +1,20 @@
 package org.cryptimeleon.incentive.services.incentive;
 
+import org.cryptimeleon.incentive.client.dto.EnrichedSpendTransactionDataDto;
 import org.cryptimeleon.incentive.client.dto.provider.*;
 import org.cryptimeleon.incentive.crypto.IncentiveSystemRestorer;
 import org.cryptimeleon.incentive.crypto.callback.IRegistrationCouponDBHandler;
 import org.cryptimeleon.incentive.crypto.callback.IStorePublicKeyVerificationHandler;
+import org.cryptimeleon.incentive.crypto.exception.ProviderDoubleSpendingDetectedException;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.promotion.ContextManager;
 import org.cryptimeleon.incentive.promotion.Promotion;
 import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
+import org.cryptimeleon.incentive.services.incentive.api.DSDetectedEntryDto;
 import org.cryptimeleon.incentive.services.incentive.api.RegistrationCouponJSON;
 import org.cryptimeleon.incentive.services.incentive.error.IncentiveServiceException;
+import org.cryptimeleon.incentive.services.incentive.error.OnlineDoubleSpendingException;
 import org.cryptimeleon.incentive.services.incentive.repository.*;
 import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
@@ -20,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -197,16 +202,59 @@ public class IncentiveService {
                 cryptoRepository.getProviderPublicKey(),
                 context
         );
-        var spendResult = cryptoRepository.getIncentiveSystem().verifySpendRequestAndIssueNewToken(
-                cryptoRepository.getProviderKeyPair(),
-                promotion.getPromotionParameters(),
-                spendRequest,
-                spendRequestProviderDto.getBasketId(),
-                tree,
-                context,
-                s -> true,
-                dsidBlacklistRepository
-        );
+        SpendProviderResponse spendResult;
+        try {
+            spendResult = cryptoRepository.getIncentiveSystem().verifySpendRequestAndIssueNewToken(
+                    cryptoRepository.getProviderKeyPair(),
+                    promotion.getPromotionParameters(),
+                    spendRequest,
+                    spendRequestProviderDto.getBasketId(),
+                    tree,
+                    context,
+                    s -> true,
+                    dsidBlacklistRepository
+            );
+        } catch (ProviderDoubleSpendingDetectedException e) {
+            throw new OnlineDoubleSpendingException();
+        }
         return new SpendResultProviderDto(promotion.getPromotionParameters().getPromotionId(), jsonConverter.serialize(spendResult.getRepresentation()));
+    }
+
+    public List<UUID> txDataBaskets() {
+        return transactionRepository.getSpendTransactionDataList().values().stream()
+                .flatMap(list -> list.stream().map(SpendTransactionData::getBasketId))
+                .distinct()
+                .collect(Collectors.toList());
+    }
+
+    public List<DSDetectedEntryDto> doubleSpendingDetected() {
+        return transactionRepository.getDoubleSpendingDetected().entrySet().stream().map(
+                tuple -> {
+                    var registrationCoupon = registrationCouponRepository.findEntryFor(tuple.getValue().getUpk()).orElseThrow();
+                    return new DSDetectedEntryDto(tuple.getKey(), tuple.getValue(), registrationCoupon);
+                }).collect(Collectors.toList());
+    }
+
+    public void addSpendTransactionData(EnrichedSpendTransactionDataDto enrichedSpendTransactionDataDto) {
+        var serializedSpendData = enrichedSpendTransactionDataDto.getSerializedSpendTransactionData();
+        var tokenUpdateId = enrichedSpendTransactionDataDto.getTokenUpdateId();
+        var promotionId = enrichedSpendTransactionDataDto.getPromotionId();
+        var serializedMetadata = enrichedSpendTransactionDataDto.getSerializedMetadata();
+        var basketPoints = enrichedSpendTransactionDataDto.getBasketPoints();
+
+        var promotion = promotionRepository.getPromotion(promotionId)
+                .orElseThrow(() -> new IncentiveServiceException(String.format("Promotion with id %s not found!", enrichedSpendTransactionDataDto.getPromotionId())));
+        var tokenUpdate = promotion.getZkpTokenUpdates().stream()
+                .filter(x -> x.getTokenUpdateId().equals(enrichedSpendTransactionDataDto.getTokenUpdateId()))
+                .findAny()
+                .orElseThrow(() -> new IncentiveServiceException(String.format("Token update with id %s for promotion of id %s not found!", tokenUpdateId, promotionId)));
+        ZkpTokenUpdateMetadata zkpTokenUpdateMetadata = (ZkpTokenUpdateMetadata) ((RepresentableRepresentation) jsonConverter.deserialize(serializedMetadata)).recreateRepresentable();
+        Vector<BigInteger> basketPointVector = new Vector<>(basketPoints);
+        var tree = tokenUpdate.generateRelationTree(basketPointVector, zkpTokenUpdateMetadata);
+
+        var context = ContextManager.computeContext(tokenUpdateId, basketPointVector, zkpTokenUpdateMetadata);
+
+        var spendData = new SpendTransactionData(jsonConverter.deserialize(serializedSpendData), cryptoRepository.getPublicParameters(), promotion.getPromotionParameters(), tree, cryptoRepository.getProviderPublicKey(), context);
+        transactionRepository.addSpendData(spendData);
     }
 }

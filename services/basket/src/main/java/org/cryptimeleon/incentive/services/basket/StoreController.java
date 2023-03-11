@@ -3,6 +3,7 @@ package org.cryptimeleon.incentive.services.basket;
 import io.swagger.annotations.ApiOperation;
 import org.cryptimeleon.incentive.client.dto.store.BulkRequestStoreDto;
 import org.cryptimeleon.incentive.client.dto.store.BulkResultsStoreDto;
+import org.cryptimeleon.incentive.services.basket.exceptions.DSPreventedException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,8 +20,19 @@ public class StoreController {
     @Value("${basket-service.provider-secret}")
     private String basketServiceProviderSecret; // used to authenticate the request for the store secret key (set via environment variable)
 
+    @Value("${store-name}")
+    private String storeName;
+
     public StoreController(StoreService storeService) {
         this.storeService = storeService;
+    }
+
+    /**
+     * Get the name of this store.
+     */
+    @GetMapping("/name")
+    ResponseEntity<String> name() {
+        return new ResponseEntity<>(storeName, HttpStatus.OK);
     }
 
     /**
@@ -102,6 +114,12 @@ public class StoreController {
         }
         storeService.deleteAllPromotions();
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @ExceptionHandler(DSPreventedException.class)
+    public ResponseEntity<String> handleException(DSPreventedException ex) {
+        // For debugging causes send the exception string
+        return new ResponseEntity<>("Double-spending prevented", HttpStatus.I_AM_A_TEAPOT);
     }
 
     @ExceptionHandler(StoreException.class)

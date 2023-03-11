@@ -60,7 +60,6 @@ val onboardingPages = listOf(
 
 @OptIn(
     ExperimentalPagerApi::class,
-    ExperimentalMaterial3Api::class,
     ExperimentalComposeUiApi::class
 )
 @Composable
@@ -71,53 +70,55 @@ fun OnboardingScreen(navigateToApp: () -> Unit = {}) {
     val coroutineScope = rememberCoroutineScope()
     val keyboardController = LocalSoftwareKeyboardController.current
 
-    Column {
-        HorizontalPager(
-            count = onboardingPages.size,
-            state = pagerState,
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-        ) { i ->
-            val page = onboardingPages[i]
-            OnboardingPage(page = page) {
-                if (page.isUserNamePage) {
-                    OutlinedTextField(
-                        userName,
-                        { userName = it },
-                        singleLine = true,
-                        placeholder = { Text("Type your name") },
-                        keyboardActions = KeyboardActions(onDone = {
-                            keyboardController?.hide()
-                            coroutineScope.launch {
-                                pagerState.animateScrollToPage(i + 1)
-                            }
-                        }),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 16.dp)
-                    )
+    Scaffold {
+        Column(modifier = Modifier.padding(it)) {
+            HorizontalPager(
+                count = onboardingPages.size,
+                state = pagerState,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+            ) { i ->
+                val page = onboardingPages[i]
+                OnboardingPage(page = page) {
+                    if (page.isUserNamePage) {
+                        OutlinedTextField(
+                            userName,
+                            { userName = it },
+                            singleLine = true,
+                            placeholder = { Text("Type your name") },
+                            keyboardActions = KeyboardActions(onDone = {
+                                keyboardController?.hide()
+                                coroutineScope.launch {
+                                    pagerState.animateScrollToPage(i + 1)
+                                }
+                            }),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 16.dp)
+                        )
+                    }
                 }
             }
-        }
-        HorizontalPagerIndicator(
-            pagerState = pagerState,
-            modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .padding(16.dp)
-        )
-        AnimatedVisibility(visible = pagerState.currentPage == onboardingPages.lastIndex) {
-            Button(
-                onClick = {
-                    onboardingViewModel.setUserData(userName)
-                    navigateToApp()
-                },
-                Modifier
-                    .fillMaxWidth()
+            HorizontalPagerIndicator(
+                pagerState = pagerState,
+                modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .padding(16.dp)
-            ) {
-                Text("Get Started")
+            )
+            AnimatedVisibility(visible = pagerState.currentPage == onboardingPages.lastIndex) {
+                Button(
+                    onClick = {
+                        onboardingViewModel.setUserData(userName)
+                        navigateToApp()
+                    },
+                    Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.CenterHorizontally)
+                        .padding(16.dp)
+                ) {
+                    Text("Get Started")
+                }
             }
         }
     }

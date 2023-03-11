@@ -13,12 +13,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import org.cryptimeleon.incentive.app.domain.usecase.DSDetectedStep
 import org.cryptimeleon.incentive.app.ui.preview.CryptimeleonPreviewContainer
 
 @Composable
 fun DSPreventedUi(
     navigateHome: () -> Unit = {},
     disableDoubleSpending: () -> Unit = {},
+    stepDetected: DSDetectedStep,
 ) {
     Column(
         modifier = Modifier
@@ -37,9 +39,13 @@ fun DSPreventedUi(
                 fontSize = 80.sp,
                 modifier = Modifier.padding(32.dp)
             )
+            val place = when(stepDetected) {
+                DSDetectedStep.PROVIDER -> "provider"
+                DSDetectedStep.STORE-> "store"
+            }
             Text(
-                "You got caught!",
-                style = MaterialTheme.typography.headlineLarge,
+                "You got caught by the $place!",
+                style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.SemiBold,
                 modifier = Modifier.padding(8.dp)
             )
@@ -62,6 +68,6 @@ fun DSPreventedUi(
 @Composable
 fun DSPreventedUiPreview() {
     CryptimeleonPreviewContainer {
-        DSPreventedUi()
+        DSPreventedUi(stepDetected = DSDetectedStep.PROVIDER)
     }
 }

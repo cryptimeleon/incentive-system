@@ -1,8 +1,8 @@
 <template>
-  <div class="flex flex-col justify-between min-h-screen">
+  <div class="flex flex-col justify-between min-h-screen bg-gray-50">
     <IncHeader/>
-    <div class="grow max-w-4xl md:mx-auto px-4 self-start">
-      <router-view/>
+    <div class="grow w-full md:w-[768px] md:mx-auto px-4 self-start">
+        <router-view/>
     </div>
     <IncFooter/>
   </div>
@@ -21,6 +21,7 @@ export default {
 }
 </script>
 
+Do not delete this!
 <style>
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;

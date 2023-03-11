@@ -41,7 +41,6 @@ fun CheckoutUi(navigateHome: () -> Unit, navigateToLoadingScreen: () -> Unit) {
     )
     // Once a basket is paid and new tokens are retrieved, it is removed from the database.
     // Therefore, we need to store the old ID
-    val paidBasketId: UUID? by checkoutViewModel.paidBasketId.collectAsState()
     val returnCode: PayAndRedeemStatus? by checkoutViewModel.returnCode.collectAsState()
 
     val checkoutStep: CheckoutStep by checkoutViewModel.checkoutStep.collectAsState()
@@ -51,7 +50,6 @@ fun CheckoutUi(navigateHome: () -> Unit, navigateToLoadingScreen: () -> Unit) {
         promotionDataCollection,
         checkoutStep,
         returnCode,
-        paidBasketId,
         checkoutViewModel::startPayAndRedeem,
         checkoutViewModel::deleteBasket,
         checkoutViewModel::disableDSAndRecover,
@@ -60,14 +58,12 @@ fun CheckoutUi(navigateHome: () -> Unit, navigateToLoadingScreen: () -> Unit) {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CheckoutUi(
     basket: Basket?,
     promotionDataCollection: List<PromotionData>,
     checkoutStep: CheckoutStep,
-    returnCode: PayAndRedeemStatus? = null,
-    paidBasketId: UUID? = null,
+    status: PayAndRedeemStatus? = null,
     triggerCheckout: () -> Unit,
     deleteBasket: () -> Unit,
     disableDsAndRecover: () -> Unit,
@@ -90,9 +86,11 @@ private fun CheckoutUi(
                     }
                 }
                 CheckoutStep.FINISHED -> {
-                    when (returnCode) {
-                        PayAndRedeemStatus.Success -> FinishedUi(paidBasketId, navigateHome)
-                        PayAndRedeemStatus.DSDetected -> DSPreventedUi(
+                    when (status) {
+                        is PayAndRedeemStatus.Success -> FinishedUi(status.basketId, navigateHome)
+                        is PayAndRedeemStatus.DSStopAfterCLaimingReward-> OnlyRewardClaimedUi(status.basketId, navigateHome)
+                        is PayAndRedeemStatus.DSDetected -> DSPreventedUi(
+                            stepDetected = status.step,
                             navigateHome = navigateHome,
                             disableDoubleSpending = {
                                 disableDsAndRecover()
@@ -100,7 +98,7 @@ private fun CheckoutUi(
                             },
                         )
                         is PayAndRedeemStatus.Error -> ErrorUi(
-                            e = returnCode,
+                            e = status,
                             deleteBasketAndGoHome = {
                                 deleteBasket()
                                 navigateHome()

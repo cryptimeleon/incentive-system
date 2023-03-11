@@ -20,7 +20,8 @@ import java.util.*
 class PayAndRedeemUseCase(
     private val promotionRepository: IPromotionRepository,
     private val cryptoRepository: ICryptoRepository,
-    private val basketRepository: IBasketRepository
+    private val basketRepository: IBasketRepository,
+    private val preferencesRepository: IPreferencesRepository
 ) {
     private val jsonConverter = JSONConverter()
     private val analyzeUserTokenUpdatesUseCase =
@@ -42,21 +43,23 @@ class PayAndRedeemUseCase(
             // Some setup
             val userTokenUpdates: List<PromotionUserUpdateChoice> =
                 analyzeUserTokenUpdatesUseCase().first()
-            val basketId = basketRepository.basket.first()!!.basketId
-            val basket = basketRepository.basket.first()!!
+            val basket = basketRepository.basket.first()
             val promotionParameters = promotionRepository.promotions.first()
             val cryptoMaterial = cryptoRepository.cryptoMaterial.first()!!
+            val doubleSpendingPreferences = preferencesRepository.doubleSpendingPreferencesFlow.first()
             val tokens = cryptoRepository.tokens.first()
             val pp = cryptoMaterial.pp
             val incentiveSystem = IncentiveSystem(pp)
+            // Push basket to current store
+            val basketId = basketRepository.pushCurrentBasket()
 
             // TODO some checks on the basket and user choices
 
             if (userTokenUpdates.all { it.userUpdateChoice is None }) {
                 Timber.i("No token updates selected, just pay.")
-                basketRepository.payCurrentBasket()
-                basketRepository.discardCurrentBasket(false)
-                return PayAndRedeemStatus.Success
+                basketRepository.payBasket(basketId)
+                basketRepository.discardCurrentBasket()
+                return PayAndRedeemStatus.Success(basketId)
             }
 
             val earnUpdateRequestPairs: List<Pair<EarnRequestStoreDto, EarnStoreCache>> =
@@ -79,7 +82,11 @@ class PayAndRedeemUseCase(
                 )
             )
 
-            basketRepository.payCurrentBasket()
+            basketRepository.payBasket(basketId)
+            if (doubleSpendingPreferences.discardUpdatedToken) {
+                return PayAndRedeemStatus.DSStopAfterCLaimingReward(basketId)
+            }
+            // TODO one attack stops here. Claim two rewards from one token without sending data to provider
 
             val updateResults = cryptoRepository.retrieveTokenUpdatesBatchStoreResults(basketId)
             val earnProviderRequests: List<Pair<EarnRequestProviderDto, EarnProviderCache>> =
@@ -88,6 +95,7 @@ class PayAndRedeemUseCase(
                     promotionParameters,
                     earnUpdateRequestPairs,
                     basket,
+                    basketId,
                     incentiveSystem,
                     cryptoMaterial
                 )
@@ -123,12 +131,15 @@ class PayAndRedeemUseCase(
                 cryptoMaterial
             )
 
-            basketRepository.discardCurrentBasket(false)
+            basketRepository.discardCurrentBasket()
             Timber.i("Finished Pay and Redeem")
-            return PayAndRedeemStatus.Success
-        } catch (e: DSException) {
+            return PayAndRedeemStatus.Success(basketId)
+        } catch (e: DSStoreException) {
             Timber.e(e)
-            return PayAndRedeemStatus.DSDetected
+            return PayAndRedeemStatus.DSDetected(DSDetectedStep.STORE)
+        } catch (e: DSProviderException) {
+            Timber.e(e)
+            return PayAndRedeemStatus.DSDetected(DSDetectedStep.PROVIDER)
         } catch (e: PayRedeemException) {
             Timber.e(e)
             return PayAndRedeemStatus.Error(e)
@@ -237,6 +248,7 @@ class PayAndRedeemUseCase(
         promotionParameters: List<Promotion>,
         earnUpdateRequestPairs: List<Pair<EarnRequestStoreDto, EarnStoreCache>>,
         basket: Basket,
+        basketId: UUID,
         incentiveSystem: IncentiveSystem,
         cryptoMaterial: CryptoMaterial
     ) = updateResults.earnResults.map {
@@ -245,7 +257,7 @@ class PayAndRedeemUseCase(
         Timber.i("Earn for promotion ${promotion.promotionParameters.promotionId}")
         val cache: EarnStoreCache =
             earnUpdateRequestPairs.find { pair -> pair.second.promotionId == it.promotionId }!!.second
-        val earnAmount = promotion.computeEarningsForBasket(basket.toPromotionBasket())
+        val earnAmount = promotion.computeEarningsForBasket(basket.toPromotionBasket(basketId))
 
         val earnStoreResponse =
             EarnStoreResponse(jsonConverter.deserialize(it.serializedEarnCouponSignature))
@@ -303,7 +315,7 @@ class PayAndRedeemUseCase(
                     promotion.zkpTokenUpdates.find { zkpTokenUpdate -> zkpTokenUpdate.tokenUpdateId == it.userUpdateChoice.tokenUpdateId }!!
                 val metadata = promotion.generateMetadataForUpdate()
                 val basketValue =
-                    promotion.computeEarningsForBasket(basket.toPromotionBasket())
+                    promotion.computeEarningsForBasket(basket.toPromotionBasket(basketId))
                 val newPointsVector = update.computeSatisfyingNewPointsVector(
                     token.toBigIntVector(),
                     basketValue,
@@ -405,7 +417,13 @@ data class SpendProviderCache(
 )
 
 sealed class PayAndRedeemStatus {
-    object Success : PayAndRedeemStatus()
-    object DSDetected : PayAndRedeemStatus()
+    data class Success(val basketId: UUID) : PayAndRedeemStatus()
+    data class DSStopAfterCLaimingReward(val basketId: UUID) : PayAndRedeemStatus()
+    data class DSDetected(val step: DSDetectedStep) : PayAndRedeemStatus()
     data class Error(val e: Exception) : PayAndRedeemStatus()
+}
+
+enum class DSDetectedStep {
+    STORE,
+    PROVIDER
 }

@@ -32,13 +32,6 @@ fun BenchmarkUi(onUpClicked: () -> Unit) {
     )
 
     Scaffold(
-        bottomBar = {
-            Spacer(
-                Modifier
-                    .windowInsetsPadding(WindowInsets.navigationBars)
-                    .fillMaxWidth()
-            )
-        },
         topBar = {
             DefaultTopAppBar(
                 title = { Text("Benchmark") },

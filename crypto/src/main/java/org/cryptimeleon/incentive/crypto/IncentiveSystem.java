@@ -9,6 +9,8 @@ import org.cryptimeleon.craco.sig.ecdsa.ECDSASignatureScheme;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignatureScheme;
 import org.cryptimeleon.incentive.crypto.callback.*;
+import org.cryptimeleon.incentive.crypto.exception.ProviderDoubleSpendingDetectedException;
+import org.cryptimeleon.incentive.crypto.exception.StoreDoubleSpendingDetectedException;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
@@ -501,7 +503,7 @@ public class IncentiveSystem {
     public SPSEQSignature generateEarnResponse(EarnProviderRequest earnProviderRequest,
                                                PromotionParameters promotionParameters,
                                                ProviderKeyPair providerKeyPair,
-                                               ITransactionDBHandler transactionDBHandler,
+                                               IEarnTransactionDBHandler transactionDBHandler,
                                                IStorePublicKeyVerificationHandler storePublicKeyVerificationHandler) {
         // Blinded token
         var c0Prime = earnProviderRequest.getcPrime0();
@@ -528,7 +530,8 @@ public class IncentiveSystem {
         if (!blindedSpseqValid) throw new RuntimeException("(Blinded) SPSEQ signature invalid");
 
         // Add to clearing DB
-        transactionDBHandler.addEarnData(earnProviderRequest, h);
+        var earnTxData = new EarnTransactionData(earnProviderRequest, h);
+        transactionDBHandler.addEarnData(earnTxData);
 
         // Blind-sign update
         var Q = providerKeyPair.getSk().getTokenPointsQ(promotionParameters);
@@ -672,8 +675,8 @@ public class IncentiveSystem {
                                               UniqueByteRepresentable context,
                                               IStoreBasketRedeemedHandler basketRedeemedHandler,
                                               IDsidBlacklistHandler dsidBlacklistHandler,
-                                              ITransactionDBHandler transactionDBHandler
-    ) {
+                                              ISpendTransactionDBHandler transactionDBHandler
+    ) throws StoreDoubleSpendingDetectedException {
         var zp = pp.getBg().getZn();
 
         // Verify old token signature valid
@@ -713,7 +716,7 @@ public class IncentiveSystem {
         switch (redeemResult) {
             case BASKET_NOT_REDEEMED:
                 if (dsidBlacklistHandler.containsDsidWithDifferentGamma(commonInput.dsid, gamma)) {
-                    throw new RuntimeException("Token with dsid already spent with different basket!");
+                    throw new StoreDoubleSpendingDetectedException("Token with dsid already spent with different basket!");
                 }
                 break;
             case BASKET_REDEEMED_ABORT:
@@ -723,7 +726,10 @@ public class IncentiveSystem {
                 break;
         }
 
-        // Blacklist dsid at provider and send clearing data => Provider finds users that perform double-spending attack!
+        // Blacklist dsid at this store
+        dsidBlacklistHandler.addEntryIfDsidNotPresent(commonInput.dsid, gamma);
+
+        // Add request to transaction DB that is synced with provider => provider finds users that perform double-spending attack!
         var spendClearingData = new SpendTransactionData(spendStoreRequest, promotionParameters.getPromotionId(), basketId, signature, storeKeyPair.getPk(), gamma);
         transactionDBHandler.addSpendData(spendClearingData);
 
@@ -767,7 +773,7 @@ public class IncentiveSystem {
                                                                     SpendDeductTree spendDeductTree,
                                                                     UniqueByteRepresentable context,
                                                                     IStorePublicKeyVerificationHandler storePublicKeyVerificationHandler,
-                                                                    IDsidBlacklistHandler dsidBlacklistHandler) {
+                                                                    IDsidBlacklistHandler dsidBlacklistHandler) throws ProviderDoubleSpendingDetectedException {
 
         // 0. Check if this is a doublespending attempt.
         var gamma = Util.hashGamma(pp.getBg().getZn(),
@@ -778,7 +784,8 @@ public class IncentiveSystem {
                 spendProviderRequest.getcPre1().pow(promotionParameters.getPromotionId()),
                 context);
         if (dsidBlacklistHandler.containsDsidWithDifferentGamma(spendProviderRequest.getDoubleSpendingId(), gamma)) {
-            throw new RuntimeException("Illegal retry, dsid already used for different request!");
+            // Not a retry request
+            throw new ProviderDoubleSpendingDetectedException();
         }
 
         // 1. Verify Store ECDSA public key is trusted
@@ -906,12 +913,11 @@ public class IncentiveSystem {
      * Given two double-spending tags belonging to a detected double-spending attempt, this algorithm computes the key material of the suspected user
      * as well as tracing information used to trace further transactions resulting from the detected double-spending attempt.
      *
-     * @param pp         public parameters of the respective incentive system instance
      * @param dsTag      tag of the first spend operation
      * @param dsTagPrime tag of the second spend operation
      * @return suspected user's key material + tracing information
      */
-    public UserInfo link(IncentivePublicParameters pp, DoubleSpendingTag dsTag, DoubleSpendingTag dsTagPrime) {
+    public UserInfo link(DoubleSpendingTag dsTag, DoubleSpendingTag dsTagPrime) {
         // computing dsblame, DLOG of the usk of the user blamed of double-spending
         ZnElement c = dsTag.getC();
         ZnElement cPrime = dsTagPrime.getC();
@@ -924,7 +930,7 @@ public class IncentiveSystem {
         ZnElement dsBlame = cDifference.div(gammaDifference);
 
         // computing public key of the user blamed of double-spending
-        UserPublicKey upk = new UserPublicKey(pp.getW().pow(dsBlame));
+        UserPublicKey upk = new UserPublicKey(this.pp.getW().pow(dsBlame));
 
         // assemble and return output
         return new UserInfo(upk, dsBlame);

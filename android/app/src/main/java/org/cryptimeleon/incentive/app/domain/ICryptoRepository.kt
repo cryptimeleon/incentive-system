@@ -36,5 +36,6 @@ interface ICryptoRepository {
     suspend fun sendTokenUpdatesBatchToProvider(bulkRequestProviderDto: BulkRequestProviderDto): BulkResultsProviderDto
 }
 
-class DSException : Exception()
+class DSStoreException : Exception()
+class DSProviderException : Exception()
 class PayRedeemException(val code: Int, val msg: String) : Exception()

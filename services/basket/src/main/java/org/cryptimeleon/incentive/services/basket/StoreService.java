@@ -2,6 +2,7 @@ package org.cryptimeleon.incentive.services.basket;
 
 import org.cryptimeleon.incentive.client.dto.store.*;
 import org.cryptimeleon.incentive.crypto.callback.IStoreBasketRedeemedHandler;
+import org.cryptimeleon.incentive.crypto.exception.StoreDoubleSpendingDetectedException;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.user.UserPublicKey;
 import org.cryptimeleon.incentive.crypto.proof.spend.tree.SpendDeductTree;
@@ -12,6 +13,7 @@ import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
 import org.cryptimeleon.incentive.promotion.model.Basket;
 import org.cryptimeleon.incentive.promotion.model.BasketItem;
 import org.cryptimeleon.incentive.promotion.sideeffect.RewardSideEffect;
+import org.cryptimeleon.incentive.services.basket.exceptions.DSPreventedException;
 import org.cryptimeleon.incentive.services.basket.repository.*;
 import org.cryptimeleon.incentive.services.basket.storage.BasketEntity;
 import org.cryptimeleon.incentive.services.basket.storage.BasketRepository;
@@ -185,18 +187,22 @@ public class StoreService {
                 relationTree,
                 context);
 
-        return cryptoRepository.getIncentiveSystem().signSpendCoupon(
-                cryptoRepository.getStoreKeyPair(),
-                cryptoRepository.getProviderPublicKey(),
-                basket.getBasketId(),
-                promotion.getPromotionParameters(),
-                spendStoreRequest,
-                relationTree,
-                context,
-                this::checkBasketStateAndRedeem,
-                dsidBlacklistRepository,
-                transactionRepository
-        );
+        try {
+            return cryptoRepository.getIncentiveSystem().signSpendCoupon(
+                    cryptoRepository.getStoreKeyPair(),
+                    cryptoRepository.getProviderPublicKey(),
+                    basket.getBasketId(),
+                    promotion.getPromotionParameters(),
+                    spendStoreRequest,
+                    relationTree,
+                    context,
+                    this::checkBasketStateAndRedeem,
+                    dsidBlacklistRepository,
+                    spendTransactionData -> transactionRepository.addSpendData(new BasketSpendTransactionData(basket.getBasketId(), promotion, requestedTokenUpdate, spendTransactionData, serializedZkpTokenUpdateMetadata, basketValueForUpdate.toList()))
+            );
+        } catch (StoreDoubleSpendingDetectedException e) {
+            throw new DSPreventedException();
+        }
     }
 
     IStoreBasketRedeemedHandler.BasketRedeemState checkBasketStateAndRedeem(UUID basketId, BigInteger promotionId, byte[] hash) {

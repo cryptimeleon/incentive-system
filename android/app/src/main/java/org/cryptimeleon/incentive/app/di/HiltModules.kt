@@ -13,11 +13,9 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import org.cryptimeleon.incentive.app.R
-import org.cryptimeleon.incentive.app.data.BasketRepository
-import org.cryptimeleon.incentive.app.data.CryptoRepository
-import org.cryptimeleon.incentive.app.data.PreferencesRepository
-import org.cryptimeleon.incentive.app.data.PromotionRepository
+import org.cryptimeleon.incentive.app.data.*
 import org.cryptimeleon.incentive.app.data.database.basket.BasketDatabase
 import org.cryptimeleon.incentive.app.data.database.crypto.CryptoDatabase
 import org.cryptimeleon.incentive.app.data.database.promotion.PromotionDatabase
@@ -29,6 +27,7 @@ import org.cryptimeleon.incentive.app.domain.IPromotionRepository
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
+import timber.log.Timber
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
@@ -46,6 +45,12 @@ data class UrlConfig(
 @InstallIn(SingletonComponent::class)
 class HiltApiModule {
 
+    @Singleton
+    @Provides
+    fun provideStoreInterceptor(storeSelectionRepository: StoreSelectionRepository) =
+        StoreInterceptor(storeSelectionRepository)
+
+
     @Provides
     fun provideUrls(@ApplicationContext context: Context): UrlConfig =
         UrlConfig(
@@ -60,8 +65,19 @@ class HiltApiModule {
 
     @Singleton
     @Provides
-    fun provideStoreApiService(urlConfig: UrlConfig): StoreApiService {
+    fun provideStoreApiService(
+        urlConfig: UrlConfig,
+        storeInterceptor: StoreInterceptor
+    ): StoreApiService {
+        val loggingInterceptor = HttpLoggingInterceptor { Timber.tag("OkHttp").d(it) }
+        loggingInterceptor.apply { loggingInterceptor.level = HttpLoggingInterceptor.Level.BODY }
+        val client = OkHttpClient.Builder()
+            .addInterceptor(loggingInterceptor)
+            .addInterceptor(storeInterceptor)
+            .build()
+
         return Retrofit.Builder()
+            .client(client)
             .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(GsonConverterFactory.create())
             .baseUrl(urlConfig.basket_url)
@@ -71,8 +87,19 @@ class HiltApiModule {
 
     @Singleton
     @Provides
-    fun provideBasketApiService(urlConfig: UrlConfig): BasketApiService {
+    fun provideBasketApiService(
+        urlConfig: UrlConfig,
+        storeInterceptor: StoreInterceptor
+    ): BasketApiService {
+        val loggingInterceptor = HttpLoggingInterceptor { Timber.tag("OkHttp").d(it) }
+        loggingInterceptor.apply { loggingInterceptor.level = HttpLoggingInterceptor.Level.BODY }
+        val client = OkHttpClient.Builder()
+            .addInterceptor(loggingInterceptor)
+            .addInterceptor(storeInterceptor)
+            .build()
+
         return Retrofit.Builder()
+            .client(client)
             .addConverterFactory(GsonConverterFactory.create())
             .baseUrl(urlConfig.basket_url)
             .build()
@@ -157,6 +184,17 @@ class HiltDatabaseModule {
 @Module
 @InstallIn(SingletonComponent::class)
 class HiltRepositoryModule {
+    @Singleton
+    @Provides
+    fun providePreferencesDataStore(@ApplicationContext appContext: Context) =
+        PreferenceDataStoreFactory.create {
+            appContext.preferencesDataStoreFile(USER_PREFERENCES)
+        }
+
+    @Singleton
+    @Provides
+    fun providePreferencesRepository(dataStore: DataStore<Preferences>): IPreferencesRepository =
+        PreferencesRepository(dataStore)
 
     @Singleton
     @Provides
@@ -172,6 +210,12 @@ class HiltRepositoryModule {
             cryptoDatabase.cryptoDatabaseDao(),
             storeApiService,
         )
+
+    @Singleton
+    @Provides
+    fun providerStoreSelectionRepository(
+        preferencesRepository: IPreferencesRepository
+    ): StoreSelectionRepository = StoreSelectionRepository(preferencesRepository)
 
     @Singleton
     @Provides
@@ -194,16 +238,4 @@ class HiltRepositoryModule {
             promotionApiService,
             promotionDatabase.promotionDatabaseDao()
         )
-
-    @Singleton
-    @Provides
-    fun providePreferencesDataStore(@ApplicationContext appContext: Context) =
-        PreferenceDataStoreFactory.create {
-            appContext.preferencesDataStoreFile(USER_PREFERENCES)
-        }
-
-    @Singleton
-    @Provides
-    fun providePreferencesRepository(dataSTore: DataStore<Preferences>): IPreferencesRepository =
-        PreferencesRepository(dataSTore)
 }

@@ -5,9 +5,9 @@ services:
       - "8000:8000"
     environment:
       - SPRING_PROFILES_ACTIVE=production
+      - SERVER_SERVLET_CONTEXT_PATH=${INFO_CONTEXT:-/info}
       - PROVIDER_SHARED_SECRET=${PROVIDER_SHARED_SECRET}
       - STORE_SHARED_SECRET=${STORE_SHARED_SECRET}
-      - SERVER_SERVLET_CONTEXT_PATH=${INFO_CONTEXT:-/info}
       - SPRINGFOX_HOST=${HOST:-incentives.cs.uni-paderborn.de}
     networks:
       - provider
@@ -18,14 +18,11 @@ services:
       - "8012:8012"
     environment:
       - SPRING_PROFILES_ACTIVE=production
-      - PROVIDER_SHARED_SECRET=${PROVIDER_SHARED_SECRET}
-      - BASKET_SERVICE_REDEEM_SECRET=${BASKET_REDEEM_SECRET}
-      - INCENTIVE_SERVICE_PROVIDER_SECRET=${INCENTIVE_PROVIDER_SECRET}
       - SERVER_SERVLET_CONTEXT_PATH=${INCENTIVE_CONTEXT:-/incentive}
-      - SPRINGFOX_HOST=${HOST:-incentives.cs.uni-paderborn.de}
+      - PROVIDER_SHARED_SECRET=${PROVIDER_SHARED_SECRET}
+      - INCENTIVE_SERVICE_PROVIDER_SECRET=${INCENTIVE_PROVIDER_SECRET}
       - INFO_SERVICE_URL=http://infoservice:8000${INFO_CONTEXT:-/info}
-      - BASKET_SERVICE_URL=http://basketservice:8010${BASKET_CONTEXT:-/basket}
-      - DSPROTECTION_SERVICE_URL=http://dsprotectionservice:8004${INFO_CONTEXT:-/dsprotection}
+      - SPRINGFOX_HOST=${HOST:-incentives.cs.uni-paderborn.de}
     networks:
       - provider
     hostname: incentiveservice
@@ -35,24 +32,40 @@ services:
       - "8010:8010"
     environment:
       - SPRING_PROFILES_ACTIVE=production
-      - BASKET_SERVICE_REDEEM_SECRET=${BASKET_REDEEM_SECRET}
-      - BASKET_SERVICE_PAY_SECRET=${BASKET_PAY_SECRET}
+      - SERVER_SERVLET_CONTEXT_PATH=${BASKET_CONTEXT:-/basket}
+      - STORE_NAME=First Store
       - BASKET_SERVICE_PROVIDER_SECRET=${BASKET_PROVIDER_SECRET}
       - STORE_SHARED_SECRET=${STORE_SHARED_SECRET}
-      - SERVER_SERVLET_CONTEXT_PATH=${BASKET_CONTEXT:-/basket}
-      - SPRINGFOX_HOST=${HOST:-incentives.cs.uni-paderborn.de}
       - INFO_SERVICE_URL=http://infoservice:8000${INFO_CONTEXT:-/info}
+      - INCENTIVE_SERVICE_URL=http://incentiveservice:8012${INCENTIVE_CONTEXT:-/incentive}
+      - SPRINGFOX_HOST=${HOST:-incentives.cs.uni-paderborn.de}
     networks:
       - provider
     hostname: basketservice
+  basketservice-two:
+    image: cryptimeleon/incentive-service-basket:0.5.0
+    ports:
+      - "8011:8010"
+    environment:
+      - SPRING_PROFILES_ACTIVE=production
+      - SERVER_SERVLET_CONTEXT_PATH=${BASKET_CONTEXT:-/basket-two}
+      - STORE_NAME=Second Store
+      - BASKET_SERVICE_PROVIDER_SECRET=${BASKET_PROVIDER_SECRET_TWO}
+      - STORE_SHARED_SECRET=${STORE_SHARED_SECRET}
+      - INFO_SERVICE_URL=http://infoservice:8000${INFO_CONTEXT:-/info}
+      - INCENTIVE_SERVICE_URL=http://incentiveservice:8012${INCENTIVE_CONTEXT:-/incentive}
+      - SPRINGFOX_HOST=${HOST:-incentives.cs.uni-paderborn.de}
+    networks:
+      - provider
+    hostname: basketservicetwo
   bootstrapservice:
     image: cryptimeleon/incentive-service-bootstrap:0.5.0
     environment:
       - SPRING_PROFILES_ACTIVE=production
-      - BASKET_SERVICE_PROVIDER_SECRET=${BASKET_PROVIDER_SECRET}
-      - INCENTIVE_SERVICE_PROVIDER_SECRET=${INCENTIVE_PROVIDER_SECRET}
+      - BASKET_SERVICE_URLS=http://basketservice:8010${BASKET_CONTEXT:-/basket},http://basketservicetwo:8010${BASKET_CONTEXT_TWO:-/basket-two}
+      - BASKET_SERVICE_PROVIDER_SECRETS=${BASKET_PROVIDER_SECRET},${BASKET_PROVIDER_SECRET_TWO}
       - INCENTIVE_SERVICE_URL=http://incentiveservice:8012${INCENTIVE_CONTEXT:-/incentive}
-      - BASKET_SERVICE_URL=http://basketservice:8010${BASKET_CONTEXT:-/basket}
+      - INCENTIVE_SERVICE_PROVIDER_SECRET=${INCENTIVE_PROVIDER_SECRET}
     depends_on:
       - basketservice
       - incentiveservice

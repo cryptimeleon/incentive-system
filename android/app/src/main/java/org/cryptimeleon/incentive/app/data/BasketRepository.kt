@@ -1,10 +1,15 @@
 package org.cryptimeleon.incentive.app.data
 
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
-import org.cryptimeleon.incentive.app.data.database.basket.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import org.cryptimeleon.incentive.app.data.database.basket.BasketDao
+import org.cryptimeleon.incentive.app.data.database.basket.BasketItemEntity
+import org.cryptimeleon.incentive.app.data.database.basket.RewardItemEntity
+import org.cryptimeleon.incentive.app.data.database.basket.ShoppingItemEntity
 import org.cryptimeleon.incentive.app.data.network.BasketApiService
-import org.cryptimeleon.incentive.app.data.network.NetworkBasketItem
 import org.cryptimeleon.incentive.app.data.network.NetworkBasketItemPutRequest
 import org.cryptimeleon.incentive.app.data.network.NetworkShoppingItem
 import org.cryptimeleon.incentive.app.domain.IBasketRepository
@@ -13,18 +18,16 @@ import org.cryptimeleon.incentive.app.domain.model.BasketItem
 import org.cryptimeleon.incentive.app.domain.model.RewardItem
 import org.cryptimeleon.incentive.app.domain.model.ShoppingItem
 import timber.log.Timber
+import java.util.*
 
 class BasketRepository(
     private val basketApiService: BasketApiService,
     private val basketDao: BasketDao,
 ) : IBasketRepository {
 
-    override val basket: Flow<Basket?> = basketDao.observeBasketEntity()
-        .combine(basketDao.observeBasketItemEntities())
-        { a: BasketEntity?, b: List<BasketItemEntity> ->
-            if (a != null) basketEntityToBasket(
-                a,
-                b.map { basketItemEntityToItem(it) }) else null
+    override val basket: Flow<Basket> = basketDao.observeBasketItemEntities()
+        .map { b: List<BasketItemEntity> ->
+            basketEntityToBasket(b.map { basketItemEntityToItem(it) })
         }.flowOn(Dispatchers.Default)
 
     override val shoppingItems: Flow<List<ShoppingItem>>
@@ -51,104 +54,57 @@ class BasketRepository(
         )
     }
 
-    // Load contents from basket into database
-    override suspend fun refreshBasket() {
-        val basket: Basket = basket.first()!!
-        val networkBasket = basketApiService.getBasketContent(basket.basketId).body()!!
-
-        val updatedBasket = BasketEntity(
-            basketId = networkBasket.basketId,
-            paid = networkBasket.paid,
-        )
-        basketDao.setBasketEntity(updatedBasket)
-
-        val basketItems = networkBasket.basketItems.map { networkBasketItemToBasketItemEntity(it) }
-        basketDao.deleteAllBasketItems()
-        basketDao.insertBasketItems(basketItems)
+    override suspend fun getBasketItem(itemId: String): ShoppingItem? {
+        return shoppingItems.first().find { it.id == itemId }
     }
 
-    private fun networkBasketItemToBasketItemEntity(it: NetworkBasketItem) =
-        BasketItemEntity(it.id, it.title, it.price, it.count)
-
-    override suspend fun ensureActiveBasket() {
-        if (needNewBasket()) {
-            createNewBasket()
+    override suspend fun putItemIntoBasket(itemId: String, amount: Int) {
+        val shoppingItem = shoppingItems.first().find { it.id == itemId }
+        if (shoppingItem == null) {
+            Timber.e("could not find shopping item with id $itemId")
+            return
         }
-    }
 
-    private suspend fun needNewBasket(): Boolean {
-        val basket = basket.first()
-        return basket == null || !basketApiService.getBasketContent(basket.basketId).isSuccessful
-    }
-
-    private suspend fun putItemIntoCurrentBasket(shoppingItem: ShoppingItem, amount: Int): Boolean {
-        // Update database, Trigger request, refresh database
-        val basket: Basket = basket.first() ?: return false
-
-        // Update Database
         val basketItem = BasketItem(
             itemId = shoppingItem.id,
             title = shoppingItem.title,
             price = shoppingItem.price,
             count = amount
         )
+
         if (amount == 0) {
             basketDao.removeBasketItem(basketItemToEntity(basketItem))
         } else {
             basketDao.insertBasketItems(listOf(basketItemToEntity(basketItem)))
         }
-
-        // Trigger request
-        val networkBasketItem = NetworkBasketItemPutRequest(
-            basketId = basket.basketId,
-            count = amount,
-            itemId = shoppingItem.id
-        )
-        val putItemResponse = basketApiService.putItemToBasket(networkBasketItem)
-
-        // TODO update database if not successful
-        return putItemResponse.isSuccessful
     }
 
-    override suspend fun getBasketItem(itemId: String): ShoppingItem? {
-        return shoppingItems.first().find { it.id == itemId }
-    }
-
-    override suspend fun createNewBasket() {
-        val createBasketResponse = basketApiService.getNewBasket()
-        if (!createBasketResponse.isSuccessful) throw Exception("Could not create basket")
-        val basketID = createBasketResponse.body()!!
-        val basket = Basket(
-            value = 0,
-            paid = false,
-            basketId = basketID,
-            items = listOf()
-        )
-        basketDao.setBasketEntity(basketToEntity(basket))
-    }
-
-    override suspend fun putItemIntoCurrentBasket(itemId: String, amount: Int): Boolean {
-        // TODO or query shopping items
-        val shoppingItem = shoppingItems.first().find { it.id == itemId } ?: return false
-        putItemIntoCurrentBasket(shoppingItem = shoppingItem, amount = amount)
-        return true
-    }
-
-    override suspend fun discardCurrentBasket(delete: Boolean) {
-        val basket = basket.first()
-        if (delete && basket != null) {
-            basketApiService.deleteBasket(basket.basketId)
-        }
+    override suspend fun discardCurrentBasket() {
         basketDao.deleteAllBasketItems()
-        createNewBasket()
     }
 
-    override suspend fun payCurrentBasket() {
-        val basket = basket.first()
+    override suspend fun pushCurrentBasket(): UUID {
+        val createBasketResponse = basketApiService.getNewBasket()
+        if (!createBasketResponse.isSuccessful || createBasketResponse.body() == null) {
+            throw Exception("Could not create basket!")
+        }
 
-        // Pay basket
+        val basketId = createBasketResponse.body()!!
+        basketDao.observeBasketItemEntities().first().forEach { basketItemEntity ->
+            val request = NetworkBasketItemPutRequest(
+                basketId,
+                basketItemEntity.count,
+                basketItemEntity.itemId
+            )
+            val response = basketApiService.putItemToBasket(request)
+            if (!response.isSuccessful) Timber.e("An error occurred when putting \n$basketItemEntity\nto current basket.")
+        }
+        return basketId
+    }
+
+    override suspend fun payBasket(basketId: UUID) {
         val payResponse =
-            basketApiService.payBasket(basket!!.basketId)
+            basketApiService.payBasket(basketId)
         if (!payResponse.isSuccessful) {
             Timber.e(payResponse.raw().toString())
         }
@@ -171,21 +127,12 @@ class BasketRepository(
                 count = basketItemEntity.count
             )
 
-        fun basketToEntity(basket: Basket): BasketEntity =
-            BasketEntity(
-                basketId = basket.basketId,
-                paid = basket.paid,
-            )
-
         fun basketEntityToBasket(
-            basketEntity: BasketEntity,
             basketItems: List<BasketItem>
         ): Basket =
             Basket(
-                basketId = basketEntity.basketId,
-                paid = basketEntity.paid,
+                items = basketItems,
                 value = basketItems.sumOf { it.count * it.price },
-                items = basketItems
             )
 
         fun shoppingItemEntityToItem(shoppingItemEntity: ShoppingItemEntity): ShoppingItem =

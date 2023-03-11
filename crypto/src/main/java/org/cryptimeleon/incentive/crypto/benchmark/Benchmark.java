@@ -5,6 +5,8 @@ import org.cryptimeleon.craco.common.ByteArrayImplementation;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.callback.IStoreBasketRedeemedHandler;
+import org.cryptimeleon.incentive.crypto.exception.ProviderDoubleSpendingDetectedException;
+import org.cryptimeleon.incentive.crypto.exception.StoreDoubleSpendingDetectedException;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
@@ -232,7 +234,7 @@ public class Benchmark {
                     earnProviderRequest,
                     promotionParameters,
                     providerKeyPair,
-                    new BenchmarkTransactionDBHandler(),
+                    earnTransactionData -> {},
                     storePublicKey -> true
             );
             finish = Instant.now();
@@ -271,18 +273,22 @@ public class Benchmark {
             tSpendStoreRequest[i] = Duration.between(start, finish).toNanos();
 
             start = Instant.now();
-            spendCouponSignature = incentiveSystem.signSpendCoupon(
-                    storeKeyPair,
-                    ppk,
-                    basketId,
-                    promotionParameters,
-                    spendStoreRequest,
-                    spendDeductTree,
-                    context,
-                    (basketId1, promotionId, hash) -> IStoreBasketRedeemedHandler.BasketRedeemState.BASKET_NOT_REDEEMED,
-                    new BenchmarkBlacklist(),
-                    new BenchmarkTransactionDBHandler()
-            );
+            try {
+                spendCouponSignature = incentiveSystem.signSpendCoupon(
+                        storeKeyPair,
+                        ppk,
+                        basketId,
+                        promotionParameters,
+                        spendStoreRequest,
+                        spendDeductTree,
+                        context,
+                        (basketId1, promotionId, hash) -> IStoreBasketRedeemedHandler.BasketRedeemState.BASKET_NOT_REDEEMED,
+                        new BenchmarkBlacklist(),
+                        spendTransactionData -> {}
+                );
+            } catch (StoreDoubleSpendingDetectedException e) {
+                throw new RuntimeException(e);
+            }
             finish = Instant.now();
             tSpendStoreResponse[i] = Duration.between(start, finish).toNanos();
 
@@ -293,16 +299,20 @@ public class Benchmark {
             tSpendProviderRequest[i] = Duration.between(start, finish).toNanos();
 
             start = Instant.now();
-            spendProviderResponse = incentiveSystem.verifySpendRequestAndIssueNewToken(
-                    providerKeyPair,
-                    promotionParameters,
-                    spendProviderRequest,
-                    basketId,
-                    spendDeductTree,
-                    context,
-                    storePublicKey -> true,
-                    new BenchmarkBlacklist()
-            );
+            try {
+                spendProviderResponse = incentiveSystem.verifySpendRequestAndIssueNewToken(
+                        providerKeyPair,
+                        promotionParameters,
+                        spendProviderRequest,
+                        basketId,
+                        spendDeductTree,
+                        context,
+                        storePublicKey -> true,
+                        new BenchmarkBlacklist()
+                );
+            } catch (ProviderDoubleSpendingDetectedException e) {
+                throw new RuntimeException(e);
+            }
             finish = Instant.now();
             tSpendProviderResponse[i] = Duration.between(start, finish).toNanos();
 

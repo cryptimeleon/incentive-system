@@ -11,12 +11,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 
 @Composable
-fun SetupUi(onFinished: () -> Unit) {
-    val setupViewModel = hiltViewModel<SetupViewModel>()
+fun SetupUi(setupViewModel: SetupViewModel, onFinished: () -> Unit) {
     val setupFinished by setupViewModel.navigateToInfo.observeAsState(false)
 
     LaunchedEffect(false) {

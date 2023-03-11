@@ -19,7 +19,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
@@ -42,11 +41,17 @@ import com.google.accompanist.permissions.rememberPermissionState
 import org.cryptimeleon.incentive.app.domain.model.ShoppingItem
 import org.cryptimeleon.incentive.app.theme.CryptimeleonTheme
 import org.cryptimeleon.incentive.app.ui.common.DefaultTopAppBar
+import org.cryptimeleon.incentive.app.ui.storeselection.StoreSelectionSheet
 import timber.log.Timber
 import androidx.camera.core.Preview as CameraPreview
 
 @Composable
-fun ScanScreen(openSettings: () -> Unit, openBenchmark: () -> Unit, openAttacker: () -> Unit) {
+fun ScanScreen(
+    openSettings: () -> Unit,
+    openBenchmark: () -> Unit,
+    openAttacker: () -> Unit,
+    bottomAppBar: @Composable () -> Unit
+) {
     val viewModel = hiltViewModel<ScanViewModel>()
     val state by viewModel.state.observeAsState(ScanEmptyState)
     val filter by viewModel.itemFilter.collectAsState()
@@ -63,12 +68,12 @@ fun ScanScreen(openSettings: () -> Unit, openBenchmark: () -> Unit, openAttacker
         state,
         filter,
         filteredItems,
-        viewModel::setFilter
+        viewModel::setFilter,
+        bottomAppBar
     )
 }
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
 @Composable
 private fun ScannerScreen(
     openBenchmark: () -> Unit,
@@ -81,15 +86,21 @@ private fun ScannerScreen(
     state: ScanState,
     filter: String,
     filteredItems: List<ShoppingItem>,
-    setFilter: (String) -> Unit
+    setFilter: (String) -> Unit,
+    bottomAppBar: @Composable () -> Unit = {}
 ) {
-    Scaffold(topBar = {
-        DefaultTopAppBar(
-            onOpenSettings = openSettings,
-            onOpenBenchmark = openBenchmark,
-            onOpenAttacker = openAttacker
-        )
-    }) {
+    var showStoreSheet by remember { mutableStateOf(false) }
+
+    Scaffold(
+        topBar = {
+            DefaultTopAppBar(
+                onOpenSettings = openSettings,
+                onOpenBenchmark = openBenchmark,
+                onOpenAttacker = openAttacker,
+                onSelectStore = { showStoreSheet = true }
+            )
+        }, bottomBar = bottomAppBar
+    ) {
         Box(
             modifier = Modifier
                 .padding(it)
@@ -124,6 +135,9 @@ private fun ScannerScreen(
                 else -> {}
             }
         }
+    }
+    if (showStoreSheet) {
+        StoreSelectionSheet(onDismissRequest = { showStoreSheet = false })
     }
 }
 

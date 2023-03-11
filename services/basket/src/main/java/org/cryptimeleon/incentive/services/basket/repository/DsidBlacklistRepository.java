@@ -13,7 +13,7 @@ public class DsidBlacklistRepository implements IDsidBlacklistHandler {
 
     @Override
     public boolean containsDsidWithDifferentGamma(Zn.ZnElement doubleSpendingId, Zn.ZnElement gamma) {
-        return storage.containsKey(doubleSpendingId) && storage.get(doubleSpendingId).equals(gamma);
+        return storage.containsKey(doubleSpendingId) && !storage.get(doubleSpendingId).equals(gamma);
     }
 
     @Override
