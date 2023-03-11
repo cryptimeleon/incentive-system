@@ -5,7 +5,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Storefront
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -28,8 +29,8 @@ import org.cryptimeleon.incentive.app.ui.preview.CryptimeleonPreviewContainer
 fun AttackerUi(onUpClicked: () -> Unit) {
 
     val viewModel = hiltViewModel<AttackerViewModel>()
-    val doubleSpendingAttackEnabled: DoubleSpendingPreferences by viewModel.doubleSpendingPreferencesFlow.collectAsState(
-        DoubleSpendingPreferences(false)
+    val dsPreferences: DoubleSpendingPreferences by viewModel.doubleSpendingPreferencesFlow.collectAsState(
+        DoubleSpendingPreferences(discardUpdatedToken = false, stopAfterPay = false)
     )
 
     Scaffold(
@@ -54,18 +55,22 @@ fun AttackerUi(onUpClicked: () -> Unit) {
     ) { contentPadding ->
         // We apply the contentPadding passed to us from the Scaffold
         AttackerUi(
-            doubleSpendingAttackEnabled.discardUpdatedToken,
+            dsPreferences.discardUpdatedToken,
+            dsPreferences.stopAfterPay,
             Modifier.padding(contentPadding),
-            viewModel::setDiscardUpdatedToken
+            viewModel::setDiscardUpdatedToken,
+            viewModel::setStopAfterPayment
         )
     }
 }
 
 @Composable
 private fun AttackerUi(
-    doubleSpendingAttackEnabled: Boolean,
+    discardTokenEnabled: Boolean,
+    stopAfterPayment: Boolean,
     modifier: Modifier = Modifier,
     setDiscardEnabled: (Boolean) -> Unit = {},
+    setStopAfterPayment: (Boolean) -> Unit = {},
 ) {
     Column(
         modifier = modifier
@@ -79,7 +84,7 @@ private fun AttackerUi(
                 .fillMaxWidth()
                 .padding(32.dp)
         ) {
-            Text("🦹", fontSize = 24.em)
+            Text("📡", fontSize = 24.em)
         }
         DoubleSpendingText()
         Row(
@@ -87,20 +92,45 @@ private fun AttackerUi(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 32.dp)
         ) {
-            Row(Modifier.height(IntrinsicSize.Min)) {
+            Row(Modifier.height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Icon(
-                    Icons.Default.Bolt,
-                    "Attack Icon",
+                    Icons.Default.Delete,
+                    "Discard Icon",
                     Modifier
                         .size(32.dp)
                 )
-                Text("Double-Spending Mode", style = MaterialTheme.typography.headlineSmall)
+                Text("Discard Remainder Token", style = MaterialTheme.typography.titleLarge)
             }
-            Switch(checked = doubleSpendingAttackEnabled, onCheckedChange = setDiscardEnabled)
+            Switch(checked = discardTokenEnabled, onCheckedChange = setDiscardEnabled)
         }
-        DoubleSpendingProtectionText(Modifier.padding(bottom = 32.dp))
+        Text(
+            "Further, you can stop the protocol after the payment at the store and thus not communicate with the provider to obtain a remainder token." +
+                    "This corresponds to the attack scenario where an attacker copies a token to two phones and tries to claim two rewards at two different stores."
+        )
+        Spacer(
+            modifier = Modifier
+                .height(8.dp)
+                .fillMaxWidth()
+        )
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            Row(Modifier.height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Icon(
+                    Icons.Default.Storefront,
+                    "Store Icon",
+                    Modifier
+                        .size(32.dp)
+                )
+                Text("Stop After Payment", style = MaterialTheme.typography.titleLarge)
+            }
+            Switch(checked = stopAfterPayment, onCheckedChange = setStopAfterPayment)
+        }
+        DoubleSpendingProtectionText(Modifier.padding(bottom = 32.dp, top = 16.dp))
     }
 }
 
@@ -130,8 +160,12 @@ private fun DoubleSpendingText() {
     )
     Text(
         "You can try these attacks by activating the double-spending mode below. " +
-                "It allows you to use the same token multiple times. " +
-                "As long as this mode is activated, your tokens are not overwritten."
+                "It allows you to use the same token multiple times by discarding the remainder token. "
+    )
+    Spacer(
+        modifier = Modifier
+            .height(8.dp)
+            .fillMaxWidth()
     )
 }
 
@@ -161,6 +195,6 @@ private fun DoubleSpendingProtectionText(modifier: Modifier = Modifier) {
 @Preview
 private fun AttackerUiPreview() {
     CryptimeleonPreviewContainer {
-        AttackerUi(true)
+        AttackerUi(true,true)
     }
 }

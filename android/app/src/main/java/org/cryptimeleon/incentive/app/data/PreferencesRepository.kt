@@ -14,6 +14,7 @@ class PreferencesRepository(private val dataStore: DataStore<Preferences>) :
 
     private object PreferencesKeys {
         val DISCARD_UPDATED_TOKEN = booleanPreferencesKey("discard_updated_token")
+        val STOP_AFTER_PAYMENT = booleanPreferencesKey("stop_after_payment")
         val USER_DATA = stringPreferencesKey("user_data")
         val CURRENT_STORE_PATH = stringPreferencesKey("current_store")
     }
@@ -29,7 +30,8 @@ class PreferencesRepository(private val dataStore: DataStore<Preferences>) :
         }.map { preferences ->
             // Get our show completed value, defaulting to false if not set:
             val showCompleted = preferences[PreferencesKeys.DISCARD_UPDATED_TOKEN] ?: false
-            DoubleSpendingPreferences(showCompleted)
+            val stopAfterPayment = preferences[PreferencesKeys.STOP_AFTER_PAYMENT] ?: false
+            DoubleSpendingPreferences(showCompleted, stopAfterPayment)
         }
 
     override val userDataPreferencesFlow: Flow<String> = dataStore.data
@@ -44,6 +46,12 @@ class PreferencesRepository(private val dataStore: DataStore<Preferences>) :
     override suspend fun updateDiscardUpdatedToken(discardToken: Boolean) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.DISCARD_UPDATED_TOKEN] = discardToken
+        }
+    }
+
+    override suspend fun updateStopAfterPayment(requestToken: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.STOP_AFTER_PAYMENT] = requestToken
         }
     }
 

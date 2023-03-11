@@ -83,10 +83,9 @@ class PayAndRedeemUseCase(
             )
 
             basketRepository.payBasket(basketId)
-            if (doubleSpendingPreferences.discardUpdatedToken) {
+            if (doubleSpendingPreferences.stopAfterPay) {
                 return PayAndRedeemStatus.DSStopAfterCLaimingReward(basketId)
             }
-            // TODO one attack stops here. Claim two rewards from one token without sending data to provider
 
             val updateResults = cryptoRepository.retrieveTokenUpdatesBatchStoreResults(basketId)
             val earnProviderRequests: List<Pair<EarnRequestProviderDto, EarnProviderCache>> =
@@ -128,7 +127,8 @@ class PayAndRedeemUseCase(
                 spendProviderRequests,
                 pp,
                 incentiveSystem,
-                cryptoMaterial
+                cryptoMaterial,
+                doubleSpendingPreferences.discardUpdatedToken
             )
 
             basketRepository.discardCurrentBasket()
@@ -154,7 +154,8 @@ class PayAndRedeemUseCase(
         spendProviderRequests: List<Pair<SpendRequestProviderDto, SpendProviderCache>>,
         pp: IncentivePublicParameters,
         incentiveSystem: IncentiveSystem,
-        cryptoMaterial: CryptoMaterial
+        cryptoMaterial: CryptoMaterial,
+        discardToken: Boolean
     ) {
         spendResultsProviderDtoList.forEach {
             val cache =
@@ -174,7 +175,10 @@ class PayAndRedeemUseCase(
                 cache.spendRequest,
                 spendResponse
             )
-            cryptoRepository.putToken(cache.promotion.promotionParameters, token)
+            if (!discardToken) {
+                // This if for demonstrating DS Attacks / Functionality
+                cryptoRepository.putToken(cache.promotion.promotionParameters, token)
+            }
         }
     }
 
