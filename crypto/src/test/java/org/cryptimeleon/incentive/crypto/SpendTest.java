@@ -28,7 +28,7 @@ public class SpendTest {
     final IDsidBlacklistHandler dsidBlacklistHandler = new TestSuite.TestDsidBlacklist();
 
     @Test
-    void spendFullTest() {
+    void spendFullTest() throws StoreDoubleSpendingDetected, ProviderDoubleSpendingDetectedException {
         SpendDeductTree spendDeductTree = SpendHelper.generateSimpleTestSpendDeductTree(promotionParameters, pointDifference);
         SpendStoreRequest spendStoreRequest = incSys.generateStoreSpendRequest(
                 TestSuite.userKeyPair, TestSuite.providerKeyPair.getPk(), token,
@@ -36,47 +36,38 @@ public class SpendTest {
                 spendDeductTree,
                 TestSuite.context
         );
-        SpendStoreResponse spendCouponSignature;
-        try {
-            spendCouponSignature = incSys.signSpendCoupon(
-                    TestSuite.storeKeyPair,
-                    TestSuite.providerKeyPair.getPk(),
-                    basketId,
-                    promotionParameters,
-                    spendStoreRequest,
-                    spendDeductTree,
-                    TestSuite.context,
-                    testRedeemedHandler,
-                    dsidBlacklistHandler,
-                    spendTransactionData -> {}
-            );
-        } catch (StoreDoubleSpendingDetected e) {
-            throw new RuntimeException(e);
-        }
+        SpendStoreResponse spendCouponSignature = incSys.signSpendCoupon(
+                TestSuite.storeKeyPair,
+                TestSuite.providerKeyPair.getPk(),
+                basketId,
+                promotionParameters,
+                spendStoreRequest,
+                spendDeductTree,
+                TestSuite.context,
+                testRedeemedHandler,
+                dsidBlacklistHandler,
+                spendTransactionData -> {
+                }
+        );
         Assertions.assertTrue(incSys.verifySpendCouponSignature(spendStoreRequest, spendCouponSignature, promotionParameters, basketId));
 
         SpendProviderRequest spendRequest = new SpendProviderRequest(spendStoreRequest, spendCouponSignature);
-        SpendProviderResponse spendResponse;
-        try {
-            spendResponse = incSys.verifySpendRequestAndIssueNewToken(
-                    TestSuite.providerKeyPair,
-                    promotionParameters,
-                    spendRequest,
-                    basketId,
-                    spendDeductTree,
-                    TestSuite.context,
-                    (z) -> true,
-                    dsidBlacklistHandler
-            );
-        } catch (ProviderDoubleSpendingDetectedException e) {
-            throw new RuntimeException(e);
-        }
+        SpendProviderResponse spendResponse = incSys.verifySpendRequestAndIssueNewToken(
+                TestSuite.providerKeyPair,
+                promotionParameters,
+                spendRequest,
+                basketId,
+                spendDeductTree,
+                TestSuite.context,
+                (z) -> true,
+                dsidBlacklistHandler
+        );
         Token updatedToken = incSys.retrieveUpdatedTokenFromSpendResponse(TestSuite.userKeyPair, TestSuite.providerKeyPair.getPk(), token, promotionParameters, pointsAfterSpend, spendRequest, spendResponse);
         Assertions.assertEquals(updatedToken.getPoints().map(RingElement::asInteger), pointsAfterSpend);
     }
 
     @Test
-    void representationTests() {
+    void representationTests() throws StoreDoubleSpendingDetected, ProviderDoubleSpendingDetectedException {
         SpendDeductTree spendDeductTree = SpendHelper.generateSimpleTestSpendDeductTree(promotionParameters, pointDifference);
         SpendStoreRequest spendStoreRequest = incSys.generateStoreSpendRequest(
                 TestSuite.userKeyPair, TestSuite.providerKeyPair.getPk(), token,
@@ -86,39 +77,30 @@ public class SpendTest {
         );
         ArrayList<SpendTransactionData> spendTxData = new ArrayList<>();
         SpendStoreResponse spendCouponSignature;
-        try {
-            spendCouponSignature = incSys.signSpendCoupon(
-                    TestSuite.storeKeyPair,
-                    TestSuite.providerKeyPair.getPk(),
-                    basketId,
-                    promotionParameters,
-                    spendStoreRequest,
-                    spendDeductTree,
-                    TestSuite.context, testRedeemedHandler,
-                    dsidBlacklistHandler,
-                    spendTxData::add
-            );
-        } catch (StoreDoubleSpendingDetected e) {
-            throw new RuntimeException(e);
-        }
+        spendCouponSignature = incSys.signSpendCoupon(
+                TestSuite.storeKeyPair,
+                TestSuite.providerKeyPair.getPk(),
+                basketId,
+                promotionParameters,
+                spendStoreRequest,
+                spendDeductTree,
+                TestSuite.context, testRedeemedHandler,
+                dsidBlacklistHandler,
+                spendTxData::add
+        );
 
         SpendTransactionData spendTransactionData = spendTxData.get(0);
         SpendProviderRequest spendRequest = new SpendProviderRequest(spendStoreRequest, spendCouponSignature);
-        SpendProviderResponse spendResponse;
-        try {
-            spendResponse = incSys.verifySpendRequestAndIssueNewToken(
-                    TestSuite.providerKeyPair,
-                    promotionParameters,
-                    spendRequest,
-                    basketId,
-                    spendDeductTree,
-                    TestSuite.context,
-                    (z) -> true,
-                    new TestSuite.TestDsidBlacklist()
-            );
-        } catch (ProviderDoubleSpendingDetectedException e) {
-            throw new RuntimeException(e);
-        }
+        SpendProviderResponse spendResponse = incSys.verifySpendRequestAndIssueNewToken(
+                TestSuite.providerKeyPair,
+                promotionParameters,
+                spendRequest,
+                basketId,
+                spendDeductTree,
+                TestSuite.context,
+                (z) -> true,
+                new TestSuite.TestDsidBlacklist()
+        );
 
         SpendStoreResponse deserializedSpendCouponSignature = new SpendStoreResponse(spendCouponSignature.getRepresentation());
         SpendTransactionData deserializedSpendTransactionData = new SpendTransactionData(spendTransactionData.getRepresentation(),

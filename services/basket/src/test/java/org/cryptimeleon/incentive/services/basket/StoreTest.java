@@ -318,7 +318,7 @@ public class StoreTest {
                 .body(BodyInserters.fromValue(bulkRequestStoreDto))
                 .exchange()
                 .expectStatus()
-                .isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR); // TODO improve error handling, BAD_REQUEST instead
+                .isEqualTo(HttpStatus.I_AM_A_TEAPOT);
     }
 
     private BulkRequestStoreDto generateBulkStoreDto(SpendStoreRequest spendStoreRequest) {

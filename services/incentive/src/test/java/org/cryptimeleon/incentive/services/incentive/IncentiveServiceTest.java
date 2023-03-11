@@ -5,6 +5,7 @@ import org.cryptimeleon.incentive.crypto.Helper;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.TestSuite;
 import org.cryptimeleon.incentive.crypto.callback.IStoreBasketRedeemedHandler;
+import org.cryptimeleon.incentive.crypto.exception.StoreDoubleSpendingDetected;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.promotion.TestSuiteWithPromotion;
 import org.cryptimeleon.incentive.promotion.model.Basket;
@@ -98,11 +99,11 @@ public class IncentiveServiceTest {
                 TestSuiteWithPromotion.basketPoints.toList());
     }
 
-    private static SpendStoreResponse generateSpendCouponSignature(SpendStoreRequest spendStoreRequest) {
+    private static SpendStoreResponse generateSpendCouponSignature(SpendStoreRequest spendStoreRequest) throws StoreDoubleSpendingDetected {
         return generateSpendCouponSignature(spendStoreRequest, TestSuiteWithPromotion.basket);
     }
 
-    private static SpendStoreResponse generateSpendCouponSignature(SpendStoreRequest spendStoreRequest, Basket basket) {
+    private static SpendStoreResponse generateSpendCouponSignature(SpendStoreRequest spendStoreRequest, Basket basket) throws StoreDoubleSpendingDetected {
         return incentiveSystem.signSpendCoupon(
                 TestSuiteWithPromotion.storeKeyPair,
                 TestSuiteWithPromotion.providerKeyPair.getPk(),
@@ -221,7 +222,7 @@ public class IncentiveServiceTest {
     }
 
     @Test
-    public void spendTestECDSA(@Autowired WebTestClient webClient) {
+    public void spendTestECDSA(@Autowired WebTestClient webClient) throws StoreDoubleSpendingDetected {
         addPromotion(webClient, TestSuiteWithPromotion.promotion, providerSecret, HttpStatus.OK);
 
         var token = generateToken();
@@ -237,7 +238,7 @@ public class IncentiveServiceTest {
     }
 
     @Test
-    public void spendTestTwiceECDSA(@Autowired WebTestClient webClient) {
+    public void spendTestTwiceECDSA(@Autowired WebTestClient webClient) throws StoreDoubleSpendingDetected {
         addPromotion(webClient, TestSuiteWithPromotion.promotion, providerSecret, HttpStatus.OK);
 
         var token = generateToken();
@@ -258,7 +259,7 @@ public class IncentiveServiceTest {
     }
 
     @Test
-    public void spendTestInvalidECDSA(@Autowired WebTestClient webClient) {
+    public void spendTestInvalidECDSA(@Autowired WebTestClient webClient) throws StoreDoubleSpendingDetected {
         addPromotion(webClient, TestSuiteWithPromotion.promotion, providerSecret, HttpStatus.OK);
 
         var token = generateToken();

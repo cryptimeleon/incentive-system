@@ -41,13 +41,13 @@ public class RejectionAndDSProtectionTest {
     }
 
     @Test
-    void testSuccessfulRetryAtProvider() {
+    void testSuccessfulRetryAtProvider() throws ProviderDoubleSpendingDetectedException, StoreDoubleSpendingDetected {
         spendTokenSyncronizedBlacklists(basketId, testDsidBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler);
         spendTokenSyncronizedBlacklists(basketId, testDsidBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler);
     }
 
     @Test
-    void testSuccessfulRejectionAtStoreSameBasketDifferentRequest() {
+    void testSuccessfulRejectionAtStoreSameBasketDifferentRequest() throws StoreDoubleSpendingDetected {
         spendTokenStoreOnly(basketId, testDsidBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler, spendTransactionData -> {
         });
 
@@ -59,7 +59,7 @@ public class RejectionAndDSProtectionTest {
     }
 
     @Test
-    void testSuccessfulRejectionAtStoreDifferentBasketSameRequest() {
+    void testSuccessfulRejectionAtStoreDifferentBasketSameRequest() throws StoreDoubleSpendingDetected {
         spendTokenStoreOnly(basketId, testDsidBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler, spendTransactionData -> {
         });
 
@@ -70,7 +70,7 @@ public class RejectionAndDSProtectionTest {
     }
 
     @Test
-    void testSuccessfulRejectionAtStoreDifferentBasketAndRequest() {
+    void testSuccessfulRejectionAtStoreDifferentBasketAndRequest() throws StoreDoubleSpendingDetected {
         spendTokenStoreOnly(basketId, testDsidBlacklist, pointDifference, pointsAfterSpend, testRedeemedHandler, spendTransactionData -> {
         });
 
@@ -81,7 +81,7 @@ public class RejectionAndDSProtectionTest {
     }
 
     @Test
-    void testSuccessfulRejectionAtProvider() {
+    void testSuccessfulRejectionAtProvider() throws ProviderDoubleSpendingDetectedException, StoreDoubleSpendingDetected {
         // Do no sync blacklist with store => multiple blacklists
         TestSuite.TestDsidBlacklist storeOneBlacklist = new TestSuite.TestDsidBlacklist();
         TestSuite.TestDsidBlacklist storeTwoBlacklist = new TestSuite.TestDsidBlacklist();
@@ -98,7 +98,7 @@ public class RejectionAndDSProtectionTest {
     }
 
     @Test
-    void testSuccessfulLink() {
+    void testSuccessfulLink() throws StoreDoubleSpendingDetected {
         ArrayList<SpendTransactionData> spendTransactionData = new ArrayList<>();
         TestSuite.TestDsidBlacklist storeOneBlacklist = new TestSuite.TestDsidBlacklist();
         TestSuite.TestDsidBlacklist storeTwoBlacklist = new TestSuite.TestDsidBlacklist();
@@ -121,7 +121,7 @@ public class RejectionAndDSProtectionTest {
                                                    Vector<BigInteger> pointDifference,
                                                    Vector<BigInteger> pointsAfterSpend,
                                                    IStoreBasketRedeemedHandler storeBasketRedeemedHandler,
-                                                   ISpendTransactionDBHandler spendTransactionDBHandler) {
+                                                   ISpendTransactionDBHandler spendTransactionDBHandler) throws StoreDoubleSpendingDetected {
         SpendDeductTree spendDeductTree = SpendHelper.generateSimpleTestSpendDeductTree(promotionParameters, pointDifference);
         SpendStoreRequest spendStoreRequest = incSys.generateStoreSpendRequest(
                 TestSuite.userKeyPair, TestSuite.providerKeyPair.getPk(), token,
@@ -129,22 +129,18 @@ public class RejectionAndDSProtectionTest {
                 spendDeductTree,
                 TestSuite.context
         );
-        try {
-            return incSys.signSpendCoupon(
-                    TestSuite.storeKeyPair,
-                    TestSuite.providerKeyPair.getPk(),
-                    basketId,
-                    promotionParameters,
-                    spendStoreRequest,
-                    spendDeductTree,
-                    TestSuite.context,
-                    storeBasketRedeemedHandler,
-                    dsidBlacklistHandler,
-                    spendTransactionDBHandler
-            );
-        } catch (StoreDoubleSpendingDetected e) {
-            throw new RuntimeException(e);
-        }
+        return incSys.signSpendCoupon(
+                TestSuite.storeKeyPair,
+                TestSuite.providerKeyPair.getPk(),
+                basketId,
+                promotionParameters,
+                spendStoreRequest,
+                spendDeductTree,
+                TestSuite.context,
+                storeBasketRedeemedHandler,
+                dsidBlacklistHandler,
+                spendTransactionDBHandler
+        );
     }
 
     private SpendProviderResponse spendTokenSyncronizedBlacklists(UUID basketId,
@@ -152,7 +148,7 @@ public class RejectionAndDSProtectionTest {
                                                                   Vector<BigInteger> pointDifference,
                                                                   Vector<BigInteger> pointsAfterSpend,
                                                                   IStoreBasketRedeemedHandler storeBasketRedeemedHandler
-    ) {
+    ) throws ProviderDoubleSpendingDetectedException, StoreDoubleSpendingDetected {
         return spendTokenMultipleBlackslists(basketId,
                 dsidBlacklistHandler,
                 dsidBlacklistHandler,
@@ -169,7 +165,7 @@ public class RejectionAndDSProtectionTest {
                                                                 IDsidBlacklistHandler providerBlacklist,
                                                                 Vector<BigInteger> pointDifference,
                                                                 Vector<BigInteger> pointsAfterSpend,
-                                                                IStoreBasketRedeemedHandler testRedeemedHandler) {
+                                                                IStoreBasketRedeemedHandler testRedeemedHandler) throws StoreDoubleSpendingDetected, ProviderDoubleSpendingDetectedException {
         SpendDeductTree spendDeductTree = SpendHelper.generateSimpleTestSpendDeductTree(promotionParameters, pointDifference);
         SpendStoreRequest spendStoreRequest = incSys.generateStoreSpendRequest(
                 TestSuite.userKeyPair,
@@ -181,38 +177,30 @@ public class RejectionAndDSProtectionTest {
                 spendDeductTree,
                 TestSuite.context
         );
-        SpendStoreResponse spendCouponSignature;
-        try {
-            spendCouponSignature = incSys.signSpendCoupon(
-                    TestSuite.storeKeyPair,
-                    TestSuite.providerKeyPair.getPk(),
-                    basketId,
-                    promotionParameters,
-                    spendStoreRequest,
-                    spendDeductTree,
-                    TestSuite.context, testRedeemedHandler,
-                    storeBlacklist,
-                    spendTransactionData -> {}
-            );
-        } catch (StoreDoubleSpendingDetected e) {
-            throw new RuntimeException(e);
-        }
+        SpendStoreResponse spendCouponSignature = incSys.signSpendCoupon(
+                TestSuite.storeKeyPair,
+                TestSuite.providerKeyPair.getPk(),
+                basketId,
+                promotionParameters,
+                spendStoreRequest,
+                spendDeductTree,
+                TestSuite.context, testRedeemedHandler,
+                storeBlacklist,
+                spendTransactionData -> {
+                }
+        );
         Assertions.assertTrue(incSys.verifySpendCouponSignature(spendStoreRequest, spendCouponSignature, promotionParameters, basketId));
 
         SpendProviderRequest spendRequest = new SpendProviderRequest(spendStoreRequest, spendCouponSignature);
-        try {
-            return incSys.verifySpendRequestAndIssueNewToken(
-                    TestSuite.providerKeyPair,
-                    promotionParameters,
-                    spendRequest,
-                    basketId,
-                    spendDeductTree,
-                    TestSuite.context,
-                    (z) -> true,
-                    providerBlacklist
-            );
-        } catch (ProviderDoubleSpendingDetectedException e) {
-            throw new RuntimeException(e);
-        }
+        return incSys.verifySpendRequestAndIssueNewToken(
+                TestSuite.providerKeyPair,
+                promotionParameters,
+                spendRequest,
+                basketId,
+                spendDeductTree,
+                TestSuite.context,
+                (z) -> true,
+                providerBlacklist
+        );
     }
 }
