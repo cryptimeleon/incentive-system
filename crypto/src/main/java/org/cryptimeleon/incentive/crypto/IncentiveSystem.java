@@ -9,6 +9,7 @@ import org.cryptimeleon.craco.sig.ecdsa.ECDSASignatureScheme;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignatureScheme;
 import org.cryptimeleon.incentive.crypto.callback.*;
+import org.cryptimeleon.incentive.crypto.exception.ProviderDoubleSpendingDetectedException;
 import org.cryptimeleon.incentive.crypto.exception.StoreDoubleSpendingDetected;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
@@ -772,7 +773,7 @@ public class IncentiveSystem {
                                                                     SpendDeductTree spendDeductTree,
                                                                     UniqueByteRepresentable context,
                                                                     IStorePublicKeyVerificationHandler storePublicKeyVerificationHandler,
-                                                                    IDsidBlacklistHandler dsidBlacklistHandler) {
+                                                                    IDsidBlacklistHandler dsidBlacklistHandler) throws ProviderDoubleSpendingDetectedException {
 
         // 0. Check if this is a doublespending attempt.
         var gamma = Util.hashGamma(pp.getBg().getZn(),
@@ -783,7 +784,8 @@ public class IncentiveSystem {
                 spendProviderRequest.getcPre1().pow(promotionParameters.getPromotionId()),
                 context);
         if (dsidBlacklistHandler.containsDsidWithDifferentGamma(spendProviderRequest.getDoubleSpendingId(), gamma)) {
-            throw new RuntimeException("Illegal retry, dsid already used for different request!");
+            // Not a retry request
+            throw new ProviderDoubleSpendingDetectedException();
         }
 
         // 1. Verify Store ECDSA public key is trusted

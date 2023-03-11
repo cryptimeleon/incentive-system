@@ -1,6 +1,7 @@
 package org.cryptimeleon.incentive.crypto;
 
 import org.cryptimeleon.incentive.crypto.callback.IDsidBlacklistHandler;
+import org.cryptimeleon.incentive.crypto.exception.ProviderDoubleSpendingDetectedException;
 import org.cryptimeleon.incentive.crypto.exception.StoreDoubleSpendingDetected;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.proof.spend.SpendHelper;
@@ -55,16 +56,21 @@ public class SpendTest {
         Assertions.assertTrue(incSys.verifySpendCouponSignature(spendStoreRequest, spendCouponSignature, promotionParameters, basketId));
 
         SpendProviderRequest spendRequest = new SpendProviderRequest(spendStoreRequest, spendCouponSignature);
-        SpendProviderResponse spendResponse = incSys.verifySpendRequestAndIssueNewToken(
-                TestSuite.providerKeyPair,
-                promotionParameters,
-                spendRequest,
-                basketId,
-                spendDeductTree,
-                TestSuite.context,
-                (z) -> true,
-                dsidBlacklistHandler
-        );
+        SpendProviderResponse spendResponse;
+        try {
+            spendResponse = incSys.verifySpendRequestAndIssueNewToken(
+                    TestSuite.providerKeyPair,
+                    promotionParameters,
+                    spendRequest,
+                    basketId,
+                    spendDeductTree,
+                    TestSuite.context,
+                    (z) -> true,
+                    dsidBlacklistHandler
+            );
+        } catch (ProviderDoubleSpendingDetectedException e) {
+            throw new RuntimeException(e);
+        }
         Token updatedToken = incSys.retrieveUpdatedTokenFromSpendResponse(TestSuite.userKeyPair, TestSuite.providerKeyPair.getPk(), token, promotionParameters, pointsAfterSpend, spendRequest, spendResponse);
         Assertions.assertEquals(updatedToken.getPoints().map(RingElement::asInteger), pointsAfterSpend);
     }
@@ -98,16 +104,21 @@ public class SpendTest {
 
         SpendTransactionData spendTransactionData = spendTxData.get(0);
         SpendProviderRequest spendRequest = new SpendProviderRequest(spendStoreRequest, spendCouponSignature);
-        SpendProviderResponse spendResponse = incSys.verifySpendRequestAndIssueNewToken(
-                TestSuite.providerKeyPair,
-                promotionParameters,
-                spendRequest,
-                basketId,
-                spendDeductTree,
-                TestSuite.context,
-                (z) -> true,
-                new TestSuite.TestDsidBlacklist()
-        );
+        SpendProviderResponse spendResponse;
+        try {
+            spendResponse = incSys.verifySpendRequestAndIssueNewToken(
+                    TestSuite.providerKeyPair,
+                    promotionParameters,
+                    spendRequest,
+                    basketId,
+                    spendDeductTree,
+                    TestSuite.context,
+                    (z) -> true,
+                    new TestSuite.TestDsidBlacklist()
+            );
+        } catch (ProviderDoubleSpendingDetectedException e) {
+            throw new RuntimeException(e);
+        }
 
         SpendStoreResponse deserializedSpendCouponSignature = new SpendStoreResponse(spendCouponSignature.getRepresentation());
         SpendTransactionData deserializedSpendTransactionData = new SpendTransactionData(spendTransactionData.getRepresentation(),

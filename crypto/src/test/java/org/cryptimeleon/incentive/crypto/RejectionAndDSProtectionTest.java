@@ -3,6 +3,7 @@ package org.cryptimeleon.incentive.crypto;
 import org.cryptimeleon.incentive.crypto.callback.IDsidBlacklistHandler;
 import org.cryptimeleon.incentive.crypto.callback.ISpendTransactionDBHandler;
 import org.cryptimeleon.incentive.crypto.callback.IStoreBasketRedeemedHandler;
+import org.cryptimeleon.incentive.crypto.exception.ProviderDoubleSpendingDetectedException;
 import org.cryptimeleon.incentive.crypto.exception.StoreDoubleSpendingDetected;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.proof.spend.SpendHelper;
@@ -180,7 +181,7 @@ public class RejectionAndDSProtectionTest {
                 spendDeductTree,
                 TestSuite.context
         );
-        SpendStoreResponse spendCouponSignature = null;
+        SpendStoreResponse spendCouponSignature;
         try {
             spendCouponSignature = incSys.signSpendCoupon(
                     TestSuite.storeKeyPair,
@@ -199,15 +200,19 @@ public class RejectionAndDSProtectionTest {
         Assertions.assertTrue(incSys.verifySpendCouponSignature(spendStoreRequest, spendCouponSignature, promotionParameters, basketId));
 
         SpendProviderRequest spendRequest = new SpendProviderRequest(spendStoreRequest, spendCouponSignature);
-        return incSys.verifySpendRequestAndIssueNewToken(
-                TestSuite.providerKeyPair,
-                promotionParameters,
-                spendRequest,
-                basketId,
-                spendDeductTree,
-                TestSuite.context,
-                (z) -> true,
-                providerBlacklist
-        );
+        try {
+            return incSys.verifySpendRequestAndIssueNewToken(
+                    TestSuite.providerKeyPair,
+                    promotionParameters,
+                    spendRequest,
+                    basketId,
+                    spendDeductTree,
+                    TestSuite.context,
+                    (z) -> true,
+                    providerBlacklist
+            );
+        } catch (ProviderDoubleSpendingDetectedException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

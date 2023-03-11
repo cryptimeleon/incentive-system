@@ -5,6 +5,7 @@ import org.cryptimeleon.incentive.client.dto.provider.*;
 import org.cryptimeleon.incentive.crypto.IncentiveSystemRestorer;
 import org.cryptimeleon.incentive.crypto.callback.IRegistrationCouponDBHandler;
 import org.cryptimeleon.incentive.crypto.callback.IStorePublicKeyVerificationHandler;
+import org.cryptimeleon.incentive.crypto.exception.ProviderDoubleSpendingDetectedException;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.promotion.ContextManager;
@@ -13,6 +14,7 @@ import org.cryptimeleon.incentive.promotion.ZkpTokenUpdateMetadata;
 import org.cryptimeleon.incentive.services.incentive.api.DSDetectedEntryDto;
 import org.cryptimeleon.incentive.services.incentive.api.RegistrationCouponJSON;
 import org.cryptimeleon.incentive.services.incentive.error.IncentiveServiceException;
+import org.cryptimeleon.incentive.services.incentive.error.OnlineDoubleSpendingException;
 import org.cryptimeleon.incentive.services.incentive.repository.*;
 import org.cryptimeleon.math.serialization.RepresentableRepresentation;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
@@ -200,16 +202,21 @@ public class IncentiveService {
                 cryptoRepository.getProviderPublicKey(),
                 context
         );
-        var spendResult = cryptoRepository.getIncentiveSystem().verifySpendRequestAndIssueNewToken(
-                cryptoRepository.getProviderKeyPair(),
-                promotion.getPromotionParameters(),
-                spendRequest,
-                spendRequestProviderDto.getBasketId(),
-                tree,
-                context,
-                s -> true,
-                dsidBlacklistRepository
-        );
+        SpendProviderResponse spendResult;
+        try {
+            spendResult = cryptoRepository.getIncentiveSystem().verifySpendRequestAndIssueNewToken(
+                    cryptoRepository.getProviderKeyPair(),
+                    promotion.getPromotionParameters(),
+                    spendRequest,
+                    spendRequestProviderDto.getBasketId(),
+                    tree,
+                    context,
+                    s -> true,
+                    dsidBlacklistRepository
+            );
+        } catch (ProviderDoubleSpendingDetectedException e) {
+            throw new OnlineDoubleSpendingException();
+        }
         return new SpendResultProviderDto(promotion.getPromotionParameters().getPromotionId(), jsonConverter.serialize(spendResult.getRepresentation()));
     }
 

@@ -5,6 +5,7 @@ import org.cryptimeleon.craco.common.ByteArrayImplementation;
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.callback.IStoreBasketRedeemedHandler;
+import org.cryptimeleon.incentive.crypto.exception.ProviderDoubleSpendingDetectedException;
 import org.cryptimeleon.incentive.crypto.exception.StoreDoubleSpendingDetected;
 import org.cryptimeleon.incentive.crypto.model.*;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
@@ -298,16 +299,20 @@ public class Benchmark {
             tSpendProviderRequest[i] = Duration.between(start, finish).toNanos();
 
             start = Instant.now();
-            spendProviderResponse = incentiveSystem.verifySpendRequestAndIssueNewToken(
-                    providerKeyPair,
-                    promotionParameters,
-                    spendProviderRequest,
-                    basketId,
-                    spendDeductTree,
-                    context,
-                    storePublicKey -> true,
-                    new BenchmarkBlacklist()
-            );
+            try {
+                spendProviderResponse = incentiveSystem.verifySpendRequestAndIssueNewToken(
+                        providerKeyPair,
+                        promotionParameters,
+                        spendProviderRequest,
+                        basketId,
+                        spendDeductTree,
+                        context,
+                        storePublicKey -> true,
+                        new BenchmarkBlacklist()
+                );
+            } catch (ProviderDoubleSpendingDetectedException e) {
+                throw new RuntimeException(e);
+            }
             finish = Instant.now();
             tSpendProviderResponse[i] = Duration.between(start, finish).toNanos();
 
