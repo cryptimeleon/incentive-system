@@ -1,7 +1,7 @@
 <template>
-  <div class="rounded shadow-md">
+  <div class="rounded shadow-md bg-white">
     <div class=" p-4">
-      <div class="flex flex-row items-baseline justify-between">
+      <div class="flex flex-row space-x-4 items-baseline justify-between">
         <div class="text-xl font-semibold">
           {{ item.title }}
         </div>

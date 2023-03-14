@@ -9,6 +9,8 @@
   },
   "dependencies": {
     "@chenfengyuan/vue-barcode": "^2.0.1",
+    "@vueuse/components": "^9.13.0",
+    "@vueuse/core": "^9.13.0",
     "autoprefixer": "^10",
     "core-js": "^3.8.3",
     "jsbarcode": "^3.11.5",
