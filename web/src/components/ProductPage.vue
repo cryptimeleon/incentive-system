@@ -6,8 +6,10 @@
     <div class="prose text-lg pb-2">
       We provide you with the barcodes of shopping items to try out the app at home.
     </div>
-    <div class="grid md:grid-cols-2 grid-cols-1 gap-x-8 gap-y-12 pb-8">
-      <ShoppingItemCard v-for="item in shoppingItems" :key="item.id" :item="item"/>
+    <div class="grid md:grid-cols-2 grid-cols-1 gap-8 pb-8">
+      <div v-for="item in shoppingItems" :key="item.id">
+        <ShoppingItemCard :item="item"/>
+      </div>
     </div>
   </div>
 </template>
@@ -22,25 +24,18 @@ export default {
   },
   data() {
     return {
-      shoppingItems: [
-        {
-          "id": "4008400404127",
-          "title": "Hazelnut Spread",
-          "price": 239
-        },
-        {
-          "id": "4001257000122",
-          "title": "Green Tea",
-          "price": 289
-        },
-        {
-          "id": "8718951312432",
-          "title": "Colgate Zahnpasta",
-          "price": 199
-        }
-      ],
+      shoppingItems: [],
     };
   },
-
+  async created() {
+    fetch("/basket/items")
+        .then(response => {
+          if (!response.ok) throw Error(response.statusText)
+          return response
+        })
+        .then(response => response.json())
+        .then(data => this.shoppingItems = data)
+        .catch(error => console.error(error))
+  }
 }
 </script>
