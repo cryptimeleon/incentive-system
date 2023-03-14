@@ -5,10 +5,17 @@ const LandingPage = () => import("@/components/LandingPage.vue")
 const PrivacyPolicy = () => import("@/components/PrivacyPolicy.vue")
 const StoreMain = () => import("@/components/store/StoreMain.vue")
 const ProviderRegistrationCoupons = () => import("@/components/ProviderRegistrationCoupons.vue")
+const ProductPage = () => import("@/components/ProductPage.vue")
 
 const routes = [
-    {path: '/', component: LandingPage},
-    {path: '/privacy-policy', component: PrivacyPolicy},
+    {
+        path: '/',
+        component: LandingPage
+    },
+    {
+        path: '/privacy-policy',
+        component: PrivacyPolicy
+    },
     {
         path: '/store-frontend',
         component: StoreMain,
@@ -28,7 +35,14 @@ const routes = [
                 "Attacker's can be identified after some time when the store syncs with the provider."
         }
     },
-    {path: '/provider-frontend', component: ProviderRegistrationCoupons}
+    {
+        path: '/provider-frontend',
+        component: ProviderRegistrationCoupons
+    },
+    {
+        path: '/shopping-items',
+        component: ProductPage
+    }
 ]
 
 const router = createRouter({
