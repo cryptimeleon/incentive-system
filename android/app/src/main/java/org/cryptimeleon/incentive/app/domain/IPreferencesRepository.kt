@@ -11,6 +11,7 @@ interface IPreferencesRepository {
     val userDataPreferencesFlow: Flow<String>
     val currentStoreName: Flow<String>
     suspend fun updateDiscardUpdatedToken(discardToken: Boolean)
+    suspend fun updateStopAfterPayment(requestToken: Boolean)
     suspend fun setUserData(userData: String)
     suspend fun setCurrentStoreName(name: String)
 }

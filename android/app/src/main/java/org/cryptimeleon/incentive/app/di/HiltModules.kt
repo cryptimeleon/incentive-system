@@ -127,14 +127,6 @@ class HiltApiModule {
 
     @Singleton
     @Provides
-    fun provideDosApiService(urlConfig: UrlConfig): DosApiService =
-        Retrofit.Builder()
-            .baseUrl(urlConfig.promotion_url)
-            .build()
-            .create(DosApiService::class.java)
-
-    @Singleton
-    @Provides
     fun provideCryptoApiService(urlConfig: UrlConfig): ProviderApiService {
         val okHttpClient =
             OkHttpClient.Builder() // Increase timeouts for batch proofs during development

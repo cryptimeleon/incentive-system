@@ -6,16 +6,13 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
-import org.cryptimeleon.incentive.app.data.network.DosApiService
 import org.cryptimeleon.incentive.app.domain.IPreferencesRepository
 import org.cryptimeleon.incentive.app.domain.model.DoubleSpendingPreferences
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class AttackerViewModel @Inject constructor(
     private val preferencesRepository: IPreferencesRepository,
-    private val dosApiService: DosApiService,
     application: Application
 ) :
     AndroidViewModel(application) {
@@ -28,10 +25,9 @@ class AttackerViewModel @Inject constructor(
         }
     }
 
-    fun launchShortDosAttack() {
+    fun setStopAfterPayment(stopAfterPayment: Boolean) {
         viewModelScope.launch {
-            dosApiService.launchShortDosAttack()
-            Timber.i("short dos")
+            preferencesRepository.updateStopAfterPayment(stopAfterPayment)
         }
     }
 }
