@@ -16,7 +16,25 @@
   <div v-if="selectedItem!=null" class="fixed top-0 left-0 right-0 z-50 w-full bg-white/[.90] h-full flex justify-center items-center">
     <div class="relative max-w-fit">
       <OnClickOutside @trigger="hideShoppingItem" >
-        <ShoppingItemCard :item="selectedItem"/>
+        <div class="rounded shadow-md bg-white">
+          <div class=" p-4">
+            <div class="flex flex-row space-x-4 items-baseline justify-between">
+              <div class="text-xl font-semibold">
+                {{ selectedItem.title }}
+              </div>
+              <div>
+                {{
+                  new Intl.NumberFormat('de-DE', {
+                    style: 'currency',
+                    currency: 'EUR'
+                  }).format((selectedItem.price) / 100)
+                }}
+              </div>
+            </div>
+            <VueBarcode :value="selectedItem.id" :options="{ format: 'EAN13', background: '#FFFFFF00' }">
+            </VueBarcode>
+          </div>
+        </div>
       </OnClickOutside>
     </div>
   </div>
@@ -25,12 +43,14 @@
 <script>
 import ShoppingItemCard from "@/components/ShoppingItemCard.vue";
 import { OnClickOutside } from '@vueuse/components'
+import VueBarcode from '@chenfengyuan/vue-barcode'
 
 
 export default {
   name: "ProductPage",
   components: {
     ShoppingItemCard,
+    VueBarcode,
     OnClickOutside
   },
   data() {
