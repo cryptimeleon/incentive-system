@@ -21,26 +21,50 @@ public class DemoBootstrapData {
 
     private static final ItemDto[] basketItems = {
             new ItemDto(
-                    "4008400404127",
+                    "4803216011183",
                     "Hazelnut Spread",
                     239),
             new ItemDto(
-                    "4001257000122",
+                    "6254500644798",
+                    "Crunchy Hazelnut Spread",
+                    269),
+            new ItemDto(
+                    "6834049853792",
                     "Green Tea",
                     289),
             new ItemDto(
-                    "8718951312432",
-                    "Colgate Zahnpasta",
-                    199),
+                    "6881125218822",
+                    "Chai Tea",
+                    279),
+            new ItemDto(
+                    "9933606420495",
+                    "Bottled Water",
+                    35),
+            new ItemDto(
+                    "3383315467889",
+                    "Shampoo",
+                    459),
+            new ItemDto(
+                    "4698150688146",
+                    "Chewing Gum",
+                    99),
+            new ItemDto(
+                    "2678866375181",
+                    "Cereal",
+                    599),
+            new ItemDto(
+                    "5910439010530",
+                    "Gummy Bears",
+                    289),
     };
 
     private static final RewardItemDto[] rewardItems = {
             // Hazelnut Spread Promotion
             new RewardItemDto("160859564846", "Hazelnut Spread"),
             // VIP Promotion
-            new RewardItemDto("957532923619", "2% Discount"), // Do not work yet (no effect), but for the sake of being a prototype let's call it discount
-            new RewardItemDto("579999001166", "5% Discount"),
-            new RewardItemDto("188444480283", "10% Discount"),
+            new RewardItemDto("957532923619", "VIP Bronze Bonus"), // Do not work yet (no effect), but for the sake of being a prototype let's call it discount
+            new RewardItemDto("579999001166", "VIP Silver Bonus"),
+            new RewardItemDto("188444480283", "VIP Gold Bonus"),
             // Streak Promotion
             new RewardItemDto("568948928121", "Coffee"),
             new RewardItemDto("132183798426", "Manicure Set"),
@@ -66,7 +90,7 @@ public class DemoBootstrapData {
                     new VipPromotion(
                             VipPromotion.generatePromotionParameters(),
                             "VIP Promotion",
-                            "You can reach the VIP status BRONZE, SILVER and Gold by collecting points for every purchase.",
+                            "You can reach the VIP status Bronze, Silver and Gold by collecting points for every purchase.",
                             100_00, // costs are in cent, hence the _
                             200_00,
                             500_00,
