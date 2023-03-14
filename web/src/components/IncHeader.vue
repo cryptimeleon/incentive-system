@@ -38,9 +38,9 @@
         </li>
         <li>
           <router-link to="/store-two-frontend">
-            <span class="text-white hover:text-gray-200">
-              Store Two
-            </span>
+                <span class="text-white hover:text-gray-200">
+                  Store Two
+                </span>
           </router-link>
         </li>
         <li>
@@ -50,13 +50,20 @@
             </span>
           </router-link>
         </li>
+        <li>
+          <router-link to="/shopping-items">
+            <span class="text-white hover:text-gray-200">
+              Shopping Items
+            </span>
+          </router-link>
+        </li>
       </ul>
     </nav>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import {ref} from 'vue'
 
 const showMenu = ref(false)
 </script>
