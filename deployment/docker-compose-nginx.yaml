@@ -82,7 +82,6 @@ services:
       - /root/.docker/config.json:/config.json
     command: --interval 30
     environment:
-      - WATCHTOWER_TRACE=true
       - WATCHTOWER_INCLUDE_STOPPED=true
 networks:
   provider:
