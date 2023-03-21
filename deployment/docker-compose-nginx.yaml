@@ -3,8 +3,7 @@ services:
     image: traefik:v2.9
     command: --api.dashboard=true --providers.docker
     ports:
-      - "1080:80"
-      - "1443:80"
+      - "8009:80"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
@@ -59,12 +58,12 @@ services:
     image: cptml/incsys-store:latest
     environment:
       - SPRING_PROFILES_ACTIVE=production
-      - SERVER_SERVLET_CONTEXT_PATH=${BASKET_CONTEXT:-/basket-two}
+      - SERVER_SERVLET_CONTEXT_PATH=/basket-two
       - STORE_NAME=Second Store
       - BASKET_SERVICE_PROVIDER_SECRET=${BASKET_PROVIDER_SECRET_TWO}
       - STORE_SHARED_SECRET=${STORE_SHARED_SECRET}
-      - INFO_SERVICE_URL=http://infoservice:8000${INFO_CONTEXT:-/info}
-      - INCENTIVE_SERVICE_URL=http://incentiveservice:8012${INCENTIVE_CONTEXT:-/incentive}
+      - INFO_SERVICE_URL=http://infoservice:8000/info
+      - INCENTIVE_SERVICE_URL=http://incentiveservice:8012/incentive
       - SPRINGFOX_HOST=${HOST:-incentives.cs.uni-paderborn.de}
     labels:
       - traefik.http.routers.basket-two.rule=PathPrefix(`/basket-two`)
@@ -76,9 +75,9 @@ services:
     image: cptml/incsys-bootstrap:latest
     environment:
       - SPRING_PROFILES_ACTIVE=production
-      - BASKET_SERVICE_URLS=http://basketservice:8010${BASKET_CONTEXT:-/basket},http://basketservicetwo:8010${BASKET_CONTEXT_TWO:-/basket-two}
+      - BASKET_SERVICE_URLS=http://basketservice:8010/basket,http://basketservicetwo:8010/basket-two
       - BASKET_SERVICE_PROVIDER_SECRETS=${BASKET_PROVIDER_SECRET},${BASKET_PROVIDER_SECRET_TWO}
-      - INCENTIVE_SERVICE_URL=http://incentiveservice:8012${INCENTIVE_CONTEXT:-/incentive}
+      - INCENTIVE_SERVICE_URL=http://incentiveservice:8012/incentive
       - INCENTIVE_SERVICE_PROVIDER_SECRET=${INCENTIVE_PROVIDER_SECRET}
     depends_on:
       - basketservice
