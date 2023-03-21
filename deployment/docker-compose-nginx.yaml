@@ -75,6 +75,15 @@ services:
     image: cmpt/incentive-system-web:latest
     ports:
       - "8080:80"
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /root/.docker/config.json:/config.json
+    command: --interval 30
+    environment:
+      - WATCHTOWER_TRACE=true
+      - WATCHTOWER_INCLUDE_STOPPED=true
 networks:
   provider:
     driver: bridge
