@@ -30,22 +30,24 @@ import java.util.*
 
 @Composable
 internal fun OnlyRewardClaimedUi(
-    paidBasketId: UUID?,
+    paidBasketId: UUID,
+    paidBasketUrl: String,
     navigateHome: () -> Unit
 ) {
-    FinishedUiWithQRCode("Reward claimed successfully without remainder token 🤖", paidBasketId, navigateHome)
+    FinishedUiWithQRCode("Reward claimed successfully without remainder token 🤖", paidBasketId, paidBasketUrl, navigateHome)
 }
 
 @Composable
 internal fun FinishedUi(
-    paidBasketId: UUID?,
+    paidBasketId: UUID,
+    paidBasketUrl: String,
     navigateHome: () -> Unit
 ) {
-    FinishedUiWithQRCode("Success! 🎉", paidBasketId, navigateHome)
+    FinishedUiWithQRCode("Success! 🎉", paidBasketId, paidBasketUrl, navigateHome)
 }
 
 @Composable
-private fun FinishedUiWithQRCode(message: String, paidBasketId: UUID?, navigateHome: () -> Unit) {
+private fun FinishedUiWithQRCode(message: String, paidBasketId: UUID, paidBasketUrl: String, navigateHome: () -> Unit) {
     Column(
         modifier = Modifier
             .padding(16.dp)
@@ -77,7 +79,7 @@ private fun FinishedUiWithQRCode(message: String, paidBasketId: UUID?, navigateH
                         .fillMaxWidth()
                 ) {
                     val image by generateBasketQRCode(
-                        basketId = paidBasketId!!.toString(),
+                        basketUrl = paidBasketUrl,
                         fg = MaterialTheme.colorScheme.onSecondaryContainer,
                         bg = MaterialTheme.colorScheme.secondaryContainer,
                     )
@@ -112,19 +114,16 @@ private fun FinishedUiWithQRCode(message: String, paidBasketId: UUID?, navigateH
  */
 @Composable
 private fun generateBasketQRCode(
-    basketId: String,
+    basketUrl: String,
     fg: Color,
     bg: Color
 ): State<ImageBitmap?> {
-    val url = "incentives.cs.upb.de/basket/basket?basketId=${basketId}"
-    Timber.i(url)
-
     return produceState<ImageBitmap?>(initialValue = null) {
         val qrCode = QRCodeWriter()
         val height = 192
         val width = 192
         try {
-            val bitMatrix = qrCode.encode(url, BarcodeFormat.QR_CODE, width, height)
+            val bitMatrix = qrCode.encode(basketUrl, BarcodeFormat.QR_CODE, width, height)
             val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)
             for (x in 0 until width) {
                 for (y in 0 until height) {
@@ -144,6 +143,7 @@ fun CheckoutUiFinishedPreview() {
     CryptimeleonPreviewContainer {
         FinishedUi(
             paidBasketId = UUID.randomUUID(),
+            paidBasketUrl = "https://basket.id",
             navigateHome = {}
         )
     }

@@ -87,8 +87,16 @@ private fun CheckoutUi(
                 }
                 CheckoutStep.FINISHED -> {
                     when (status) {
-                        is PayAndRedeemStatus.Success -> FinishedUi(status.basketId, navigateHome)
-                        is PayAndRedeemStatus.DSStopAfterCLaimingReward-> OnlyRewardClaimedUi(status.basketId, navigateHome)
+                        is PayAndRedeemStatus.Success -> FinishedUi(
+                            status.basketId,
+                            status.basketUrl,
+                            navigateHome
+                        )
+                        is PayAndRedeemStatus.DSStopAfterCLaimingReward -> OnlyRewardClaimedUi(
+                            status.basketId,
+                            status.basketUrl,
+                            navigateHome
+                        )
                         is PayAndRedeemStatus.DSDetected -> DSPreventedUi(
                             stepDetected = status.step,
                             navigateHome = navigateHome,
