@@ -25,11 +25,3 @@ test {
         exceptionFormat = 'full'
     }
 }
-
-bootBuildImage {
-    if (System.getenv('VERSION') == null || System.getenv('VERSION') == '') {
-        imageName = "cryptimeleon/incentive-service-incentive:" + file("../version").text.trim()
-    } else {
-        imageName = "cryptimeleon/incentive-service-incentive:" + System.getenv('VERSION')
-    }
-}

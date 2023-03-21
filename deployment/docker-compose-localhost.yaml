@@ -2,14 +2,14 @@ version: '3.5'
 
 services:
   infoservice:
-    image: cryptimeleon/incentive-service-info:0.5.0
+    image: cptml/incsys-info:latest
     ports:
       - "8000:8000"
     networks:
       - provider
     hostname: infoservice
   incentiveservice:
-    image: cryptimeleon/incentive-service-incentive:0.5.0
+    image: cptml/incsys-provider:lates
     ports:
       - "8012:8012"
     environment:
@@ -18,7 +18,7 @@ services:
       - provider
     hostname: incentiveservice
   basketservice:
-    image: cryptimeleon/incentive-service-basket:0.5.0
+    image: cptml/incsys-store:latest
     ports:
       - "8010:8010"
     environment:
@@ -28,14 +28,14 @@ services:
       - provider
     hostname: basketservice
   bootstrapservice:
-    image: cryptimeleon/incentive-service-bootstrap:0.5.0
+    image: cptml/incsys-bootstrap:latest
     environment:
       - BASKET_SERVICE_URLS=http://basketservice:8010/,http://basketservice:8011/
       - INCENTIVE_SERVICE_URL=http://incentiveservice:8012/
     networks:
       - provider
   web:
-    image: cryptimeleon/incentive-system-web:0.5.0
+    image: cptml/incsys-web:latest
     ports:
     - "8080:80"
 networks:
