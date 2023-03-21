@@ -4,7 +4,7 @@ services:
     command: --api.dashboard=true --providers.docker
     ports:
       - "1080:80"
-      - "1443:443"
+      - "1443:80"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
@@ -93,6 +93,8 @@ services:
     labels:
       - traefik.http.routers.web.rule=PathPrefix(`/`)
       - traefik.http.services.web.loadbalancer.server.port=80
+    networks:
+      - provider
   watchtower:
     image: containrrr/watchtower
     ports:
