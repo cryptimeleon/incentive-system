@@ -1,51 +1,61 @@
 services:
+  reverse-proxy:
+    image: traefik:v2.9
+    # TODO remove 8080 and insecure=true
+    command: --api.insecure=true --providers.docker
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
   infoservice:
     image: cptml/incsys-info:latest
-    ports:
-      - "8000:8000"
     environment:
       - SPRING_PROFILES_ACTIVE=production
-      - SERVER_SERVLET_CONTEXT_PATH=${INFO_CONTEXT:-/info}
+      - SERVER_SERVLET_CONTEXT_PATH=/info
       - PROVIDER_SHARED_SECRET=${PROVIDER_SHARED_SECRET}
       - STORE_SHARED_SECRET=${STORE_SHARED_SECRET}
       - SPRINGFOX_HOST=${HOST:-incentives.cs.uni-paderborn.de}
+    labels:
+      - traefik.http.routers.info.rule=PathPrefix(`/info`)
+      - traefik.http.services.info.loadbalancer.server.port=8000
     networks:
       - provider
     hostname: infoservice
   incentiveservice:
     image: cptml/incsys-provider:latest
-    ports:
-      - "8012:8012"
     environment:
       - SPRING_PROFILES_ACTIVE=production
-      - SERVER_SERVLET_CONTEXT_PATH=${INCENTIVE_CONTEXT:-/incentive}
+      - SERVER_SERVLET_CONTEXT_PATH=/incentive
       - PROVIDER_SHARED_SECRET=${PROVIDER_SHARED_SECRET}
       - INCENTIVE_SERVICE_PROVIDER_SECRET=${INCENTIVE_PROVIDER_SECRET}
-      - INFO_SERVICE_URL=http://infoservice:8000${INFO_CONTEXT:-/info}
+      - INFO_SERVICE_URL=http://infoservice:8000/info
       - SPRINGFOX_HOST=${HOST:-incentives.cs.uni-paderborn.de}
+    labels:
+      - traefik.http.routers.incentive.rule=PathPrefix(`/incentive`)
+      - traefik.http.services.incentive.loadbalancer.server.port=8012
     networks:
       - provider
     hostname: incentiveservice
   basketservice:
     image: cptml/incsys-store:latest
-    ports:
-      - "8010:8010"
     environment:
       - SPRING_PROFILES_ACTIVE=production
-      - SERVER_SERVLET_CONTEXT_PATH=${BASKET_CONTEXT:-/basket}
+      - SERVER_SERVLET_CONTEXT_PATH=/basket
       - STORE_NAME=First Store
       - BASKET_SERVICE_PROVIDER_SECRET=${BASKET_PROVIDER_SECRET}
       - STORE_SHARED_SECRET=${STORE_SHARED_SECRET}
-      - INFO_SERVICE_URL=http://infoservice:8000${INFO_CONTEXT:-/info}
-      - INCENTIVE_SERVICE_URL=http://incentiveservice:8012${INCENTIVE_CONTEXT:-/incentive}
+      - INFO_SERVICE_URL=http://infoservice:8000/info
+      - INCENTIVE_SERVICE_URL=http://incentiveservice:8012/incentive
       - SPRINGFOX_HOST=${HOST:-incentives.cs.uni-paderborn.de}
+    labels:
+      - traefik.http.routers.incentive.rule=PathPrefix(`/basket`)
+      - traefik.http.services.incentive.loadbalancer.server.port=8010
     networks:
       - provider
     hostname: basketservice
   basketservice-two:
     image: cptml/incsys-store:latest
-    ports:
-      - "8011:8010"
     environment:
       - SPRING_PROFILES_ACTIVE=production
       - SERVER_SERVLET_CONTEXT_PATH=${BASKET_CONTEXT:-/basket-two}
@@ -55,6 +65,9 @@ services:
       - INFO_SERVICE_URL=http://infoservice:8000${INFO_CONTEXT:-/info}
       - INCENTIVE_SERVICE_URL=http://incentiveservice:8012${INCENTIVE_CONTEXT:-/incentive}
       - SPRINGFOX_HOST=${HOST:-incentives.cs.uni-paderborn.de}
+    labels:
+      - traefik.http.routers.incentive.rule=PathPrefix(`/basket-two`)
+      - traefik.http.services.incentive.loadbalancer.server.port=8010
     networks:
       - provider
     hostname: basketservicetwo
@@ -74,8 +87,9 @@ services:
       - provider
   web:
     image: cptml/incsys-web:latest
-    ports:
-      - "8080:80"
+    labels:
+      - traefik.http.routers.incentive.rule=PathPrefix(`/`)
+      - traefik.http.services.incentive.loadbalancer.server.port=80
   watchtower:
     image: containrrr/watchtower
     volumes:
