@@ -2,24 +2,19 @@
 
 set -e
 
-SERVICES=(issue credit basket)
-VERSION=$(echo "$SOURCE_TAG" | cut -c 2-) # Remove v from version
-echo "Building and deploying docker images with version: $VERSION"
-
+SERVICES=(store provider info bootstrap web)
 echo "Build docker images"
-export VERSION && ./deployment/build-docker-images.sh
+./deployment/build-docker-images.sh
 
 for SERVICE in "${SERVICES[@]}"; do
-  IMAGE=cryptimeleon/incentive-service-${SERVICE}
+  IMAGE=cptml/incsys-${SERVICE}
 
-  echo "Uploading docker images for ${SERVICE}-service."
+  echo "Pushing docker image for ${SERVICE}-service."
   # Login to dockerhub with credentials
   echo "$DOCKER_ACCESS_TOKEN" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
   # Push docker image to dockerhub
-  docker push "${IMAGE}:${VERSION}"
-
-  echo "Finished deploying ${SERVICE}-service!"
+  docker push "${IMAGE}:latest"
 done
 
-echo "All services deployed successfully!"
+echo "All docker images pushed successfully!"
