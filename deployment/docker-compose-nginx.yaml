@@ -72,7 +72,7 @@ services:
     networks:
       - provider
   web:
-    image: cmpt/incsys-web:latest
+    image: cmptl/incsys-web:latest
     ports:
       - "8080:80"
   watchtower:
