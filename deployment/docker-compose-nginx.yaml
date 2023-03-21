@@ -68,6 +68,7 @@ services:
       - INCENTIVE_SERVICE_PROVIDER_SECRET=${INCENTIVE_PROVIDER_SECRET}
     depends_on:
       - basketservice
+      - basketservice-two
       - incentiveservice
     networks:
       - provider
@@ -83,6 +84,7 @@ services:
     command: --interval 30
     environment:
       - WATCHTOWER_INCLUDE_STOPPED=true
+      - WATCHTOWER_REVIVE_STOPPED=true
 networks:
   provider:
     driver: bridge
