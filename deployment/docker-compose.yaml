@@ -1,7 +1,7 @@
 services:
   reverse-proxy:
     image: traefik:v2.9
-    command: --api.dashboard=true --providers.docker
+    command: --providers.docker
     ports:
       - "8009:80"
     volumes:
@@ -100,7 +100,6 @@ services:
       - "8002:8080" # Need 8080 and 80 for traefik
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - /root/.docker/config.json:/config.json
     command: --interval 30
     environment:
       - WATCHTOWER_INCLUDE_STOPPED=true
