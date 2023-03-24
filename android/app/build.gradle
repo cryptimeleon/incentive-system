@@ -10,6 +10,8 @@ plugins {
 }
 
 def deploymentBaseUrl = "https://incentives.cs.upb.de"
+// Use the following naming scheme for local deployments
+// def deploymentBaseUrl = "http://xxx.xxx.xxx.xxx:8009"
 
 android {
     compileSdkVersion 33

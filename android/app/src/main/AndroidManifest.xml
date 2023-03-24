@@ -6,6 +6,9 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Add this argument to application tag to enable http traffic. Insecure!
+    android:usesCleartextTraffic="true"
+    -->
     <application
         android:name=".MainApplication"
         android:allowBackup="true"
