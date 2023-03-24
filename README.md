@@ -14,10 +14,28 @@ to learn more about the basic ideas of this project.
 The project consists of three main components: The cryptographic
 protocols in the _crypto_ package, an android application in the _app_ package, and several spring boot webservices in the _services_ package.
 
-To build the project, you need Java 11 and Android SDK 30 (can be installed with 
-[sdkmanager](https://developer.android.com/studio/command-line/sdkmanager) or via Android Studio).
-To deploy the services, we use docker and docker-compose.
 
+## Deployment
+
+### Services
+
+We provide docker images of the services for custom deployments.
+To deploy the incentive-system follow these steps (tested on linux and macOS):
+ 0. Install docker (tested on version 20.10.12) and docker-compose (tested on version 1.29.2)
+ 1. Checkout this repository (you only need the contents of the deployment folder)
+ 2. Change the HOST variable in `deployment/deploy.sh` to your server's url or `localhost:8009` for a local installation
+ 3. Run `./deployment/deploy.sh`
+ 4. The deployment runs at port `8009`
+
+### App
+
+You need to change the deployment's url in `app/build.gradle` by setting the `deploymentBaseUrl` variable before building.
+For local deployments, use the naming scheme `http://xxx.xxx.xxx.xxx:8009` and add the line `android:usesCleartextTraffic="true"` to the `AndroidManifest.xml` to enable http.
+
+## Building
+
+To build the project, you need Java 11 and Android SDK 33 (can be installed with
+[sdkmanager](https://developer.android.com/studio/command-line/sdkmanager) or via Android Studio).
 
 ## Benchmark of the Incentive System
 
