@@ -23,6 +23,8 @@ class StoreInterceptor(private val storeSelectionRepository: StoreSelectionRepos
         var request = chain.request()
         val url = request.url.newBuilder()
             .host(storeUrl.host)
+            .port(storeUrl.port)
+            .scheme(storeUrl.scheme)
             .encodedPath(storeUrl.encodedPath)
             .addEncodedPathSegments(request.url.encodedPath)
             .build()
