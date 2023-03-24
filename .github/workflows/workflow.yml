@@ -70,7 +70,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    if: true || (github.event_name == 'push' && startsWith(github.ref, 'refs/head/develop'))
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/head/develop')
     needs: [build-and-integration-test, build-web]
     steps:
       - name: Checkout this repo
