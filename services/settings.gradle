@@ -2,7 +2,7 @@ rootProject.name = 'services'
 
 includeBuild '../crypto'
 includeBuild '../promotion'
-include ':basket'
+include ':store'
 include ':client'
 include ':info'
 include ':incentive'

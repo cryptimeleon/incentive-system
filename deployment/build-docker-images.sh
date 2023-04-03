@@ -28,12 +28,12 @@ docker build \
   -t cptml/incsys-provider:$VERSION \
   -f services/Dockerfile .
 
-# basket service
-DEPENDENCY_PATH=services/basket/build/dependency
+# store service
+DEPENDENCY_PATH=services/store/build/dependency
 mkdir -p $DEPENDENCY_PATH && (cd $DEPENDENCY_PATH; jar -xf ../libs/*.jar)
 docker build \
   --build-arg DEPENDENCY=$DEPENDENCY_PATH \
-  --build-arg APPLICATION=org.cryptimeleon.incentive.services.basket.BasketApplication \
+  --build-arg APPLICATION=org.cryptimeleon.incentive.services.store.StoreApplication \
   -t cptml/incsys-store:$VERSION \
   -f services/Dockerfile .
 

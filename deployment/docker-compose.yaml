@@ -36,12 +36,14 @@ services:
       - traefik.http.services.incentive.loadbalancer.server.port=8012
     networks:
       - provider
+    depends_on:
+      - infoservice
     hostname: incentiveservice
-  basketservice:
+  store:
     image: cptml/incsys-store:latest
     environment:
       - SPRING_PROFILES_ACTIVE=production
-      - SERVER_SERVLET_CONTEXT_PATH=/basket
+      - SERVER_SERVLET_CONTEXT_PATH=/store
       - STORE_NAME=First Store
       - BASKET_SERVICE_PROVIDER_SECRET=${BASKET_PROVIDER_SECRET}
       - STORE_SHARED_SECRET=${STORE_SHARED_SECRET}
@@ -49,16 +51,18 @@ services:
       - INCENTIVE_SERVICE_URL=http://incentiveservice:8012/incentive
       - SPRINGFOX_HOST=${HOST:-incentives.cs.uni-paderborn.de}
     labels:
-      - traefik.http.routers.basket.rule=PathPrefix(`/basket`)
-      - traefik.http.services.basket.loadbalancer.server.port=8010
+      - traefik.http.routers.store.rule=PathPrefix(`/store`)
+      - traefik.http.services.store.loadbalancer.server.port=8010
     networks:
       - provider
-    hostname: basketservice
-  basketservice-two:
+    depends_on:
+      - infoservice
+    hostname: store
+  store-two:
     image: cptml/incsys-store:latest
     environment:
       - SPRING_PROFILES_ACTIVE=production
-      - SERVER_SERVLET_CONTEXT_PATH=/basket-two
+      - SERVER_SERVLET_CONTEXT_PATH=/store-two
       - STORE_NAME=Second Store
       - BASKET_SERVICE_PROVIDER_SECRET=${BASKET_PROVIDER_SECRET_TWO}
       - STORE_SHARED_SECRET=${STORE_SHARED_SECRET}
@@ -66,22 +70,26 @@ services:
       - INCENTIVE_SERVICE_URL=http://incentiveservice:8012/incentive
       - SPRINGFOX_HOST=${HOST:-incentives.cs.uni-paderborn.de}
     labels:
-      - traefik.http.routers.basket-two.rule=PathPrefix(`/basket-two`)
-      - traefik.http.services.basket-two.loadbalancer.server.port=8010
+      - traefik.http.routers.store-two.rule=PathPrefix(`/store-two`)
+      - traefik.http.services.store-two.loadbalancer.server.port=8010
     networks:
       - provider
-    hostname: basketservicetwo
+    depends_on:
+      - infoservice
+    hostname: store-two
   bootstrapservice:
     image: cptml/incsys-bootstrap:latest
     environment:
       - SPRING_PROFILES_ACTIVE=production
-      - BASKET_SERVICE_URLS=http://basketservice:8010/basket,http://basketservicetwo:8010/basket-two
+      - BASKET_SERVICE_URLS=http://store:8010/store,http://store-two:8010/store-two
       - BASKET_SERVICE_PROVIDER_SECRETS=${BASKET_PROVIDER_SECRET},${BASKET_PROVIDER_SECRET_TWO}
       - INCENTIVE_SERVICE_URL=http://incentiveservice:8012/incentive
       - INCENTIVE_SERVICE_PROVIDER_SECRET=${INCENTIVE_PROVIDER_SECRET}
+    labels:
+      - traefik.http.services.store.loadbalancer.server.port=8000
     depends_on:
-      - basketservice
-      - basketservice-two
+      - store
+      - store-two
       - incentiveservice
     networks:
       - provider

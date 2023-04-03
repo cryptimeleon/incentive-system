@@ -1,11 +1,12 @@
-package org.cryptimeleon.incentive.services.incentive.repository;
+package org.cryptimeleon.incentive.services.store.repository;
 
 import org.cryptimeleon.incentive.client.InfoClient;
 import org.cryptimeleon.incentive.crypto.IncentiveSystem;
 import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
-import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderKeyPair;
 import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
-import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderSecretKey;
+import org.cryptimeleon.incentive.crypto.model.keys.store.StoreKeyPair;
+import org.cryptimeleon.incentive.crypto.model.keys.store.StorePublicKey;
+import org.cryptimeleon.incentive.crypto.model.keys.store.StoreSecretKey;
 import org.cryptimeleon.math.serialization.converter.JSONConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,16 +28,17 @@ public class CryptoRepository {
     private final InfoClient infoClient;
     private IncentiveSystem incentiveSystem;
     private IncentivePublicParameters publicParameters;
-    private ProviderSecretKey providerSecretKey;
     private ProviderPublicKey providerPublicKey;
+    private StoreSecretKey storeSecretKey;
+    private StorePublicKey storePublicKey;
     // Will be set via dependency injection
-    @Value("${provider.shared-secret}")
-    private String sharedSecret; // used to authenticate the request for the provider secret key (set via environment variable)
+    @Value("${store.shared-secret}")
+    private String storeSharedSecret; // used to authenticate the request for the store secret key (set via environment variable)
     @Value("${spring.profiles.active}")
     private String activeProfiles;
 
     @Autowired
-    private CryptoRepository(InfoClient infoClient) {
+    public CryptoRepository(InfoClient infoClient) {
         this.infoClient = infoClient;
     }
 
@@ -49,10 +51,10 @@ public class CryptoRepository {
         if (activeProfiles.contains("test")) return;
 
         log.info("PostConstruct");
-        if (sharedSecret.equals("")) {
-            throw new IllegalArgumentException("Provider shared secret is not set!");
+        if (storeSharedSecret.equals("")) {
+            throw new IllegalArgumentException("Store's shared secret is not set!");
         }
-        log.info("shared secret: {}", sharedSecret);
+        log.info("shared secret: {}", storeSharedSecret);
         init();
     }
 
@@ -68,10 +70,13 @@ public class CryptoRepository {
                 log.info("Trying to query data from info service.");
                 String serializedPublicParameters = infoClient.querySerializedPublicParameters().block(Duration.ofSeconds(5));
                 String serializedProviderPublicKey = infoClient.querySerializedProviderPublicKey().block(Duration.ofSeconds(5));
-                String serializedProviderSecretKey = infoClient.querySerializedProviderSecretKey(sharedSecret).block(Duration.ofSeconds(5));
+                String serializedStorePublicKey = infoClient.querySerializedStorePublicKey().block(Duration.ofSeconds(5));
+                String serializedStoreSecretKey = infoClient.querySerializedStoreSecretKey(storeSharedSecret).block(Duration.ofSeconds(5));
+
                 this.publicParameters = new IncentivePublicParameters(jsonConverter.deserialize(serializedPublicParameters));
                 this.providerPublicKey = new ProviderPublicKey(jsonConverter.deserialize(serializedProviderPublicKey), publicParameters);
-                this.providerSecretKey = new ProviderSecretKey(jsonConverter.deserialize(serializedProviderSecretKey), publicParameters);
+                this.storePublicKey = new StorePublicKey(jsonConverter.deserialize(serializedStorePublicKey));
+                this.storeSecretKey = new StoreSecretKey(jsonConverter.deserialize(serializedStoreSecretKey));
                 this.incentiveSystem = new IncentiveSystem(publicParameters);
                 break;
             } catch (RuntimeException e) {
@@ -96,15 +101,19 @@ public class CryptoRepository {
         return this.publicParameters;
     }
 
-    public ProviderSecretKey getProviderSecretKey() {
-        return this.providerSecretKey;
-    }
-
     public ProviderPublicKey getProviderPublicKey() {
-        return this.providerPublicKey;
+        return providerPublicKey;
     }
 
-    public ProviderKeyPair getProviderKeyPair() {
-        return new ProviderKeyPair(this.providerSecretKey, this.providerPublicKey);
+    public StoreSecretKey getStoreSecretKey() {
+        return storeSecretKey;
+    }
+
+    public StorePublicKey getStorePublicKey() {
+        return storePublicKey;
+    }
+
+    public StoreKeyPair getStoreKeyPair() {
+        return new StoreKeyPair(storeSecretKey, storePublicKey);
     }
 }
