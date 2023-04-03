@@ -102,6 +102,16 @@ services:
       - traefik.http.services.web.loadbalancer.server.port=80
     networks:
       - provider
+  watchtower:
+    image: containrrr/watchtower
+    ports:
+      - "8002:8080" # Need 8080 and 80 for traefik
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 30
+    environment:
+      - WATCHTOWER_INCLUDE_STOPPED=true
+      - WATCHTOWER_REVIVE_STOPPED=true
 networks:
   provider:
     driver: bridge
