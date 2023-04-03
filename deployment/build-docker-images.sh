@@ -8,8 +8,6 @@ popd
 
 VERSION="latest"
 
-# Manually build info service with mcl
-
 # info service
 DEPENDENCY_PATH=services/info/build/dependency
 mkdir -p $DEPENDENCY_PATH && (cd $DEPENDENCY_PATH; jar -xf ../libs/*.jar)
@@ -19,12 +17,12 @@ docker build \
   -t cptml/incsys-info:$VERSION \
   -f services/Dockerfile .
 
-# incentive service
-DEPENDENCY_PATH=services/incentive/build/dependency
+# provider service
+DEPENDENCY_PATH=services/provider/build/dependency
 mkdir -p $DEPENDENCY_PATH && (cd $DEPENDENCY_PATH; jar -xf ../libs/*.jar)
 docker build \
   --build-arg DEPENDENCY=$DEPENDENCY_PATH \
-  --build-arg APPLICATION=org.cryptimeleon.incentive.services.incentive.IncentiveApplication\
+  --build-arg APPLICATION=org.cryptimeleon.incentive.services.provider.ProviderApplication\
   -t cptml/incsys-provider:$VERSION \
   -f services/Dockerfile .
 

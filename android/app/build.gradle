@@ -37,14 +37,14 @@ android {
             buildConfigField "String", "BASKET_SERVICE_URL", "\"${deploymentBaseUrl}/store/\""
             buildConfigField "String", "BASKET_SERVICE_TWO_URL", "\"${deploymentBaseUrl}/store-two/\""
             buildConfigField "String", "INFO_SERVICE_URL", "\"${deploymentBaseUrl}/info/\""
-            buildConfigField "String", "PROMOTION_SERVICE_URL", "\"${deploymentBaseUrl}/incentive/\""
+            buildConfigField "String", "PROMOTION_SERVICE_URL", "\"${deploymentBaseUrl}/provider/\""
         }
         release {
             buildConfigField "String", "IMAGE_URL_BASEPATH", "\"${deploymentBaseUrl}/assets/\""
             buildConfigField "String", "BASKET_SERVICE_URL", "\"${deploymentBaseUrl}/store/\""
             buildConfigField "String", "BASKET_SERVICE_TWO_URL", "\"${deploymentBaseUrl}/store-two/\""
             buildConfigField "String", "INFO_SERVICE_URL", "\"${deploymentBaseUrl}/info/\""
-            buildConfigField "String", "PROMOTION_SERVICE_URL", "\"${deploymentBaseUrl}/incentive/\""
+            buildConfigField "String", "PROMOTION_SERVICE_URL", "\"${deploymentBaseUrl}/provider/\""
 
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
