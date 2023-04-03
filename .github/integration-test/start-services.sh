@@ -1,6 +1,6 @@
 #!/bin/bash
 
-JARS=(info basket incentive dsprotection)
+JARS=(info store incentive dsprotection)
 
 # shellcheck disable=SC2164
 pushd services
