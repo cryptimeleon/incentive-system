@@ -3,6 +3,7 @@ import {createRouter, createWebHashHistory} from 'vue-router';
 // Lazy-load routes
 const LandingPage = () => import("@/components/LandingPage.vue")
 const PrivacyPolicy = () => import("@/components/PrivacyPolicy.vue")
+const ImpressumPage = () => import("@/components/ImpressumPage.vue")
 const StoreMain = () => import("@/components/store/StoreMain.vue")
 const ProviderRegistrationCoupons = () => import("@/components/ProviderRegistrationCoupons.vue")
 const ProductPage = () => import("@/components/ProductPage.vue")
@@ -15,6 +16,10 @@ const routes = [
     {
         path: '/privacy-policy',
         component: PrivacyPolicy
+    },
+    {
+        path: '/impressum',
+        component: ImpressumPage
     },
     {
         path: '/store-frontend',
