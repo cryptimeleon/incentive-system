@@ -10,7 +10,7 @@ class StoreSelectionRepository(private val preferencesRepository: IPreferencesRe
     val stores: List<Store>
         get() = listOf(
             Store("Default Store", BuildConfig.BASKET_SERVICE_URL),
-            Store("Offline Store", BuildConfig.BASKET_SERVICE_TWO_URL)
+            Store("Alternative Store", BuildConfig.BASKET_SERVICE_TWO_URL)
         )
     val defaultStore = stores[0]
 

@@ -51,12 +51,12 @@ export default {
     };
   },
   async created() {
-    fetch("/incentive").then((response) => {
+    fetch("/provider").then((response) => {
       this.online = response.ok
       this.loading = false
     })
 
-    fetch("/incentive/registration-coupons")
+    fetch("/provider/registration-coupons")
         .then(response => {
           if (!response.ok) throw Error(response.statusText)
           return response

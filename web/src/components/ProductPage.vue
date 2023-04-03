@@ -70,7 +70,7 @@ export default {
     }
   },
   async created() {
-    fetch("/basket/items")
+    fetch("/store/items")
         .then(response => {
           if (!response.ok) throw Error(response.statusText)
           return response

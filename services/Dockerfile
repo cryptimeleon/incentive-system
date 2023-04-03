@@ -1,4 +1,4 @@
-FROM openjdk:11-jdk-slim
+FROM --platform=linux/amd64 openjdk:11-jdk-slim
 ARG DEPENDENCY
 ARG APPLICATION
 ENV ENTRYPOINT_APP_ENV=$APPLICATION

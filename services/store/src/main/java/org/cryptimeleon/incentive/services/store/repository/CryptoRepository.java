@@ -1,0 +1,119 @@
+package org.cryptimeleon.incentive.services.store.repository;
+
+import org.cryptimeleon.incentive.client.InfoClient;
+import org.cryptimeleon.incentive.crypto.IncentiveSystem;
+import org.cryptimeleon.incentive.crypto.model.IncentivePublicParameters;
+import org.cryptimeleon.incentive.crypto.model.keys.provider.ProviderPublicKey;
+import org.cryptimeleon.incentive.crypto.model.keys.store.StoreKeyPair;
+import org.cryptimeleon.incentive.crypto.model.keys.store.StorePublicKey;
+import org.cryptimeleon.incentive.crypto.model.keys.store.StoreSecretKey;
+import org.cryptimeleon.math.serialization.converter.JSONConverter;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Repository;
+
+import javax.annotation.PostConstruct;
+import java.time.Duration;
+
+/**
+ * This repository encapsulates the cryptographic assets/objects.
+ * </br>
+ * It connects to the info-service and queries the public parameters and provider keys using an authenticated request
+ * and retries MAX_TRIES times, each time doubling the waiting time.
+ */
+@Repository
+public class CryptoRepository {
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(CryptoRepository.class);
+    private static final int MAX_TRIES = 300;
+    private final InfoClient infoClient;
+    private IncentiveSystem incentiveSystem;
+    private IncentivePublicParameters publicParameters;
+    private ProviderPublicKey providerPublicKey;
+    private StoreSecretKey storeSecretKey;
+    private StorePublicKey storePublicKey;
+    // Will be set via dependency injection
+    @Value("${store.shared-secret}")
+    private String storeSharedSecret; // used to authenticate the request for the store secret key (set via environment variable)
+    @Value("${spring.profiles.active}")
+    private String activeProfiles;
+
+    @Autowired
+    public CryptoRepository(InfoClient infoClient) {
+        this.infoClient = infoClient;
+    }
+
+    /**
+     * Make sure that the shared secret is set.
+     */
+    @PostConstruct
+    public void validateValue() {
+        // Do not run this in unit-tests
+        if (activeProfiles.contains("test")) return;
+
+        log.info("PostConstruct");
+        if (storeSharedSecret.equals("")) {
+            throw new IllegalArgumentException("Store's shared secret is not set!");
+        }
+        log.info("shared secret: {}", storeSharedSecret);
+        init();
+    }
+
+    /**
+     * Initialize repository by querying assets from info service and parsing them into java objects.
+     */
+    private void init() {
+        log.info("Querying configuration from info service");
+        JSONConverter jsonConverter = new JSONConverter();
+        // Try several times, each time waiting for 2^i seconds before retrying.
+        for (int i = 0; i < MAX_TRIES; i++) {
+            try {
+                log.info("Trying to query data from info service.");
+                String serializedPublicParameters = infoClient.querySerializedPublicParameters().block(Duration.ofSeconds(5));
+                String serializedProviderPublicKey = infoClient.querySerializedProviderPublicKey().block(Duration.ofSeconds(5));
+                String serializedStorePublicKey = infoClient.querySerializedStorePublicKey().block(Duration.ofSeconds(5));
+                String serializedStoreSecretKey = infoClient.querySerializedStoreSecretKey(storeSharedSecret).block(Duration.ofSeconds(5));
+
+                this.publicParameters = new IncentivePublicParameters(jsonConverter.deserialize(serializedPublicParameters));
+                this.providerPublicKey = new ProviderPublicKey(jsonConverter.deserialize(serializedProviderPublicKey), publicParameters);
+                this.storePublicKey = new StorePublicKey(jsonConverter.deserialize(serializedStorePublicKey));
+                this.storeSecretKey = new StoreSecretKey(jsonConverter.deserialize(serializedStoreSecretKey));
+                this.incentiveSystem = new IncentiveSystem(publicParameters);
+                break;
+            } catch (RuntimeException e) {
+                if (i + 1 == MAX_TRIES) {
+                    e.printStackTrace();
+                    throw new RuntimeException("Could not query data from info service!");
+                }
+            }
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public IncentiveSystem getIncentiveSystem() {
+        return this.incentiveSystem;
+    }
+
+    public IncentivePublicParameters getPublicParameters() {
+        return this.publicParameters;
+    }
+
+    public ProviderPublicKey getProviderPublicKey() {
+        return providerPublicKey;
+    }
+
+    public StoreSecretKey getStoreSecretKey() {
+        return storeSecretKey;
+    }
+
+    public StorePublicKey getStorePublicKey() {
+        return storePublicKey;
+    }
+
+    public StoreKeyPair getStoreKeyPair() {
+        return new StoreKeyPair(storeSecretKey, storePublicKey);
+    }
+}

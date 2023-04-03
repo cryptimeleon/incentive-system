@@ -8,7 +8,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - provider
-  infoservice:
+  info:
     image: cptml/incsys-info:latest
     environment:
       - SPRING_PROFILES_ACTIVE=production
@@ -21,68 +21,76 @@ services:
       - traefik.http.services.info.loadbalancer.server.port=8000
     networks:
       - provider
-    hostname: infoservice
-  incentiveservice:
+    hostname: info
+  provider:
     image: cptml/incsys-provider:latest
     environment:
       - SPRING_PROFILES_ACTIVE=production
-      - SERVER_SERVLET_CONTEXT_PATH=/incentive
+      - SERVER_SERVLET_CONTEXT_PATH=/provider
       - PROVIDER_SHARED_SECRET=${PROVIDER_SHARED_SECRET}
       - INCENTIVE_SERVICE_PROVIDER_SECRET=${INCENTIVE_PROVIDER_SECRET}
-      - INFO_SERVICE_URL=http://infoservice:8000/info
+      - INFO_SERVICE_URL=http://info:8000/info
       - SPRINGFOX_HOST=${HOST:-incentives.cs.uni-paderborn.de}
     labels:
-      - traefik.http.routers.incentive.rule=PathPrefix(`/incentive`)
-      - traefik.http.services.incentive.loadbalancer.server.port=8012
+      - traefik.http.routers.provider.rule=PathPrefix(`/provider`)
+      - traefik.http.services.provider.loadbalancer.server.port=8012
     networks:
       - provider
-    hostname: incentiveservice
-  basketservice:
+    depends_on:
+      - info
+    hostname: provider
+  store:
     image: cptml/incsys-store:latest
     environment:
       - SPRING_PROFILES_ACTIVE=production
-      - SERVER_SERVLET_CONTEXT_PATH=/basket
+      - SERVER_SERVLET_CONTEXT_PATH=/store
       - STORE_NAME=First Store
       - BASKET_SERVICE_PROVIDER_SECRET=${BASKET_PROVIDER_SECRET}
       - STORE_SHARED_SECRET=${STORE_SHARED_SECRET}
-      - INFO_SERVICE_URL=http://infoservice:8000/info
-      - INCENTIVE_SERVICE_URL=http://incentiveservice:8012/incentive
+      - INFO_SERVICE_URL=http://info:8000/info
+      - INCENTIVE_SERVICE_URL=http://provider:8012/provider
       - SPRINGFOX_HOST=${HOST:-incentives.cs.uni-paderborn.de}
     labels:
-      - traefik.http.routers.basket.rule=PathPrefix(`/basket`)
-      - traefik.http.services.basket.loadbalancer.server.port=8010
+      - traefik.http.routers.store.rule=PathPrefix(`/store`)
+      - traefik.http.services.store.loadbalancer.server.port=8010
     networks:
       - provider
-    hostname: basketservice
-  basketservice-two:
+    depends_on:
+      - info
+    hostname: store
+  store-two:
     image: cptml/incsys-store:latest
     environment:
       - SPRING_PROFILES_ACTIVE=production
-      - SERVER_SERVLET_CONTEXT_PATH=/basket-two
+      - SERVER_SERVLET_CONTEXT_PATH=/store-two
       - STORE_NAME=Second Store
       - BASKET_SERVICE_PROVIDER_SECRET=${BASKET_PROVIDER_SECRET_TWO}
       - STORE_SHARED_SECRET=${STORE_SHARED_SECRET}
-      - INFO_SERVICE_URL=http://infoservice:8000/info
-      - INCENTIVE_SERVICE_URL=http://incentiveservice:8012/incentive
+      - INFO_SERVICE_URL=http://info:8000/info
+      - INCENTIVE_SERVICE_URL=http://provider:8012/provider
       - SPRINGFOX_HOST=${HOST:-incentives.cs.uni-paderborn.de}
     labels:
-      - traefik.http.routers.basket-two.rule=PathPrefix(`/basket-two`)
-      - traefik.http.services.basket-two.loadbalancer.server.port=8010
+      - traefik.http.routers.store-two.rule=PathPrefix(`/store-two`)
+      - traefik.http.services.store-two.loadbalancer.server.port=8010
     networks:
       - provider
-    hostname: basketservicetwo
-  bootstrapservice:
+    depends_on:
+      - info
+    hostname: store-two
+  bootstrap:
     image: cptml/incsys-bootstrap:latest
     environment:
       - SPRING_PROFILES_ACTIVE=production
-      - BASKET_SERVICE_URLS=http://basketservice:8010/basket,http://basketservicetwo:8010/basket-two
+      - BASKET_SERVICE_URLS=http://store:8010/store,http://store-two:8010/store-two
       - BASKET_SERVICE_PROVIDER_SECRETS=${BASKET_PROVIDER_SECRET},${BASKET_PROVIDER_SECRET_TWO}
-      - INCENTIVE_SERVICE_URL=http://incentiveservice:8012/incentive
+      - INCENTIVE_SERVICE_URL=http://provider:8012/provider
       - INCENTIVE_SERVICE_PROVIDER_SECRET=${INCENTIVE_PROVIDER_SECRET}
+    labels:
+      - traefik.http.services.store.loadbalancer.server.port=8000
     depends_on:
-      - basketservice
-      - basketservice-two
-      - incentiveservice
+      - store
+      - store-two
+      - provider
     networks:
       - provider
   web:
@@ -94,16 +102,6 @@ services:
       - traefik.http.services.web.loadbalancer.server.port=80
     networks:
       - provider
-  watchtower:
-    image: containrrr/watchtower
-    ports:
-      - "8002:8080" # Need 8080 and 80 for traefik
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    command: --interval 30
-    environment:
-      - WATCHTOWER_INCLUDE_STOPPED=true
-      - WATCHTOWER_REVIVE_STOPPED=true
 networks:
   provider:
     driver: bridge

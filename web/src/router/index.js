@@ -20,7 +20,7 @@ const routes = [
         path: '/store-frontend',
         component: StoreMain,
         props: {
-            baseUrl: "basket",
+            baseUrl: "store",
             name: "Store One",
             description: "Just a normal store."
         }
@@ -29,10 +29,9 @@ const routes = [
         path: '/store-two-frontend',
         component: StoreMain,
         props: {
-            baseUrl: "basket-two",
+            baseUrl: "store-two",
             name: "Store Two",
-            description: "This store has some network problems that enable double-spending attacks at this store. " +
-                "Attacker's can be identified after some time when the store syncs with the provider."
+            description: "Another normal store."
         }
     },
     {
