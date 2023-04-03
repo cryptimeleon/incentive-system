@@ -1,7 +1,9 @@
 package org.cryptimeleon.incentive.app.domain.usecase
 
 import kotlinx.coroutines.flow.first
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.cryptimeleon.craco.sig.sps.eq.SPSEQSignature
+import org.cryptimeleon.incentive.app.data.StoreSelectionRepository
 import org.cryptimeleon.incentive.app.domain.*
 import org.cryptimeleon.incentive.app.domain.model.*
 import org.cryptimeleon.incentive.app.util.toBigIntVector
@@ -21,7 +23,8 @@ class PayAndRedeemUseCase(
     private val promotionRepository: IPromotionRepository,
     private val cryptoRepository: ICryptoRepository,
     private val basketRepository: IBasketRepository,
-    private val preferencesRepository: IPreferencesRepository
+    private val preferencesRepository: IPreferencesRepository,
+    private val storeSelectionRepository: StoreSelectionRepository
 ) {
     private val jsonConverter = JSONConverter()
     private val analyzeUserTokenUpdatesUseCase =
@@ -46,12 +49,18 @@ class PayAndRedeemUseCase(
             val basket = basketRepository.basket.first()
             val promotionParameters = promotionRepository.promotions.first()
             val cryptoMaterial = cryptoRepository.cryptoMaterial.first()!!
-            val doubleSpendingPreferences = preferencesRepository.doubleSpendingPreferencesFlow.first()
+            val doubleSpendingPreferences =
+                preferencesRepository.doubleSpendingPreferencesFlow.first()
             val tokens = cryptoRepository.tokens.first()
             val pp = cryptoMaterial.pp
             val incentiveSystem = IncentiveSystem(pp)
             // Push basket to current store
             val basketId = basketRepository.pushCurrentBasket()
+            val storeUrl = storeSelectionRepository.currentStore.first().url
+            val basketUrl = storeUrl.toHttpUrl().newBuilder()
+                    .addPathSegment("basket")
+                    .addQueryParameter("basketId", basketId.toString())
+                    .build().toUrl().toString()
 
             // TODO some checks on the basket and user choices
 
@@ -59,7 +68,7 @@ class PayAndRedeemUseCase(
                 Timber.i("No token updates selected, just pay.")
                 basketRepository.payBasket(basketId)
                 basketRepository.discardCurrentBasket()
-                return PayAndRedeemStatus.Success(basketId)
+                return PayAndRedeemStatus.Success(basketId, basketUrl)
             }
 
             val earnUpdateRequestPairs: List<Pair<EarnRequestStoreDto, EarnStoreCache>> =
@@ -84,7 +93,7 @@ class PayAndRedeemUseCase(
 
             basketRepository.payBasket(basketId)
             if (doubleSpendingPreferences.stopAfterPay) {
-                return PayAndRedeemStatus.DSStopAfterCLaimingReward(basketId)
+                return PayAndRedeemStatus.DSStopAfterCLaimingReward(basketId, basketUrl)
             }
 
             val updateResults = cryptoRepository.retrieveTokenUpdatesBatchStoreResults(basketId)
@@ -133,7 +142,7 @@ class PayAndRedeemUseCase(
 
             basketRepository.discardCurrentBasket()
             Timber.i("Finished Pay and Redeem")
-            return PayAndRedeemStatus.Success(basketId)
+            return PayAndRedeemStatus.Success(basketId, basketUrl)
         } catch (e: DSStoreException) {
             Timber.e(e)
             return PayAndRedeemStatus.DSDetected(DSDetectedStep.STORE)
@@ -421,8 +430,8 @@ data class SpendProviderCache(
 )
 
 sealed class PayAndRedeemStatus {
-    data class Success(val basketId: UUID) : PayAndRedeemStatus()
-    data class DSStopAfterCLaimingReward(val basketId: UUID) : PayAndRedeemStatus()
+    data class Success(val basketId: UUID, val basketUrl: String) : PayAndRedeemStatus()
+    data class DSStopAfterCLaimingReward(val basketId: UUID, val basketUrl: String) : PayAndRedeemStatus()
     data class DSDetected(val step: DSDetectedStep) : PayAndRedeemStatus()
     data class Error(val e: Exception) : PayAndRedeemStatus()
 }

@@ -14,7 +14,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
-import org.cryptimeleon.incentive.app.R
+import org.cryptimeleon.incentive.app.BuildConfig
 import org.cryptimeleon.incentive.app.data.*
 import org.cryptimeleon.incentive.app.data.database.basket.BasketDatabase
 import org.cryptimeleon.incentive.app.data.database.crypto.CryptoDatabase
@@ -34,12 +34,8 @@ import javax.inject.Singleton
 
 private const val USER_PREFERENCES = "user_preferences"
 
-data class UrlConfig(
-    val basket_url: String,
-    val info_url: String,
-    val promotion_url: String
-)
-
+// This is a placeholder that is replaced by the StoreInterceptor to keep only the path segments
+private const val BASKET_URL_PLACEHOLDER = "https://basketservice.org"
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -52,23 +48,12 @@ class HiltApiModule {
 
 
     @Provides
-    fun provideUrls(@ApplicationContext context: Context): UrlConfig =
-        UrlConfig(
-            basket_url = context.getString(R.string.basket_service_url),
-            info_url = context.getString(R.string.info_service_url),
-            promotion_url = context.getString(R.string.promotion_service_url),
-        )
-
-    @Provides
     fun provideConnectivityManager(@ApplicationContext context: Context): ConnectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
     @Singleton
     @Provides
-    fun provideStoreApiService(
-        urlConfig: UrlConfig,
-        storeInterceptor: StoreInterceptor
-    ): StoreApiService {
+    fun provideStoreApiService(storeInterceptor: StoreInterceptor): StoreApiService {
         val loggingInterceptor = HttpLoggingInterceptor { Timber.tag("OkHttp").d(it) }
         loggingInterceptor.apply { loggingInterceptor.level = HttpLoggingInterceptor.Level.BODY }
         val client = OkHttpClient.Builder()
@@ -80,17 +65,14 @@ class HiltApiModule {
             .client(client)
             .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(GsonConverterFactory.create())
-            .baseUrl(urlConfig.basket_url)
+            .baseUrl(BASKET_URL_PLACEHOLDER)
             .build()
             .create(StoreApiService::class.java)
     }
 
     @Singleton
     @Provides
-    fun provideBasketApiService(
-        urlConfig: UrlConfig,
-        storeInterceptor: StoreInterceptor
-    ): BasketApiService {
+    fun provideBasketApiService(storeInterceptor: StoreInterceptor): BasketApiService {
         val loggingInterceptor = HttpLoggingInterceptor { Timber.tag("OkHttp").d(it) }
         loggingInterceptor.apply { loggingInterceptor.level = HttpLoggingInterceptor.Level.BODY }
         val client = OkHttpClient.Builder()
@@ -101,33 +83,33 @@ class HiltApiModule {
         return Retrofit.Builder()
             .client(client)
             .addConverterFactory(GsonConverterFactory.create())
-            .baseUrl(urlConfig.basket_url)
+            .baseUrl(BASKET_URL_PLACEHOLDER)
             .build()
             .create(BasketApiService::class.java)
     }
 
     @Singleton
     @Provides
-    fun provideInfoApiService(urlConfig: UrlConfig): InfoApiService =
+    fun provideInfoApiService(): InfoApiService =
         Retrofit.Builder()
             .addConverterFactory(ScalarsConverterFactory.create())
-            .baseUrl(urlConfig.info_url)
+            .baseUrl(BuildConfig.INFO_SERVICE_URL)
             .build()
             .create(InfoApiService::class.java)
 
     @Singleton
     @Provides
-    fun providePromotionApiService(urlConfig: UrlConfig): PromotionApiService =
+    fun providePromotionApiService(): PromotionApiService =
         Retrofit.Builder()
             .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(GsonConverterFactory.create())
-            .baseUrl(urlConfig.promotion_url)
+            .baseUrl(BuildConfig.PROMOTION_SERVICE_URL)
             .build()
             .create(PromotionApiService::class.java)
 
     @Singleton
     @Provides
-    fun provideCryptoApiService(urlConfig: UrlConfig): ProviderApiService {
+    fun provideCryptoApiService(): ProviderApiService {
         val okHttpClient =
             OkHttpClient.Builder() // Increase timeouts for batch proofs during development
                 .connectTimeout(1, TimeUnit.MINUTES)
@@ -138,7 +120,7 @@ class HiltApiModule {
             .client(okHttpClient)
             .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(GsonConverterFactory.create())
-            .baseUrl(urlConfig.promotion_url)
+            .baseUrl(BuildConfig.PROMOTION_SERVICE_URL)
             .build()
             .create(ProviderApiService::class.java)
     }

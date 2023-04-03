@@ -29,11 +29,3 @@ dependencies {
 test {
     useJUnitPlatform()
 }
-
-bootBuildImage {
-    if (System.getenv('VERSION') == null || System.getenv('VERSION') == '') {
-        imageName = "cryptimeleon/incentive-service-basket:" + file("../version").text.trim()
-    } else {
-        imageName = "cryptimeleon/incentive-service-basket:" + System.getenv('VERSION')
-    }
-}

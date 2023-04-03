@@ -9,6 +9,9 @@ plugins {
     id "com.github.ben-manes.versions" version "0.42.0"
 }
 
+def deploymentBaseUrl = "https://incentives.cs.upb.de"
+// Use the following naming scheme for local deployments
+// def deploymentBaseUrl = "http://xxx.xxx.xxx.xxx:8009"
 
 android {
     compileSdkVersion 33
@@ -22,11 +25,6 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-
-        resValue "string", "image_url_basepath", "https://incentives.cs.upb.de/assets/"
-        resValue "string", "basket_service_url", "https://incentives.cs.upb.de/basket/"
-        resValue "string", "info_service_url", "https://incentives.cs.upb.de/info/"
-        resValue "string", "promotion_service_url", "https://incentives.cs.upb.de/incentive/"
     }
 
     buildFeatures {
@@ -34,7 +32,20 @@ android {
         compose true
     }
     buildTypes {
+        debug {
+            buildConfigField "String", "IMAGE_URL_BASEPATH", "\"${deploymentBaseUrl}/assets/\""
+            buildConfigField "String", "BASKET_SERVICE_URL", "\"${deploymentBaseUrl}/basket/\""
+            buildConfigField "String", "BASKET_SERVICE_TWO_URL", "\"${deploymentBaseUrl}/basket-two/\""
+            buildConfigField "String", "INFO_SERVICE_URL", "\"${deploymentBaseUrl}/info/\""
+            buildConfigField "String", "PROMOTION_SERVICE_URL", "\"${deploymentBaseUrl}/incentive/\""
+        }
         release {
+            buildConfigField "String", "IMAGE_URL_BASEPATH", "\"${deploymentBaseUrl}/assets/\""
+            buildConfigField "String", "BASKET_SERVICE_URL", "\"${deploymentBaseUrl}/basket/\""
+            buildConfigField "String", "BASKET_SERVICE_TWO_URL", "\"${deploymentBaseUrl}/basket-two/\""
+            buildConfigField "String", "INFO_SERVICE_URL", "\"${deploymentBaseUrl}/info/\""
+            buildConfigField "String", "PROMOTION_SERVICE_URL", "\"${deploymentBaseUrl}/incentive/\""
+
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }

@@ -8,7 +8,6 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.web.reactive.function.client.WebClientRequestException;
 
 import java.time.Duration;
 
@@ -70,16 +69,16 @@ public class BootstrapApplication {
     }
 
     private void waitForServiceOrThrow(AliveEndpoint aliveEndpoint, String serviceName) throws InterruptedException {
-        int i = 1;
-        while (i < 65) {
+        int i = 0;
+        while (i < 240) {
             try {
-                aliveEndpoint.sendAliveRequest().block(Duration.ofSeconds(1));
+                aliveEndpoint.sendAliveRequest().block(Duration.ofSeconds(5));
                 return;
-            } catch (WebClientRequestException e) {
-                log.info("Could not reach " + serviceName + "service. Retrying in " + i + " seconds");
-                Thread.sleep(1000L * i);
+            } catch (Exception e) {
+                log.info("Failed to reach " + serviceName + "service.");
+                Thread.sleep(1000L);
             }
-            i = i * 2;
+            i++;
         }
         throw new RuntimeException("Could not reach the " + serviceName + "service.");
     }

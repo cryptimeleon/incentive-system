@@ -56,6 +56,10 @@ public class DemoBootstrapData {
                     "5910439010530",
                     "Gummy Bears",
                     289),
+            new ItemDto(
+                    "978020137962",
+                    "Bread",
+                    349),
     };
 
     private static final RewardItemDto[] rewardItems = {
