@@ -4,7 +4,10 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -25,37 +28,52 @@ data class Page(
     val title: String,
     val description: String,
     val emoji: String,
-    val isUserNamePage: Boolean = false
+    val isUserNamePage: Boolean = false,
+    val isServerUrlPage: Boolean = false
+)
+
+val shoppingPage = Page(
+    "Go Shopping",
+    "Scan products when you put them in your shopping cart.",
+    "🛒",
+    isServerUrlPage = false
+)
+val collectPage = Page(
+    "Collect Points",
+    "Collect points in various promotions for your purchases!",
+    "🎟"
+)
+val rewardsPage = Page(
+    "Unlock Rewards",
+    "Trade your points to claim marvellous rewards!",
+    "🎁"
+)
+val registrationPage = Page(
+    "Registration",
+    "During registration, we associate your name with a cryptographic credential. "
+            + "This credential and thus your identity stays private, unless you try to attack the system.",
+    "🙋",
+    isUserNamePage = true
+)
+val urlPage = Page(
+    "Custom Url",
+    "You can change the url of the incentive-system.",
+    "📡",
+    isServerUrlPage = true
+)
+val finalPage = Page(
+    "Designed for Privacy",
+    "We protect your privacy data by only disclosing minimal data and hiding your identity. Powered by cryptography!",
+    "🛡"
 )
 
 val onboardingPages = listOf(
-    Page(
-        "Go Shopping",
-        "Scan products when you put them in your shopping cart.",
-        "🛒"
-    ),
-    Page(
-        "Collect Points",
-        "Collect points in various promotions for your purchases!",
-        "🎟"
-    ),
-    Page(
-        "Unlock Rewards",
-        "Trade your points to claim marvellous rewards!",
-        "🎁"
-    ),
-    Page(
-        "Registration",
-        "During registration, we associate your name with a cryptographic credential. "
-                + "This credential and thus your identity stays private, unless you try to attack the system.",
-        "🙋",
-        true
-    ),
-    Page(
-        "Designed for Privacy",
-        "We protect your privacy data by only disclosing minimal data and hiding your identity. Powered by cryptography!",
-        "🛡"
-    )
+    shoppingPage,
+    collectPage,
+    rewardsPage,
+    registrationPage,
+    urlPage,
+    finalPage
 )
 
 @OptIn(
@@ -66,7 +84,9 @@ val onboardingPages = listOf(
 fun OnboardingScreen(navigateToApp: () -> Unit = {}) {
     val onboardingViewModel = hiltViewModel<OnboardingViewModel>()
     val pagerState = rememberPagerState()
-    var userName: String by remember { mutableStateOf("") }
+    val name by onboardingViewModel.name.collectAsState()
+    val serverUrl by onboardingViewModel.serverUrl.collectAsState()
+    val serverUrlValid by onboardingViewModel.serverUrlValid.collectAsState()
     val coroutineScope = rememberCoroutineScope()
     val keyboardController = LocalSoftwareKeyboardController.current
 
@@ -75,6 +95,7 @@ fun OnboardingScreen(navigateToApp: () -> Unit = {}) {
             HorizontalPager(
                 count = onboardingPages.size,
                 state = pagerState,
+                userScrollEnabled = !(pagerState.currentPage == 4 && !serverUrlValid) && !(pagerState.currentPage == 3 && name == ""),
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
@@ -83,8 +104,8 @@ fun OnboardingScreen(navigateToApp: () -> Unit = {}) {
                 OnboardingPage(page = page) {
                     if (page.isUserNamePage) {
                         OutlinedTextField(
-                            userName,
-                            { userName = it },
+                            name,
+                            { onboardingViewModel.setUserData(it) },
                             singleLine = true,
                             placeholder = { Text("Type your name") },
                             keyboardActions = KeyboardActions(onDone = {
@@ -93,6 +114,25 @@ fun OnboardingScreen(navigateToApp: () -> Unit = {}) {
                                     pagerState.animateScrollToPage(i + 1)
                                 }
                             }),
+                            isError = name == "",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 16.dp)
+                        )
+                    }
+                    if (page.isServerUrlPage) {
+                        OutlinedTextField(
+                            serverUrl,
+                            { onboardingViewModel.setServerUrl(it) },
+                            singleLine = true,
+                            placeholder = { Text("Type the server url") },
+                            keyboardActions = KeyboardActions(onDone = {
+                                keyboardController?.hide()
+                                coroutineScope.launch {
+                                    pagerState.animateScrollToPage(i + 1)
+                                }
+                            }),
+                            isError = !serverUrlValid,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(vertical = 16.dp)
@@ -109,7 +149,7 @@ fun OnboardingScreen(navigateToApp: () -> Unit = {}) {
             AnimatedVisibility(visible = pagerState.currentPage == onboardingPages.lastIndex) {
                 Button(
                     onClick = {
-                        onboardingViewModel.setUserData(userName)
+                        onboardingViewModel.storeData()
                         navigateToApp()
                     },
                     Modifier
