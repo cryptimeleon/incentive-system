@@ -1,0 +1,21 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: Incentimeleon
+message: >-
+  Paper to be cited is being written. Until that is published, please cite this repository.
+type: software
+authors:
+  - given-names: Jan
+    family-names: Bobolz
+  - given-names: Fabian
+    family-names: Eidens
+  - given-names: Paul
+    family-names: Kramer
+  - given-names: Patrick
+    family-names: Schürmann
+  - name: "Open-Source Contributors"
+repository-code: 'https://github.com/cryptimeleon/incentive-system'
+url: 'https://incentimeleon.cryptimeleon.org'
+license: Apache-2.0
