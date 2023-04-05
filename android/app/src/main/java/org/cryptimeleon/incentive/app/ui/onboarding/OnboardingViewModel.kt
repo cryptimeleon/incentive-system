@@ -6,7 +6,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.cryptimeleon.incentive.app.BuildConfig
 import org.cryptimeleon.incentive.app.domain.IPreferencesRepository
 import javax.inject.Inject
@@ -35,7 +35,7 @@ class OnboardingViewModel @Inject constructor(
     }
 
     fun storeData() {
-        viewModelScope.launch {
+        runBlocking {
             preferencesRepository.setUserData(name.value)
             preferencesRepository.setServerUrl(if (serverUrl.value != "") serverUrl.value else BuildConfig.SERVER_URL)
         }
