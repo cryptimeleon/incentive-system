@@ -60,8 +60,8 @@ class HiltApiModule {
         val loggingInterceptor = HttpLoggingInterceptor { Timber.tag("OkHttp").d(it) }
         loggingInterceptor.apply { loggingInterceptor.level = HttpLoggingInterceptor.Level.BODY }
         return OkHttpClient.Builder()
-            .addInterceptor(loggingInterceptor)
             .addInterceptor(serverUrlInterceptor)
+            .addInterceptor(loggingInterceptor)
             .connectTimeout(5, TimeUnit.SECONDS)
             .readTimeout(10, TimeUnit.SECONDS)
             .writeTimeout(5, TimeUnit.SECONDS)
@@ -74,10 +74,11 @@ class HiltApiModule {
         storeInterceptor: StoreInterceptor,
         client: OkHttpClient
     ): StoreApiService {
-        val clientWithStoreInterceptor =
-            client.newBuilder().addInterceptor(storeInterceptor).build()
+        val clientBuilder = client.newBuilder()
+        clientBuilder.interceptors().add(0, storeInterceptor)
+
         return Retrofit.Builder()
-            .client(clientWithStoreInterceptor)
+            .client(clientBuilder.build())
             .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(GsonConverterFactory.create())
             .baseUrl(BASKET_URL_PLACEHOLDER)
@@ -91,10 +92,11 @@ class HiltApiModule {
         storeInterceptor: StoreInterceptor,
         client: OkHttpClient
     ): BasketApiService {
-        val clientWithStoreInterceptor =
-            client.newBuilder().addInterceptor(storeInterceptor).build()
+        val clientBuilder = client.newBuilder()
+        clientBuilder.interceptors().add(0, storeInterceptor)
+
         return Retrofit.Builder()
-            .client(clientWithStoreInterceptor)
+            .client(clientBuilder.build())
             .addConverterFactory(GsonConverterFactory.create())
             .baseUrl(BASKET_URL_PLACEHOLDER)
             .build()
