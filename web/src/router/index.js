@@ -27,7 +27,7 @@ const routes = [
         props: {
             baseUrl: "store",
             name: "Store One",
-            description: "Just a normal store."
+            description: "Just a normal store participating in the incentive system."
         }
     },
     {
@@ -36,7 +36,7 @@ const routes = [
         props: {
             baseUrl: "store-two",
             name: "Store Two",
-            description: "Another normal store."
+            description: "Another store. Because there is no persistent internet connection between Store One and Store Two, you can spend the same token at both without them immediately noticing (it will, however, be noticed by the provider, who will be able to de-anonymize double-spending users)."
         }
     },
     {

@@ -1,4 +1,4 @@
-# Cryptimeleon Incentive System
+# Incentimeleon
 
 ![Develop](https://github.com/cryptimeleon/incentive-system/workflows/Default%20workflow/badge.svg?branch=develop)
 
