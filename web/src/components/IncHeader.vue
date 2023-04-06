@@ -3,7 +3,7 @@
     <nav class="text-slate-100 text-sm md:flex md:items-center md:justify-between px-4 md:px-8 md:container">
       <div class="flex justify-between">
         <router-link to="/" class="hidden md:block">
-          <p class="text-xl font-semibold py-4 text-white">Cryptimeleon Incentive System</p>
+          <p class="text-xl font-semibold py-4 text-white">Incentimeleon</p>
         </router-link>
         <router-link to="/" class="md:hidden">
           <p class="text-xl font-semibold py-2 text-white">Incentive System</p>

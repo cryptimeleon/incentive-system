@@ -5,6 +5,9 @@
             <ServiceStatus :loading="loading" :online="online"/>
         </div>
         <div class="prose text-lg">{{ description }}</div>
+        <div class="prose text-lg">Below, you can see the data this store holds, 
+            namely what products are being bought and what rewards are being chosen. 
+            The store does not learn whom each basket belongs to, nor any details about the user data (e.g., how many points they have).</div>
         <div class="text-2xl font-bold pt-2">Baskets</div>
         <BasketList :baskets="basketWithDsData"/>
     </div>
