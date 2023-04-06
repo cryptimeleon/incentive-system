@@ -46,23 +46,39 @@ class HiltApiModule {
     fun provideStoreInterceptor(storeSelectionRepository: StoreSelectionRepository) =
         StoreInterceptor(storeSelectionRepository)
 
+    @Singleton
+    @Provides
+    fun provideServerUrlInterceptor(preferencesRepository: IPreferencesRepository) =
+        ServerUrlInterceptor(preferencesRepository)
 
     @Provides
     fun provideConnectivityManager(@ApplicationContext context: Context): ConnectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
-    @Singleton
     @Provides
-    fun provideStoreApiService(storeInterceptor: StoreInterceptor): StoreApiService {
+    fun provideClientWithLoggingAndServerInterceptor(serverUrlInterceptor: ServerUrlInterceptor): OkHttpClient {
         val loggingInterceptor = HttpLoggingInterceptor { Timber.tag("OkHttp").d(it) }
         loggingInterceptor.apply { loggingInterceptor.level = HttpLoggingInterceptor.Level.BODY }
-        val client = OkHttpClient.Builder()
+        return OkHttpClient.Builder()
+            .addInterceptor(serverUrlInterceptor)
             .addInterceptor(loggingInterceptor)
-            .addInterceptor(storeInterceptor)
+            .connectTimeout(5, TimeUnit.SECONDS)
+            .readTimeout(10, TimeUnit.SECONDS)
+            .writeTimeout(5, TimeUnit.SECONDS)
             .build()
+    }
+
+    @Singleton
+    @Provides
+    fun provideStoreApiService(
+        storeInterceptor: StoreInterceptor,
+        client: OkHttpClient
+    ): StoreApiService {
+        val clientBuilder = client.newBuilder()
+        clientBuilder.interceptors().add(0, storeInterceptor)
 
         return Retrofit.Builder()
-            .client(client)
+            .client(clientBuilder.build())
             .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(GsonConverterFactory.create())
             .baseUrl(BASKET_URL_PLACEHOLDER)
@@ -72,16 +88,15 @@ class HiltApiModule {
 
     @Singleton
     @Provides
-    fun provideBasketApiService(storeInterceptor: StoreInterceptor): BasketApiService {
-        val loggingInterceptor = HttpLoggingInterceptor { Timber.tag("OkHttp").d(it) }
-        loggingInterceptor.apply { loggingInterceptor.level = HttpLoggingInterceptor.Level.BODY }
-        val client = OkHttpClient.Builder()
-            .addInterceptor(loggingInterceptor)
-            .addInterceptor(storeInterceptor)
-            .build()
+    fun provideBasketApiService(
+        storeInterceptor: StoreInterceptor,
+        client: OkHttpClient
+    ): BasketApiService {
+        val clientBuilder = client.newBuilder()
+        clientBuilder.interceptors().add(0, storeInterceptor)
 
         return Retrofit.Builder()
-            .client(client)
+            .client(clientBuilder.build())
             .addConverterFactory(GsonConverterFactory.create())
             .baseUrl(BASKET_URL_PLACEHOLDER)
             .build()
@@ -90,8 +105,9 @@ class HiltApiModule {
 
     @Singleton
     @Provides
-    fun provideInfoApiService(): InfoApiService =
+    fun provideInfoApiService(client: OkHttpClient): InfoApiService =
         Retrofit.Builder()
+            .client(client)
             .addConverterFactory(ScalarsConverterFactory.create())
             .baseUrl(BuildConfig.INFO_SERVICE_URL)
             .build()
@@ -99,8 +115,9 @@ class HiltApiModule {
 
     @Singleton
     @Provides
-    fun providePromotionApiService(): PromotionApiService =
+    fun providePromotionApiService(client: OkHttpClient): PromotionApiService =
         Retrofit.Builder()
+            .client(client)
             .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(GsonConverterFactory.create())
             .baseUrl(BuildConfig.PROMOTION_SERVICE_URL)
@@ -109,15 +126,9 @@ class HiltApiModule {
 
     @Singleton
     @Provides
-    fun provideCryptoApiService(): ProviderApiService {
-        val okHttpClient =
-            OkHttpClient.Builder() // Increase timeouts for batch proofs during development
-                .connectTimeout(1, TimeUnit.MINUTES)
-                .readTimeout(30, TimeUnit.SECONDS)
-                .writeTimeout(15, TimeUnit.SECONDS)
-                .build()
+    fun provideCryptoApiService(client: OkHttpClient): ProviderApiService {
         return Retrofit.Builder()
-            .client(okHttpClient)
+            .client(client)
             .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(GsonConverterFactory.create())
             .baseUrl(BuildConfig.PROMOTION_SERVICE_URL)

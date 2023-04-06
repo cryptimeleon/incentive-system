@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
+import org.cryptimeleon.incentive.app.BuildConfig
 import org.cryptimeleon.incentive.app.domain.IPreferencesRepository
 import org.cryptimeleon.incentive.app.domain.model.DoubleSpendingPreferences
 import java.io.IOException
@@ -17,6 +18,7 @@ class PreferencesRepository(private val dataStore: DataStore<Preferences>) :
         val STOP_AFTER_PAYMENT = booleanPreferencesKey("stop_after_payment")
         val USER_DATA = stringPreferencesKey("user_data")
         val CURRENT_STORE_PATH = stringPreferencesKey("current_store")
+        val SERVER_URL = stringPreferencesKey("server_url")
     }
 
     override val doubleSpendingPreferencesFlow: Flow<DoubleSpendingPreferences> = dataStore.data
@@ -43,6 +45,10 @@ class PreferencesRepository(private val dataStore: DataStore<Preferences>) :
         preferences[PreferencesKeys.CURRENT_STORE_PATH] ?: ""
     }
 
+    override val serverUrl: Flow<String> = dataStore.data.map { preferences ->
+        preferences[PreferencesKeys.SERVER_URL] ?: BuildConfig.SERVER_URL
+    }
+
     override suspend fun updateDiscardUpdatedToken(discardToken: Boolean) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.DISCARD_UPDATED_TOKEN] = discardToken
@@ -64,6 +70,12 @@ class PreferencesRepository(private val dataStore: DataStore<Preferences>) :
     override suspend fun setCurrentStoreName(name: String) {
         dataStore.edit { preferences ->
             preferences[PreferencesKeys.CURRENT_STORE_PATH] = name
+        }
+    }
+
+    override suspend fun setServerUrl(serverUrl: String) {
+        dataStore.edit { preferences ->
+            preferences[PreferencesKeys.SERVER_URL] = serverUrl
         }
     }
 }

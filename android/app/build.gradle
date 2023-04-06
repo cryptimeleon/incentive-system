@@ -33,6 +33,7 @@ android {
     }
     buildTypes {
         debug {
+            buildConfigField "String", "SERVER_URL", "\"${deploymentBaseUrl}\""
             buildConfigField "String", "IMAGE_URL_BASEPATH", "\"${deploymentBaseUrl}/assets/\""
             buildConfigField "String", "BASKET_SERVICE_URL", "\"${deploymentBaseUrl}/store/\""
             buildConfigField "String", "BASKET_SERVICE_TWO_URL", "\"${deploymentBaseUrl}/store-two/\""
@@ -40,6 +41,7 @@ android {
             buildConfigField "String", "PROMOTION_SERVICE_URL", "\"${deploymentBaseUrl}/provider/\""
         }
         release {
+            buildConfigField "String", "SERVER_URL", "\"${deploymentBaseUrl}\""
             buildConfigField "String", "IMAGE_URL_BASEPATH", "\"${deploymentBaseUrl}/assets/\""
             buildConfigField "String", "BASKET_SERVICE_URL", "\"${deploymentBaseUrl}/store/\""
             buildConfigField "String", "BASKET_SERVICE_TWO_URL", "\"${deploymentBaseUrl}/store-two/\""
