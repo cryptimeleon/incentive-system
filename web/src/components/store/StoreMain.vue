@@ -71,7 +71,7 @@ export default {
                         .then(data => this.baskets = data)
                         .catch(error => console.error(error))
 
-                fetch("/incentive/double-spending-detected")
+                fetch("/provider/double-spending-detected")
                         .then(response => {
                             if (!response.ok) throw Error(response.statusText)
                             return response
