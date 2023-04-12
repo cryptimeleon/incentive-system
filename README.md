@@ -45,7 +45,7 @@ at `basepath/swagger-ui/index.html`.
 
 ## Creating promotions and choosing images
 
-You can create configure own promotion-sets in the bootstrap service.
+You can configure own promotion-sets in the bootstrap service.
 To add images, put the image in the `web/public/assets/` folder.
 Use the promotion_name in lower case with spaces replaced by underscores and choose the jpg format.
 For a promotion named `Christmas Promotion`, name the image `christmas_promotion.jpg`.
