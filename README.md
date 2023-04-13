@@ -6,8 +6,26 @@
 
 This project is an implementation of
 the [Privacy-Preserving Incentive Systems with Highly Efficient Point-Collection](https://eprint.iacr.org/2020/382)
-paper published in 2020. You can watch this [presentation on youtube](https://www.youtube.com/watch?v=Up-ECbJ4w5U&t=1s)
+paper published in 2020.
+Our incentive system for retail stores rewards users for their shopping behavior, e.g. for buying certain products or shopping regularly.
+In contrast to currently deployed incentive systems, it protects users' privacy using cryptography.
+You can watch this [presentation on youtube](https://www.youtube.com/watch?v=Up-ECbJ4w5U&t=1s)
 to learn more about the basic ideas of this project.
+
+### Walkthrough
+
+We provide a walkthrough of a user's view of the system during a shopping:
+1. On first startup, the user goes through the onboarding process, needs to register once with their name, and can potentially change the deployment's url.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./.github/images/onboarding-dark.png">
+  <img src="./.github/images/onboarding.png">
+</picture>
+2. 
+
+
+```
+convert image01.png .. image0n.png -border 4 +append onboarding.png
+``` 
 
 ## Deployment
 
