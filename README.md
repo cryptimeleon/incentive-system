@@ -1,12 +1,8 @@
-# Cryptimeleon Incentive System
-
-![Develop](https://github.com/cryptimeleon/incentive-system/workflows/Default%20workflow/badge.svg?branch=develop)
-
-## About
+# Cryptimeleon Incentive System ![Develop](https://github.com/cryptimeleon/incentive-system/workflows/Default%20workflow/badge.svg?branch=develop)
 
 This project is an implementation of
 the [Privacy-Preserving Incentive Systems with Highly Efficient Point-Collection](https://eprint.iacr.org/2020/382)
-paper published in 2020.
+paper published in 2020 with improvements for real-world scenarios.
 Our incentive system for retail stores rewards users for their shopping behavior, e.g. for buying certain products or shopping regularly.
 In contrast to currently deployed incentive systems, it protects users' privacy using cryptography.
 You can watch this [presentation on youtube](https://www.youtube.com/watch?v=Up-ECbJ4w5U&t=1s)
@@ -16,7 +12,7 @@ to learn more about the basic ideas of this project.
 
 We provide a walkthrough of a user's view of the system during a shopping:
 
-#### Onboarding
+### Onboarding
 
 On the first startup, the user goes through the onboarding process, needs to register once with their name, and can potentially change the deployment's URL.
 Then, the app generates keys and registers the user with their identity.
@@ -27,7 +23,7 @@ Note that this identity cannot be linked with transactions and is only used to t
   <img src="./.github/images/onboarding.png">
 </picture>
 
-#### Shopping
+### Shopping
 
 The user has joined the system.
 In the background, the app queried all running promotions (campaigns) and joined each promotion which means that the user has an empty token for each promotion on their phone.
@@ -45,7 +41,7 @@ This serves as proof/receipt when leaving the store and for claiming physical re
   <img src="./.github/images/shopping.png">
 </picture>
 
-#### Promotions
+### Promotions
 
 A core concept of the business logic of our incentive system is the concept of promotions.
 For each token that a user has, there is a respective promotion with well-defined rules.
@@ -62,7 +58,7 @@ Further, we display a token id, a hash of the current token, which is similar to
   <img src="./.github/images/promotions.png">
 </picture>
 
-#### Double-spending Attacks
+### Double-spending Attacks
 
 The canonical attack to our incentive system is a double-spending attack: An attack, where an attacker copies a digital token and spends it twice to either obtain two valid remainder tokens and therefore double their money, or to claim some reward twice and therefore get more than the token is worth.
 We implement attack capabilities in our app to showcase how our system handles these attacks.
@@ -102,9 +98,36 @@ For this prototype, we only use a name to identify users, however, in the real w
 
 <img src="./.github/images/web-ui.png">
 
-## Deployment
+## Developing
 
-### Services
+This project consists of an android app developed with Kotlin and Jetpack Compose, multiple Spring Boot services and packages for the cryptographic protocols and business logic (promotions).
+The cryptographic protocols are powered by [cryptimeleon](https://cryptimeleon.org).
+
+### Building
+
+To build the project, you need Java 11 and Android SDK 33 (can be installed with
+[sdkmanager](https://developer.android.com/studio/command-line/sdkmanager) or via Android Studio).
+
+### Benchmark
+
+To run a benchmark, install mcl following these [instructions](https://github.com/cryptimeleon/mclwrap) and
+run `./gradlew :crypto:benchmark`.
+
+### Swagger API
+
+When you start the services (either locally or via docker), you can access the swagger api page
+at `basepath/swagger-ui/index.html`.
+
+### Creating promotions and choosing images
+
+You can configure own promotion-sets in the bootstrap service.
+To add images, put the image in the `web/public/assets/` folder.
+Use the promotion_name in lower case with spaces replaced by underscores and choose the jpg format.
+For a promotion named `Christmas Promotion`, name the image `christmas_promotion.jpg`.
+
+### Deployment
+
+#### Services
 
 We provide docker images of the services for custom deployments.
 To deploy the incentive-system follow these steps (tested on linux and macOS):
@@ -116,32 +139,10 @@ To deploy the incentive-system follow these steps (tested on linux and macOS):
 
 If you want to build docker images locally, you can use the command `./deployment/build-docker-images.sh`.
 
-### App
+#### App
 
 You can change the deployment's url in `app/build.gradle` by setting the `deploymentBaseUrl` variable before building.
 For local deployments, use the naming scheme `http://xxx.xxx.xxx.xxx:8009` and add the line `android:usesCleartextTraffic="true"` to the `AndroidManifest.xml` to enable http.
-
-## Building
-
-To build the project, you need Java 11 and Android SDK 33 (can be installed with
-[sdkmanager](https://developer.android.com/studio/command-line/sdkmanager) or via Android Studio).
-
-## Benchmark of the Incentive System
-
-To run a benchmark, install mcl following these [instructions](https://github.com/cryptimeleon/mclwrap) and
-run `./gradlew :crypto:benchmark`.
-
-## Swagger API
-
-When you start the services (either locally or via docker), you can access the swagger api page
-at `basepath/swagger-ui/index.html`.
-
-## Creating promotions and choosing images
-
-You can configure own promotion-sets in the bootstrap service.
-To add images, put the image in the `web/public/assets/` folder.
-Use the promotion_name in lower case with spaces replaced by underscores and choose the jpg format.
-For a promotion named `Christmas Promotion`, name the image `christmas_promotion.jpg`.
 
 ## License
 
