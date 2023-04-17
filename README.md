@@ -15,17 +15,89 @@ to learn more about the basic ideas of this project.
 ### Walkthrough
 
 We provide a walkthrough of a user's view of the system during a shopping:
-1. On first startup, the user goes through the onboarding process, needs to register once with their name, and can potentially change the deployment's url.
+
+#### Onboarding
+
+On the first startup, the user goes through the onboarding process, needs to register once with their name, and can potentially change the deployment's URL.
+Then, the app generates keys and registers the user with their identity.
+Note that this identity cannot be linked with transactions and is only used to trace users who attempt a double-spending attack.
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./.github/images/onboarding-dark.png">
   <img src="./.github/images/onboarding.png">
 </picture>
-2. 
 
+#### Shopping
 
-```
-convert image01.png .. image0n.png -border 4 +append onboarding.png
-``` 
+The user has joined the system.
+In the background, the app queried all running promotions (campaigns) and joined each promotion which means that the user has an empty token for each promotion on their phone.
+Now, the user can go shopping:
+For this, they go to the scanner view, give the app access to the camera, and scan products while going through the store.
+This process resembles new retail technology where users can scan products along the go.
+For demo purposes, we provide the barcodes on the incentive system's web frontend.
+After scanning, the user can select updates to their promotions that apply, e.g. collect 1 point for the hazelnut spread in the basket.
+Further, they can view the privacy implications of the selected updates in the privacy details view.
+After activating checkout, the app runs the crypto protocols, 'pays' the basket, and finally shows a QR code of the corresponding basket.
+This serves as proof/receipt when leaving the store and for claiming physical rewards.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./.github/images/shopping-dark.png">
+  <img src="./.github/images/shopping.png">
+</picture>
+
+#### Promotions
+
+A core concept of the business logic of our incentive system is the concept of promotions.
+For each token that a user has, there is a respective promotion with well-defined rules.
+Our prototype currently supports three types of promotions:
+1. _VIP promotion_: Users earn points for spending money. After reaching a certain amount, they reach a VIP level (Bronze, Silver, Gold) that enables permanent effects like discounts.
+2. Point count promotions: Point count promotions are the simplest promotions. Users can collect points, e.g. for buying certain items, and spend points to get rewards. Our _Hazelspread promotion_ is such a promotion: For every four jars of hazelnut spread users get one for free.
+3. _Streak promotion_: Users can build up a streak by shopping within seven days of the last visit. Having a certain streak enables rewards.
+
+In the app, users can see their current state in all running promotions and which rewards they are eligible to get.
+Further, we display a token id, a hash of the current token, which is similar to a GitHub commit hash.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./.github/images/promotions-dark.png">
+  <img src="./.github/images/promotions.png">
+</picture>
+
+#### Double-spending Attacks
+
+The canonical attack to our incentive system is a double-spending attack: An attack, where an attacker copies a digital token and spends it twice to either obtain two valid remainder tokens and therefore double their money, or to claim some reward twice and therefore get more than the token is worth.
+We implement attack capabilities in our app to showcase how our system handles these attacks.
+Note that in a real-world deployment, some of these attacks would only be possible with timing attacks (i.e. within a small period until services synchronize data), or in case a store goes offline.
+
+For the first attack scenario, the attacker enables the _discard remainder token_ and _store after payment_ options in the apps attack ui.
+This tells the app to use the current token until deactivated, instead of replacing it with a new token after a transaction.
+In the example, the attacker has enough points to get a reward and claims it at the store.
+If they try to spend the same token again at the same store, they get caught and their identity leaks, we show this later.
+However, they can go to another store (in our case change the current store in the settings), and spend the token again to get a second reward.
+After some time, the stores synchronize their transaction data and find this double-spending attack.
+The link algorithm extracts the attacker's identity such that stores can reclaim the stolen rewards with legal measures.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./.github/images/double-spending-store-dark.png">
+  <img src="./.github/images/double-spending-store.png">
+</picture>
+
+In the second attack scenario, the attacker wants to take a token _T1_ worth 16 and spend 4 points twice to get two valid tokens _T2_ each worth 12 points.
+These would be worth 24 in total and thus the attacker would have stolen 8 points.
+To try this, the attacker enables the _discard remainder token_ option in the double-spending options.
+Then, they do the first spend transaction at the first store, which is successful.
+Then, they switch the store and try to get another remainder token.
+This attempt is blocked directly by the provider service, which is the only service that can update tokens and prevents this attack with a blacklist.
+Further, the attacker again leaked their identity and can be penalized for this double-spending attempt.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./.github/images/double-spending-provider-dark.png">
+  <img src="./.github/images/double-spending-provider.png">
+</picture>
+
+We previously mentioned that attackers' identities leak during double-spending attacks.
+For this, we have a web frontend with an overview of all registered users and their public keys.
+During double-spending, the corresponding secret key leaks and stores can identify attackers.
+Every store has a UI that displays all baskets and marks baskets that are associated with a double-spending attack in red.
+For this prototype, we only use a name to identify users, however, in the real world, this could be enriched with more information.
+
+<img src="./.github/images/web-ui.png">
 
 ## Deployment
 
