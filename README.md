@@ -21,6 +21,7 @@ We provide a walkthrough of a user's view of the system during a shopping:
 On the first startup, the user goes through the onboarding process, needs to register once with their name, and can potentially change the deployment's URL.
 Then, the app generates keys and registers the user with their identity.
 Note that this identity cannot be linked with transactions and is only used to trace users who attempt a double-spending attack.
+
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./.github/images/onboarding-dark.png">
   <img src="./.github/images/onboarding.png">
@@ -55,6 +56,7 @@ Our prototype currently supports three types of promotions:
 
 In the app, users can see their current state in all running promotions and which rewards they are eligible to get.
 Further, we display a token id, a hash of the current token, which is similar to a GitHub commit hash.
+
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./.github/images/promotions-dark.png">
   <img src="./.github/images/promotions.png">
@@ -73,6 +75,7 @@ If they try to spend the same token again at the same store, they get caught and
 However, they can go to another store (in our case change the current store in the settings), and spend the token again to get a second reward.
 After some time, the stores synchronize their transaction data and find this double-spending attack.
 The link algorithm extracts the attacker's identity such that stores can reclaim the stolen rewards with legal measures.
+
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./.github/images/double-spending-store-dark.png">
   <img src="./.github/images/double-spending-store.png">
