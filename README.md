@@ -8,7 +8,7 @@ In contrast to currently deployed incentive systems, it protects users' privacy 
 You can watch this [presentation on youtube](https://www.youtube.com/watch?v=Up-ECbJ4w5U&t=1s)
 to learn more about the basic ideas of this project.
 
-### Walkthrough
+## Walkthrough
 
 We provide a walkthrough of a user's view of the system during a shopping:
 
