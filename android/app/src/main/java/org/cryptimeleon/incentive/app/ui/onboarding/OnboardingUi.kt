@@ -1,5 +1,6 @@
 package org.cryptimeleon.incentive.app.ui.onboarding
 
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
@@ -144,7 +145,8 @@ fun OnboardingScreen(navigateToApp: () -> Unit = {}) {
                 pagerState = pagerState,
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
-                    .padding(16.dp)
+                    .padding(16.dp),
+                activeColor = MaterialTheme.colorScheme.onBackground
             )
             AnimatedVisibility(visible = pagerState.currentPage == onboardingPages.lastIndex) {
                 Button(
@@ -189,6 +191,7 @@ fun OnboardingPage(page: Page, optionalEditableArea: @Composable () -> Unit) {
 }
 
 @Preview
+@Preview(uiMode = UI_MODE_NIGHT_YES)
 @Composable
 private fun OnboardingScreenPreview() {
     CryptimeleonPreviewContainer {

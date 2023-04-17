@@ -1,5 +1,6 @@
 package org.cryptimeleon.incentive.app.ui.promotion
 
+import android.content.res.Configuration
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -19,7 +20,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
@@ -41,7 +41,6 @@ val IMAGE_SCROLL = 140.dp
 val MIN_HEADER_OFFSET = 56.dp
 val MAX_HEADER_OFFSET = MIN_HEADER_OFFSET + IMAGE_SCROLL
 val MIN_HEADER_SIZE = 100.dp
-
 
 val CREDIT_CARD_HEIGHT = 60.dp
 
@@ -72,13 +71,13 @@ private fun SetImageOverlayStatusBar() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PromotionDetailUi(promotionData: PromotionData, back: () -> Unit) {
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
         val scroll = rememberScrollState()
+        Surface(modifier = Modifier.fillMaxSize()) {}
         TopImage(promotionImageUrl(promotionData = promotionData))
         Body(promotionData, scroll)
         Title(promotionData, scroll)
@@ -124,7 +123,6 @@ fun PromotionTitle(
     val minOffset = with(LocalDensity.current) { MIN_HEADER_OFFSET.toPx() }
 
     Column(Modifier.windowInsetsPadding(WindowInsets.statusBars)) {
-
         Column(
             verticalArrangement = Arrangement.Bottom,
             modifier = Modifier
@@ -135,32 +133,33 @@ fun PromotionTitle(
                     IntOffset(x = 0, y = offset.toInt())
                 }
         ) {
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(color = MaterialTheme.colorScheme.background)
-            ) {
-                Column(
+            Surface {
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .weight(1f)
+                        .fillMaxWidth()
                 ) {
-                    Spacer(modifier = Modifier.size(8.dp))
-                    Text(
-                        promotionData.promotionName,
-                        style = MaterialTheme.typography.headlineLarge,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                    Text(
-                        "TokenId: ${promotionData.shortTokenHash}",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.secondary,
-                    )
-                    Spacer(modifier = Modifier.size(16.dp))
+                    Column(
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .weight(1f)
+                    ) {
+                        Spacer(modifier = Modifier.size(8.dp))
+                        Text(
+                            promotionData.promotionName,
+                            style = MaterialTheme.typography.headlineLarge,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(
+                            "TokenId: ${promotionData.shortTokenHash}",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.secondary,
+                        )
+                        Spacer(modifier = Modifier.size(16.dp))
+                    }
+                    stateIndicator()
                 }
-                stateIndicator()
             }
             Divider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f))
         }
@@ -178,34 +177,26 @@ private fun Body(promotionData: PromotionData, scroll: ScrollState) {
         )
         Spacer(
             modifier = Modifier
-                .size(MIN_HEADER_SIZE)
+                .size(MIN_HEADER_SIZE.minus(5.dp)) // Avoid the background showing through while scrolling
         )
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(scroll)
-        ) {
-            Spacer(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(IMAGE_SCROLL)
-            )
             Column(
-                verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier
-                    .background(MaterialTheme.colorScheme.background)
-                    .padding(vertical = 16.dp)
-                    .windowInsetsPadding(WindowInsets.navigationBars)
+                    .fillMaxSize()
+                    .verticalScroll(scroll)
             ) {
-                PromotionRewardSection(promotionData)
-                Column() {
-                    PromotionInfoSectionHeader(text = "Token")
-                    Text(
-                        text = promotionData.tokenJson,
-                        style = MaterialTheme.typography.bodySmall,
-                        fontFamily = FontFamily.Monospace,
-                        modifier = HzPadding
-                    )
+                Spacer(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(IMAGE_SCROLL)
+                )
+                Surface {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier
+                        .padding(vertical = 16.dp)
+                        .windowInsetsPadding(WindowInsets.navigationBars)
+                ) {
+                    PromotionRewardSection(promotionData)
                 }
             }
         }
@@ -263,6 +254,7 @@ private fun TopImage(imageUrl: String) {
 }
 
 @Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun HazelPreview() {
     CryptimeleonPreviewContainer {
@@ -271,6 +263,7 @@ fun HazelPreview() {
 }
 
 @Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun VipPreviewNone() {
     CryptimeleonPreviewContainer {
@@ -279,6 +272,7 @@ fun VipPreviewNone() {
 }
 
 @Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun VipPreviewBronze() {
     CryptimeleonPreviewContainer {
@@ -287,6 +281,7 @@ fun VipPreviewBronze() {
 }
 
 @Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun VipPreviewSilver() {
     CryptimeleonPreviewContainer {
@@ -295,6 +290,7 @@ fun VipPreviewSilver() {
 }
 
 @Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun VipPreviewGold() {
     CryptimeleonPreviewContainer {
@@ -303,6 +299,7 @@ fun VipPreviewGold() {
 }
 
 @Preview
+@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
 fun StreakPreview() {
     CryptimeleonPreviewContainer {
