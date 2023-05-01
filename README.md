@@ -34,11 +34,11 @@ The user has joined the system.
 In the background, the app queried all running promotions (campaigns) and joined each promotion which means that the user has an empty token for each promotion on their phone.
 Now, the user can go shopping:
 For this, they go to the scanner view, give the app access to the camera, and scan products while going through the store.
-This process resembles new retail technology where users can scan products along the go.
+This process resembles new retail technology where users can scan products along the go, pay, and leave the store, all without interacting with a cashier or cash register.
 For demo purposes, we provide the barcodes on the incentive system's web frontend.
 After scanning, the user can select updates to their promotions that apply, e.g. collect 1 point for the hazelnut spread in the basket.
 Further, they can view the privacy implications of the selected updates in the privacy details view.
-After activating checkout, the app runs the crypto protocols, 'pays' the basket, and finally shows a QR code of the corresponding basket.
+On checkout, the app runs the crypto protocols and payment process and then displays a QR code of the corresponding basket.
 This serves as proof/receipt when leaving the store and for claiming physical rewards.
 
 <picture>
