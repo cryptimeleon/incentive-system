@@ -256,7 +256,6 @@ fun VipTitleBadge(vipPromotionData: VipPromotionData) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VipBody(promotionData: VipPromotionData) {
     Text(
@@ -274,15 +273,9 @@ fun VipBody(promotionData: VipPromotionData) {
                 is ProveVipTokenUpdateState -> {
                     // Only show if current level or higher
                     if (tokenUpdate.currentStatus.statusValue <= tokenUpdate.requiredStatus.statusValue) {
-                        val vipLevelStuff: VipLevelStuff =
-                            vipLevelStuffFrom(vipLevel = tokenUpdate.requiredStatus)
                         ZkpTokenUpdateCard(
                             tokenUpdate = tokenUpdate,
                             progressIfApplies = Optional.empty(),
-                            colors = CardDefaults.cardColors(
-                                contentColor = vipLevelStuff.contentColor,
-                                containerColor = vipLevelStuff.containerColor
-                            )
                         )
                     }
                 }

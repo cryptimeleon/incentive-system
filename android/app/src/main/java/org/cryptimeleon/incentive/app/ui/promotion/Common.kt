@@ -22,13 +22,11 @@ fun ZkpTokenUpdateCard(
     tokenUpdate: ZkpTokenUpdate,
     progressIfApplies: Optional<Float>,
     modifier: Modifier = Modifier,
-    colors: CardColors = CardDefaults.cardColors()
 ) {
     Card(
         modifier = modifier
             .padding(horizontal = 16.dp)
             .fillMaxWidth(),
-        colors = colors
     ) {
         Row(
             modifier = Modifier

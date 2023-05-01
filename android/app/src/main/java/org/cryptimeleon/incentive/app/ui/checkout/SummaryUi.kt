@@ -131,16 +131,14 @@ private fun PromotionUpdateSummaryCard(
 ) {
     Card(
         modifier = modifier
-            .defaultMinSize(minHeight = 100.dp)
             .fillMaxWidth()
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            Arrangement.spacedBy(8.dp)
+            modifier = Modifier.padding(horizontal = 16.dp).padding(top = 8.dp, bottom = 16.dp),
         ) {
             Text(
                 text = promotionState.promotionName,
-                style = MaterialTheme.typography.headlineSmall,
+                style = MaterialTheme.typography.titleLarge,
             )
             Text(
                 text = tokenUpdate.description,
@@ -148,7 +146,7 @@ private fun PromotionUpdateSummaryCard(
             )
             when {
                 tokenUpdate is ZkpTokenUpdate && tokenUpdate.sideEffect.isPresent -> {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
                         Icon(
                             Icons.Default.CardGiftcard,
                             contentDescription = "Gift icon"
