@@ -5,6 +5,9 @@ the [Privacy-Preserving Incentive Systems with Highly Efficient Point-Collection
 paper published in 2020 with improvements for real-world scenarios.
 Our incentive system for retail stores rewards users for their shopping behavior, e.g. for buying certain products or shopping regularly.
 In contrast to currently deployed incentive systems, it protects users' privacy using cryptography.
+
+The core of our implementation is an Android app that realizes the shopping process of scanning product barcodes, 
+paying in the app, and showing a QR code as proof of payment upon leaving the store.
 You can watch this [presentation on youtube](https://www.youtube.com/watch?v=Up-ECbJ4w5U&t=1s)
 to learn more about the basic ideas of this project.
 
