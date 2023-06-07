@@ -36,8 +36,8 @@ class OnboardingViewModel @Inject constructor(
 
     fun storeData() {
         runBlocking {
-            preferencesRepository.setUserData(name.value)
-            preferencesRepository.setServerUrl(if (serverUrl.value != "") serverUrl.value else BuildConfig.SERVER_URL)
+            preferencesRepository.setUserData(name.value.trim())
+            preferencesRepository.setServerUrl(if (serverUrl.value != "") serverUrl.value.trim() else BuildConfig.SERVER_URL)
         }
     }
 }
