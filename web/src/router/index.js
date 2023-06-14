@@ -2,6 +2,7 @@ import {createRouter, createWebHashHistory} from 'vue-router';
 
 // Lazy-load routes
 const LandingPage = () => import("@/components/LandingPage.vue")
+const AboutPage = () => import("@/components/AboutPage.vue")
 const PrivacyPolicy = () => import("@/components/PrivacyPolicy.vue")
 const ImpressumPage = () => import("@/components/ImpressumPage.vue")
 const StoreMain = () => import("@/components/store/StoreMain.vue")
@@ -12,6 +13,10 @@ const routes = [
     {
         path: '/',
         component: LandingPage
+    },
+    {
+        path: '/about',
+        component: AboutPage
     },
     {
         path: '/privacy-policy',

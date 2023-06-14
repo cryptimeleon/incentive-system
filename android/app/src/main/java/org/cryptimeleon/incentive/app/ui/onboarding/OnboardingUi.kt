@@ -57,8 +57,8 @@ val registrationPage = Page(
     isUserNamePage = true
 )
 val urlPage = Page(
-    "Custom Url",
-    "You can change the url of the incentive-system.",
+    "Custom Server",
+    "You can change the incentive-system server (only for advanced users).",
     "📡",
     isServerUrlPage = true
 )
