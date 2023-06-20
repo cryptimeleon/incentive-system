@@ -1,17 +1,15 @@
 # Cryptimeleon Incentive System ![Develop](https://github.com/cryptimeleon/incentive-system/workflows/Default%20workflow/badge.svg?branch=develop)
 
-This project is an implementation of
-the [Privacy-Preserving Incentive Systems with Highly Efficient Point-Collection](https://eprint.iacr.org/2020/382)
+This project is an implementation of a privacy-preserving incentive system (loyalty/point-collection system).
+It is based on the [Privacy-Preserving Incentive Systems with Highly Efficient Point-Collection](https://eprint.iacr.org/2020/382)
 paper published in 2020 with improvements for real-world scenarios.
 Our incentive system for retail stores rewards users for their shopping behavior, e.g. for buying certain products or shopping regularly.
 In contrast to currently deployed incentive systems, it protects users' privacy using cryptography.
 
 The core of our implementation is an Android app that realizes the shopping process of scanning product barcodes, 
 paying in the app, and showing a QR code as proof of payment upon leaving the store.
-You can watch this [presentation on youtube](https://www.youtube.com/watch?v=Up-ECbJ4w5U&t=1s)
-to learn more about the basic ideas of this project.
 
-We developed this project at Paderborn University within the transfer project _T2_ of the _CRC 901 – On-The-Fly Computing_.
+See [https://incentimeleon.cryptimeleon.org](https://incentimeleon.cryptimeleon.org) for more details.
 
 ## Walkthrough
 
@@ -152,3 +150,6 @@ For local deployments, use the naming scheme `http://xxx.xxx.xxx.xxx:8009` and a
 ## License
 
 Apache License 2.0, see [LICENSE](LICENSE) file.
+
+## Acknowledgements
+We developed this project at Paderborn University within the transfer project _T2_ of the _CRC 901 – On-The-Fly Computing_.
