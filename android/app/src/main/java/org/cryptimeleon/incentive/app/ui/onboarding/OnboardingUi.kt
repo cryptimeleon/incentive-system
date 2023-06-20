@@ -51,8 +51,8 @@ val rewardsPage = Page(
 )
 val registrationPage = Page(
     "Registration",
-    "During registration, we associate your name with a cryptographic credential. "
-            + "This credential and thus your identity stays private, unless you try to attack the system.",
+    "During registration, we associate your name with a cryptographic credential. " +
+            "The name is public. However, your actions cannot be linked to your name (unless you explicitly try to double spend)",
     "🙋",
     isUserNamePage = true
 )
