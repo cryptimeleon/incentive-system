@@ -12,7 +12,7 @@
     <div class="prose text-lg pb-2">
       The provider keeps a list of all registered users for the sake of identifying double-spending users: 
       cryptographic guarantees ensure that the provider can retrieve a double-spending user's public key; then the provider can use that to point to the right user entry.
-      However, for honest users, who do not double-spend, none of their actions with the stores can be traced back to their public key.
+      However, for honest users, who do not double-spend, none of their actions with the stores can be traced back to their public key and the only information the provider has is that they are in the system (but cannot link this information to purchases).
     </div>
     <div class="text-2xl font-bold">Registration Coupons</div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">

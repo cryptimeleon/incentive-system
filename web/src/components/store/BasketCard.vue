@@ -51,14 +51,15 @@
                         <div v-else>
                             No rewards
                         </div>
-                        <div v-if="hasDS">
+                        <div>
                             <div class="font-bold">
-                                DoubleSpending
+                                💾 Customer data
                             </div>
+                            <div v-if="hasDS">User has illegally double-spent.</div>
                             <div>
-                                User: {{ basket.dsData.userInfo }}
+                                {{ hasDS ? basket.dsData.userInfo : "No information"}}
                             </div>
-                            <p class="truncate max-w-full">
+                            <p v-if="hasDS" class="truncate max-w-full">
                                 Secret Key: {{ basket.dsData.userSecretExponent.split("INT:")[1] }}
                             </p>
                         </div>
