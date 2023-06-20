@@ -22,7 +22,7 @@ class OnboardingViewModel @Inject constructor(
         get() = _serverUrl
     val serverUrlValid = serverUrl.map { Patterns.WEB_URL.matcher(it).matches() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), initialValue = true)
-    private val _name = MutableStateFlow("")
+    private val _name = MutableStateFlow("John Doe")
     val name: StateFlow<String>
         get() = _name
 
@@ -36,8 +36,8 @@ class OnboardingViewModel @Inject constructor(
 
     fun storeData() {
         runBlocking {
-            preferencesRepository.setUserData(name.value)
-            preferencesRepository.setServerUrl(if (serverUrl.value != "") serverUrl.value else BuildConfig.SERVER_URL)
+            preferencesRepository.setUserData(name.value.trim())
+            preferencesRepository.setServerUrl(if (serverUrl.value != "") serverUrl.value.trim() else BuildConfig.SERVER_URL)
         }
     }
 }

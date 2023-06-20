@@ -65,6 +65,11 @@ private fun FinishedUiWithQRCode(message: String, paidBasketId: UUID, paidBasket
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.SemiBold,
             )
+            Text(
+                "Scan this QR code when leaving the store",
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
             Spacer(modifier = Modifier.size(36.dp))
             Surface(
                 shape = RoundedCornerShape(8.dp),

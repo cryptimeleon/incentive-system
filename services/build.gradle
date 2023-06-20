@@ -16,6 +16,9 @@ subprojects {
     }
 
     apply plugin: "java"
+    compileJava {
+        options.release = 11
+    }
 
     group = 'org.cryptimeleon.incentive'
 }

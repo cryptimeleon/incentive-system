@@ -291,7 +291,7 @@ private fun TokenUpdateRow(
                     if (selectedUpdate != null) {
                         Text(selectedUpdate.description)
                     } else {
-                        Text("Nothing")
+                        Text("Nothing. Press to choose ❗")
                     }
                 }
                 Crossfade(targetState = expanded) { expanded ->
@@ -310,16 +310,17 @@ private fun TokenUpdateRow(
         AnimatedVisibility(visible = expanded) {
             Row(Modifier.horizontalScroll(scrollState)) {
                 tokenUpdates.forEachIndexed { i, it ->
-                    RewardChoiceCard(
-                        tokenUpdate = it,
-                        selected = selectedUpdate == it,
-                        onClick = { setSelectedTokenUpdate(it) },
-                        modifier = Modifier
-                            .width(200.dp)
-                            .padding(8.dp)
-                            .padding(start = if (i == 0) 16.dp else 0.dp)
-                            .padding(end = if (i == tokenUpdates.lastIndex) 16.dp else 0.dp)
-                    )
+                    if (it.description != "Nothing" || tokenUpdates.size == 1) //removing the "Nothing" choice.
+                        RewardChoiceCard(
+                            tokenUpdate = it,
+                            selected = selectedUpdate == it,
+                            onClick = { setSelectedTokenUpdate(it) },
+                            modifier = Modifier
+                                .width(200.dp)
+                                .padding(8.dp)
+                                .padding(start = if (i == 0 || i == 1 && tokenUpdates[0].description == "Nothing") 16.dp else 0.dp)
+                                .padding(end = if (i == tokenUpdates.lastIndex) 16.dp else 0.dp)
+                        )
                 }
             }
         }

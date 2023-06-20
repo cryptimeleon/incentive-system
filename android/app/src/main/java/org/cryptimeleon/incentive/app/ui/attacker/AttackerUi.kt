@@ -173,7 +173,7 @@ private fun DoubleSpendingText() {
 private fun DoubleSpendingProtectionText(modifier: Modifier = Modifier) {
     Column(modifier = modifier) {
         Text(
-            "How does the Incentive-System protect against double-spending??",
+            "How does the Incentive-System protect against double-spending?",
             style = MaterialTheme.typography.headlineMedium
         )
         Spacer(
