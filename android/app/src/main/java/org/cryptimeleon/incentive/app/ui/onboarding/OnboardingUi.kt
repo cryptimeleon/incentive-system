@@ -2,9 +2,18 @@ package org.cryptimeleon.incentive.app.ui.onboarding
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -13,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -23,6 +33,7 @@ import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.HorizontalPagerIndicator
 import com.google.accompanist.pager.rememberPagerState
 import kotlinx.coroutines.launch
+import org.cryptimeleon.incentive.app.BuildConfig
 import org.cryptimeleon.incentive.app.ui.preview.CryptimeleonPreviewContainer
 
 data class Page(
@@ -52,7 +63,8 @@ val rewardsPage = Page(
 val registrationPage = Page(
     "Registration",
     "During registration, we associate your name with a cryptographic credential. " +
-            "The name is public. However, your actions cannot be linked to your name (unless you explicitly try to double spend)",
+            "The name is public. However, your actions cannot be linked to your name (unless you explicitly try to double spend)\n\n" +
+            "To protect personal data, you are assigned the following name:",
     "🙋",
     isUserNamePage = true
 )
@@ -77,22 +89,36 @@ val onboardingPages = listOf(
     finalPage
 )
 
-@OptIn(
-    ExperimentalPagerApi::class,
-    ExperimentalComposeUiApi::class
-)
 @Composable
 fun OnboardingScreen(navigateToApp: () -> Unit = {}) {
     val onboardingViewModel = hiltViewModel<OnboardingViewModel>()
-    val pagerState = rememberPagerState()
-    val name by onboardingViewModel.name.collectAsState()
+    val name = onboardingViewModel.name
     val serverUrl by onboardingViewModel.serverUrl.collectAsState()
     val serverUrlValid by onboardingViewModel.serverUrlValid.collectAsState()
-    val coroutineScope = rememberCoroutineScope()
-    val keyboardController = LocalSoftwareKeyboardController.current
 
+    val done = {
+        onboardingViewModel.storeData()
+        navigateToApp()
+    }
+
+    OnboardingScreen(serverUrlValid, name, serverUrl, onboardingViewModel::setServerUrl, done)
+}
+
+@Composable
+@OptIn(ExperimentalPagerApi::class, ExperimentalComposeUiApi::class)
+private fun OnboardingScreen(
+    serverUrlValid: Boolean,
+    name: String,
+    serverUrl: String,
+    setServerUrl: (String) -> Unit,
+    done: () -> Unit
+) {
     Scaffold {
         Column(modifier = Modifier.padding(it)) {
+            val coroutineScope = rememberCoroutineScope()
+            val keyboardController = LocalSoftwareKeyboardController.current
+            val pagerState = rememberPagerState()
+
             HorizontalPager(
                 count = onboardingPages.size,
                 state = pagerState,
@@ -104,27 +130,18 @@ fun OnboardingScreen(navigateToApp: () -> Unit = {}) {
                 val page = onboardingPages[i]
                 OnboardingPage(page = page) {
                     if (page.isUserNamePage) {
-                        OutlinedTextField(
+                        Text(
                             name,
-                            { onboardingViewModel.setUserData(it) },
-                            singleLine = true,
-                            placeholder = { Text("Type your name") },
-                            keyboardActions = KeyboardActions(onDone = {
-                                keyboardController?.hide()
-                                coroutineScope.launch {
-                                    pagerState.animateScrollToPage(i + 1)
-                                }
-                            }),
-                            isError = name == "",
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 16.dp)
+                            fontWeight = FontWeight.SemiBold,
+                            style = MaterialTheme.typography.bodyLarge,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(top = 4.dp)
                         )
                     }
                     if (page.isServerUrlPage) {
                         OutlinedTextField(
                             serverUrl,
-                            { onboardingViewModel.setServerUrl(it) },
+                            setServerUrl,
                             singleLine = true,
                             placeholder = { Text("Type the server url") },
                             keyboardActions = KeyboardActions(onDone = {
@@ -150,10 +167,7 @@ fun OnboardingScreen(navigateToApp: () -> Unit = {}) {
             )
             AnimatedVisibility(visible = pagerState.currentPage == onboardingPages.lastIndex) {
                 Button(
-                    onClick = {
-                        onboardingViewModel.storeData()
-                        navigateToApp()
-                    },
+                    onClick = done,
                     Modifier
                         .fillMaxWidth()
                         .align(Alignment.CenterHorizontally)
@@ -195,6 +209,6 @@ fun OnboardingPage(page: Page, optionalEditableArea: @Composable () -> Unit) {
 @Composable
 private fun OnboardingScreenPreview() {
     CryptimeleonPreviewContainer {
-        OnboardingScreen()
+        OnboardingScreen(true, generateName(), BuildConfig.SERVER_URL, {}, {})
     }
 }
