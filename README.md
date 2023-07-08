@@ -1,4 +1,4 @@
-# Cryptimeleon Incentive System ![Develop](https://github.com/cryptimeleon/incentive-system/workflows/Default%20workflow/badge.svg?branch=develop)
+# Cryptimeleon Incentive System ![main](https://github.com/cryptimeleon/incentive-system/workflows/Default%20workflow/badge.svg?branch=main)
 
 This project is an implementation of a privacy-preserving incentive system (loyalty/point-collection system).
 It is based on the [Privacy-Preserving Incentive Systems with Highly Efficient Point-Collection](https://eprint.iacr.org/2020/382)

@@ -70,7 +70,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [build-and-integration-test, build-web]
     steps:
       - name: Checkout this repo
