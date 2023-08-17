@@ -62,9 +62,10 @@ val rewardsPage = Page(
 )
 val registrationPage = Page(
     "Registration",
-    "During registration, we associate your name with a cryptographic credential. " +
-            "The name is public. However, your actions cannot be linked to your name (unless you explicitly try to double spend)\n\n" +
-            "To protect personal data, you are assigned the following name:",
+        "Users need to register for Incentimeleon with their personal data (usually name, address)."+
+            "However, actions in the system are anonymous, i.e. our cryptographic system allows you to collect points and claim rewards in a way that cannot be traced to your identity.\n"+
+            "So why collect user identities at all? Users illegally trying to claim unearned rewards forfeit their anonymity, allowing such behavior to be prosecuted. \n\n" +
+            "For this demo, we do not want to know your real identity (no matter what), so you are assigned the following random name:",
     "🙋",
     isUserNamePage = true
 )
@@ -84,9 +85,9 @@ val onboardingPages = listOf(
     shoppingPage,
     collectPage,
     rewardsPage,
+    finalPage,
     registrationPage,
-    urlPage,
-    finalPage
+    urlPage
 )
 
 @Composable
