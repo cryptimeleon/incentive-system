@@ -12,4 +12,4 @@ export HOST=incentimeleon.cryptimeleon.org
 # Use this for local deployments or change the host to your server's url
 # export HOST=localhost:8009
 
-docker-compose -f docker-compose.yaml up -d
+docker compose -f docker-compose.yaml up -d
